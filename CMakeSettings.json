@@ -1,0 +1,69 @@
+// Copyright 2020 Sapphire development team. All Rights Reserved.
+
+{
+  // For more information about this file see:
+  // https://go.microsoft.com//fwlink//?linkid=834763
+  // https://docs.microsoft.com/en-us/cpp/build/cmakesettings-reference?view=vs-2019
+  "configurations": [
+    {
+      "name": "Debug-Clang",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-v -j${env.NUMBER_OF_PROCESSORS}",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_C_COMPILER",
+          "value": "clang-cl"
+        },
+        {
+          "name": "CMAKE_CXX_COMPILER",
+          "value": "clang-cl"
+        }
+      ]
+    },
+    {
+      "name": "Release-Clang",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-v -j${env.NUMBER_OF_PROCESSORS}",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_C_COMPILER",
+          "value": "clang-cl"
+        },
+        {
+          "name": "CMAKE_CXX_COMPILER",
+          "value": "clang-cl"
+        }
+      ]
+    },
+    {
+      "name": "Debug-MSVC",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-v -j${env.NUMBER_OF_PROCESSORS}",
+      "ctestCommandArgs": ""
+    },
+    {
+      "name": "Release-MSVC",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-v -j${env.NUMBER_OF_PROCESSORS}",
+      "ctestCommandArgs": ""
+    }
+  ]
+}
