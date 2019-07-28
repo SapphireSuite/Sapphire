@@ -2,6 +2,7 @@
 
 #include "UnitTest.hpp"
 
+#include <Sapphire/Core/Thread/Mutex.hpp>
 #include <Sapphire/Core/Thread/Thread.hpp>
 using namespace Sa;
 
@@ -10,12 +11,14 @@ int main()
 	LOG("=== Start ===");
 
 
-	uint32 count = 0u;
-	bool bWaitForStart = true;
+	Mutex mutex;
+	mutex.Lock();
 
-	Thread th1([&bWaitForStart, &count]()
+	uint32 count = 0u;
+
+	Thread th1([&mutex, &count]()
 	{
-		while(bWaitForStart){}
+		RAII<Mutex> lk(mutex);
 
 		for (uint32 i = 0u; i < 5u; ++i)
 		{
@@ -24,9 +27,9 @@ int main()
 		}
 	});
 
-	Thread th2([&bWaitForStart, &count]()
+	Thread th2([&mutex, &count]()
 	{
-		while(bWaitForStart){}
+		RAII<Mutex> lk(mutex);
 
 		for (uint32 i = 0u; i < 5u; ++i)
 		{
@@ -41,12 +44,12 @@ int main()
 	SA_TEST(th1.GetID(), != , 0u);
 	SA_TEST(th2.GetID(), !=, 0u);
 
-	bWaitForStart = false;
+	mutex.Unlock();
 
 	th1.Join();
 	th2.Join();
 
-	SA_TRY_TEST(count, ==, 10u);
+	SA_TEST(count, ==, 10u);
 
 
 	LOG("\n=== End ===");
