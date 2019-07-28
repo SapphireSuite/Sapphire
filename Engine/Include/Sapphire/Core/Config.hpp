@@ -41,6 +41,14 @@ namespace Sa
 
 
 /**
+*	\defgroup Time Time
+*	Sapphire Time-relative classes.
+*
+*	\ingroup Core
+*/
+
+
+/**
 *	\defgroup Types Types
 *	Sapphire Core types definitions and operations.
 *
