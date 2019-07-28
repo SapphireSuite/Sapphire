@@ -41,6 +41,14 @@ namespace Sa
 
 
 /**
+*	\defgroup Thread Thread
+*	Sapphire Thread classes.
+*
+*	\ingroup Core
+*/
+
+
+/**
 *	\defgroup Time Time
 *	Sapphire Time-relative classes.
 *

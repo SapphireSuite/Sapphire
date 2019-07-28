@@ -2,44 +2,51 @@
 
 #include "UnitTest.hpp"
 
-#include <Sapphire/Core/Misc/RAII.hpp>
+#include <Sapphire/Core/Thread/Thread.hpp>
 using namespace Sa;
-
-struct A
-{
-	A()
-	{
-		LOG("Construct A");
-	}
-	~A()
-	{
-		LOG("Destruct A");
-	}
-};
-
-template <>
-class Sa::RAII<A> final : RAIIBase
-{
-	A mHandle;
-public:
-};
-
 
 int main()
 {
 	LOG("=== Start ===");
 
 
-	bool bTest = false;
+	uint32 count = 0u;
+	bool bWaitForStart = true;
 
+	Thread th1([&bWaitForStart, &count]()
 	{
-		RAII<A> temp;
+		while(bWaitForStart){}
 
-		RAII<bool> temp1(bTest);
-		SA_TEST(bTest, ==, true)
-	}
+		for (uint32 i = 0u; i < 5u; ++i)
+		{
+			++count;
+			LOG("Th1");
+		}
+	});
 
-	SA_TEST(bTest, == , false)
+	Thread th2([&bWaitForStart, &count]()
+	{
+		while(bWaitForStart){}
+
+		for (uint32 i = 0u; i < 5u; ++i)
+		{
+			++count;
+			LOG("Th2");
+		}
+	});
+
+	LOG("Th1 ID: " << th1.GetID());
+	LOG("Th2 ID: " << th2.GetID());
+
+	SA_TEST(th1.GetID(), != , 0u);
+	SA_TEST(th2.GetID(), !=, 0u);
+
+	bWaitForStart = false;
+
+	th1.Join();
+	th2.Join();
+
+	SA_TRY_TEST(count, ==, 10u);
 
 
 	LOG("\n=== End ===");
