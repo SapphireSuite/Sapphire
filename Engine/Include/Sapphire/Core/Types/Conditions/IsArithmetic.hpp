@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_CORE_IS_ARITHMETIC_GUARD
 #define SAPPHIRE_CORE_IS_ARITHMETIC_GUARD
 
-#include <Core/Types/Conditions/IsIntergral.hpp>
+#include <Core/Types/Conditions/IsIntegral.hpp>
 #include <Core/Types/Conditions/IsFloatingPoint.hpp>
 
 namespace Sa
