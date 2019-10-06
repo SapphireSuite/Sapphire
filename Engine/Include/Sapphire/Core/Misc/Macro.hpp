@@ -4,7 +4,7 @@
 #define SAPPHIRE_CORE_MACRO_GUARD
 
 /**
-*	\file Macro.hpp
+*	\file Core/Misc/Macro.hpp
 *
 *	\brief Sapphire's macro misc definition.
 *

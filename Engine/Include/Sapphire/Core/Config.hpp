@@ -39,4 +39,12 @@ namespace Sa
 *	Sapphire Core Engine Module.
 */
 
+
+/**
+*	\defgroup Types Types
+*	Sapphire Core types definitions and operations.
+*
+*	\ingroup Core
+*/
+
 #endif // GUARD

@@ -9,7 +9,7 @@
 #include <Core/Support/Platforms.hpp>
 
 /**
-*	\file Windows.hpp
+*	\file Core/Support/Windows.hpp
 *
 *	\brief Sapphire's support of Windows.h file.
 *

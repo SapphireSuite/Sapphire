@@ -10,7 +10,7 @@
 #include <Core/Support/Compilers.hpp>
 
 /**
-*	\file Pragma.hpp
+*	\file Core/Support/Pragma.hpp
 *
 *	\brief Sapphire's support of pragma directives.
 *
