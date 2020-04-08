@@ -55,4 +55,12 @@ namespace Sa
 *	\ingroup Core
 */
 
+
+/**
+*	\defgroup Misc Misc
+*	Sapphire Misc Core classes.
+*
+*	\ingroup Core
+*/
+
 #endif // GUARD

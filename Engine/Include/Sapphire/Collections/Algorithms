@@ -1,0 +1,20 @@
+// Copyright 2020 Sapphire development team. All Rights Reserved.
+
+#pragma once
+
+#ifndef SAPPHIRE_COLLECTIONS_ALGORITHMS_GUARD
+#define SAPPHIRE_COLLECTIONS_ALGORITHMS_GUARD
+
+#include <Core/Algorithms/Move.hpp>
+#include <Core/Algorithms/Forward.hpp>
+
+#include <Core/Algorithms/MemMove.hpp>
+#include <Core/Algorithms/MemCopy.hpp>
+#include <Core/Algorithms/MemFill.hpp>
+#include <Core/Algorithms/MemReset.hpp>
+
+#include <Core/Algorithms/Swap.hpp>
+#include <Core/Algorithms/Convert.hpp>
+#include <Core/Algorithms/IsNull.hpp>
+
+#endif // GUARD

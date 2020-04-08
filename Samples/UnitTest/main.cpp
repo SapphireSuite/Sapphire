@@ -1,10 +1,8 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <cmath>
-
 #include "UnitTest.hpp"
 
-#include <Sapphire/Collections/Time>
+#include <Sapphire/Collections/Algorithms>
 using namespace Sa;
 
 int main()
@@ -12,68 +10,80 @@ int main()
 	LOG("=== Start ===");
 
 
-	LOG("\n === MilliSecond ===");
-	SA_TEST(500.0_ms, ==, 500.0f);
-	SA_TEST(MilliSecond(896_sec), ==, 896.0f * 1000.0f);
-	SA_TEST(MilliSecond(536_min), ==, 536.0f * 60000.0f);
-	SA_TEST(MilliSecond(3_hr), ==, 3.0f * 3600000.0f);
+	LOG("\n=== MemFill ===");
+	char str[6]{};
+	MemFill(str, 'y', 5);
+	SA_TEST(strcmp(str, "yyyyy"), == , 0);
+
+	int tab1[5];
+	MemFill(tab1, 808, 5);
+	SA_TEST(tab1[0], ==, 808);
+	SA_TEST(tab1[1], ==, 808);
+	SA_TEST(tab1[2], ==, 808);
+	SA_TEST(tab1[3], ==, 808);
+	SA_TEST(tab1[4], ==, 808);
 
 
-	LOG("\n === Second ===");
-	SA_TEST(Second(500.0_ms), ==, 0.5f);
-	SA_TEST(896_sec, ==, 896.0f);
-	SA_TEST(Second(536_min), ==, 536.0f * 60.0f);
-	SA_TEST(Second(3_hr), ==, 3.0f * 3600.0f);
+	LOG("\n=== MemCopy ===");
+	int tab2[5];
+	MemCopy(tab1, tab2, 5);
+
+	SA_TEST(tab2[0], == , 808);
+	SA_TEST(tab2[1], == , 808);
+	SA_TEST(tab2[2], == , 808);
+	SA_TEST(tab2[3], == , 808);
+	SA_TEST(tab2[4], == , 808);
 
 
-	LOG("\n === Minute ===");
-	SA_TEST(Minute(500.0_ms), ==, 500.0f / 60000.0f);
-	SA_TEST(Minute(753_sec), ==, 753.0f / 60.0f);
-	SA_TEST(536_min, ==, 536.0f);
-	SA_TEST(Minute(3_hr), ==, 3.0f * 60.0f);
+	LOG("\n=== MemMove ===");
+	int tab3[5];
+	MemMove(tab2, tab3, 5);
+	SA_TEST(tab3[0], == , 808);
+	SA_TEST(tab3[1], == , 808);
+	SA_TEST(tab3[2], == , 808);
+	SA_TEST(tab3[3], == , 808);
+	SA_TEST(tab3[4], == , 808);
 
 
-	LOG("\n === Hour ===");
-	SA_TEST(Hour(500.0_ms), ==, 500.0f / 3600000.0f);
-	SA_TEST(Hour(896_sec), ==, 896.0f / 3600.0f);
-	SA_TEST(Hour(536_min), ==, 536.0f / 60.0f);
-	SA_TEST(3_hr, ==, 3.0f);
+	LOG("\n=== MemReset ===");
+	MemReset(str, 5);
+	SA_TEST(str[0], == , 0);
+	SA_TEST(str[1], == , 0);
+	SA_TEST(str[2], == , 0);
+	SA_TEST(str[3], == , 0);
+	SA_TEST(str[4], == , 0);
+	SA_TEST(str[5], == , 0);
 
 
-	LOG("\n=== Chrono ===");
+	LOG("\n=== IsNull ===");
+	int i1 = 0; int i2 = 0; int i3 = 0;
 
-	Chrono time;
-	time.Start();
-
-	Time::Sleep(1354_ms);
-
-	Tick end = time.End();
-
-	// 1.0ms of tolerence (hardware dependent).
-	SA_TRY_TEST(std::abs(MilliSecond(end) - 1354.0f), <, 1.0f)
+	SA_TEST(IsNull(&i1, &i2, &i3), == , false);
+	SA_TEST(IsNull(&i1, &i2, nullptr, &i3), == , true);
 
 
-	LOG("\n=== Date ===");
+	LOG("\n=== Convert ===");
 
-	const DateTime date = Time::Date();
-	LOG("Local Date:\t\t" << date.GetDayName() << ' ' << \
-		date.GetMonthName() << '\t' << \
-		static_cast<uint32>(date.day) << '/' << \
-		static_cast<uint32>(date.month) << '/' << \
-		static_cast<uint32>(date.year) << '\t' << \
-		static_cast<uint32>(date.hour) << ':' << \
-		static_cast<uint32>(date.minute) << ':' << \
-		static_cast<uint32>(date.second));
+	wchar wA;
+	Convert('a', wA);
+	SA_TEST(wA, ==, L'a');
 
-	const DateTime gmDate = Time::GMDate();
-	LOG("Greenwich Mean Date:\t" << gmDate.GetDayName() << ' ' << \
-		gmDate.GetMonthName() << '\t' << \
-		static_cast<uint32>(gmDate.day) << '/' << \
-		static_cast<uint32>(gmDate.month) << '/' << \
-		static_cast<uint32>(gmDate.year) << '\t' << \
-		static_cast<uint32>(gmDate.hour) << ':' << \
-		static_cast<uint32>(gmDate.minute) << ':' << \
-		static_cast<uint32>(gmDate.second));
+	char8 cB;
+	Convert(L'b', cB);
+	SA_TEST(cB, == , 'b');
+
+	char8 c780;
+	Convert(780, c780, '?');
+	SA_TEST(c780, == , '?');
+
+	const wchar wABCD[6]{ L'A', 780 , L'B' , L'C' , L'D', L'\0' };
+	char8 cABCD[6];
+	Convert(wABCD, cABCD, '?');
+	SA_TEST(cABCD[0], == , 'A');
+	SA_TEST(cABCD[1], == , '?');
+	SA_TEST(cABCD[2], == , 'B');
+	SA_TEST(cABCD[3], == , 'C');
+	SA_TEST(cABCD[4], == , 'D');
 
 
 	LOG("\n=== End ===");
