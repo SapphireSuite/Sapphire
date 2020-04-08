@@ -1,0 +1,21 @@
+# Copyright 2020 Sapphire development team. All Rights Reserved.
+
+
+# === Projects ===
+
+project(Prototype)
+
+
+# === Inputs ===
+
+# Parse cpp files.
+file(GLOB_RECURSE SOURCES "*")
+
+# Add executable target.
+add_executable(Prototype ${SOURCES})
+
+
+# === Dependencies ===
+
+# Add library dependencies.
+target_link_libraries(Prototype PRIVATE Engine)

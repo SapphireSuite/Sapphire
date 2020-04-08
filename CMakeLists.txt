@@ -51,3 +51,5 @@ enable_testing()
 # === Entrypoints ===
 
 add_subdirectory(Engine)
+
+add_subdirectory(Samples)
