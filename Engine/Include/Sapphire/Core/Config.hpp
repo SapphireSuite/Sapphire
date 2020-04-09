@@ -5,6 +5,27 @@
 #ifndef SAPPHIRE_CORE_CONFIG_GUARD
 #define SAPPHIRE_CORE_CONFIG_GUARD
 
+#include <Core/Support/EngineAPI.hpp>
+
+#if SA_DEBUG
+
+	/// Toogle logging Sapphire's preprocessor.
+	#define SA_LOGGING 1
+
+	/// Toogle assertions Sapphire's preprocessor.
+	#define SA_ASSERTION 1
+
+#else
+
+	/// Toogle logging Sapphire's preprocessor.
+	#define SA_LOGGING 0
+
+	/// Toogle assertions Sapphire's preprocessor.
+	#define SA_ASSERTION 0
+
+#endif
+
+
 /// Sapphire global namespace
 namespace Sa
 {
@@ -37,6 +58,14 @@ namespace Sa
 /**
 *	\defgroup Core Core
 *	Sapphire Core Engine Module.
+*/
+
+
+/**
+*	\defgroup Debug Debug
+*	Sapphire Debug classes.
+*
+*	\ingroup Core
 */
 
 

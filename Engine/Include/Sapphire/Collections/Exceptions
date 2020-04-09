@@ -1,0 +1,12 @@
+// Copyright 2020 Sapphire development team. All Rights Reserved.
+
+#pragma once
+
+#ifndef SAPPHIRE_COLLECTIONS_EXCEPTIONS_GUARD
+#define SAPPHIRE_COLLECTIONS_EXCEPTIONS_GUARD
+
+#include <Core/Debug/Exceptions/Exception.hpp>
+
+#include <Core/Debug/Exceptions/Exception_OutOfRange.hpp>
+
+#endif // GUARD

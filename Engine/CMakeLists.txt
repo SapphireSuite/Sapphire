@@ -66,6 +66,12 @@ else()
 	target_compile_options(Engine PUBLIC -fno-rtti)
 endif()
 
+# Advanced MSVC preprocessor required for Core::Debug
+# https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview
+if(MSVC AND NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")  # Not allowed on Clang-cl for Visual Studio.
+	target_compile_options(Engine PUBLIC /experimental:preprocessor)
+endif()
+
 
 
 # === Build Configs ===

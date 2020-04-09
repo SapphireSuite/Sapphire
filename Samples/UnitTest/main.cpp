@@ -2,39 +2,59 @@
 
 #include "UnitTest.hpp"
 
-#include <Sapphire/Core/Misc/Flags.hpp>
+#include <Sapphire/Collections/Debug>
 using namespace Sa;
 
-enum class TestFlag : uint8
-{
-	Test0 = 0,
-	Test1 = (1 << 1),
-	Test2 = (1 << 2),
-	Test3 = (1 << 3),
-	Test4 = (1 << 4)
-};
-using TestFlags = Flags<TestFlag>;
+SA_LOG_CHAN_DEFINE(SuperChan)
 
 int main()
 {
 	LOG("=== Start ===");
 
 
-	TestFlags flag(TestFlag::Test1 | TestFlag::Test3);
+	LOG("\n=== Log ===");
+	SA_LOG("Hello, World!");
 
-	SA_TEST((uint8)flag, ==, (uint8)(TestFlag::Test1) | (uint8)(TestFlag::Test3));
-	SA_TEST(flag.IsSet(TestFlag::Test1), ==, true);
-	SA_TEST(flag.IsSet(TestFlag::Test2), == , false);
+	SA_LOG("Hello, Infos World!", Infos);
+
+	SA_LOG("Hello, Super Warning World!", Warning, SuperChan);
+
+	SA_LOG_LVL_ENABLE(Infos, false);
+	SA_LOG("Try log in a disabled level", Infos);
 
 
-	LOG("\n=== Add ===");
-	flag.Add(TestFlag::Test2);
-	SA_TEST(flag.IsSet(TestFlag::Test2), == , true);
+	SA_LOG_CHAN_ENABLE_LOG(SuperChan, false)
+	SA_LOG("Try Log in a disabled channel!", Normal, SuperChan);
+
+	SA_LOG("Try log in a non-registered channel", Normal, NonRegisteredChannel);
 
 
-	LOG("\n=== Remove ===");
-	flag.Remove(TestFlag::Test3);
-	SA_TEST(flag.IsSet(TestFlag::Test3), == , false);
+	SA_LOG_CHAN_ENABLE_LOG(SuperChan, true)
+	SA_LOG("Channel is back to enabled nut not level", Infos, SuperChan);
+
+	SA_LOG_LVL_ENABLE(Infos, true);
+	SA_LOG("Everything is fine!", Infos, SuperChan);
+
+
+	LOG("\n=== Assertion ===");
+	SA_ASSERT(true, Unknown, Default);
+
+	try
+	{
+		SA_ASSERT(false, Unknown, Default, L"Try catch assertion");
+	}
+	catch (const Exception<ExceptCode::Unknown>& _exception)
+	{
+		std::wcout << "----- Unknown Exception caught -----" << std::endl;
+
+		_exception.Output(std::wcout);
+	}
+	catch (const ExceptionBase& _exception)
+	{
+		std::wcout << "----- Exception caught -----" << std::endl;
+
+		_exception.Output(std::wcout);
+	}
 
 
 	LOG("\n=== End ===");
