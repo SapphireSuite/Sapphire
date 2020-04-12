@@ -9,6 +9,8 @@
 
 #include <Core/Types/Int.hpp>
 
+#include <Core/Debug/Debug.hpp>
+
 namespace Sa
 {
 	/**
@@ -35,6 +37,8 @@ namespace Sa
 	template <typename T>
 	void MemReset(T* _dest, uint32 _num)
 	{
+		SA_ASSERT(_dest, Nullptr, Tools, L"_dest nullptr!");
+
 		std::memset(_dest, T(0), _num * sizeof(T));
 	}
 

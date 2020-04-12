@@ -9,6 +9,8 @@
 
 #include <Core/Types/Int.hpp>
 
+#include <Core/Debug/Debug.hpp>
+
 namespace Sa
 {
 	/**
@@ -36,6 +38,9 @@ namespace Sa
 	template <typename T>
 	void MemMove(const T* _src, T* _dest, uint32 _num)
 	{
+		SA_ASSERT(_src, Nullptr, Tools, L"_src nullptr!");
+		SA_ASSERT(_dest, Nullptr, Tools, L"dest nullptr!");
+
 		std::memmove(_dest, _src, _num * sizeof(T));
 	}
 

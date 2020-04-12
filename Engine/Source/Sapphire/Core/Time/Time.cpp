@@ -17,6 +17,9 @@
 
 #endif
 
+#include <Core/Debug/Debug.hpp>
+
+
 namespace Sa
 {
 #if SA_WIN
@@ -32,13 +35,13 @@ namespace Sa
 	{
 		LARGE_INTEGER start;
 
-		// TODO: Add Check on return 0.
-		QueryPerformanceCounter(&start);
+		bool bSuccess = QueryPerformanceCounter(&start);
+		SA_ASSERT(bSuccess, NotSupported, Tools, L"High resolution time stamp not supported!");
 
 		LARGE_INTEGER frequency;
 
-		// TODO: Add Check on return 0.
-		QueryPerformanceFrequency(&frequency);
+		bSuccess = QueryPerformanceFrequency(&frequency);
+		SA_ASSERT(bSuccess, NotSupported, Tools, L"High resolution time stamp not supported!");
 
 		return TimeInitializer{ static_cast<uint64>(start.QuadPart), Second::ToTicks / static_cast<float>(frequency.QuadPart) };
 	}
@@ -64,8 +67,8 @@ namespace Sa
 
 		LARGE_INTEGER end;
 
-		// TODO: Add Check on return 0.
-		QueryPerformanceCounter(&end);
+		bool bSuccess = QueryPerformanceCounter(&end); (void)bSuccess;
+		SA_ASSERT(bSuccess, NotSupported, Tools, L"High resolution time stamp not supported!");
 
 		return (end.QuadPart - sInstance.mStart) * sInstance.mHardwareFrequency;
 
@@ -73,8 +76,9 @@ namespace Sa
 
 		struct timespec end;
 
-		// TODO: Add Check on return -1.
-		clock_gettime(CLOCK_MONOTONIC, &end);
+		int bSuccess = clock_gettime(CLOCK_MONOTONIC, &end) == 0; (void)bSuccess;
+		SA_ASSERT(bSuccess, NotSupported, Tools, L"High resolution time stamp not supported!");
+
 
 		return (end.tv_sec * Second::ToTicks + end.tv_nsec / 1000.0f) - sInstance.mStart;
 

@@ -9,6 +9,8 @@
 
 #include <Core/Types/Int.hpp>
 
+#include <Core/Debug/Debug.hpp>
+
 namespace Sa
 {
 	/**
@@ -36,6 +38,8 @@ namespace Sa
 	template <typename T>
 	void MemFill(T* _dest, const T& _val, uint32 _num)
 	{
+		SA_ASSERT(_dest, Nullptr, Tools, L"_dest nullptr!");
+
 		std::fill(_dest, _dest + _num, _val);
 	}
 

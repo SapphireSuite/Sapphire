@@ -2,58 +2,49 @@
 
 #include "UnitTest.hpp"
 
-#include <Sapphire/Collections/Debug>
+#include <Sapphire/Core/Time/DateTime.hpp>
+#include <Sapphire/Collections/Algorithms>
 using namespace Sa;
-
-SA_LOG_CHAN_DEFINE(SuperChan)
 
 int main()
 {
 	LOG("=== Start ===");
 
 
-	LOG("\n=== Log ===");
-	SA_LOG("Hello, World!");
+	try
+	{
+		MemCopy<int>(nullptr, nullptr, 3);
+	}
+	catch (const Exception<ExceptCode::Nullptr>& _exception)
+	{
+		std::wcout << "----- Nullptr Exception caught -----" << std::endl;
 
-	SA_LOG("Hello, Infos World!", Infos);
+		std::wcout << _exception << std::endl;
+	}
+	catch (...)
+	{
+		// Exception-catch failed.
+		return 1;
+	}
 
-	SA_LOG("Hello, Super Warning World!", Warning, SuperChan);
-
-	SA_LOG_LVL_ENABLE(Infos, false);
-	SA_LOG("Try log in a disabled level", Infos);
-
-
-	SA_LOG_CHAN_ENABLE_LOG(SuperChan, false)
-	SA_LOG("Try Log in a disabled channel!", Normal, SuperChan);
-
-	SA_LOG("Try log in a non-registered channel", Normal, NonRegisteredChannel);
-
-
-	SA_LOG_CHAN_ENABLE_LOG(SuperChan, true)
-	SA_LOG("Channel is back to enabled nut not level", Infos, SuperChan);
-
-	SA_LOG_LVL_ENABLE(Infos, true);
-	SA_LOG("Everything is fine!", Infos, SuperChan);
-
-
-	LOG("\n=== Assertion ===");
-	SA_ASSERT(true, Unknown, Default);
 
 	try
 	{
-		SA_ASSERT(false, Unknown, Default, L"Try catch assertion");
-	}
-	catch (const Exception<ExceptCode::Unknown>& _exception)
-	{
-		std::wcout << "----- Unknown Exception caught -----" << std::endl;
+		DateTime time;
+		time.weekDay = 89;
 
-		_exception.Output(std::wcout);
+		time.GetDayName();
 	}
-	catch (const ExceptionBase& _exception)
+	catch (const Exception<ExceptCode::OutOfRange>& _exception)
 	{
-		std::wcout << "----- Exception caught -----" << std::endl;
+		std::wcout << "----- OutOfRange Exception caught -----" << std::endl;
 
-		_exception.Output(std::wcout);
+		std::wcout << _exception << std::endl;
+	}
+	catch (...)
+	{
+		// Exception-catch failed.
+		return 1;
 	}
 
 
