@@ -1,0 +1,152 @@
+# Copyright 2020 Sapphire development team. All Rights Reserved.
+
+# Reference: https://docs.travis-ci.com/
+
+# Language.
+language: cpp
+
+
+
+# Distribution.
+dist: bionic
+
+
+
+# OS matrix.
+os:
+  - linux
+  - osx
+  - windows
+
+
+
+# Architecture matrix.
+arch:
+  - amd64
+#  - arm64
+
+
+
+# Compiler matrix.
+compiler:
+  - gcc
+  - clang
+
+
+
+# Environment matrix.
+env:
+
+  # Common to all jobs variables.
+  global:
+
+  # Job-specific variables.
+  jobs:
+    - CONFIG=Debug
+    - CONFIG=Release
+
+
+
+# Dependencies
+addons:
+
+  # Linux
+  apt:
+    update: true
+    packages:
+      - ninja-build # Ninja generator.
+
+  # OSX
+  homebrew:
+    update: true
+    packages:
+      - ninja # Ninja generator.
+
+
+
+# Pre-install commands.
+before_install:
+
+
+
+# Install commands.
+install:
+
+  # Add Windows Ninja generator dependency.
+  - if [[ "${TRAVIS_OS_NAME}" == "windows" ]]; then choco install -y ninja; fi
+
+  # All the dependencies are installed in ${HOME}/deps/
+  - DEPS_DIR="${HOME}/deps"
+  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+
+  # Install Cmake 3.17.0
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    elif [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
+      brew install cmake || brew upgrade cmake
+    fi
+
+
+
+# Post install.
+before_script:
+
+  # Log versions.
+  - cmake --version
+  - ninja --version
+
+  # Go back to the root of the project
+  - cd "${TRAVIS_BUILD_DIR}"
+
+
+
+# Executed commands.
+script:
+
+  # Generate, build and test.
+  - bash Tools/Generators/Ninja.sh ${CONFIG} -b -t
+
+
+
+# Job specialization matrix.
+jobs:
+  include:
+
+    # Doxygen Generation.
+    - name: "Doxygen"
+      addons: { apt: { packages: ["doxygen"] } }
+      before_install: skip
+      install: skip
+      before_script: doxygen --version
+      script: doxygen Engine/Doc/doxygen.config
+
+      # Generate and deploy documentation
+      deploy:
+        strategy: git
+        provider: pages
+        skip_cleanup: true
+        local_dir: Engine/Doc/html
+        token: $GH_REPO_TOKEN
+        on:
+          branch: master # Only deploy on gh-pages from master.
+
+
+
+# Travis' watched branches.
+branches:
+
+  # Blacklist.
+  except:
+    - /^(?i:old).*$/
+    - /^(?i:WIP)_.*$/
+    - /^(?i:temp).*$/
+    - /^(?i:test).*$/
+
+  # Whitelist.
+  only:
+    - master
+    - /^dev_.*$/
+    - /^rework.*$/
