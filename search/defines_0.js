@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['sa_5fandroid',['SA_ANDROID',['../_platforms_8hpp.html#a511a64180308e48243dcc2735605c60a',1,'Platforms.hpp']]],
+  ['sa_5farm',['SA_ARM',['../_architectures_8hpp.html#a94675c5a3e2269511cc95f34b8a5ee60',1,'Architectures.hpp']]],
+  ['sa_5fassert',['SA_ASSERT',['../_debug_8hpp.html#ac2ca6283c9a30bbe5e572585bc5eeabb',1,'Debug.hpp']]],
+  ['sa_5fclang',['SA_CLANG',['../_compilers_8hpp.html#a8802196d49e9bf1df25df94b59af0b39',1,'Compilers.hpp']]],
+  ['sa_5fdebug',['SA_DEBUG',['../_engine_a_p_i_8hpp.html#a44bab8e83c920e6d8cd3a1115c80664d',1,'EngineAPI.hpp']]],
+  ['sa_5fgnu',['SA_GNU',['../_compilers_8hpp.html#ab147ce5b0b15bb54b793982f855ddf9f',1,'Compilers.hpp']]],
+  ['sa_5flog',['SA_LOG',['../_debug_8hpp.html#a42b0846415adbe55032bf7bc5ed3e47f',1,'Debug.hpp']]],
+  ['sa_5flog_5fchan_5fdefine',['SA_LOG_CHAN_DEFINE',['../_log_channel_8hpp.html#a82178727ba062dcedb4861ea34d0f8e1',1,'LogChannel.hpp']]],
+  ['sa_5flog_5fchan_5fenable',['SA_LOG_CHAN_ENABLE',['../_debug_8hpp.html#a7a9e88674c7507cb9da1fb9a0cb2f0d1',1,'Debug.hpp']]],
+  ['sa_5flog_5flvl_5fenable',['SA_LOG_LVL_ENABLE',['../_debug_8hpp.html#a2a0f7b70eed9bc404f8deaf8e29fd31b',1,'Debug.hpp']]],
+  ['sa_5fmsvc',['SA_MSVC',['../_compilers_8hpp.html#abbbe83cfb1e9265247a565d937cb7409',1,'Compilers.hpp']]],
+  ['sa_5fosx',['SA_OSX',['../_platforms_8hpp.html#a23c9f838969d2cd6fda37403e49bf125',1,'Platforms.hpp']]],
+  ['sa_5funix',['SA_UNIX',['../_platforms_8hpp.html#a62b1c50761473104d01a0bb53093378e',1,'Platforms.hpp']]],
+  ['sa_5fversion_5fmajor',['SA_VERSION_MAJOR',['../_version_8hpp.html#afe09990091a7eefae410015f966922a8',1,'Version.hpp']]],
+  ['sa_5fversion_5fminor',['SA_VERSION_MINOR',['../_version_8hpp.html#ae774c39ca2ba6da64890789910de09a4',1,'Version.hpp']]],
+  ['sa_5fwin',['SA_WIN',['../_platforms_8hpp.html#a96dfa3a3ab750a733d66f4888cbb81da',1,'Platforms.hpp']]],
+  ['sa_5fx32',['SA_x32',['../_architectures_8hpp.html#a87a098ba579f290691822f2c239a6059',1,'Architectures.hpp']]],
+  ['sa_5fx64',['SA_x64',['../_architectures_8hpp.html#a89e3d433071d900aaeda21bc34cc5432',1,'Architectures.hpp']]]
+];
