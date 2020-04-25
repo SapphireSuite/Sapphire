@@ -5,10 +5,14 @@
 #ifndef SAPPHIRE_DUMMY_GUARD
 #define SAPPHIRE_DUMMY_GUARD
 
+#include <Core/Support/EngineAPI.hpp>
+
 namespace Sa
 {
 	class Dummy
 	{
+	public:
+		SA_ENGINE_API Dummy();
 	};
 }
 

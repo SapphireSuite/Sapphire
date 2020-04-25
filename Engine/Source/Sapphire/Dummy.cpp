@@ -4,4 +4,7 @@
 
 namespace Sa
 {
+	Dummy::Dummy()
+	{
+	}
 }
