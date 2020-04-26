@@ -10,6 +10,8 @@
 #include <string>
 #include <iostream>
 
+#include <Core/Types/Int.hpp>
+
 #define LOG(_str) std::cout << _str << std::endl;
 
 namespace Sa
@@ -35,7 +37,9 @@ namespace Sa
 		*	Exit 0 == success.
 		*	Exit 1 == failure.
 		*/
-		static int Exit;
+		static uint32 Exit;
+
+		static constexpr uint32 TestNum = 10u;
 	};
 
 

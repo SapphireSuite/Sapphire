@@ -4,5 +4,5 @@
 
 namespace Sa
 {
-	int UnitTest::Exit = 0;
+	uint32 UnitTest::Exit = 0;
 }

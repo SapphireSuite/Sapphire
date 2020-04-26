@@ -40,6 +40,15 @@ namespace Sa
 
 		/// Out of range access
 		OutOfRange = 101,
+
+
+		/** Maths Errors: 200 */
+
+		/// Try to divide by 0.
+		DivisionBy0 = 200,
+
+		/// Operation on non-normalized object.
+		NonNormalized = 201,
 	};
 
 

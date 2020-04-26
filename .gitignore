@@ -23,10 +23,6 @@ Makefile
 [Tt]emps/
 [Tt]emporary/
 
-[Tt]est/
-[Tt]ests/
-[Tt]esting/
-
 *.tmp
 
 
