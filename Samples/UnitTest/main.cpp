@@ -2,7 +2,7 @@
 
 #include "UnitTest.hpp"
 
-#include "Tests/Maths/Maths_tests.hpp"
+#include "Tests/Maths/Vector2_tests.hpp"
 using namespace Sa;
 
 int main()
