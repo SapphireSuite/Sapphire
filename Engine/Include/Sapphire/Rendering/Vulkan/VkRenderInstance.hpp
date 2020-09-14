@@ -8,6 +8,7 @@
 #include <Rendering/Framework/IRenderInstance.hpp>
 
 #include <Rendering/Vulkan/VkMacro.hpp>
+#include <Rendering/Vulkan/VkRenderSurface.hpp>
 
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -16,9 +17,17 @@ namespace Sa
 {
 	class VkRenderInstance : public IRenderInstance
 	{
+		struct RenderSurfaceInfos
+		{
+			const IWindow* window = nullptr;
+			VkRenderSurface renderSurface;
+		};
+
 		VkDebugUtilsMessengerEXT debugMessenger = nullptr;
 
 		VkInstance mHandle = VK_NULL_HANDLE;
+
+		std::vector<RenderSurfaceInfos> mRenderSurfaceInfos;
 
 		static uint32 sInitCount;
 
@@ -30,6 +39,9 @@ namespace Sa
 	public:
 		SA_ENGINE_API void Create() override final;
 		SA_ENGINE_API void Destroy() override final;
+
+		SA_ENGINE_API void CreateRenderSurface(const IWindow& _window) override final;
+		SA_ENGINE_API void DestroyRenderSurface(const IWindow& _window) override final;
 
 		operator VkInstance() const;
 	};

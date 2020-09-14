@@ -9,11 +9,16 @@
 
 namespace Sa
 {
+	class IWindow;
+
 	class IRenderInstance
 	{
 	public:
 		virtual void Create() = 0;
 		virtual void Destroy() = 0;
+
+		virtual void CreateRenderSurface(const IWindow& _window) = 0;
+		virtual void DestroyRenderSurface(const IWindow& _window) = 0;
 	};
 }
 

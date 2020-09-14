@@ -2,11 +2,16 @@
 
 #include <Core/Support/Version.hpp>
 
-// TODO: Clean later.
 #include <Window/Config.hpp>
+
+#if SA_WINDOW_API == SA_GLFW
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <Window/GLFWWindow.hpp>
+
+#endif
 
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/VkValidationLayers.hpp>
@@ -21,6 +26,7 @@ namespace Sa
 	{
 		SA_ASSERT(VkValidationLayers::CheckValidationSupport(), NotSupported, Rendering, L"Validation Layer not supported!")
 	}
+	
 	void VkRenderInstance::UnInit()
 	{
 	}
@@ -106,6 +112,59 @@ namespace Sa
 		if (--sInitCount == 0u)
 			UnInit();
 	}
+
+	void VkRenderInstance::CreateRenderSurface(const IWindow& _window)
+	{
+#if SA_DEBUG
+
+		// Check already registered.
+		for (auto it = mRenderSurfaceInfos.begin(); it != mRenderSurfaceInfos.end(); ++it)
+			SA_ASSERT(it->window != &_window, InvalidParam, Rendering, L"Window already registered as render surface!")
+
+#endif
+
+#if SA_WINDOW_API == SA_GLFW
+
+		const GLFWWindow& glfwWindow = reinterpret_cast<const GLFWWindow&>(_window);
+
+		RenderSurfaceInfos& renderSurfaceInfo = mRenderSurfaceInfos.emplace_back(RenderSurfaceInfos{ &_window });
+
+		VkResult res = glfwCreateWindowSurface(
+			mHandle,
+			glfwWindow,
+			nullptr,
+			&(renderSurfaceInfo.renderSurface.operator VkSurfaceKHR &())
+		);
+
+		SA_ASSERT(res == VK_SUCCESS, CreationFailed, Window, L"Failed to create window surface!");
+#else
+#endif
+	}
+
+	void VkRenderInstance::DestroyRenderSurface(const IWindow& _window)
+	{
+		bool bFound = false;
+
+		for (auto it = mRenderSurfaceInfos.begin(); it != mRenderSurfaceInfos.end(); ++it)
+		{
+			if (it->window == &_window)
+			{
+				bFound = true;
+
+				vkDestroySurfaceKHR(mHandle,
+					it->renderSurface.operator VkSurfaceKHR &(),
+					nullptr
+				);
+
+				mRenderSurfaceInfos.erase(it);
+
+				break;
+			}
+		}
+
+		SA_ASSERT(bFound, InvalidParam, Rendering, L"Window not registered as render surface!")
+	}
+
 
 	const std::vector<const char*>& VkRenderInstance::GetRequiredExtensions() noexcept
 	{

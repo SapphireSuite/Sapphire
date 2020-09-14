@@ -61,49 +61,14 @@ namespace Sa
 		mHandle = nullptr;
 	}
 
-	void GLFWWindow::CreateRenderSurface(const IRenderInstance& _instance)
-	{
-		SA_ASSERT(!mRenderSurface, AlreadyCreated, Window, L"Render surface already created!")
-
-#if SA_RENDERING_API == SA_VULKAN
-
-		VkRenderSurface* vkRenderSurface = new VkRenderSurface;
-		mRenderSurface = vkRenderSurface;
-
-		VkResult res = glfwCreateWindowSurface(
-			reinterpret_cast<const VkRenderInstance&>(_instance),
-			mHandle,
-			nullptr,
-			&(vkRenderSurface->operator VkSurfaceKHR &())
-		);
-
-		SA_ASSERT(res == VK_SUCCESS, CreationFailed, Window, L"Failed to create window surface!");
-#else
-
-#endif
-	}
-
-	void GLFWWindow::DestroyRenderSurface(const IRenderInstance& _instance)
-	{
-#if SA_RENDERING_API == SA_VULKAN
-		
-		SA_ASSERT(mRenderSurface, Nullptr, Window, L"Render Surface nulltpr! Try to destroy a non-created render surface, call CreateRenderSurface() first.")
-		
-		vkDestroySurfaceKHR(reinterpret_cast<const VkRenderInstance&>(_instance),
-			reinterpret_cast<VkRenderSurface*>(mRenderSurface)->operator VkSurfaceKHR &(),
-			nullptr
-		);
-
-#else
-
-#endif
-		delete mRenderSurface;
-		mRenderSurface = nullptr;
-	}
-
 	bool GLFWWindow::ShouldClose() const
 	{
 		return glfwWindowShouldClose(mHandle);
+	}
+
+	GLFWWindow::operator GLFWwindow*() const
+	{
+		return mHandle;
 	}
 }
 
