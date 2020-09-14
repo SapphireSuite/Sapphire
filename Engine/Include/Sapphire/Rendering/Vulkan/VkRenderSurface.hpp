@@ -20,7 +20,7 @@ namespace Sa
 	public:
 		operator VkSurfaceKHR&();
 
-		operator const VkSurfaceKHR&() const;
+		operator VkSurfaceKHR() const;
 	};
 }
 

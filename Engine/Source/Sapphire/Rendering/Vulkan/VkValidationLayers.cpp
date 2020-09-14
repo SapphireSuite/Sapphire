@@ -89,6 +89,7 @@ namespace Sa
 		(void)messageSeverity;
 		(void)messageType;
 		(void)pCallbackData;
+		(void)pUserData;
 
 		// TODO: FIX.
 		//switch (messageSeverity)

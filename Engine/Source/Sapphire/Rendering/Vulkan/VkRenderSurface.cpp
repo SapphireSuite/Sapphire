@@ -11,7 +11,7 @@ namespace Sa
 		return mHandle;
 	}
 
-	VkRenderSurface::operator const VkSurfaceKHR&() const
+	VkRenderSurface::operator VkSurfaceKHR() const
 	{
 		return mHandle;
 	}
