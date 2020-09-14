@@ -8,6 +8,7 @@
 #include <Rendering/Framework/IRenderInstance.hpp>
 
 #include <Rendering/Vulkan/VkMacro.hpp>
+#include <Rendering/Vulkan/VkDevice.hpp>
 #include <Rendering/Vulkan/VkRenderSurface.hpp>
 
 
@@ -27,12 +28,16 @@ namespace Sa
 
 		VkInstance mHandle = VK_NULL_HANDLE;
 
+		VkDevice mDevice;
+
 		std::vector<RenderSurfaceInfos> mRenderSurfaceInfos;
 
 		static uint32 sInitCount;
 
 		void Init();
 		void UnInit();
+
+		void SelectDevice(const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices);
 
 		static const std::vector<const char*>& GetRequiredExtensions() noexcept;
 

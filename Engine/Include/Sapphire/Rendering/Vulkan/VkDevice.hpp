@@ -24,7 +24,6 @@ namespace Sa
 		VkQueue mGraphicsQueue;
 
 	public:
-
 		const VkQueue& GetPresentQueue() const noexcept;
 		const VkQueue& GetGraphicsQueue() const noexcept;
 
@@ -33,6 +32,10 @@ namespace Sa
 		void Create(VkPhysicalDevice _device, VkQueueFamilyIndices& _queueFamilyIndices);
 		void Destroy();
 
+		static uint32 GetExtensionNum() noexcept;
+		static const char* const* GetExtensionNames() noexcept;
+
+		static void QueryQueueFamilies(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices);
 		static bool IsPhysicalDeviceSuitable(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices);
 
 		operator ::VkDevice() const noexcept;

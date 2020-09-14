@@ -3,6 +3,7 @@
 #include <Rendering/Vulkan/VkDevice.hpp>
 
 #include <Rendering/Vulkan/VkMacro.hpp>
+#include <Rendering/Vulkan/VkValidationLayers.hpp>
 
 #include <Rendering/Vulkan/SwapChain/VkSwapChain.hpp>
 #include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
@@ -11,17 +12,16 @@
 
 namespace Sa
 {
+	// Device requiered extensions.
+	static constexpr const char* requieredExtensions[] =
+	{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
+	constexpr uint32 requieredExtensionsSize = sizeof(requieredExtensions) / sizeof(char*);
+
 	bool CheckExtensionSupport(VkPhysicalDevice _device)
 	{
-		// Device requiered extensions.
-		static constexpr const char* requieredExtensions[] =
-		{
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME
-		};
-
-		constexpr uint32 requieredExtensionsSize = sizeof(requieredExtensions) / sizeof(char*);
-
-
 		uint32 extensionCount;
 		vkEnumerateDeviceExtensionProperties(_device, nullptr, &extensionCount, nullptr);
 
@@ -49,18 +49,6 @@ namespace Sa
 		}
 
 		return true;
-	}
-
-	void QueryQueueFamilies(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices)
-	{
-		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(_device, &queueFamilyCount, nullptr);
-
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(_device, &queueFamilyCount, queueFamilies.data());
-
-		for (uint32 i = 0; i < queueFamilies.size(); ++i)
-			_queueFamilyIndices.AddFamily(_device, _surface, queueFamilies[i], i);
 	}
 
 
@@ -113,7 +101,7 @@ namespace Sa
 		{
 		};
 
-#if RN_VALIDATION_LAYER
+#if SA_VK_VALIDATION_LAYERS
 
 		const VkDeviceCreateInfo deviceCreateInfo
 		{
@@ -122,8 +110,8 @@ namespace Sa
 			0,														// flags.
 			queueCreateInfoSize,									// queueCreateInfoCount.
 			queueCreateInfos,										// pQueueCreateInfo.
-			ValidationLayers::GetLayerNum(),						// enabledLayerCount.
-			ValidationLayers::GetLayerNames(),						// ppEnabledLayerNames.
+			VkValidationLayers::GetLayerNum(),						// enabledLayerCount.
+			VkValidationLayers::GetLayerNames(),					// ppEnabledLayerNames.
 			GetExtensionNum(),										// enabledExtensionCount.
 			GetExtensionNames(),									// ppEnabledExtensionNames.
 			&physicalDeviceFeatures									// pEnabledFeatures.
@@ -169,6 +157,27 @@ namespace Sa
 
 		mLogicalDevice = VK_NULL_HANDLE;
 		mPhysicalDevice = VK_NULL_HANDLE;
+	}
+
+	uint32 VkDevice::GetExtensionNum() noexcept
+	{
+		return requieredExtensionsSize;
+	}
+	const char* const* VkDevice::GetExtensionNames() noexcept
+	{
+		return requieredExtensions;
+	}
+
+	void VkDevice::QueryQueueFamilies(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices)
+	{
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(_device, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(_device, &queueFamilyCount, queueFamilies.data());
+
+		for (uint32 i = 0; i < queueFamilies.size(); ++i)
+			_queueFamilyIndices.AddFamily(_device, _surface, queueFamilies[i], i);
 	}
 
 	bool VkDevice::IsPhysicalDeviceSuitable(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices)

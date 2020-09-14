@@ -1,5 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
+#include <Collections/Debug>
 #include <Core/Support/Version.hpp>
 
 #include <Window/Config.hpp>
@@ -15,6 +16,7 @@
 
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/VkValidationLayers.hpp>
+#include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -119,26 +121,41 @@ namespace Sa
 
 		// Check already registered.
 		for (auto it = mRenderSurfaceInfos.begin(); it != mRenderSurfaceInfos.end(); ++it)
-			SA_ASSERT(it->window != &_window, InvalidParam, Rendering, L"Window already registered as render surface!")
+			SA_ASSERT(it->window != &_window, InvalidParam, Rendering, L"Window already registered as render surface!");
 
 #endif
 
+		// Create and register into mRenderSurfaceInfos.
 #if SA_WINDOW_API == SA_GLFW
 
 		const GLFWWindow& glfwWindow = reinterpret_cast<const GLFWWindow&>(_window);
 
 		RenderSurfaceInfos& renderSurfaceInfo = mRenderSurfaceInfos.emplace_back(RenderSurfaceInfos{ &_window });
 
+		VkSurfaceKHR vkSurface;
 		VkResult res = glfwCreateWindowSurface(
 			mHandle,
 			glfwWindow,
 			nullptr,
-			&(renderSurfaceInfo.renderSurface.operator VkSurfaceKHR &())
+			&vkSurface
 		);
 
 		SA_ASSERT(res == VK_SUCCESS, CreationFailed, Window, L"Failed to create window surface!");
+
+		renderSurfaceInfo.renderSurface.InitHandle(vkSurface);
 #else
 #endif
+
+		// Init RenderSurface.
+		VkQueueFamilyIndices queueFamilyIndices;
+
+		// 1st surface: Device not selected yet.
+		if (!mDevice.IsValid())
+			SelectDevice(renderSurfaceInfo.renderSurface, queueFamilyIndices);
+		else
+			VkDevice::QueryQueueFamilies(mDevice, renderSurfaceInfo.renderSurface, queueFamilyIndices);
+
+		renderSurfaceInfo.renderSurface.Create(mDevice, queueFamilyIndices);
 	}
 
 	void VkRenderInstance::DestroyRenderSurface(const IWindow& _window)
@@ -151,10 +168,11 @@ namespace Sa
 			{
 				bFound = true;
 
-				vkDestroySurfaceKHR(mHandle,
-					it->renderSurface.operator VkSurfaceKHR &(),
-					nullptr
-				);
+				it->renderSurface.Destroy(mDevice);
+
+				vkDestroySurfaceKHR(mHandle, it->renderSurface, nullptr);
+
+				it->renderSurface.UnInitHandle();
 
 				mRenderSurfaceInfos.erase(it);
 
@@ -163,6 +181,30 @@ namespace Sa
 		}
 
 		SA_ASSERT(bFound, InvalidParam, Rendering, L"Window not registered as render surface!")
+	}
+
+	void VkRenderInstance::SelectDevice(const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices)
+	{
+		// Query Physical devices.
+		uint32 deviceCount = 0;
+		vkEnumeratePhysicalDevices(mHandle, &deviceCount, nullptr);
+
+		SA_ASSERT(deviceCount, NotSupported, Rendering, L"No GPU with Vulkan support found!");
+
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		vkEnumeratePhysicalDevices(mHandle, &deviceCount, devices.data());
+
+		for (uint32 i = 0; i < devices.size(); ++i)
+		{
+			// Select first suitable device.
+			if (VkDevice::IsPhysicalDeviceSuitable(devices[i], _surface, _queueFamilyIndices))
+			{
+				mDevice.Create(devices[i], _queueFamilyIndices);
+				break;
+			}
+		}
+
+		SA_ASSERT(mDevice.IsValid(), NotSupported, Rendering, L"No suitable GPU found!")
 	}
 
 

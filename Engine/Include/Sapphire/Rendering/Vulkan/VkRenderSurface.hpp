@@ -7,18 +7,24 @@
 
 #include <vulkan/vulkan.h>
 
-#include <Rendering/Framework/RenderSurface.hpp>
+#include <Rendering/Vulkan/SwapChain/VkSwapChain.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
 {
-	class VkRenderSurface : public RenderSurface
+	class VkRenderSurface
 	{
 		VkSurfaceKHR mHandle = VK_NULL_HANDLE;
 
+		VkSwapChain mSwapChain;
+
 	public:
-		operator VkSurfaceKHR&();
+		void InitHandle(VkSurfaceKHR _newHandle);
+		void UnInitHandle();
+
+		void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices);
+		void Destroy(const VkDevice& _device);
 
 		operator VkSurfaceKHR() const;
 	};
