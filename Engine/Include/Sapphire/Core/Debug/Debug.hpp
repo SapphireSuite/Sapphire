@@ -196,7 +196,7 @@ namespace Sa
 		__SA_FUNC_NAME,\
 		__LINE__,\
 		SA_WSTR(_code),\
-		_predicate ? LogLvlFlag::AssertSuccess : LogLvlFlag::AssertFailed,\
+		(_predicate) ? LogLvlFlag::AssertSuccess : LogLvlFlag::AssertFailed,\
 		SA_WSTR(_chan),\
 		##__VA_ARGS__\
 	)

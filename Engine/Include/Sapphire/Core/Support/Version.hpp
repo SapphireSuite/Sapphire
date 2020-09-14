@@ -19,15 +19,21 @@
 
 /**
 *	\b Major version of the engine.
-*	Engine version follows the norm Major.Minor
+*	Engine version follows the norm Major.Minor.Patch
 */
 #define SA_VERSION_MAJOR 0
 
 /**
 *	\b Minor version of the engine.
-*	Engine version follows the norm Major.Minor
+*	Engine version follows the norm Major.Minor.Patch
 */
 #define SA_VERSION_MINOR 1
+
+/**
+*	\b patch version of the engine.
+*	Engine version follows the norm Major.Minor.Patch
+*/
+#define SA_VERSION_PATCH 0
 
 
 /** \} */

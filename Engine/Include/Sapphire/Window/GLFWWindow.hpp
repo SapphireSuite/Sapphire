@@ -2,10 +2,10 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_GLFW_WINDOW_GUARD
-#define SAPPHIRE_RENDERING_GLFW_WINDOW_GUARD
+#ifndef SAPPHIRE_WINDOW_GLFW_WINDOW_GUARD
+#define SAPPHIRE_WINDOW_GLFW_WINDOW_GUARD
 
-#include <Rendering/Window/IWindow.hpp>
+#include <Window/IWindow.hpp>
 
 #if SA_WINDOW_API == SA_GLFW
 

@@ -19,11 +19,6 @@ namespace Sa
 	*/
 
 
-#define SA_GLFW 1
-
-#define SA_WINDOW_API SA_GLFW
-
-
 #define SA_VULKAN 1
 
 #define SA_RENDERING_API SA_VULKAN

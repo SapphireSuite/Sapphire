@@ -51,13 +51,22 @@ namespace Sa
 		NonNormalized = 201,
 
 
-		/** Window Errors: 300 */
+		/** Module Errors: 300 */
 
-		/// Window initialization.
-		WindowInit = 300,
+		/// initialization failed.
+		Init = 300,
 
-		/// Window creation.
-		WindowCreate = 301,
+		/// uninitialization failed.
+		UnInit = 301,
+
+		/// Object creation failed.
+		CreationFailed = 302,
+
+		/// Feature requiered not supported.
+		FeatureNotSupported = 303,
+
+		/// Requiered extension missisng.
+		ExtensionMissing = 304,
 	};
 
 

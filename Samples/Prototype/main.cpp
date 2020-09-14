@@ -3,7 +3,8 @@
 #include <string>
 #include <iostream>
 
-#include <Sapphire/Rendering/Window/GLFWWindow.hpp>
+#include <Sapphire/Window/GLFWWindow.hpp>
+#include <Sapphire/Rendering/Vulkan/VkRenderInstance.hpp>
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
@@ -13,14 +14,25 @@ int main()
 	LOG("=== Start ===");
 
 
+	// Create.
+	VkRenderInstance renderInstance;
+	renderInstance.Create();
+
 	GLFWWindow window;
 	window.Create(800u, 600u);
 
+
+	// Main Loop
 	while (!window.ShouldClose())
 	{
 	}
 
+
+
+	// Destroy.
 	window.Destroy();
+
+	renderInstance.Destroy();
 
 
 	LOG("\n=== End ===");

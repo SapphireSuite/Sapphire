@@ -1,5 +1,8 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
+// TODO: Clean later.
+#include <Rendering/Config.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 #define GLFW_INCLUDE_VULKAN
@@ -8,7 +11,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include <Rendering/Window/GLFWWindow.hpp>
+#include <Window/GLFWWindow.hpp>
 
 #include <Core/Debug/Debug.hpp>
 
@@ -26,14 +29,14 @@ namespace Sa
 		if (sInitCount++ == 0)
 		{
 			bool res = glfwInit();
-			SA_ASSERT(res, WindowInit, Window, L"GLFW init failed!")
+			SA_ASSERT(res, Init, Window, L"GLFW init failed!")
 		}
 
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		mHandle = glfwCreateWindow(_width, _height, _name, nullptr, nullptr);
 		
-		SA_ASSERT(mHandle, WindowCreate, Window, L"GLFW create window failed!")
+		SA_ASSERT(mHandle, CreationFailed, Window, L"GLFW create window failed!")
 	}
 
 	void GLFWWindow::Destroy()

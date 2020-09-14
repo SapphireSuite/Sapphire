@@ -2,12 +2,12 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_WINDOW_GUARD
-#define SAPPHIRE_RENDERING_WINDOW_GUARD
+#ifndef SAPPHIRE_WINDOW_IWINDOW_GUARD
+#define SAPPHIRE_WINDOW_IWINDOW_GUARD
 
 #include <Core/Types/Int.hpp>
 
-#include <Rendering/Config.hpp>
+#include <Window/Config.hpp>
 
 namespace Sa
 {
