@@ -11,13 +11,24 @@
 
 namespace Sa
 {
+	class RenderSurface;
+	class IRenderInstance;
+
 	class IWindow
 	{
+	protected:
+		RenderSurface* mRenderSurface = nullptr;
+
 	public:
 		virtual void Create(uint32 _width, uint32 _height, const char* _name = "Window") = 0;
 		virtual void Destroy() = 0;
 
+		virtual void CreateRenderSurface(const IRenderInstance& _instance) = 0;
+		virtual void DestroyRenderSurface(const IRenderInstance& _instance) = 0;
+
 		virtual bool ShouldClose() const = 0;
+
+		const RenderSurface* GetRenderSurface() const;
 	};
 }
 

@@ -60,13 +60,13 @@ namespace Sa
 		UnInit = 301,
 
 		/// Object creation failed.
-		CreationFailed = 302,
+		CreationFailed,
 
-		/// Feature requiered not supported.
-		FeatureNotSupported = 303,
+		/// Object already created.
+		AlreadyCreated,
 
 		/// Requiered extension missisng.
-		ExtensionMissing = 304,
+		ExtensionMissing,
 	};
 
 

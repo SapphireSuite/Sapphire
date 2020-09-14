@@ -20,6 +20,7 @@ int main()
 
 	GLFWWindow window;
 	window.Create(800u, 600u);
+	window.CreateRenderSurface(renderInstance);
 
 
 	// Main Loop
@@ -30,6 +31,7 @@ int main()
 
 
 	// Destroy.
+	window.DestroyRenderSurface(renderInstance);
 	window.Destroy();
 
 	renderInstance.Destroy();

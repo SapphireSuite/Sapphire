@@ -30,6 +30,8 @@ namespace Sa
 	public:
 		SA_ENGINE_API void Create() override final;
 		SA_ENGINE_API void Destroy() override final;
+
+		operator VkInstance() const;
 	};
 }
 

@@ -19,7 +19,7 @@ namespace Sa
 
 	void VkRenderInstance::Init()
 	{
-		SA_ASSERT(VkValidationLayers::CheckValidationSupport(), FeatureNotSupported, Rendering, L"Validation Layer not supported!")
+		SA_ASSERT(VkValidationLayers::CheckValidationSupport(), NotSupported, Rendering, L"Validation Layer not supported!")
 	}
 	void VkRenderInstance::UnInit()
 	{
@@ -30,6 +30,7 @@ namespace Sa
 		// Init Vulkan.
 		if (sInitCount++ == 0u)
 			Init();
+
 
 		const VkApplicationInfo appInfo
 		{
@@ -100,6 +101,10 @@ namespace Sa
 #endif
 
 		vkDestroyInstance(mHandle, nullptr);
+
+		// UnInit Vulkan.
+		if (--sInitCount == 0u)
+			UnInit();
 	}
 
 	const std::vector<const char*>& VkRenderInstance::GetRequiredExtensions() noexcept
@@ -108,12 +113,20 @@ namespace Sa
 
 		if (extensions.size() == 0)
 		{
+
+#if SA_WINDOW_API == SA_GLFW
+
+			// TODO: FIX
+			glfwInit();
+
 			// Query extensions.
 			uint32_t glfwExtensionCount = 0;
 			const char** glfwExtensions;
 
 			glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 			extensions.assign(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+#endif
 
 #if SA_VK_VALIDATION_LAYERS
 
@@ -122,6 +135,12 @@ namespace Sa
 		}
 
 		return extensions;
+	}
+
+
+	VkRenderInstance::operator VkInstance() const
+	{
+		return mHandle;
 	}
 }
 

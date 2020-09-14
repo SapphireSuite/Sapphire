@@ -21,6 +21,9 @@ namespace Sa
 		SA_ENGINE_API void Create(uint32 _width, uint32 _height, const char* _name = "Main Window") override final;
 		SA_ENGINE_API void Destroy() override final;
 
+		SA_ENGINE_API void CreateRenderSurface(const IRenderInstance& const _instance) override final;
+		SA_ENGINE_API void DestroyRenderSurface(const IRenderInstance& _instance) override final;
+
 		SA_ENGINE_API bool ShouldClose() const override final;
 	};
 }
