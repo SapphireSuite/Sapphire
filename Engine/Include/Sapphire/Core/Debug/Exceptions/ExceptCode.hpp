@@ -49,6 +49,15 @@ namespace Sa
 
 		/// Operation on non-normalized object.
 		NonNormalized = 201,
+
+
+		/** Window Errors: 300 */
+
+		/// Window initialization.
+		WindowInit = 300,
+
+		/// Window creation.
+		WindowCreate = 301,
 	};
 
 
