@@ -42,6 +42,8 @@ namespace Sa
 		static const std::vector<const char*>& GetRequiredExtensions() noexcept;
 
 	public:
+		const VkDevice& GetDevice() const;
+
 		SA_ENGINE_API void Create() override final;
 		SA_ENGINE_API void Destroy() override final;
 

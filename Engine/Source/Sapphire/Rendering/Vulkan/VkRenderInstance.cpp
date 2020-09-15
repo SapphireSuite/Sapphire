@@ -87,6 +87,10 @@ namespace Sa
 		return extensions;
 	}
 
+	const VkDevice& VkRenderInstance::GetDevice() const
+	{
+		return mDevice;
+	}
 
 	void VkRenderInstance::Create()
 	{

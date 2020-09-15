@@ -7,6 +7,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <Rendering/Framework/Primitives/IRenderSurface.hpp>
+
 #include <Rendering/Vulkan/Primitives/VkSwapChain.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderPass.hpp>
 
@@ -14,7 +16,7 @@
 
 namespace Sa
 {
-	class VkRenderSurface
+	class VkRenderSurface : public IRenderSurface
 	{
 		VkSurfaceKHR mHandle = VK_NULL_HANDLE;
 
@@ -25,8 +27,13 @@ namespace Sa
 		void InitHandle(VkSurfaceKHR _newHandle);
 		void UnInitHandle();
 
+		const VkSwapChain& GetSwapChain() const;
+		const VkRenderPass& GetRenderPass() const;
+
 		void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices);
 		void Destroy(const VkDevice& _device);
+
+		const ImageExtent& GetImageExtent() const override final;
 
 		operator VkSurfaceKHR() const;
 	};

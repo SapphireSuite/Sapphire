@@ -21,6 +21,16 @@ namespace Sa
 		mHandle = nullptr;
 	}
 
+	const VkSwapChain& VkRenderSurface::GetSwapChain() const
+	{
+		return mSwapChain;
+	}
+	
+	const VkRenderPass& VkRenderSurface::GetRenderPass() const
+	{
+		return mRenderPass;
+	}
+
 
 	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
@@ -38,6 +48,12 @@ namespace Sa
 
 		mRenderPass.Destroy(_device);
 		mSwapChain.Destroy(_device);
+	}
+
+
+	const ImageExtent& VkRenderSurface::GetImageExtent() const
+	{
+		return mSwapChain.GetImageExtent();
 	}
 
 

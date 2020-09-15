@@ -9,7 +9,7 @@
 
 namespace Sa
 {
-	class ViewPort
+	class Viewport
 	{
 	public:
 		Vec2<uint32> offset;

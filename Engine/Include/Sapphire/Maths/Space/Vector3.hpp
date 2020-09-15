@@ -101,6 +101,13 @@ namespace Sa
 		constexpr Vec3(T _scale) noexcept;
 
 		/**
+		*	\brief \e Value constructor from same Vec3 type.
+		*
+		*	\param[in] _other	Vec3 to construct from.
+		*/
+		Vec3(const Vec3& _other) = default;
+
+		/**
 		*	\brief \e Value constructor from another Vec3 type.
 		*
 		*	\tparam TIn			Type of the input Vec3.
