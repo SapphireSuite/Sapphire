@@ -12,18 +12,6 @@ message("Main directory: ${CMAKE_SOURCE_DIR}")
 
 
 
-# === Compile features ===
-
-# Clean default compilation flags.
-if(MSVC)
-	set(CMAKE_C_FLAGS "/DWIN32 /D_WINDOWS")
-	set(CMAKE_C_FLAGS_RELEASE "/DNDEBUG")
-	set(CMAKE_C_FLAGS_DEBUG "")
-
-	set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS")
-	set(CMAKE_CXX_FLAGS_RELEASE "/DNDEBUG")
-	set(CMAKE_CXX_FLAGS_DEBUG "")
-endif()
 
 
 
