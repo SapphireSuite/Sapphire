@@ -20,8 +20,8 @@ namespace Sa
 	class ImageExtent
 	{
 	public:
-		uint32 width = 0u;
-		uint32 height = 0u;
+		uint32 width = 100u;
+		uint32 height = 100u;
 
 		ImageExtent() = default;
 

@@ -1,13 +1,14 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <algorithm>
 
-#include <Rendering/Vulkan/SwapChain/VkSwapChain.hpp>
-#include <Rendering/Vulkan/SwapChain/VkRenderPass.hpp>
+#include <Rendering/Vulkan/Primitives/VkSwapChain.hpp>
+
+#include <Maths/Misc/Maths.hpp>
 
 #include <Rendering/Vulkan/VkMacro.hpp>
-#include <Rendering/Vulkan/VkDevice.hpp>
-#include <Rendering/Vulkan/VkRenderSurface.hpp>
+#include <Rendering/Vulkan/Primitives/VkDevice.hpp>
+#include <Rendering/Vulkan/Primitives/VkRenderPass.hpp>
+#include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 
 #include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
 
@@ -276,8 +277,8 @@ namespace Sa
 			// TODO: Clean.
 			VkExtent2D actualExtent = { 1920, 1080 };
 
-			actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
-			actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+			actualExtent.width = Maths::Max(capabilities.minImageExtent.width, Maths::Min(capabilities.maxImageExtent.width, actualExtent.width));
+			actualExtent.height = Maths::Max(capabilities.minImageExtent.height, Maths::Min(capabilities.maxImageExtent.height, actualExtent.height));
 
 			return actualExtent;
 		}

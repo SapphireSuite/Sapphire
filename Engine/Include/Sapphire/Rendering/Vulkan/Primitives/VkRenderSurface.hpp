@@ -7,7 +7,8 @@
 
 #include <vulkan/vulkan.h>
 
-#include <Rendering/Vulkan/SwapChain/VkSwapChain.hpp>
+#include <Rendering/Vulkan/Primitives/VkSwapChain.hpp>
+#include <Rendering/Vulkan/Primitives/VkRenderPass.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -18,6 +19,7 @@ namespace Sa
 		VkSurfaceKHR mHandle = VK_NULL_HANDLE;
 
 		VkSwapChain mSwapChain;
+		VkRenderPass mRenderPass;
 
 	public:
 		void InitHandle(VkSurfaceKHR _newHandle);

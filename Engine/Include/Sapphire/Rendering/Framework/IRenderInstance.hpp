@@ -19,6 +19,8 @@ namespace Sa
 
 		virtual void CreateRenderSurface(const IWindow& _window) = 0;
 		virtual void DestroyRenderSurface(const IWindow& _window) = 0;
+
+		virtual void Update() = 0;
 	};
 }
 

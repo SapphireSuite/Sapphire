@@ -2,7 +2,7 @@
 
 #include <Rendering/Vulkan/Queue/VkQueue.hpp>
 
-#include <Rendering/Vulkan/VkDevice.hpp>
+#include <Rendering/Vulkan/Primitives/VkDevice.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 

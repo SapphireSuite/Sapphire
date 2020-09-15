@@ -2,7 +2,7 @@
 
 #include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
 
-#include <Rendering/Vulkan/VkRenderSurface.hpp>
+#include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 

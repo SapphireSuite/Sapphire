@@ -1,11 +1,11 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Vulkan/VkDevice.hpp>
+#include <Rendering/Vulkan/Primitives/VkDevice.hpp>
 
 #include <Rendering/Vulkan/VkMacro.hpp>
 #include <Rendering/Vulkan/VkValidationLayers.hpp>
 
-#include <Rendering/Vulkan/SwapChain/VkSwapChain.hpp>
+#include <Rendering/Vulkan/Primitives/VkSwapChain.hpp>
 #include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN

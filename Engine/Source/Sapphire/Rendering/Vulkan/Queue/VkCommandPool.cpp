@@ -3,7 +3,7 @@
 #include <Rendering/Vulkan/Queue/VkCommandPool.hpp>
 
 #include <Rendering/Vulkan/VkMacro.hpp>
-#include <Rendering/Vulkan/VkDevice.hpp>
+#include <Rendering/Vulkan/Primitives/VkDevice.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 

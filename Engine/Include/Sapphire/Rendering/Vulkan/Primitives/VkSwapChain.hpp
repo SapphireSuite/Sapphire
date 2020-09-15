@@ -10,7 +10,7 @@
 #include <Core/Types/Int.hpp>
 
 #include <Rendering/Image/ImageExtent.hpp>
-#include <Rendering/Vulkan/SwapChain/VkRenderFrame.hpp>
+#include <Rendering/Vulkan/Primitives/VkRenderFrame.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 

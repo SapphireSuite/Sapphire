@@ -8,8 +8,8 @@
 #include <Rendering/Framework/IRenderInstance.hpp>
 
 #include <Rendering/Vulkan/VkMacro.hpp>
-#include <Rendering/Vulkan/VkDevice.hpp>
-#include <Rendering/Vulkan/VkRenderSurface.hpp>
+#include <Rendering/Vulkan/Primitives/VkDevice.hpp>
+#include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -47,6 +47,8 @@ namespace Sa
 
 		SA_ENGINE_API void CreateRenderSurface(const IWindow& _window) override final;
 		SA_ENGINE_API void DestroyRenderSurface(const IWindow& _window) override final;
+
+		SA_ENGINE_API void Update() override final;
 
 		operator VkInstance() const;
 	};

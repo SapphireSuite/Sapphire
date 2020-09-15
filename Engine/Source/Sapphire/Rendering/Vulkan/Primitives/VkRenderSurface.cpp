@@ -2,7 +2,7 @@
 
 #include <Collections/Debug>
 
-#include <Rendering/Vulkan/VkRenderSurface.hpp>
+#include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -25,16 +25,18 @@ namespace Sa
 	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
-			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().")
+			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
 		mSwapChain.Create(_device, *this, _queueFamilyIndices);
+		mRenderPass.Create(_device, mSwapChain);
 	}
 
 	void VkRenderSurface::Destroy(const VkDevice& _device)
 	{
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
-			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().")
+			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
+		mRenderPass.Destroy(_device);
 		mSwapChain.Destroy(_device);
 	}
 

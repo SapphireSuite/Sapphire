@@ -25,9 +25,10 @@ int main()
 
 
 	// Main Loop
-	//while (!window.ShouldClose())
-	//{
-	//}
+	while (!window.ShouldClose())
+	{
+		renderInstance.Update();
+	}
 
 
 

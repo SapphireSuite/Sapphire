@@ -33,6 +33,61 @@ namespace Sa
 	{
 	}
 
+	void VkRenderInstance::SelectDevice(const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices)
+	{
+		// Query Physical devices.
+		uint32 deviceCount = 0;
+		vkEnumeratePhysicalDevices(mHandle, &deviceCount, nullptr);
+
+		SA_ASSERT(deviceCount, NotSupported, Rendering, L"No GPU with Vulkan support found!");
+
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		vkEnumeratePhysicalDevices(mHandle, &deviceCount, devices.data());
+
+		for (uint32 i = 0; i < devices.size(); ++i)
+		{
+			// Select first suitable device.
+			if (VkDevice::IsPhysicalDeviceSuitable(devices[i], _surface, _queueFamilyIndices))
+			{
+				mDevice.Create(devices[i], _queueFamilyIndices);
+				break;
+			}
+		}
+
+		SA_ASSERT(mDevice.IsValid(), NotSupported, Rendering, L"No suitable GPU found!")
+	}
+
+	const std::vector<const char*>& VkRenderInstance::GetRequiredExtensions() noexcept
+	{
+		static std::vector<const char*> extensions;
+
+		if (extensions.size() == 0)
+		{
+
+#if SA_WINDOW_API == SA_GLFW
+
+			// TODO: FIX
+			glfwInit();
+
+			// Query extensions.
+			uint32_t glfwExtensionCount = 0;
+			const char** glfwExtensions;
+
+			glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+			extensions.assign(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+#endif
+
+#if SA_VK_VALIDATION_LAYERS
+
+			extensions.push_back("VK_EXT_debug_utils");
+#endif
+		}
+
+		return extensions;
+	}
+
+
 	void VkRenderInstance::Create()
 	{
 		// Init Vulkan.
@@ -183,59 +238,8 @@ namespace Sa
 		SA_ASSERT(bFound, InvalidParam, Rendering, L"Window not registered as render surface!")
 	}
 
-	void VkRenderInstance::SelectDevice(const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices)
+	void VkRenderInstance::Update()
 	{
-		// Query Physical devices.
-		uint32 deviceCount = 0;
-		vkEnumeratePhysicalDevices(mHandle, &deviceCount, nullptr);
-
-		SA_ASSERT(deviceCount, NotSupported, Rendering, L"No GPU with Vulkan support found!");
-
-		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(mHandle, &deviceCount, devices.data());
-
-		for (uint32 i = 0; i < devices.size(); ++i)
-		{
-			// Select first suitable device.
-			if (VkDevice::IsPhysicalDeviceSuitable(devices[i], _surface, _queueFamilyIndices))
-			{
-				mDevice.Create(devices[i], _queueFamilyIndices);
-				break;
-			}
-		}
-
-		SA_ASSERT(mDevice.IsValid(), NotSupported, Rendering, L"No suitable GPU found!")
-	}
-
-
-	const std::vector<const char*>& VkRenderInstance::GetRequiredExtensions() noexcept
-	{
-		static std::vector<const char*> extensions;
-
-		if (extensions.size() == 0)
-		{
-
-#if SA_WINDOW_API == SA_GLFW
-
-			// TODO: FIX
-			glfwInit();
-
-			// Query extensions.
-			uint32_t glfwExtensionCount = 0;
-			const char** glfwExtensions;
-
-			glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-			extensions.assign(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-#endif
-
-#if SA_VK_VALIDATION_LAYERS
-
-			extensions.push_back("VK_EXT_debug_utils");
-#endif
-		}
-
-		return extensions;
 	}
 
 
