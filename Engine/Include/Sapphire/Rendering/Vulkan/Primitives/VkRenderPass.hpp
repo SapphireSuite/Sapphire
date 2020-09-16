@@ -26,6 +26,9 @@ namespace Sa
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Destroy(const VkDevice& _device);
 
+		// Optimized re-creation.
+		void ReCreate(const VkDevice& _device, VkFormat _format);
+
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API operator ::VkRenderPass() const noexcept;
 	};

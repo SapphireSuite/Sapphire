@@ -24,6 +24,11 @@ namespace Sa
 
 		VkPipelineLayout mLayout = VK_NULL_HANDLE;
 
+		void Create_Internal(const IRenderInstance& _instance,
+			const IRenderSurface& _surface,
+			const std::vector<const IShader*>& _shaders,
+			const Viewport& _viewport);
+
 	public:
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Create(const IRenderInstance& _instance,
@@ -32,6 +37,12 @@ namespace Sa
 			const Viewport& _viewport);
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Destroy(const IRenderInstance& _instance);
+
+		// Optimized re-creation.
+		void ReCreate(const IRenderInstance& _instance,
+			const IRenderSurface& _surface,
+			const std::vector<const IShader*>& _shaders,
+			const Viewport& _viewport);
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API operator VkPipeline() const;

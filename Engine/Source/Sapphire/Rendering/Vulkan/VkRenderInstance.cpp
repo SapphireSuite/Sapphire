@@ -217,6 +217,15 @@ namespace Sa
 		renderSurfaceInfo.renderSurface.InitHandle(vkSurface);
 #else
 #endif
+		// Init resize event.
+		_window.onResizeEvent.Add(std::function<void(const IWindow&, uint32, uint32)>(
+			[this, &renderSurfaceInfo] (const IWindow& _win, uint32 _width, uint32 _height)
+			{
+				vkDeviceWaitIdle(mDevice);
+				renderSurfaceInfo.renderSurface.ResizeCallback(*this, _width, _height);
+			}
+		));
+
 
 		// Init RenderSurface.
 		VkQueueFamilyIndices queueFamilyIndices;
@@ -259,6 +268,9 @@ namespace Sa
 
 	void VkRenderInstance::Update()
 	{
+		// TODO: CLEAN LATER.
+		glfwPollEvents();
+
 		//for (auto it = mRenderSurfaceInfos.begin(); it != mRenderSurfaceInfos.end(); ++it)
 		//	it->renderSurface.GetSwapChain().Update(mDevice);
 	}

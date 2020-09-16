@@ -4,6 +4,9 @@
 
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 
+#include <Rendering/Vulkan/VkRenderInstance.hpp>
+#include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
@@ -53,6 +56,8 @@ namespace Sa
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
+		onResizeEvent.Clear();
+
 		mSwapChain.DestroyFrameBuffers(_device);
 
 		mRenderPass.Destroy(_device);
@@ -79,6 +84,31 @@ namespace Sa
 		};
 	}
 
+
+	void VkRenderSurface::ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height)
+	{
+		const ImageExtent& extent = mSwapChain.GetImageExtent();
+
+		// Avoid re-creation on same extent (ex: after window exiting minimization).
+		if (extent.width == _width && extent.height == _height)
+			return;
+
+		IRenderSurface::ResizeCallback(_instance, _width, _height);
+
+		const VkRenderInstance& vkInstance = reinterpret_cast<const VkRenderInstance&>(_instance);
+		const VkDevice& device = vkInstance.GetDevice();
+
+		VkQueueFamilyIndices queueFamilyIndices;
+		VkDevice::QueryQueueFamilies(device, *this, queueFamilyIndices);
+
+		mSwapChain.DestroyFrameBuffers(device);
+
+		mSwapChain.ReCreate(device, *this, queueFamilyIndices);
+
+		mRenderPass.ReCreate(device, mSwapChain.GetImageFormat());
+
+		mSwapChain.CreateFrameBuffers(device, mRenderPass);
+	}
 
 	VkRenderSurface::operator VkSurfaceKHR() const
 	{

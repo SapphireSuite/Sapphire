@@ -54,6 +54,9 @@ namespace Sa
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		ImageExtent ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
+		void Create_Internal(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
+		void Destroy_Internal(const VkDevice& _device);
+
 	public:
 		uint32 GetImageNum() const noexcept;
 		VkFormat GetImageFormat() const noexcept;
@@ -64,6 +67,9 @@ namespace Sa
 
 		void Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
 		void Destroy(const VkDevice& _device);
+
+		// Optimized re-creation.
+		void ReCreate(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
 
 		void CreateFrameBuffers(const VkDevice& _device, const VkRenderPass& _renderPass);
 		void DestroyFrameBuffers(const VkDevice& _device);

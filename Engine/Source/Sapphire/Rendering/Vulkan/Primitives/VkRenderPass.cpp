@@ -81,6 +81,13 @@ namespace Sa
 		vkDestroyRenderPass(_device, mHandle, nullptr);
 	}
 
+	void VkRenderPass::ReCreate(const VkDevice& _device, VkFormat _format)
+	{
+		Destroy(_device);
+
+		Create(_device, _format);
+	}
+
 	VkRenderPass::operator ::VkRenderPass() const noexcept
 	{
 		return mHandle;

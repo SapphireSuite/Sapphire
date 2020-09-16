@@ -45,7 +45,7 @@ namespace Sa
 		};
 	}
 
-	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
+	void VkSwapChain::Create_Internal(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		// Query infos.
 		SupportDetails swapChainSupport = QuerySupportDetails(_device, _surface);
@@ -153,7 +153,27 @@ namespace Sa
 
 		SA_VK_ASSERT(vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, mGraphicsCommandBuffers.data()),
 			CreationFailed, Rendering, L"Failed to allocate command buffers!");
+	}
+	void VkSwapChain::Destroy_Internal(const VkDevice& _device)
+	{
+		DestroyFrameBuffers(_device);
 
+		const uint32 imageNum = GetImageNum();
+
+		for (uint32 i = 0; i < imageNum; i++)
+			vkDestroyImageView(_device, mImageViews[i], nullptr);
+
+		// Manually free command buffers (useful for resize).
+		vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(), imageNum, mGraphicsCommandBuffers.data());
+
+		vkDestroySwapchainKHR(_device, mHandle, nullptr);
+	}
+
+	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
+	{
+		Create_Internal(_device, _surface, _queueFamilyIndices);
+
+		const uint32 imageNum = GetImageNum();
 
 		// Semaphore Creation.
 		mAcquireSemaphores.resize(imageNum);
@@ -186,13 +206,14 @@ namespace Sa
 		};
 
 		for (uint32 i = 0u; i < imageNum; ++i)
+		{
 			SA_VK_ASSERT(vkCreateFence(_device, &fenceCreateInfo, nullptr, &mMainFences[i]),
 				CreationFailed, Rendering, L"Failed to create fence!");
+		}
 	}
 	void VkSwapChain::Destroy(const VkDevice& _device)
 	{
-		DestroyFrameBuffers(_device);
-
+		// Destroy Semaphores and Fences.
 		const uint32 imageNum = GetImageNum();
 
 		for (uint32 i = 0; i < imageNum; i++)
@@ -201,13 +222,18 @@ namespace Sa
 
 			vkDestroySemaphore(_device, mAcquireSemaphores[i], nullptr);
 			vkDestroySemaphore(_device, mPresentSemaphores[i], nullptr);
-
-			vkDestroyImageView(_device, mImageViews[i], nullptr);
 		}
 
-		vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(), imageNum, mGraphicsCommandBuffers.data());
 
-		vkDestroySwapchainKHR(_device, mHandle, nullptr);
+		// Destroy Internal after to querry imageNum.
+		Destroy_Internal(_device);
+	}
+
+	void VkSwapChain::ReCreate(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
+	{
+		Destroy_Internal(_device);
+
+		Create_Internal(_device, _surface, _queueFamilyIndices);
 	}
 
 	void VkSwapChain::CreateFrameBuffers(const VkDevice& _device, const VkRenderPass& _renderPass)

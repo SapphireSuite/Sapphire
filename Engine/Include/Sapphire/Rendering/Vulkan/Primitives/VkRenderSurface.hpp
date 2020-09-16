@@ -45,6 +45,8 @@ namespace Sa
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API Viewport GetViewport() const noexcept override final;
 
+		void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height) override final;
+
 		operator VkSurfaceKHR() const;
 	};
 }

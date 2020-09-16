@@ -39,7 +39,7 @@ int main()
 	// Main Loop
 	while (!window.ShouldClose())
 	{
-		//instance.Update();
+		instance.Update();
 
 		VkRenderFrame frame = surface.GetSwapChain().Update(instance.GetDevice());
 

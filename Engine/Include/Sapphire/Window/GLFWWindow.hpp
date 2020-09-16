@@ -17,6 +17,11 @@ namespace Sa
 
 		struct GLFWwindow* mHandle = nullptr;
 
+		void Init();
+		void UnInit();
+
+		static void ResizeCallback(GLFWwindow* _handle, int32 _width, int32 _height);
+
 	public:
 		SA_ENGINE_API void Create(uint32 _width, uint32 _height, const char* _name = "Main Window") override final;
 		SA_ENGINE_API void Destroy() override final;

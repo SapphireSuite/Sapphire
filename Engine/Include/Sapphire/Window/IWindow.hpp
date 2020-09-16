@@ -6,17 +6,17 @@
 #define SAPPHIRE_WINDOW_IWINDOW_GUARD
 
 #include <Core/Types/Int.hpp>
+#include <Core/Types/Variadics/Event.hpp>
 
 #include <Window/Config.hpp>
 
 namespace Sa
 {
-	class RenderSurface;
-	class IRenderInstance;
-
 	class IWindow
 	{
 	public:
+		mutable Event<void(const IWindow&, uint32, uint32)> onResizeEvent;
+
 		virtual void Create(uint32 _width, uint32 _height, const char* _name = "Window") = 0;
 		virtual void Destroy() = 0;
 

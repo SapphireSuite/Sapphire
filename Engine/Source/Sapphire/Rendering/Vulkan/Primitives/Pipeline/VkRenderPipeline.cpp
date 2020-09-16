@@ -30,7 +30,7 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::Create(const IRenderInstance& _instance,
+	void VkRenderPipeline::Create_Internal(const IRenderInstance& _instance,
 		const IRenderSurface& _surface,
 		const std::vector<const IShader*>& _shaders,
 		const Viewport& _viewport)
@@ -231,7 +231,22 @@ namespace Sa
 		};
 
 		SA_VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mHandle),
-			CreationFailed, Rendering, L"Failed to create graphics pipeline!")
+			CreationFailed, Rendering, L"Failed to create graphics pipeline!");
+	}
+
+	void VkRenderPipeline::Create(const IRenderInstance& _instance,
+		const IRenderSurface& _surface,
+		const std::vector<const IShader*>& _shaders,
+		const Viewport& _viewport)
+	{
+		Create_Internal(_instance, _surface, _shaders, _viewport);
+
+		_surface.onResizeEvent.Add(std::function<void(const IRenderInstance&, const IRenderSurface&)>(
+			[this, _shaders](const IRenderInstance& _instance, const IRenderSurface& _surface)
+			{
+				ReCreate(_instance, _surface, _shaders, _surface.GetViewport());
+			}
+		));
 	}
 
 	void VkRenderPipeline::Destroy(const IRenderInstance& _instance)
@@ -245,6 +260,15 @@ namespace Sa
 		mLayout = VK_NULL_HANDLE;
 	}
 
+	void VkRenderPipeline::ReCreate(const IRenderInstance& _instance,
+		const IRenderSurface& _surface,
+		const std::vector<const IShader*>& _shaders,
+		const Viewport& _viewport)
+	{
+		Destroy(_instance);
+
+		Create_Internal(_instance, _surface, _shaders, _viewport);
+	}
 
 	VkRenderPipeline::operator VkPipeline() const
 	{

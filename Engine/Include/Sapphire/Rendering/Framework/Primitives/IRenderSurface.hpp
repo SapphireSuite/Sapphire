@@ -5,13 +5,21 @@
 #ifndef SAPPHIRE_RENDERING_RENDER_SURFACE_GUARD
 #define SAPPHIRE_RENDERING_RENDER_SURFACE_GUARD
 
+#include <Core/Types/Variadics/Event.hpp>
+
 #include <Rendering/Image/Viewport.hpp>
 
 namespace Sa
 {
+	class IRenderInstance;
+
 	class IRenderSurface
 	{
 	public:
+		mutable Event<void(const IRenderInstance&, const IRenderSurface&)> onResizeEvent;
+
+		virtual void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height);
+
 		virtual const ImageExtent& GetImageExtent() const noexcept = 0;
 		virtual Viewport GetViewport() const noexcept  = 0;
 	};
