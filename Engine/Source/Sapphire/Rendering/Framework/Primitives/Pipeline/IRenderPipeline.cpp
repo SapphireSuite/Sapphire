@@ -5,14 +5,8 @@
 
 namespace Sa
 {
-	//void IRenderPipeline::Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const std::vector<const IShader*>& _shaders)
-	//{
-	//	Create(_instance, _surface, _shaders, {
-	//		Viewport
-	//		{
-	//			Vec2<uint32>::Zero, _surface.GetImageExtent(),
-	//			Scissor{ Vec2<uint32>::Zero, _surface.GetImageExtent() }
-	//		}
-	//	});
-	//}
+	void IRenderPipeline::Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const std::vector<const IShader*>& _shaders)
+	{
+		Create(_instance, _surface, _shaders, _surface.GetViewport());
+	}
 }

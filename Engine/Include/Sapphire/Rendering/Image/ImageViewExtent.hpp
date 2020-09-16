@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_SCISSOR_GUARD
-#define SAPPHIRE_RENDERING_SCISSOR_GUARD
+#ifndef SAPPHIRE_RENDERING_IMAGE_VIEW_EXTENT_GUARD
+#define SAPPHIRE_RENDERING_IMAGE_VIEW_EXTENT_GUARD
 
 #include <Maths/Space/Vector2.hpp>
 
@@ -11,7 +11,7 @@
 
 namespace Sa
 {
-	class Scissor
+	class ImageViewExtent
 	{
 	public:
 		Vec2<uint32> offset;

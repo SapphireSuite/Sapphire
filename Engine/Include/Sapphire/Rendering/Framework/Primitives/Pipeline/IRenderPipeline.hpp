@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_RENDERING_IRENDER_PIPELINE_GUARD
 #define SAPPHIRE_RENDERING_IRENDER_PIPELINE_GUARD
 
+#include <vector>
+
 #include <Rendering/Image/Viewport.hpp>
 
 namespace Sa
@@ -16,9 +18,12 @@ namespace Sa
 	class IRenderPipeline
 	{
 	public:
-		//void Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const std::vector<const IShader*>& _shaders);
-		//virtual void Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const std::vector<const IShader*>& _shaders, const std::vector<Viewport>& _viewports) = 0;
-		//virtual void Destroy(const IRenderInstance& _instance) = 0;
+		void Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const std::vector<const IShader*>& _shaders);
+		virtual void Create(const IRenderInstance& _instance,
+			const IRenderSurface& _surface,
+			const std::vector<const IShader*>& _shaders,
+			const Viewport& _viewport) = 0;
+		virtual void Destroy(const IRenderInstance& _instance) = 0;
 	};
 }
 

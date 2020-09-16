@@ -5,18 +5,22 @@
 #ifndef SAPPHIRE_RENDERING_VIEWPORT_GUARD
 #define SAPPHIRE_RENDERING_VIEWPORT_GUARD
 
-#include <Rendering/Image/Scissor.hpp>
+#include <Rendering/Image/ImageViewExtent.hpp>
 
 namespace Sa
 {
-	class Viewport
+	class Viewport : public ImageViewExtent
 	{
 	public:
-		Vec2<uint32> offset;
+		ImageViewExtent scissor;
 
-		ImageExtent extent;
+#if SA_RENDERING_API == SA_VULKAN
 
-		Scissor scissor;
+		VkViewport GetVkViewport() const;
+
+		VkRect2D GetVkScissor() const;
+
+#endif
 	};
 }
 

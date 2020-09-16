@@ -31,18 +31,31 @@ namespace Sa
 		return mSwapChain;
 	}
 
+	const VkRenderPass& VkRenderSurface::GetRenderPass() const
+	{
+		return mRenderPass;
+	}
+
 	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
 		mSwapChain.Create(_device, *this, _queueFamilyIndices);
+
+		mRenderPass.Create(_device, mSwapChain.GetImageFormat());
+
+		mSwapChain.CreateFrameBuffers(_device, mRenderPass);
 	}
 
 	void VkRenderSurface::Destroy(const VkDevice& _device)
 	{
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
+
+		mSwapChain.DestroyFrameBuffers(_device);
+
+		mRenderPass.Destroy(_device);
 
 		mSwapChain.Destroy(_device);
 	}
@@ -62,7 +75,7 @@ namespace Sa
 		return Viewport
 		{
 			Vec2<uint32>::Zero, GetImageExtent(),
-			Scissor{ Vec2<uint32>::Zero, GetImageExtent() }
+			ImageViewExtent{ Vec2<uint32>::Zero, GetImageExtent() }
 		};
 	}
 

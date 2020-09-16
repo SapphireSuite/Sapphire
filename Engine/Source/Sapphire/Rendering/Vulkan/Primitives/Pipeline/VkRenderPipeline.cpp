@@ -30,8 +30,8 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::Create(const VkDevice& _device,
-		const VkRenderPass& _renderPass,
+	void VkRenderPipeline::Create(const IRenderInstance& _instance,
+		const IRenderSurface& _surface,
 		const std::vector<const IShader*>& _shaders,
 		const Viewport& _viewport)
 	{
@@ -113,24 +113,9 @@ namespace Sa
 		*/
 
 
-		// Create Viewports.
-		const VkViewport viewport
-		{
-			static_cast<float>(_viewport.offset.x),									// x.
-			static_cast<float>(_viewport.offset.y),									// y.
-			static_cast<float>(_viewport.extent.width),								// width.
-			static_cast<float>(_viewport.extent.height),							// height.
-			0.0f,																	// minDepth.
-			1.0f,																	// maxDepth.
-		};
-
-		const Scissor& inScissor = _viewport.scissor;
-
-		const VkRect2D scissor
-		{
-			VkOffset2D{ static_cast<int32>(inScissor.offset.x), static_cast<int32>(inScissor.offset.y) },				// offset.
-			VkExtent2D{ inScissor.extent.width, inScissor.extent.height } 												// extent.
-		};
+		// Create Viewport.
+		const VkViewport viewport = _viewport.GetVkViewport();
+		const VkRect2D scissor = _viewport.GetVkScissor();
 
 		const VkPipelineViewportStateCreateInfo viewportStateCreateInfo
 		{
@@ -216,18 +201,18 @@ namespace Sa
 			nullptr																	// pPushConstantRanges.
 		};
 
-		//const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
-		SA_VK_ASSERT(vkCreatePipelineLayout(_device, &pipelineLayoutCreateInfo, nullptr, &mLayout),
+		const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
+		SA_VK_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &mLayout),
 			CreationFailed, Rendering, L"Failed to create pipeline layout!");
 
-		//const VkRenderPass& renderPass = reinterpret_cast<const VkRenderSurface&>(_surface).GetRenderPass();
+		const VkRenderPass& renderPass = reinterpret_cast<const VkRenderSurface&>(_surface).GetRenderPass();
 
 		const VkGraphicsPipelineCreateInfo pipelineCreateInfo
 		{
 			VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,					// sType.
 			nullptr,															// pNext.
 			0,																	// flags.
-			_shaders.size(),													// stageCount.
+			static_cast<uint32>(_shaders.size()),								// stageCount.
 			shaderStages,														// pStages.
 			&vertexInputCreateInfo,												// pVertexInputState.
 			&inputAssemblyCreateInfo,											// pInputAssemblyState.
@@ -239,24 +224,24 @@ namespace Sa
 			&colorBlendingCreateInfo,											// pColorBlendState.
 			nullptr,															// pDynamicState.
 			mLayout,															// layout.
-			_renderPass,														// renderPass.
+			renderPass,															// renderPass.
 			0,																	// subpass.
 			VK_NULL_HANDLE,														// basePipelineHandle.
 			-1																	// basePipelineIndex.
 		};
 
-		SA_VK_ASSERT(vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mHandle),
+		SA_VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mHandle),
 			CreationFailed, Rendering, L"Failed to create graphics pipeline!")
 	}
 
-	void VkRenderPipeline::Destroy(const VkDevice& _device)
+	void VkRenderPipeline::Destroy(const IRenderInstance& _instance)
 	{
-		//const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
+		const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
 
-		vkDestroyPipeline(_device, mHandle, nullptr);
+		vkDestroyPipeline(device, mHandle, nullptr);
 		mHandle = VK_NULL_HANDLE;
 
-		vkDestroyPipelineLayout(_device, mLayout, nullptr);
+		vkDestroyPipelineLayout(device, mLayout, nullptr);
 		mLayout = VK_NULL_HANDLE;
 	}
 

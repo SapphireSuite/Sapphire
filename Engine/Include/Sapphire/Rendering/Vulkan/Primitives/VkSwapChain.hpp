@@ -65,10 +65,8 @@ namespace Sa
 		void Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
 		void Destroy(const VkDevice& _device);
 
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void CreateFrameBuffers(const VkDevice& _device, const VkRenderPass& _renderPass);
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void DestroyFrameBuffers(const VkDevice& _device);
+		void CreateFrameBuffers(const VkDevice& _device, const VkRenderPass& _renderPass);
+		void DestroyFrameBuffers(const VkDevice& _device);
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API VkRenderFrame Update(const VkDevice& _device);

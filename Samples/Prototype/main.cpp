@@ -26,11 +26,6 @@ int main()
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
-	Sa::VkRenderPass renderPass;
-	renderPass.Create(instance.GetDevice(), surface.GetImageFormat());
-
-	surface.GetSwapChain().CreateFrameBuffers(instance.GetDevice(), renderPass);
-
 	VkShader vertShader;
 	vertShader.Create(instance, ShaderType::Vertex, L"../../Bin/Shaders/default_vert.spv");
 
@@ -38,7 +33,7 @@ int main()
 	fragShader.Create(instance, ShaderType::Fragment, L"../../Bin/Shaders/default_frag.spv");
 
 	VkRenderPipeline pipeline;
-	pipeline.Create(instance.GetDevice(), renderPass, { &vertShader, &fragShader }, surface.GetViewport());
+	pipeline.Create(instance, surface, { &vertShader, &fragShader }, surface.GetViewport());
 
 
 	// Main Loop
@@ -66,7 +61,7 @@ int main()
 		{
 			VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,							// sType.
 			nullptr,															// pNext.
-			renderPass,															// renderPass.
+			surface.GetRenderPass(),											// renderPass.
 			frame.frameBuffer,													// framebuffer
 			VkRect2D{ VkOffset2D{}, surface.GetImageExtent() },					// renderArea.
 			1,																	// clearValueCount.
@@ -89,15 +84,10 @@ int main()
 
 
 	// Destroy.
-	pipeline.Destroy(instance.GetDevice());
+	pipeline.Destroy(instance);
 
 	vertShader.Destroy(instance);
 	fragShader.Destroy(instance);
-
-	renderPass.Destroy(instance.GetDevice());
-
-	surface.GetSwapChain().DestroyFrameBuffers(instance.GetDevice());
-
 
 	instance.DestroyRenderSurface(window);
 	

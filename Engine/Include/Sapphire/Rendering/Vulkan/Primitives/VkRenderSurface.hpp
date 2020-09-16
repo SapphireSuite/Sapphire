@@ -21,6 +21,7 @@ namespace Sa
 		VkSurfaceKHR mHandle = VK_NULL_HANDLE;
 
 		VkSwapChain mSwapChain;
+		VkRenderPass mRenderPass;
 
 	public:
 		void InitHandle(VkSurfaceKHR _newHandle);
@@ -30,6 +31,9 @@ namespace Sa
 		SA_ENGINE_API VkSwapChain& GetSwapChain();
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API const VkSwapChain& GetSwapChain() const;
+
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API const VkRenderPass& GetRenderPass() const;
 
 		void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices);
 		void Destroy(const VkDevice& _device);
