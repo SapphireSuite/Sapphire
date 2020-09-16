@@ -42,14 +42,22 @@ namespace Sa
 		static const std::vector<const char*>& GetRequiredExtensions() noexcept;
 
 	public:
-		const VkDevice& GetDevice() const;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API const VkDevice& GetDevice() const;
 
+		const VkRenderSurface& GetRenderSurface(const IWindow& _window) const;
+
+		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Create() override final;
+		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Destroy() override final;
 
-		SA_ENGINE_API void CreateRenderSurface(const IWindow& _window) override final;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API const IRenderSurface& CreateRenderSurface(const IWindow& _window) override final;
+		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void DestroyRenderSurface(const IWindow& _window) override final;
 
+		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Update() override final;
 
 		operator VkInstance() const;

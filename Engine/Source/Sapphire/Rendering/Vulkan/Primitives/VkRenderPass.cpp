@@ -6,14 +6,16 @@
 #include <Rendering/Vulkan/Primitives/VkDevice.hpp>
 #include <Rendering/Vulkan/Primitives/VkSwapChain.hpp>
 
+#if SA_RENDERING_API == SA_VULKAN
+
 namespace Sa
 {
-	void VkRenderPass::Create(const VkDevice& _device, const VkSwapChain& _swapChain)
+	void VkRenderPass::Create(const VkDevice& _device, VkFormat _format)
 	{
 		const VkAttachmentDescription colorAttachment
 		{
 			0,														// flags.
-			_swapChain.GetImageFormat(),							// format.
+			_format,												// format.
 			VK_SAMPLE_COUNT_1_BIT,									// samples.
 			VK_ATTACHMENT_LOAD_OP_CLEAR,							// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
@@ -84,3 +86,5 @@ namespace Sa
 		return mHandle;
 	}
 }
+
+#endif

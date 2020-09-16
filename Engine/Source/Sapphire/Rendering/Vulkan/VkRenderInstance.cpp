@@ -92,6 +92,19 @@ namespace Sa
 		return mDevice;
 	}
 
+	const VkRenderSurface& VkRenderInstance::GetRenderSurface(const IWindow& _window) const
+	{
+		for (uint32 i = 0u; i < mRenderSurfaceInfos.size(); ++i)
+		{
+			if (mRenderSurfaceInfos[i].window == &_window)
+				return mRenderSurfaceInfos[i].renderSurface;
+		}
+
+		SA_ASSERT(false, InvalidParam, Rendering, L"Window not registered as render surface!")
+
+		return mRenderSurfaceInfos[0].renderSurface;
+	}
+
 	void VkRenderInstance::Create()
 	{
 		// Init Vulkan.
@@ -174,7 +187,7 @@ namespace Sa
 			UnInit();
 	}
 
-	void VkRenderInstance::CreateRenderSurface(const IWindow& _window)
+	const IRenderSurface& VkRenderInstance::CreateRenderSurface(const IWindow& _window)
 	{
 #if SA_DEBUG
 
@@ -215,6 +228,8 @@ namespace Sa
 			VkDevice::QueryQueueFamilies(mDevice, renderSurfaceInfo.renderSurface, queueFamilyIndices);
 
 		renderSurfaceInfo.renderSurface.Create(mDevice, queueFamilyIndices);
+
+		return renderSurfaceInfo.renderSurface;
 	}
 
 	void VkRenderInstance::DestroyRenderSurface(const IWindow& _window)
@@ -244,6 +259,8 @@ namespace Sa
 
 	void VkRenderInstance::Update()
 	{
+		//for (auto it = mRenderSurfaceInfos.begin(); it != mRenderSurfaceInfos.end(); ++it)
+		//	it->renderSurface.GetSwapChain().Update(mDevice);
 	}
 
 

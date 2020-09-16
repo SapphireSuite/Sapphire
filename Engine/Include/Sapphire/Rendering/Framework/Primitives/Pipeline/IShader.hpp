@@ -2,13 +2,15 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_SHADER_GUARD
-#define SAPPHIRE_RENDERING_SHADER_GUARD
+#ifndef SAPPHIRE_RENDERING_ISHADER_GUARD
+#define SAPPHIRE_RENDERING_ISHADER_GUARD
 
 #include <string>
 
 namespace Sa
 {
+	class IRenderInstance;
+
 	enum class ShaderType
 	{
 		Unknown,
@@ -19,13 +21,16 @@ namespace Sa
 		Compute
 	};
 
-	class Shader
+	class IShader
 	{
 	protected:
 		ShaderType mShaderType = ShaderType::Unknown;
 
 	public:
 		ShaderType GetShaderType() const;
+
+		virtual void Create(const IRenderInstance& _instance, ShaderType _type, const std::wstring& _fileName) = 0;
+		virtual void Destroy(const IRenderInstance& _instance) = 0;
 	};
 }
 

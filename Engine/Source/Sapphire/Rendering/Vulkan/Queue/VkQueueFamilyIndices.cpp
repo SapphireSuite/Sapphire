@@ -24,7 +24,7 @@ namespace Sa
 
 	bool VkQueueFamilyIndices::IsCompleted() const
 	{
-		return graphicsFamily != -1 && presentFamily != -1;
+		return graphicsFamily != uint32(-1) && presentFamily != uint32(-1);
 	}
 }
 

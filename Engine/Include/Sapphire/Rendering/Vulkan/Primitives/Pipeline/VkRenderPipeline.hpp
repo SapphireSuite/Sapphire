@@ -27,11 +27,22 @@ namespace Sa
 		VkPipelineLayout mLayout = VK_NULL_HANDLE;
 
 	public:
-		void Create(const IRenderInstance& _instance,
-			const IRenderSurface& _surface,
-			const std::vector<Shader>& _shaders,
-			const std::vector<Viewport>& _viewports) override final;
-		void Destroy(const IRenderInstance& _instance) override final;
+		//void Create(const IRenderInstance& _instance,
+		//	const IRenderSurface& _surface,
+		//	const std::vector<const IShader*>& _shaders,
+		//	const std::vector<Viewport>& _viewports) override final;
+		//void Destroy(const IRenderInstance& _instance) override final;
+
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void Create(const VkDevice& _device,
+			const VkRenderPass& _renderPass,
+			const std::vector<const IShader*>& _shaders,
+			const Viewport& _viewport);
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void Destroy(const VkDevice& _device);
+
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API operator VkPipeline() const;
 	};
 }
 

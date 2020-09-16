@@ -7,6 +7,10 @@
 
 #include <vulkan/vulkan.h>
 
+#include <Rendering/Config.hpp>
+
+#if SA_RENDERING_API == SA_VULKAN
+
 namespace Sa
 {
 	class VkDevice;
@@ -17,11 +21,16 @@ namespace Sa
 		::VkRenderPass mHandle = VK_NULL_HANDLE;
 
 	public:
-		void Create(const VkDevice& _device, const VkSwapChain& _swapChain);
-		void Destroy(const VkDevice& _device);
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void Create(const VkDevice& _device, VkFormat _format);
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void Destroy(const VkDevice& _device);
 
-		operator ::VkRenderPass() const noexcept;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API operator ::VkRenderPass() const noexcept;
 	};
 }
+
+#endif
 
 #endif // GUARD

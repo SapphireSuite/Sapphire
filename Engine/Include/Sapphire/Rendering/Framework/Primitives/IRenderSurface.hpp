@@ -5,14 +5,15 @@
 #ifndef SAPPHIRE_RENDERING_RENDER_SURFACE_GUARD
 #define SAPPHIRE_RENDERING_RENDER_SURFACE_GUARD
 
-#include <Rendering/Image/ImageExtent.hpp>
+#include <Rendering/Image/Viewport.hpp>
 
 namespace Sa
 {
 	class IRenderSurface
 	{
 	public:
-		virtual const ImageExtent& GetImageExtent() const = 0;
+		virtual const ImageExtent& GetImageExtent() const noexcept = 0;
+		virtual Viewport GetViewport() const noexcept  = 0;
 	};
 }
 

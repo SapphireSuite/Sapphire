@@ -242,6 +242,70 @@ namespace Sa
 		mFrameBuffers.clear();
 	}
 
+	VkRenderFrame VkSwapChain::Update(const VkDevice& _device)
+	{
+		// Get current frame components.
+		VkRenderFrame frame = GetRenderFrame();
+
+
+		const VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+		// Submit previous graphic.
+		const VkSubmitInfo submitInfo
+		{
+			VK_STRUCTURE_TYPE_SUBMIT_INFO,						// sType.
+			nullptr,											// pNext.
+			1,													// waitSemaphoreCount.
+			&frame.acquireSemaphores,							// pWaitSemaphores.
+			&waitStages,										// pWaitDstStageMask.
+			1,													// commandBufferCount.
+			&frame.graphicsCommandBuffer,						// pCommandBuffers.
+			1,													// signalSemaphoreCount.
+			&frame.presentSemaphores,							// pSignalSemaphores.
+		};
+
+		SA_VK_ASSERT(vkQueueSubmit(_device.GetGraphicsQueue(), 1, &submitInfo, frame.mainFence),
+			LibCommandFailed, Rendering, L"Failed to submit graphics queue!");
+
+		// Submit previous present.
+		const VkPresentInfoKHR presentInfo
+		{
+			VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,					// sType.
+			nullptr,											// pNext.
+			1,													// waitSemaphoreCount.
+			&frame.presentSemaphores,							// pWaitSemaphores.
+			1,													// swapchainCount.
+			&mHandle,											// pSwapchains
+			&mImageIndex,										// pImageIndices.
+			nullptr												// pResults.
+		};
+
+		SA_VK_ASSERT(vkQueuePresentKHR(_device.GetPresentQueue(), &presentInfo),
+			LibCommandFailed, Rendering, L"Failed to submit present queue!");
+
+
+		// Increment new frame.
+		mFrameIndex = (mFrameIndex + 1) % GetImageNum();
+
+		// Get new current frame components.
+		frame = GetRenderFrame();
+
+
+		// Wait current Fence.
+		vkWaitForFences(_device, 1, &frame.mainFence, true, UINT64_MAX);
+
+		// Reset current Fence.
+		vkResetFences(_device, 1, &frame.mainFence);
+
+		// Reset Command Buffer.
+		vkResetCommandBuffer(frame.graphicsCommandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+
+		SA_VK_ASSERT(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, frame.acquireSemaphores, VK_NULL_HANDLE, &mImageIndex),
+			LibCommandFailed, Rendering, L"Failed to aquire next image!");
+
+		return frame;
+	}
+
 	VkSurfaceFormatKHR VkSwapChain::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 	{
 		// Prefered

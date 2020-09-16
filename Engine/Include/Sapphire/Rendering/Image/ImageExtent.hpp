@@ -29,7 +29,8 @@ namespace Sa
 
 		ImageExtent(const VkExtent2D& _extent);
 
-		operator const VkExtent2D&() const;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API operator const VkExtent2D&() const;
 
 #endif
 	};

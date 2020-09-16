@@ -10,21 +10,19 @@
 #include <vulkan/vulkan.h>
 
 #include <Rendering/Config.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/Shader.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/IShader.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
 {
-	class VkDevice;
-
-	class VkShader : public Shader
+	class VkShader : public IShader
 	{
 		VkShaderModule mHandle = VK_NULL_HANDLE;
 
 	public:
-		//void Create(const VkDevice& _device, const std::string& filename);
-		//void Destroy(const VkDevice& _device);
+		void SA_ENGINE_API Create(const IRenderInstance& _instance, ShaderType _type, const std::wstring& _fileName) override final;
+		void SA_ENGINE_API Destroy(const IRenderInstance& _instance) override final;
 
 		operator VkShaderModule() const;
 	};

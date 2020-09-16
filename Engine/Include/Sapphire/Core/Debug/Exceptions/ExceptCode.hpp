@@ -67,6 +67,9 @@ namespace Sa
 
 		/// Requiered extension missisng.
 		ExtensionMissing,
+
+		/// Command from external library failed.
+		LibCommandFailed,
 	};
 
 

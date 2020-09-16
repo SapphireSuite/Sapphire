@@ -29,10 +29,11 @@ namespace Sa
 		}
 	}
 
-	void VkRenderPipeline::Create(const IRenderInstance& _instance,
-		const IRenderSurface& _surface,
-		const std::vector<Shader>& _shaders,
-		const std::vector<Viewport>& _viewports)
+
+	void VkRenderPipeline::Create(const VkDevice& _device,
+		const VkRenderPass& _renderPass,
+		const std::vector<const IShader*>& _shaders,
+		const Viewport& _viewport)
 	{
 		// Create Shader Stages.
 		VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[_shaders.size()];
@@ -44,8 +45,8 @@ namespace Sa
 				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
 				nullptr,															// pNext.
 				0,																	// flags.
-				GetVkShaderStage(_shaders[i].GetShaderType()),						// stage.
-				reinterpret_cast<const VkShader&>(_shaders[i]),						// module.
+				GetVkShaderStage(_shaders[i]->GetShaderType()),						// stage.
+				*reinterpret_cast<const VkShader*>(_shaders[i]),					// module.
 				"main",																// pName.
 				nullptr,															// pSpecializationInfo.
 			};
@@ -73,7 +74,8 @@ namespace Sa
 		};
 
 
-		// Create Viewports.
+		/*
+		// Multi viewport.
 		VkViewport* viewports = new VkViewport[_viewports.size()];
 		VkRect2D* scissors = new VkRect2D[_viewports.size()];
 
@@ -107,6 +109,38 @@ namespace Sa
 			viewports,																// pViewports.
 			static_cast<uint32>(_viewports.size()),									// scissorCount.
 			scissors																// pScissors.
+		};
+		*/
+
+
+		// Create Viewports.
+		const VkViewport viewport
+		{
+			static_cast<float>(_viewport.offset.x),									// x.
+			static_cast<float>(_viewport.offset.y),									// y.
+			static_cast<float>(_viewport.extent.width),								// width.
+			static_cast<float>(_viewport.extent.height),							// height.
+			0.0f,																	// minDepth.
+			1.0f,																	// maxDepth.
+		};
+
+		const Scissor& inScissor = _viewport.scissor;
+
+		const VkRect2D scissor
+		{
+			VkOffset2D{ static_cast<int32>(inScissor.offset.x), static_cast<int32>(inScissor.offset.y) },				// offset.
+			VkExtent2D{ inScissor.extent.width, inScissor.extent.height } 												// extent.
+		};
+
+		const VkPipelineViewportStateCreateInfo viewportStateCreateInfo
+		{
+			VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,					// sType.
+			nullptr,																// pNext.
+			0,																		// flags.
+			1,																		// viewportCount.
+			&viewport,																// pViewports.
+			1,																		// scissorCount.
+			&scissor																// pScissors.
 		};
 
 
@@ -182,18 +216,18 @@ namespace Sa
 			nullptr																	// pPushConstantRanges.
 		};
 
-		const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
-		SA_VK_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &mLayout),
+		//const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
+		SA_VK_ASSERT(vkCreatePipelineLayout(_device, &pipelineLayoutCreateInfo, nullptr, &mLayout),
 			CreationFailed, Rendering, L"Failed to create pipeline layout!");
 
-		const VkRenderPass& renderPass = reinterpret_cast<const VkRenderSurface&>(_surface).GetRenderPass();
+		//const VkRenderPass& renderPass = reinterpret_cast<const VkRenderSurface&>(_surface).GetRenderPass();
 
 		const VkGraphicsPipelineCreateInfo pipelineCreateInfo
 		{
 			VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,					// sType.
 			nullptr,															// pNext.
 			0,																	// flags.
-			2,																	// stageCount.
+			_shaders.size(),													// stageCount.
 			shaderStages,														// pStages.
 			&vertexInputCreateInfo,												// pVertexInputState.
 			&inputAssemblyCreateInfo,											// pInputAssemblyState.
@@ -205,21 +239,31 @@ namespace Sa
 			&colorBlendingCreateInfo,											// pColorBlendState.
 			nullptr,															// pDynamicState.
 			mLayout,															// layout.
-			renderPass,															// renderPass.
+			_renderPass,														// renderPass.
 			0,																	// subpass.
 			VK_NULL_HANDLE,														// basePipelineHandle.
 			-1																	// basePipelineIndex.
 		};
 
-		SA_VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mHandle),
+		SA_VK_ASSERT(vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mHandle),
 			CreationFailed, Rendering, L"Failed to create graphics pipeline!")
 	}
-	void VkRenderPipeline::Destroy(const IRenderInstance& _instance)
-	{
-		const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
 
-		vkDestroyPipeline(device, mHandle, nullptr);
-		vkDestroyPipelineLayout(device, mLayout, nullptr);
+	void VkRenderPipeline::Destroy(const VkDevice& _device)
+	{
+		//const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
+
+		vkDestroyPipeline(_device, mHandle, nullptr);
+		mHandle = VK_NULL_HANDLE;
+
+		vkDestroyPipelineLayout(_device, mLayout, nullptr);
+		mLayout = VK_NULL_HANDLE;
+	}
+
+
+	VkRenderPipeline::operator VkPipeline() const
+	{
+		return mHandle;
 	}
 }
 

@@ -21,16 +21,15 @@ namespace Sa
 		mHandle = nullptr;
 	}
 
+	VkSwapChain& VkRenderSurface::GetSwapChain()
+	{
+		return mSwapChain;
+	}
+
 	const VkSwapChain& VkRenderSurface::GetSwapChain() const
 	{
 		return mSwapChain;
 	}
-	
-	const VkRenderPass& VkRenderSurface::GetRenderPass() const
-	{
-		return mRenderPass;
-	}
-
 
 	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
@@ -38,7 +37,6 @@ namespace Sa
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
 		mSwapChain.Create(_device, *this, _queueFamilyIndices);
-		mRenderPass.Create(_device, mSwapChain);
 	}
 
 	void VkRenderSurface::Destroy(const VkDevice& _device)
@@ -46,14 +44,26 @@ namespace Sa
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
-		mRenderPass.Destroy(_device);
 		mSwapChain.Destroy(_device);
 	}
 
+	VkFormat VkRenderSurface::GetImageFormat() const noexcept
+	{
+		return mSwapChain.GetImageFormat();
+	}
 
-	const ImageExtent& VkRenderSurface::GetImageExtent() const
+	const ImageExtent& VkRenderSurface::GetImageExtent() const noexcept
 	{
 		return mSwapChain.GetImageExtent();
+	}
+
+	Viewport VkRenderSurface::GetViewport() const noexcept
+	{
+		return Viewport
+		{
+			Vec2<uint32>::Zero, GetImageExtent(),
+			Scissor{ Vec2<uint32>::Zero, GetImageExtent() }
+		};
 	}
 
 

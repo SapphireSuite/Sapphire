@@ -10,6 +10,7 @@
 namespace Sa
 {
 	class IWindow;
+	class IRenderSurface;
 
 	class IRenderInstance
 	{
@@ -17,7 +18,7 @@ namespace Sa
 		virtual void Create() = 0;
 		virtual void Destroy() = 0;
 
-		virtual void CreateRenderSurface(const IWindow& _window) = 0;
+		virtual const IRenderSurface& CreateRenderSurface(const IWindow& _window) = 0;
 		virtual void DestroyRenderSurface(const IWindow& _window) = 0;
 
 		virtual void Update() = 0;
