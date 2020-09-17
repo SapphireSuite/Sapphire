@@ -7,12 +7,14 @@
 
 #include <Rendering/Config.hpp>
 
+#include <Core/Types/IInterface.hpp>
+
 namespace Sa
 {
 	class IWindow;
 	class IRenderSurface;
 
-	class IRenderInstance
+	class IRenderInstance : public IInterface
 	{
 	public:
 		virtual void Create() = 0;

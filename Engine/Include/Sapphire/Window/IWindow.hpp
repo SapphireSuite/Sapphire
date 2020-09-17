@@ -10,9 +10,11 @@
 
 #include <Window/Config.hpp>
 
+#include <Core/Types/IInterface.hpp>
+
 namespace Sa
 {
-	class IWindow
+	class IWindow : public IInterface
 	{
 	public:
 		mutable Event<void(const IWindow&, uint32, uint32)> onResizeEvent;

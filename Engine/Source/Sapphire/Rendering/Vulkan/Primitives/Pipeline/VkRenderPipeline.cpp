@@ -4,7 +4,7 @@
 
 #include <Rendering/Vulkan/Primitives/Pipeline/VkRenderPipeline.hpp>
 
-#include <Rendering/Model/Vertex.hpp>
+#include <Rendering/Framework/Model/Vertex.hpp>
 
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
@@ -48,7 +48,7 @@ namespace Sa
 				nullptr,															// pNext.
 				0,																	// flags.
 				GetVkShaderStage(_shaders[i]->GetShaderType()),						// stage.
-				*reinterpret_cast<const VkShader*>(_shaders[i]),					// module.
+				_shaders[i]->As<VkShader>(),										// module.
 				"main",																// pName.
 				nullptr,															// pSpecializationInfo.
 			};
@@ -164,11 +164,11 @@ namespace Sa
 			nullptr																	// pPushConstantRanges.
 		};
 
-		const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
+		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 		SA_VK_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &mLayout),
 			CreationFailed, Rendering, L"Failed to create pipeline layout!");
 
-		const VkRenderPass& renderPass = reinterpret_cast<const VkRenderSurface&>(_surface).GetRenderPass();
+		const VkRenderPass& renderPass = _surface.As<VkRenderSurface>().GetRenderPass();
 
 		const VkGraphicsPipelineCreateInfo pipelineCreateInfo
 		{
@@ -214,7 +214,7 @@ namespace Sa
 
 	void VkRenderPipeline::Destroy(const IRenderInstance& _instance)
 	{
-		const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
+		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 		vkDestroyPipeline(device, mHandle, nullptr);
 		mHandle = VK_NULL_HANDLE;

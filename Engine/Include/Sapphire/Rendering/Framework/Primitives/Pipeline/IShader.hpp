@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include <Core/Types/IInterface.hpp>
+
 namespace Sa
 {
 	class IRenderInstance;
@@ -21,7 +23,7 @@ namespace Sa
 		Compute
 	};
 
-	class IShader
+	class IShader : public IInterface
 	{
 	protected:
 		ShaderType mShaderType = ShaderType::Unknown;

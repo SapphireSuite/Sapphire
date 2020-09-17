@@ -32,7 +32,7 @@ namespace Sa
 
 	void VkShader::Create(const IRenderInstance& _instance, ShaderType _type, const std::wstring& _fileName)
 	{
-		const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
+		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 		auto shaderCode = ReadFile(_fileName);
 
@@ -52,7 +52,7 @@ namespace Sa
 	}
 	void VkShader::Destroy(const IRenderInstance& _instance)
 	{
-		const VkDevice& device = reinterpret_cast<const VkRenderInstance&>(_instance).GetDevice();
+		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 		vkDestroyShaderModule(device, mHandle, nullptr);
 

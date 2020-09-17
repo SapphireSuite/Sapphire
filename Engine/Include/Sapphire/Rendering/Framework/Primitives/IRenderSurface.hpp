@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_RENDERING_RENDER_SURFACE_GUARD
 #define SAPPHIRE_RENDERING_RENDER_SURFACE_GUARD
 
+#include <Core/Types/IInterface.hpp>
+
 #include <Core/Types/Variadics/Event.hpp>
 
 #include <Rendering/Image/Viewport.hpp>
@@ -13,7 +15,7 @@ namespace Sa
 {
 	class IRenderInstance;
 
-	class IRenderSurface
+	class IRenderSurface : public IInterface
 	{
 	public:
 		mutable Event<void(const IRenderInstance&, const IRenderSurface&)> onResizeEvent;

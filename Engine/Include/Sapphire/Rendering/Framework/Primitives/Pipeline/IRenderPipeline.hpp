@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#include <Core/Types/IInterface.hpp>
+
 #include <Rendering/Image/Viewport.hpp>
 
 namespace Sa
@@ -15,7 +17,7 @@ namespace Sa
 	class IRenderSurface;
 	class IShader;
 
-	class IRenderPipeline
+	class IRenderPipeline : public IInterface
 	{
 	public:
 		void Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const std::vector<const IShader*>& _shaders);

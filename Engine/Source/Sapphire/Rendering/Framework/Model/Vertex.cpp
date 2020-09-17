@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Model/Vertex.hpp>
+#include <Rendering/Framework/Model/Vertex.hpp>
 
 namespace Sa
 {

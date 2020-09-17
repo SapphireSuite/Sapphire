@@ -200,7 +200,7 @@ namespace Sa
 		// Create and register into mRenderSurfaceInfos.
 #if SA_WINDOW_API == SA_GLFW
 
-		const GLFWWindow& glfwWindow = reinterpret_cast<const GLFWWindow&>(_window);
+		const GLFWWindow& glfwWindow = _window.As<GLFWWindow>();
 
 		RenderSurfaceInfos& renderSurfaceInfo = mRenderSurfaceInfos.emplace_back(RenderSurfaceInfos{ &_window });
 
@@ -221,6 +221,7 @@ namespace Sa
 		_window.onResizeEvent.Add(std::function<void(const IWindow&, uint32, uint32)>(
 			[this, &renderSurfaceInfo] (const IWindow& _win, uint32 _width, uint32 _height)
 			{
+				(void)_win;
 				vkDeviceWaitIdle(mDevice);
 				renderSurfaceInfo.renderSurface.ResizeCallback(*this, _width, _height);
 			}

@@ -84,13 +84,6 @@ else()
 	target_compile_options(Engine PRIVATE -fexceptions)
 endif()
 
-# Disable RTTI: dynamic_cast<> and typeid. Use Sapphire reflection instead.
-if(MSVC)
-	target_compile_options(Engine PRIVATE /GR-)
-else()
-	target_compile_options(Engine PRIVATE -fno-rtti)
-endif()
-
 # Advanced MSVC preprocessor required for Core::Debug
 # https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview
 if(MSVC AND NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")  # Not allowed on Clang-cl for Visual Studio.
@@ -139,6 +132,13 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
 	
 	message("Build config: Release")
+
+	# Disable RTTI: dynamic_cast<> and typeid. Use Sapphire reflection instead.
+	if(MSVC)
+		target_compile_options(Engine PRIVATE /GR-)
+	else()
+		target_compile_options(Engine PRIVATE -fno-rtti)
+	endif()
 
 	# Maximum code optimization: O2. O3 may be unstable and build undefined behavior.
 	if(MSVC)

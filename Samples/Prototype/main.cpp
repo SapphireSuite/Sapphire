@@ -4,8 +4,7 @@
 #include <iostream>
 
 #include <Sapphire/Window/GLFWWindow.hpp>
-#include <Sapphire/Rendering/Model/Mesh.hpp>
-#include <Sapphire/Rendering/Model/Vertex.hpp>
+#include <Sapphire/Rendering/Vulkan/Model/VkMesh.hpp>
 #include <Sapphire/Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Sapphire/Rendering/Vulkan/Primitives/Pipeline/VkShader.hpp>
 #include <Sapphire/Rendering/Vulkan/Primitives/Pipeline/VkRenderPipeline.hpp>
@@ -34,8 +33,8 @@ int main()
 		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f, 1.0f } }
 	};
 
-	Mesh mesh;
-	mesh.Create(instance.GetDevice(), vertices);
+	VkMesh mesh;
+	mesh.Create(instance, vertices);
 
 	VkShader vertShader;
 	vertShader.Create(instance, ShaderType::Vertex, L"../../Bin/Shaders/default_vert.spv");

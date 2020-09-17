@@ -96,8 +96,7 @@ namespace Sa
 
 		IRenderSurface::ResizeCallback(_instance, _width, _height);
 
-		const VkRenderInstance& vkInstance = reinterpret_cast<const VkRenderInstance&>(_instance);
-		const VkDevice& device = vkInstance.GetDevice();
+		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 		VkQueueFamilyIndices queueFamilyIndices;
 		VkDevice::QueryQueueFamilies(device, *this, queueFamilyIndices);
