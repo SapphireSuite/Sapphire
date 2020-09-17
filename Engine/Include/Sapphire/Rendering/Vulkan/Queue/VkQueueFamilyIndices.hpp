@@ -22,6 +22,11 @@ namespace Sa
 	public:
 		uint32 graphicsFamily = uint32(-1);
 		uint32 presentFamily = uint32(-1);
+		uint32 transferFamily = uint32(-1);
+
+		static constexpr uint32 familyNum = 3 * sizeof(uint32);
+
+		const uint32* GetFamilies() const;
 
 		void AddFamily(VkPhysicalDevice _device, const VkRenderSurface& _surface, const VkQueueFamilyProperties& _family, uint32 _index);
 		bool IsCompleted() const;

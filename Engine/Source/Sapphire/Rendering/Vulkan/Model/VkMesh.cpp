@@ -10,83 +10,48 @@
 
 namespace Sa
 {
-	uint32 FindMemoryType(const VkDevice& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties)
-	{
-		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(_device, &memProperties);
-
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-		{
-			if ((_typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & _properties) == _properties)
-				return i;
-		}
-
-		SA_ASSERT(false, NotSupported, Rendering, L"Memory type requiered not supported!")
-
-		return uint32(-1);
-	}
-
 	void VkMesh::Create(const IRenderInstance& _instance, const std::vector<Vertex>& _vertices)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
-		const VkBufferCreateInfo bufferInfo
-		{
-			VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,						// sType.
-			nullptr,													// pNext.
-			0,															// flags.
-			sizeof(Vertex) * _vertices.size(),							// size.
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,							// usage.
-			VK_SHARING_MODE_EXCLUSIVE,									// sharingMode.
-			0,															// queueFamilyIndexCount.
-			nullptr,													// pQueueFamilyIndices.
-		};
+		const uint32 bufferSize = sizeof(Vertex) * static_cast<uint32>(_vertices.size());
 
-		SA_VK_ASSERT(vkCreateBuffer(device, &bufferInfo, nullptr, &mVertexBuffer),
-			CreationFailed, Rendering, L"Failed to create vertex buffer!");
-
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(device, mVertexBuffer, &memRequirements);
-
-		uint32 memoryTypeIndex = FindMemoryType(device, memRequirements.memoryTypeBits,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-		const VkMemoryAllocateInfo memoryAllocInfo
-		{
-			VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,						// sType.
-			nullptr,													// pNext.
-			memRequirements.size,										// allocationSize.
-			memoryTypeIndex												// memoryTypeIndex.
-		};
-
-		SA_VK_ASSERT(vkAllocateMemory(device, &memoryAllocInfo, nullptr, &mVertexBufferMemory),
-			MemoryAllocationFailed, Rendering, L"Failed to allocate vertex buffer memory!");
-
-		vkBindBufferMemory(device, mVertexBuffer, mVertexBufferMemory, 0);
+		// Create Staging buffer.
+		VkBuffer stagingBuffer;
+		stagingBuffer.Create(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 
-		// Map memory.
+		// Map vertices memory.
 		void* data;
-		vkMapMemory(device, mVertexBufferMemory, 0, bufferInfo.size, 0, &data);
+		vkMapMemory(device, stagingBuffer, 0, bufferSize, 0, &data);
 
-		memcpy(data, _vertices.data(), static_cast<uint32>(bufferInfo.size));
+		memcpy(data, _vertices.data(), bufferSize);
 
-		vkUnmapMemory(device, mVertexBufferMemory);
+		vkUnmapMemory(device, stagingBuffer);
 
+
+		// Create vertex buffer (device local only).
+		mVertexBuffer.Create(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+
+		// Use staging buffer to transfer mapped memory.
+		VkBuffer::Copy(device, stagingBuffer, mVertexBuffer, bufferSize);
+
+
+		// Destroy staging buffer.
+		stagingBuffer.Destroy(device);
 	}
 
 	void VkMesh::Destroy(const IRenderInstance& _instance)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
-		vkDestroyBuffer(device, mVertexBuffer, nullptr);
-		vkFreeMemory(device, mVertexBufferMemory, nullptr); // Should be freed after destroying buffer.
-
-		mVertexBuffer = VK_NULL_HANDLE;
-		mVertexBufferMemory = VK_NULL_HANDLE;
+		mVertexBuffer.Destroy(device);
 	}
 
-	VkMesh::operator VkBuffer() const noexcept
+
+	VkMesh::operator const VkBuffer& () const noexcept
 	{
 		return mVertexBuffer;
 	}

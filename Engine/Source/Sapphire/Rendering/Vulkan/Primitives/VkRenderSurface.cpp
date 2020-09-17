@@ -5,7 +5,6 @@
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
-#include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -98,12 +97,9 @@ namespace Sa
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
-		VkQueueFamilyIndices queueFamilyIndices;
-		VkDevice::QueryQueueFamilies(device, *this, queueFamilyIndices);
-
 		mSwapChain.DestroyFrameBuffers(device);
 
-		mSwapChain.ReCreate(device, *this, queueFamilyIndices);
+		mSwapChain.ReCreate(device, *this, device.GetQueueFamilyIndices());
 
 		mRenderPass.ReCreate(device, mSwapChain.GetImageFormat());
 

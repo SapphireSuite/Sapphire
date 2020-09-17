@@ -9,8 +9,6 @@
 #include <Rendering/Vulkan/Primitives/VkRenderPass.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 
-#include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
-
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa

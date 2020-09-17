@@ -16,7 +16,6 @@
 
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/VkValidationLayers.hpp>
-#include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -33,7 +32,7 @@ namespace Sa
 	{
 	}
 
-	void VkRenderInstance::SelectDevice(const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices)
+	void VkRenderInstance::SelectDevice(const VkRenderSurface& _surface)
 	{
 		// Query Physical devices.
 		uint32 deviceCount = 0;
@@ -43,6 +42,8 @@ namespace Sa
 
 		std::vector<VkPhysicalDevice> devices(deviceCount);
 		vkEnumeratePhysicalDevices(mHandle, &deviceCount, devices.data());
+
+		VkQueueFamilyIndices _queueFamilyIndices;
 
 		for (uint32 i = 0; i < devices.size(); ++i)
 		{
@@ -229,15 +230,12 @@ namespace Sa
 
 
 		// Init RenderSurface.
-		VkQueueFamilyIndices queueFamilyIndices;
 
 		// 1st surface: Device not selected yet.
 		if (!mDevice.IsValid())
-			SelectDevice(renderSurfaceInfo.renderSurface, queueFamilyIndices);
-		else
-			VkDevice::QueryQueueFamilies(mDevice, renderSurfaceInfo.renderSurface, queueFamilyIndices);
+			SelectDevice(renderSurfaceInfo.renderSurface);
 
-		renderSurfaceInfo.renderSurface.Create(mDevice, queueFamilyIndices);
+		renderSurfaceInfo.renderSurface.Create(mDevice, mDevice.GetQueueFamilyIndices());
 
 		return renderSurfaceInfo.renderSurface;
 	}

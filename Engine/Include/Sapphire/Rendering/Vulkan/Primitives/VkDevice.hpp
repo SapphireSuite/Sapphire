@@ -6,13 +6,13 @@
 #define SAPPHIRE_RENDERING_VK_DEVICE_GUARD
 
 #include <Rendering/Vulkan/Queue/VkQueue.hpp>
+#include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
 {
 	class VkRenderSurface;
-	class VkQueueFamilyIndices;
 
 	class VkDevice
 	{
@@ -22,10 +22,18 @@ namespace Sa
 
 		VkQueue mPresentQueue;
 		VkQueue mGraphicsQueue;
+		VkQueue mTransferQueue;
+
+		VkQueueFamilyIndices mQueueFamilyIndices;
+
+		static void QueryQueueFamilies(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices);
 
 	public:
 		const VkQueue& GetPresentQueue() const noexcept;
 		const VkQueue& GetGraphicsQueue() const noexcept;
+		const VkQueue& GetTransferQueue() const noexcept;
+
+		const VkQueueFamilyIndices& GetQueueFamilyIndices() const;
 
 		bool IsValid() const noexcept;
 
@@ -35,7 +43,6 @@ namespace Sa
 		static uint32 GetExtensionNum() noexcept;
 		static const char* const* GetExtensionNames() noexcept;
 
-		static void QueryQueueFamilies(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices);
 		static bool IsPhysicalDeviceSuitable(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices);
 
 		operator ::VkDevice() const noexcept;

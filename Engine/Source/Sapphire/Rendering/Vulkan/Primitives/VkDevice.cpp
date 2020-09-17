@@ -6,7 +6,6 @@
 #include <Rendering/Vulkan/VkValidationLayers.hpp>
 
 #include <Rendering/Vulkan/Primitives/VkSwapChain.hpp>
-#include <Rendering/Vulkan/Queue/VkQueueFamilyIndices.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -62,6 +61,19 @@ namespace Sa
 		return mGraphicsQueue;
 	}
 
+	const VkQueue& VkDevice::GetTransferQueue() const noexcept
+	{
+		return mTransferQueue;
+	}
+
+	const VkQueueFamilyIndices& VkDevice::GetQueueFamilyIndices() const
+	{
+		SA_ASSERT(mQueueFamilyIndices.IsCompleted(), InvalidParam, Rendering,
+			L"Try to get uncomplete device queue family! Get queue family after device Create().")
+
+		return mQueueFamilyIndices;
+	}
+
 	bool VkDevice::IsValid() const noexcept
 	{
 		return mPhysicalDevice != VK_NULL_HANDLE && mLogicalDevice != VK_NULL_HANDLE;
@@ -71,7 +83,7 @@ namespace Sa
 	{
 		float queuePriority = 1.0f;
 
-		constexpr uint32 queueCreateInfoSize = 2;
+		constexpr uint32 queueCreateInfoSize = 3;
 		const VkDeviceQueueCreateInfo queueCreateInfos[queueCreateInfoSize]
 		{
 			// Graphic queue info.
@@ -92,6 +104,17 @@ namespace Sa
 				nullptr,															// pNext.
 				0,																	// flags.
 				_queueFamilyIndices.presentFamily,									// queueFamilyIndex.
+				1,																	// queueCount.
+				&queuePriority														// pQueuePriorities.
+			},
+
+			// Transfer queue info.
+			VkDeviceQueueCreateInfo
+			{
+				VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,							// sType.
+				nullptr,															// pNext.
+				0,																	// flags.
+				_queueFamilyIndices.transferFamily,									// queueFamilyIndex.
 				1,																	// queueCount.
 				&queuePriority														// pQueuePriorities.
 			}
@@ -136,6 +159,7 @@ namespace Sa
 #endif
 
 		mPhysicalDevice = _device;
+		mQueueFamilyIndices = _queueFamilyIndices;
 
 		SA_VK_ASSERT(vkCreateDevice(mPhysicalDevice, &deviceCreateInfo, nullptr, &mLogicalDevice),
 			CreationFailed,Rendering, L"Failed to create logical device!");
@@ -143,6 +167,7 @@ namespace Sa
 		// Query queues.
 		mPresentQueue.Create(*this, _queueFamilyIndices.presentFamily);
 		mGraphicsQueue.Create(*this, _queueFamilyIndices.graphicsFamily);
+		mTransferQueue.Create(*this, _queueFamilyIndices.transferFamily);
 	}
 
 	void VkDevice::Destroy()

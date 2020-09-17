@@ -83,7 +83,7 @@ int main()
 
 		vkCmdBindPipeline(frame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-		VkBuffer vertexBuffers[] = { mesh };
+		::VkBuffer vertexBuffers[] = { mesh.operator const Sa::VkBuffer &() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(frame.graphicsCommandBuffer, 0, 1, vertexBuffers, offsets);
 

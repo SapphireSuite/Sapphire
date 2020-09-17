@@ -5,13 +5,13 @@
 #ifndef SAPPHIRE_RENDERING_VK_MACRO_GUARD
 #define SAPPHIRE_RENDERING_VK_MACRO_GUARD
 
-#include <vulkan/vulkan.h>
-
 #include <Collections/Debug>
 
 #include <Rendering/Config.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
+
+#include <vulkan/vulkan.h>
 
 namespace Sa
 {

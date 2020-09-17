@@ -37,7 +37,7 @@ namespace Sa
 		void Init();
 		void UnInit();
 
-		void SelectDevice(const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices);
+		void SelectDevice(const VkRenderSurface& _surface);
 
 		static const std::vector<const char*>& GetRequiredExtensions() noexcept;
 
