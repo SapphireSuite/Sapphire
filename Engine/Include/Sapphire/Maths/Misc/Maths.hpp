@@ -7,9 +7,11 @@
 
 #include <cmath>
 
+#include <Collections/Types>
+
 #include <Core/Debug/Debug.hpp>
 
-#include <Collections/Types>
+#include <Maths/Config.hpp>
 
 namespace Sa
 {

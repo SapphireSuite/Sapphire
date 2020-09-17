@@ -22,6 +22,7 @@ namespace Sa
 	*	\{
 	*/
 
+
 	/**
 	*	\brief \e Vector 2 Sapphire's class.
 	*

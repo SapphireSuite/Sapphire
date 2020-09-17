@@ -17,6 +17,14 @@
 */
 
 
+#ifndef SA_MATRIX_ROW_MAJOR
+
+	/// Whether Mat4 use row major. Otherwise, column major.
+	#define SA_MATRIX_ROW_MAJOR 1
+
+#endif
+
+
 /** \} */
 
 

@@ -19,13 +19,14 @@ namespace Sa
 
 
 	/**
-	*	\file Quat.hpp
+	*	\file Quaternion.hpp
 	*
 	*	\brief \b Definition of Sapphire's \b Quaternion type.
 	*
 	*	\ingroup Maths
 	*	\{
 	*/
+
 
 	/**
 	*	\brief \e Quaternion Sapphire's class.
