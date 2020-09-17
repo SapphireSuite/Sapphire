@@ -74,7 +74,7 @@ namespace Sa
 	template <typename T>
 	constexpr T Maths::Cos(Rad<T> _in) noexcept
 	{
-		return std::cos(_in);
+		return std::cos(static_cast<T>(_in));
 	}
 
 	template <typename T>
@@ -86,7 +86,7 @@ namespace Sa
 	template <typename T>
 	constexpr T Maths::Sin(Rad<T> _in) noexcept
 	{
-		return std::sin(_in);
+		return std::sin(static_cast<T>(_in));
 	}
 
 	template <typename T>

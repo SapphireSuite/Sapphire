@@ -22,6 +22,7 @@ namespace Sa
 	*	\{
 	*/
 
+
 	/**
 	*	\brief \e Vector 2 Sapphire's class.
 	*
@@ -64,6 +65,16 @@ namespace Sa
 		*	\brief \e Default constructor.
 		*/
 		Vec2() = default;
+
+		/**
+		*	\brief \e Default move constructor.
+		*/
+		Vec2(Vec2&&) = default;
+
+		/**
+		*	\brief \e Default copy constructor.
+		*/
+		Vec2(const Vec2&) = default;
 
 		/**
 		*	\brief \e Value constructor.

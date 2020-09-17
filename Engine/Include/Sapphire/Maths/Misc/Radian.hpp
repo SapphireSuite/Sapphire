@@ -85,7 +85,7 @@ namespace Sa
 		*
 		*	\return new radian result.
 		*/
-		constexpr Rad operator*(float _scale) const noexcept;
+		constexpr Rad operator*(T _scale) const noexcept;
 
 		/**
 		*	\brief \b Unscale angle.
@@ -94,7 +94,7 @@ namespace Sa
 		*
 		*	\return new radian result.
 		*/
-		Rad operator/(float _scale) const;
+		Rad operator/(T _scale) const;
 
 		/**
 		*	\brief \b Add Radian to handle.
@@ -121,7 +121,7 @@ namespace Sa
 		*
 		*	\return this radian scaled.
 		*/
-		Rad& operator*=(float _scale) noexcept;
+		Rad& operator*=(T _scale) noexcept;
 
 		/**
 		*	\brief \b Unscale angle.
@@ -130,7 +130,7 @@ namespace Sa
 		*
 		*	\return this radian unscaled.
 		*/
-		Rad& operator/=(float _scale);
+		Rad& operator/=(T _scale);
 
 
 		/**
@@ -138,7 +138,7 @@ namespace Sa
 		*
 		*	\return handle as \c float without conversion.
 		*/
-		constexpr operator T() const noexcept;
+		explicit constexpr operator T() const noexcept;
 
 		/**
 		*	\brief \e Cast operator to \c Degree with proper conversion.

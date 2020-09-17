@@ -2,7 +2,7 @@
 
 #include "UnitTest.hpp"
 
-//#include "Tests/Maths/Vector3_tests.hpp"
+#include "Tests/Maths/Matrix4_tests.hpp"
 using namespace Sa;
 
 int main()
@@ -10,7 +10,7 @@ int main()
 	LOG("=== Start ===");
 
 
-	//Test();
+	Test();
 
 
 	LOG("\n=== End ===");

@@ -40,13 +40,13 @@ namespace Sa
 	}
 
 	template <typename T>
-	constexpr Rad<T> Rad<T>::operator*(float _scale) const noexcept
+	constexpr Rad<T> Rad<T>::operator*(T _scale) const noexcept
 	{
 		return Rad(mHandle * _scale);
 	}
 
 	template <typename T>
-	Rad<T> Rad<T>::operator/(float _scale) const
+	Rad<T> Rad<T>::operator/(T _scale) const
 	{
 		SA_ASSERT(!Maths::Equals0(_scale), DivisionBy0, L"Unscale angle by 0!");
 
@@ -70,7 +70,7 @@ namespace Sa
 	}
 
 	template <typename T>
-	Rad<T>& Rad<T>::operator*=(float _scale) noexcept
+	Rad<T>& Rad<T>::operator*=(T _scale) noexcept
 	{
 		mHandle *= _scale;
 
@@ -78,7 +78,7 @@ namespace Sa
 	}
 
 	template <typename T>
-	Rad<T>& Rad<T>::operator/=(float _scale)
+	Rad<T>& Rad<T>::operator/=(T _scale)
 	{
 		SA_ASSERT(!Maths::Equals0(_scale), DivisionBy0, L"Unscale angle by 0!");
 
