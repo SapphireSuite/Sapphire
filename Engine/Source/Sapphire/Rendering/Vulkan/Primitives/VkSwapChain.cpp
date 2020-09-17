@@ -1,6 +1,5 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-
 #include <Rendering/Vulkan/Primitives/VkSwapChain.hpp>
 
 #include <Maths/Misc/Maths.hpp>

@@ -128,8 +128,8 @@ namespace Sa
 			queueCreateInfos,										// pQueueCreateInfo.
 			0,														// enabledLayerCount.
 			nullptr,												// ppEnabledLayerNames.
-			0,														// enabledExtensionCount.
-			nullptr,												// ppEnabledExtensionNames.
+			GetExtensionNum(),										// enabledExtensionCount.
+			GetExtensionNames(),									// ppEnabledExtensionNames.
 			&physicalDeviceFeatures									// pEnabledFeatures.
 		};
 
