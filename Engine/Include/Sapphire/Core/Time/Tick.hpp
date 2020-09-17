@@ -33,7 +33,7 @@ namespace Sa
 	class Tick
 	{
 		/// The handled time.
-		float mTime = 0u;
+		float mTime = 0.0f;
 
 	public:
 		/// Constant to convert Ticks to MilliSeconds.

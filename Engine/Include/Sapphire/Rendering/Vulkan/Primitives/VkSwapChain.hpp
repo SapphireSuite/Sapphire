@@ -42,6 +42,12 @@ namespace Sa
 
 		std::vector<VkFence> mMainFences;
 
+		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
+		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSet> mDescriptorSets;
+
+		std::vector<VkBuffer> mUniformBuffers;
+
 		struct SupportDetails
 		{
 			VkSurfaceCapabilitiesKHR capabilities;
@@ -54,14 +60,13 @@ namespace Sa
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		ImageExtent ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-		void Create_Internal(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
-		void Destroy_Internal(const VkDevice& _device);
-
 	public:
 		uint32 GetImageNum() const noexcept;
 		VkFormat GetImageFormat() const noexcept;
 
 		const ImageExtent& GetImageExtent() const noexcept;
+
+		VkDescriptorSetLayout GetDescriptorSetLayout() const noexcept;
 
 		VkRenderFrame GetRenderFrame() const noexcept;
 

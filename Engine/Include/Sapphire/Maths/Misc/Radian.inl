@@ -10,7 +10,6 @@ namespace Sa
 	template <typename T>
 	constexpr Rad<T>::Rad(Deg<T> _deg) noexcept : mHandle{ static_cast<T>(_deg) * Maths::DegToRad }
 	{
-
 	}
 
 

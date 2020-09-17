@@ -37,6 +37,9 @@ namespace Sa
 		const std::vector<const IShader*>& _shaders,
 		const Viewport& _viewport)
 	{
+		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
+		const VkRenderSurface& vkSurfaca = _surface.As<VkRenderSurface>();
+
 		// Create Shader Stages.
 		VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[_shaders.size()];
 
@@ -153,22 +156,23 @@ namespace Sa
 
 
 
+		VkDescriptorSetLayout descriptorLayout = vkSurfaca.GetSwapChain().GetDescriptorSetLayout();
+
 		const VkPipelineLayoutCreateInfo  pipelineLayoutCreateInfo
 		{
 			VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,							// sType.
 			nullptr,																// pNext.
 			0,																		// flags.
-			0,																		// setLayoutCount.
-			nullptr,																// pSetLayouts.
+			1,																		// setLayoutCount.
+			& descriptorLayout,														// pSetLayouts.
 			0,																		// pushConstantRangeCount.
 			nullptr																	// pPushConstantRanges.
 		};
 
-		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 		SA_VK_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &mLayout),
 			CreationFailed, Rendering, L"Failed to create pipeline layout!");
 
-		const VkRenderPass& renderPass = _surface.As<VkRenderSurface>().GetRenderPass();
+		const VkRenderPass& renderPass = vkSurfaca.GetRenderPass();
 
 		const VkGraphicsPipelineCreateInfo pipelineCreateInfo
 		{
@@ -236,6 +240,11 @@ namespace Sa
 	VkRenderPipeline::operator VkPipeline() const
 	{
 		return mHandle;
+	}
+
+	VkRenderPipeline::operator VkPipelineLayout() const
+	{
+		return mLayout;
 	}
 }
 

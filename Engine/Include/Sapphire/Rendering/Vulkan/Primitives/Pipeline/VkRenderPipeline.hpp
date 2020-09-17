@@ -21,7 +21,6 @@ namespace Sa
 	class VkRenderPipeline : public IRenderPipeline
 	{
 		VkPipeline mHandle = VK_NULL_HANDLE;
-
 		VkPipelineLayout mLayout = VK_NULL_HANDLE;
 
 		void Create_Internal(const IRenderInstance& _instance,
@@ -46,6 +45,9 @@ namespace Sa
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API operator VkPipeline() const;
+
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API operator VkPipelineLayout() const;
 	};
 }
 

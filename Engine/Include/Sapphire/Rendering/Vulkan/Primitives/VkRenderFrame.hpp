@@ -9,6 +9,8 @@
 
 #include <Rendering/Framework/Primitives/IRenderFrame.hpp>
 
+#include <Rendering/Vulkan/Buffer/VkBuffer.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 #include <vulkan/vulkan.h>
@@ -29,13 +31,18 @@ namespace Sa
 
 		VkFence mainFence;
 
+		VkBuffer uniformBuffer;
+		VkDescriptorSet descriptorSet;
+
 		VkRenderFrame(VkImage _image,
 			VkImageView _imageView,
 			VkFramebuffer _frameBuffer,
 			VkCommandBuffer _graphicsCommandBuffer,
 			VkSemaphore _acquireSemaphores,
 			VkSemaphore _presentSemaphores,
-			VkFence _mainFence) noexcept;
+			VkFence _mainFence,
+			VkBuffer _uniformBuffer,
+			VkDescriptorSet _descriptorSet) noexcept;
 	};
 }
 

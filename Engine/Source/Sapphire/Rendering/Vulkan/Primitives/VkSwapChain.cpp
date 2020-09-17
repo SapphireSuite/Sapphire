@@ -4,6 +4,8 @@
 
 #include <Maths/Misc/Maths.hpp>
 
+#include <Rendering/Framework/Model/UniformBufferObject.hpp>
+
 #include <Rendering/Vulkan/VkMacro.hpp>
 #include <Rendering/Vulkan/Primitives/VkDevice.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderPass.hpp>
@@ -28,6 +30,11 @@ namespace Sa
 		return mExtent;
 	}
 
+	VkDescriptorSetLayout VkSwapChain::GetDescriptorSetLayout() const noexcept
+	{
+		return mDescriptorSetLayout;
+	}
+
 	VkRenderFrame VkSwapChain::GetRenderFrame() const noexcept
 	{
 		return VkRenderFrame
@@ -39,10 +46,12 @@ namespace Sa
 			mAcquireSemaphores[mFrameIndex],
 			mPresentSemaphores[mFrameIndex],
 			mMainFences[mFrameIndex],
+			mUniformBuffers[mFrameIndex],
+			mDescriptorSets[mFrameIndex]
 		};
 	}
 
-	void VkSwapChain::Create_Internal(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
+	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		// Query infos.
 		SupportDetails swapChainSupport = QuerySupportDetails(_device, _surface);
@@ -150,27 +159,105 @@ namespace Sa
 
 		SA_VK_ASSERT(vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, mGraphicsCommandBuffers.data()),
 			CreationFailed, Rendering, L"Failed to allocate command buffers!");
-	}
-	void VkSwapChain::Destroy_Internal(const VkDevice& _device)
-	{
-		DestroyFrameBuffers(_device);
 
-		const uint32 imageNum = GetImageNum();
 
+		// Uniform buffers creation.
+		mUniformBuffers.resize(imageNum);
+		
 		for (uint32 i = 0; i < imageNum; i++)
-			vkDestroyImageView(_device, mImageViews[i], nullptr);
+		{
+			mUniformBuffers[i].Create(_device, sizeof(UniformBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-		// Manually free command buffers (useful for resize).
-		vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(), imageNum, mGraphicsCommandBuffers.data());
+		}
 
-		vkDestroySwapchainKHR(_device, mHandle, nullptr);
-	}
 
-	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
-	{
-		Create_Internal(_device, _surface, _queueFamilyIndices);
+		// Create Descriptor set layout.
+		const VkDescriptorSetLayoutBinding uboLayoutBinding
+		{
+			0,													// binding.
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
+			1,													// descriptorCount.
+			VK_SHADER_STAGE_VERTEX_BIT,							// stageFlags.
+			nullptr												// pImmutableSamplers.
+		};
 
-		const uint32 imageNum = GetImageNum();
+		const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo
+		{
+			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,					// sType.
+			nullptr,																// pNext.
+			0,																		// flags.
+			1,																		// bindingCount.
+			&uboLayoutBinding														// pBindings.
+		};
+
+		SA_VK_ASSERT(vkCreateDescriptorSetLayout(_device, &descriptorSetLayoutInfo, nullptr, &mDescriptorSetLayout),
+			CreationFailed, Rendering, L"Failed to create descriptor set layout!");
+
+
+		// Descriptor pool creation.
+		const VkDescriptorPoolSize descriptorPoolSize
+		{
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,								// type.
+			imageNum,														// descriptorCount.
+		};
+
+		const VkDescriptorPoolCreateInfo descriptorPoolInfo
+		{
+			VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,					// sType.
+			nullptr,														// pNext.
+			0,																// flags.
+			imageNum,														// maxSets.
+			1,																// poolSizeCount.
+			&descriptorPoolSize,											// pPoolSizes.
+		};
+
+		SA_VK_ASSERT(vkCreateDescriptorPool(_device, &descriptorPoolInfo, nullptr, &mDescriptorPool),
+			CreationFailed, Rendering, L"Failed to create descriptor pool!");
+
+
+		// Descriptor sets creation.
+		mDescriptorSets.resize(imageNum);
+		std::vector<VkDescriptorSetLayout> descriptorSetLayouts(imageNum, mDescriptorSetLayout);
+
+		const VkDescriptorSetAllocateInfo descriptorSetAllocInfo
+		{
+			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,				// sType.
+			nullptr,													// pNext.
+			mDescriptorPool,											// descriptorPool.
+			imageNum,													// descriptorSetCount.
+			descriptorSetLayouts.data(),								// pSetLayouts.
+		};
+
+		SA_VK_ASSERT(vkAllocateDescriptorSets(_device, &descriptorSetAllocInfo, mDescriptorSets.data()),
+			MemoryAllocationFailed, Rendering, L"Failed to allocate descriptor sets!");
+
+		for (size_t i = 0; i < imageNum; i++)
+		{
+			const VkDescriptorBufferInfo descriptorBufferInfo
+			{
+				mUniformBuffers[i],									// buffer.
+				0,													// offset.
+				sizeof(UniformBufferObject)							// range.
+			};
+
+			const VkWriteDescriptorSet descriptorWrite
+			{
+				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
+				nullptr,											// pNext.
+				mDescriptorSets[i],									// dstSet.
+				0,													// dstBinding.
+				0,													// dstArrayElement.
+				1,													// descriptorCount.
+				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
+				nullptr,											// pImageInfo.
+				&descriptorBufferInfo,								// pBufferInfo.
+				nullptr												// pTexelBufferView.
+			};
+
+			vkUpdateDescriptorSets(_device, 1, &descriptorWrite, 0, nullptr);
+		}
+
 
 		// Semaphore Creation.
 		mAcquireSemaphores.resize(imageNum);
@@ -219,18 +306,30 @@ namespace Sa
 
 			vkDestroySemaphore(_device, mAcquireSemaphores[i], nullptr);
 			vkDestroySemaphore(_device, mPresentSemaphores[i], nullptr);
+
+			mUniformBuffers[i].Destroy(_device);
+
+			vkDestroyImageView(_device, mImageViews[i], nullptr);
 		}
 
+		DestroyFrameBuffers(_device);
 
-		// Destroy Internal after to querry imageNum.
-		Destroy_Internal(_device);
+		// Manually free command buffers (useful for resize).
+		vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(), imageNum, mGraphicsCommandBuffers.data());
+
+		vkDestroySwapchainKHR(_device, mHandle, nullptr);
+
+		// Destroy Descriptor set.
+		vkFreeDescriptorSets(_device, mDescriptorPool, GetImageNum(), mDescriptorSets.data());
+		vkDestroyDescriptorSetLayout(_device, mDescriptorSetLayout, nullptr);
+		vkDestroyDescriptorPool(_device, mDescriptorPool, nullptr);
 	}
 
 	void VkSwapChain::ReCreate(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
-		Destroy_Internal(_device);
+		Destroy(_device);
 
-		Create_Internal(_device, _surface, _queueFamilyIndices);
+		Create(_device, _surface, _queueFamilyIndices);
 	}
 
 	void VkSwapChain::CreateFrameBuffers(const VkDevice& _device, const VkRenderPass& _renderPass)

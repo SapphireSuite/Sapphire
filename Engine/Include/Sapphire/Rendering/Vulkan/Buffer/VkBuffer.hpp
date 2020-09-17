@@ -28,9 +28,11 @@ namespace Sa
 
 		static void Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint32 _size);
 
-		operator ::VkBuffer() const noexcept;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API operator ::VkBuffer() const noexcept;
 
-		operator VkDeviceMemory() const noexcept;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API operator VkDeviceMemory() const noexcept;
 	};
 }
 

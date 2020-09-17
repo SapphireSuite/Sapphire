@@ -285,9 +285,9 @@ namespace Sa
 	}
 
 	template <typename T>
-	Mat4<T> Quat<T>::Matrix() const noexcept
+	Mat4<T> Quat<T>::Matrix() const
 	{
-		SA_ASSERT(IsNormalized(), NonNormalized, Maths, "Quaternion must be normalized to create rotation matrix!");
+		SA_ASSERT(IsNormalized(), NonNormalized, Maths, L"Quaternion must be normalized to create rotation matrix!");
 
 		// Sources: https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
 

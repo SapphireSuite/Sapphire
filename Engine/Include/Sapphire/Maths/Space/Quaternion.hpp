@@ -312,7 +312,7 @@ namespace Sa
 		*
 		*	\return Rotation matrix.
 		*/
-		Mat4<T> Matrix() const noexcept;
+		Mat4<T> Matrix() const;
 
 
 		/**

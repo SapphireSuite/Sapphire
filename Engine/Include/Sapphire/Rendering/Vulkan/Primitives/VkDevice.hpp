@@ -45,8 +45,10 @@ namespace Sa
 
 		static bool IsPhysicalDeviceSuitable(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices);
 
-		operator ::VkDevice() const noexcept;
-		operator VkPhysicalDevice() const noexcept;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API operator ::VkDevice() const noexcept;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API operator VkPhysicalDevice() const noexcept;
 	};
 }
 

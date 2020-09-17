@@ -96,7 +96,7 @@ namespace Sa
 	template <typename T>
 	constexpr Deg<T>::operator Rad<T>() const noexcept
 	{
-		return Rad(mHandle * Maths::DegToRad);
+		return mHandle * Maths::DegToRad;
 	}
 
 
