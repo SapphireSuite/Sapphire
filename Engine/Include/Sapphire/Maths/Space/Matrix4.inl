@@ -73,10 +73,10 @@ namespace Sa
 		// Allows constexpr.
 
 		return
-			Maths::Equal0(data[0]) && Maths::Equal0(data[1]) && Maths::Equal0(data[2]) && Maths::Equal0(data[3]) &&
-			Maths::Equal0(data[4]) && Maths::Equal0(data[5]) && Maths::Equal0(data[6]) && Maths::Equal0(data[7]) &&
-			Maths::Equal0(data[8]) && Maths::Equal0(data[9]) && Maths::Equal0(data[10]) && Maths::Equal0(data[11]) &&
-			Maths::Equal0(data[12]) && Maths::Equal0(data[13]) && Maths::Equal0(data[14]) && Maths::Equal0(data[15]);
+			Maths::Equals0(data[0]) && Maths::Equals0(data[1]) && Maths::Equals0(data[2]) && Maths::Equals0(data[3]) &&
+			Maths::Equals0(data[4]) && Maths::Equals0(data[5]) && Maths::Equals0(data[6]) && Maths::Equals0(data[7]) &&
+			Maths::Equals0(data[8]) && Maths::Equals0(data[9]) && Maths::Equals0(data[10]) && Maths::Equals0(data[11]) &&
+			Maths::Equals0(data[12]) && Maths::Equals0(data[13]) && Maths::Equals0(data[14]) && Maths::Equals0(data[15]);
 	}
 
 	template <typename T>
@@ -85,34 +85,34 @@ namespace Sa
 		// Allows constexpr.
 
 		return
-			Maths::Equal1(data[0]) && Maths::Equal0(data[1]) && Maths::Equal0(data[2]) && Maths::Equal0(data[3]) &&
-			Maths::Equal0(data[4]) && Maths::Equal1(data[5]) && Maths::Equal0(data[6]) && Maths::Equal0(data[7]) &&
-			Maths::Equal0(data[8]) && Maths::Equal0(data[9]) && Maths::Equal1(data[10]) && Maths::Equal0(data[11]) &&
-			Maths::Equal0(data[12]) && Maths::Equal0(data[13]) && Maths::Equal0(data[14]) && Maths::Equal1(data[15]);
+			Maths::Equals1(data[0]) && Maths::Equals0(data[1]) && Maths::Equals0(data[2]) && Maths::Equals0(data[3]) &&
+			Maths::Equals0(data[4]) && Maths::Equals1(data[5]) && Maths::Equals0(data[6]) && Maths::Equals0(data[7]) &&
+			Maths::Equals0(data[8]) && Maths::Equals0(data[9]) && Maths::Equals1(data[10]) && Maths::Equals0(data[11]) &&
+			Maths::Equals0(data[12]) && Maths::Equals0(data[13]) && Maths::Equals0(data[14]) && Maths::Equals1(data[15]);
 	}
 
 	template <typename T>
-	constexpr bool Mat4<T>::Equal(const Mat4& _other, T _threshold) const noexcept
+	constexpr bool Mat4<T>::Equals(const Mat4& _other, T _threshold) const noexcept
 	{
 		// Allows constexpr.
 
 		return
-			Maths::Equal(data[0], _other.data[0], _threshold) &&
-			Maths::Equal(data[1], _other.data[1], _threshold) &&
-			Maths::Equal(data[2], _other.data[2], _threshold) &&
-			Maths::Equal(data[3], _other.data[3], _threshold) &&
-			Maths::Equal(data[4], _other.data[4], _threshold) &&
-			Maths::Equal(data[5], _other.data[5], _threshold) &&
-			Maths::Equal(data[6], _other.data[6], _threshold) &&
-			Maths::Equal(data[7], _other.data[7], _threshold) &&
-			Maths::Equal(data[8], _other.data[8], _threshold) &&
-			Maths::Equal(data[9], _other.data[9], _threshold) &&
-			Maths::Equal(data[10], _other.data[10], _threshold) &&
-			Maths::Equal(data[11], _other.data[11], _threshold) &&
-			Maths::Equal(data[12], _other.data[12], _threshold) &&
-			Maths::Equal(data[13], _other.data[13], _threshold) &&
-			Maths::Equal(data[14], _other.data[14], _threshold) &&
-			Maths::Equal(data[15], _other.data[15], _threshold);
+			Maths::Equals(data[0], _other.data[0], _threshold) &&
+			Maths::Equals(data[1], _other.data[1], _threshold) &&
+			Maths::Equals(data[2], _other.data[2], _threshold) &&
+			Maths::Equals(data[3], _other.data[3], _threshold) &&
+			Maths::Equals(data[4], _other.data[4], _threshold) &&
+			Maths::Equals(data[5], _other.data[5], _threshold) &&
+			Maths::Equals(data[6], _other.data[6], _threshold) &&
+			Maths::Equals(data[7], _other.data[7], _threshold) &&
+			Maths::Equals(data[8], _other.data[8], _threshold) &&
+			Maths::Equals(data[9], _other.data[9], _threshold) &&
+			Maths::Equals(data[10], _other.data[10], _threshold) &&
+			Maths::Equals(data[11], _other.data[11], _threshold) &&
+			Maths::Equals(data[12], _other.data[12], _threshold) &&
+			Maths::Equals(data[13], _other.data[13], _threshold) &&
+			Maths::Equals(data[14], _other.data[14], _threshold) &&
+			Maths::Equals(data[15], _other.data[15], _threshold);
 	}
 
 	template <typename T>
@@ -130,11 +130,7 @@ namespace Sa
 	template <typename T>
 	T& Mat4<T>::At(uint32 _index)
 	{
-#if SA_MATHS_SAFE
-
 		SA_ASSERT(_index < 16u, OutOfRange, Maths, _index, 0u, 15u);
-
-#endif
 
 		return data[_index];
 	}
@@ -142,11 +138,7 @@ namespace Sa
 	template <typename T>
 	const T& Mat4<T>::At(uint32 _index) const
 	{
-#if SA_MATHS_SAFE
-
 		SA_ASSERT(_index < 16u, OutOfRange, Maths, _index, 0u, 15u);
-
-#endif
 
 		return data[_index];
 	}
@@ -154,12 +146,8 @@ namespace Sa
 	template <typename T>
 	T& Mat4<T>::At(uint32 _x, uint32 _y)
 	{
-#if SA_MATHS_SAFE
-
 		SA_ASSERT(_x < 4u, OutOfRange, Maths, _x, 0u, 3u);
 		SA_ASSERT(_y < 4u, OutOfRange, Maths, _x, 0u, 3u);
-
-#endif
 
 #if SA_MATRIX_ROW_MAJOR
 
@@ -175,12 +163,8 @@ namespace Sa
 	template <typename T>
 	const T& Mat4<T>::At(uint32 _x, uint32 _y) const
 	{
-#if SA_MATHS_SAFE
-
 		SA_ASSERT(_x < 4u, OutOfRange, Maths, _x, 0u, 3u);
 		SA_ASSERT(_y < 4u, OutOfRange, Maths, _x, 0u, 3u);
-
-#endif
 
 #if SA_MATRIX_ROW_MAJOR
 
@@ -196,7 +180,7 @@ namespace Sa
 	template <typename T>
 	Mat4<T>& Mat4<T>::Scale(T _scale) noexcept
 	{
-		for (unint32 i = 0; i < 16u; ++i)
+		for (uint32 i = 0; i < 16u; ++i)
 			data[i] *= _scale;
 
 		return *this;
@@ -218,11 +202,7 @@ namespace Sa
 	template <typename T>
 	Mat4<T>& Mat4<T>::UnScale(T _scale)
 	{
-#if SA_MATHS_SAFE
-
-		SA_ASSERT(!Maths::Equal0(_scale), DivisionBy0, Maths, L"Unscale matrix by 0!");
-
-#endif
+		SA_ASSERT(!Maths::Equals0(_scale), DivisionBy0, Maths, L"Unscale matrix by 0!");
 
 		for (uint32 i = 0; i < 16u; ++i)
 			data[i] /= _scale;
@@ -233,11 +213,7 @@ namespace Sa
 	template <typename T>
 	constexpr Mat4<T> Mat4<T>::GetUnScaled(T _scale) const
 	{
-#if SA_MATHS_SAFE
-
-		SA_ASSERT(!Maths::Equal0(_scale), DivisionBy0, Maths, L"Unscale matrix by 0!");
-
-#endif
+		SA_ASSERT(!Maths::Equals0(_scale), DivisionBy0, Maths, L"Unscale matrix by 0!");
 
 		// Allows constexpr
 
@@ -317,11 +293,7 @@ namespace Sa
 	{
 		const T det = Determinant();
 
-#if SA_MATHS_SAFE
-
-		SA_ASSERT(!Maths::Equal0(det), DivisionBy0, L"Can't inverse matrix with determinant == 0");
-
-#endif
+		SA_ASSERT(!Maths::Equals0(det), DivisionBy0, L"Can't inverse matrix with determinant == 0");
 
 		Mat4 result;
 
@@ -667,7 +639,7 @@ namespace Sa
 	template <typename T>
 	constexpr bool Mat4<T>::operator==(const Mat4& _rhs) noexcept
 	{
-		return Equal(_rhs);
+		return Equals(_rhs);
 	}
 
 	template <typename T>
@@ -718,26 +690,22 @@ namespace Sa
 
 		float* data = _rhs.Data();
 
-#if SA_MATHS_SAFE
-
-		SA_ASSERT(!Maths::Equal0(data[0]), DivisionBy0, Maths, L"Inverse scale matrix [0] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[1]), DivisionBy0, Maths, L"Inverse scale matrix [1] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[2]), DivisionBy0, Maths, L"Inverse scale matrix [2] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[3]), DivisionBy0, Maths, L"Inverse scale matrix [3] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[4]), DivisionBy0, Maths, L"Inverse scale matrix [4] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[5]), DivisionBy0, Maths, L"Inverse scale matrix [5] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[6]), DivisionBy0, Maths, L"Inverse scale matrix [6] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[7]), DivisionBy0, Maths, L"Inverse scale matrix [7] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[8]), DivisionBy0, Maths, L"Inverse scale matrix [8] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[9]), DivisionBy0, Maths, L"Inverse scale matrix [9] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[10]), DivisionBy0, Maths, L"Inverse scale matrix [10] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[11]), DivisionBy0, Maths, L"Inverse scale matrix [11] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[12]), DivisionBy0, Maths, L"Inverse scale matrix [12] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[13]), DivisionBy0, Maths, L"Inverse scale matrix [13] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[14]), DivisionBy0, Maths, L"Inverse scale matrix [14] == 0!");
-		SA_ASSERT(!Maths::Equal0(data[15]), DivisionBy0, Maths, L"Inverse scale matrix [15] == 0!");
-
-#endif
+		SA_ASSERT(!Maths::Equals0(data[0]), DivisionBy0, Maths, L"Inverse scale matrix [0] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[1]), DivisionBy0, Maths, L"Inverse scale matrix [1] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[2]), DivisionBy0, Maths, L"Inverse scale matrix [2] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[3]), DivisionBy0, Maths, L"Inverse scale matrix [3] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[4]), DivisionBy0, Maths, L"Inverse scale matrix [4] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[5]), DivisionBy0, Maths, L"Inverse scale matrix [5] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[6]), DivisionBy0, Maths, L"Inverse scale matrix [6] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[7]), DivisionBy0, Maths, L"Inverse scale matrix [7] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[8]), DivisionBy0, Maths, L"Inverse scale matrix [8] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[9]), DivisionBy0, Maths, L"Inverse scale matrix [9] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[10]), DivisionBy0, Maths, L"Inverse scale matrix [10] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[11]), DivisionBy0, Maths, L"Inverse scale matrix [11] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[12]), DivisionBy0, Maths, L"Inverse scale matrix [12] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[13]), DivisionBy0, Maths, L"Inverse scale matrix [13] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[14]), DivisionBy0, Maths, L"Inverse scale matrix [14] == 0!");
+		SA_ASSERT(!Maths::Equals0(data[15]), DivisionBy0, Maths, L"Inverse scale matrix [15] == 0!");
 
 		return Mat4(
 			_lhs / data[0], _lhs / data[1], _lhs / data[2], _lhs / data[3],

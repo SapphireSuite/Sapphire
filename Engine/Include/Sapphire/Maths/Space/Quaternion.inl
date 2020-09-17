@@ -101,11 +101,7 @@ namespace Sa
 	template <typename T>
 	Quat<T>& Quat<T>::Normalize()
 	{
-#if SA_DEBUG
-
 		SA_ASSERT(!IsZero(), DivisionBy0, Maths, L"Normalize null quaternion!");
-
-#endif
 
 		const T norm = Length();
 
@@ -120,11 +116,7 @@ namespace Sa
 	template <typename T>
 	constexpr Quat<T> Quat<T>::GetNormalized() const
 	{
-#if SA_DEBUG
-
 		SA_ASSERT(!IsZero(), DivisionBy0, Maths, L"Normalize null quaternion!");
-
-#endif
 
 		const T norm = Length();
 
@@ -141,11 +133,8 @@ namespace Sa
 	template <typename T>
 	constexpr Quat<T>& Quat<T>::Inverse()
 	{
-#if SA_DEBUG
-
 		SA_ASSERT(IsNormalized(), NonNormalized, Maths, L"Quaternion must be normalized!");
-
-#endif
+		
 		// Inverse of normalized quaternion is conjugate.
 
 		x = -x;
@@ -158,11 +147,7 @@ namespace Sa
 	template <typename T>
 	constexpr Quat<T> Quat<T>::GetInversed() const
 	{
-#if SA_DEBUG
-
 		SA_ASSERT(IsNormalized(), NonNormalized, Maths, L"Quaternion must be normalized!");
-
-#endif
 		// Inverse of normalized quaternion is conjugate.
 
 		return Quat(w, -x, -y, -z);
@@ -181,9 +166,9 @@ namespace Sa
 
 		if (Maths::Equals1(w))
 		{
-			SA_LOG("Get axis of an idendity quaternion.", Warning, Maths)
+			SA_LOG("Get axis of an idendity quaternion.", Warning, Maths);
 
-				return Vec3<T>::Zero;
+			return Vec3<T>::Zero;
 		}
 
 #endif
@@ -215,11 +200,7 @@ namespace Sa
 	template <typename T>
 	Quat<T>& Quat<T>::UnScale(T _scale)
 	{
-#if SA_DEBUG
-
-		SA_ASSERT(!Maths::Equal0(_scale), DivisionBy0, Maths, L"Inverse scale quaternion by 0!");
-
-#endif
+		SA_ASSERT(!Maths::Equals0(_scale), DivisionBy0, Maths, L"Inverse scale quaternion by 0!");
 
 		w /= _scale;
 		x /= _scale;
@@ -232,11 +213,7 @@ namespace Sa
 	template <typename T>
 	constexpr Quat<T> Quat<T>::GetUnScaled(T _scale) const
 	{
-#if SA_DEBUG
-
-		SA_ASSERT(!Maths::Equal0(_scale), DivisionBy0, Maths, L"Inverse scale quaternion by 0!");
-
-#endif
+		SA_ASSERT(!Maths::Equals0(_scale), DivisionBy0, Maths, L"Inverse scale quaternion by 0!");
 
 		return Quat(w / _scale, x / _scale, y / _scale, z / _scale);
 	}
@@ -244,12 +221,8 @@ namespace Sa
 	template <typename T>
 	constexpr Quat<T> Quat<T>::Rotate(const Quat<T>& _other) const
 	{
-#if SA_DEBUG
-
 		SA_ASSERT(IsNormalized(), NonNormalized, Maths, L"Quaternion multiplication must be normalized. This quaternion is not normalized!");
 		SA_ASSERT(_other.IsNormalized(), NonNormalized, Maths, L"Quaternion multiplication must be normalized. Other quaternion is not normalized!");
-
-#endif
 
 		T resW = w * _other.w - x * _other.x - y * _other.y - z * _other.z;
 		T resX = w * _other.x + x * _other.w + y * _other.z - z * _other.y;
@@ -262,11 +235,8 @@ namespace Sa
 	template <typename T>
 	constexpr Vec3<T> Quat<T>::Rotate(const Vec3<T>& _vec) const
 	{
-#if SA_DEBUG
-
 		SA_ASSERT(IsNormalized(), NonNormalized, Maths, L"Quaternion multiplication must be normalized. This quaternion is not normalized!");
-
-#endif
+		
 		// Quaternion-vector multiplication optimization:
 		// http://people.csail.mit.edu/bkph/articles/Quaternions.pdf
 
@@ -317,11 +287,7 @@ namespace Sa
 	template <typename T>
 	Mat4<T> Quat<T>::Matrix() const noexcept
 	{
-#if SA_DEBUG
-
 		SA_ASSERT(IsNormalized(), NonNormalized, Maths, "Quaternion must be normalized to create rotation matrix!");
-
-#endif
 
 		// Sources: https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
 
@@ -340,7 +306,7 @@ namespace Sa
 		return Mat4(
 			1.0f - YY2 - ZZ2, XY2 - ZW2, XZ2 + YW2, 0.0f,
 			XY2 + ZW2, 1.0f - XX2 - ZZ2, YZ2 - XW2, 0.0f,
-			XZ2 - YW2, Z2 + XW2, 1.0f - XX2 - YY2, 0.0f,
+			XZ2 - YW2, YZ2 + XW2, 1.0f - XX2 - YY2, 0.0f,
 			0.0f, 0.0f, 0.0f, 1.0f
 		);
 	}
@@ -617,11 +583,7 @@ namespace Sa
 	template <typename T>
 	T& Quat<T>::operator[](uint32 _index)
 	{
-#if SA_DEBUG
-
 		SA_ASSERT(_index <= 3u, OutOfRange, Maths, _index, 0u, 3u);
-
-#endif
 
 		return Data()[_index];
 	}
@@ -629,11 +591,7 @@ namespace Sa
 	template <typename T>
 	T Quat<T>::operator[](uint32 _index) const
 	{
-#if SA_DEBUG
-
 		SA_ASSERT(_index <= 3u, OutOfRange, Maths, _index, 0u, 3u);
-
-#endif
 
 		return Data()[_index];
 	}
