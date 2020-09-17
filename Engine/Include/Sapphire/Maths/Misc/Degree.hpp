@@ -138,7 +138,7 @@ namespace Sa
 		*
 		*	\return handle as \c float without conversion.
 		*/
-		constexpr operator T() const noexcept;
+		explicit constexpr operator T() const noexcept;
 
 		/**
 		*	\brief \e Cast operator to \c Radian with proper conversion.

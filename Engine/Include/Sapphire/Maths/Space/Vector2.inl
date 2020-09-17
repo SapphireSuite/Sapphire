@@ -67,7 +67,7 @@ namespace Sa
 	template <typename T>
 	constexpr T Vec2<T>::Length() const noexcept
 	{
-		return Maths::Sqrt(x * x + y * y);
+		return Maths::Sqrt(SqrLength());
 	}
 
 	template <typename T>
