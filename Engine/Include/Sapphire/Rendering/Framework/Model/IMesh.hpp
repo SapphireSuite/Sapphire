@@ -12,12 +12,17 @@
 namespace Sa
 {
 	class IRenderInstance;
+	class IRenderFrame;
 
 	class IMesh : public IInterface
 	{
 	public:
-		virtual void Create(const IRenderInstance& _instance, const std::vector<Vertex>& _vertices) = 0;
+		virtual void Create(const IRenderInstance& _instance,
+			const std::vector<Vertex>& _vertices,
+			const std::vector<uint32>& _indices) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
+
+		virtual void Draw(const IRenderFrame& _frame) = 0;
 	};
 }
 

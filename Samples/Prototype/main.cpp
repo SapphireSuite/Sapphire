@@ -28,13 +28,16 @@ int main()
 
 	const std::vector<Vertex> vertices =
 	{
-		{ { 0.0f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f, 1.0f } },
-		{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f, 0.0f } },
-		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f, 1.0f } }
+		{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f, 0.0f } },
+		{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f, 0.0f } },
+		{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f, 1.0f } },
+		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f, 1.0f } },
 	};
+	
+	const std::vector<uint32> indices = {0, 1, 2, 2, 3, 0};
 
 	VkMesh mesh;
-	mesh.Create(instance, vertices);
+	mesh.Create(instance, vertices, indices);
 
 	VkShader vertShader;
 	vertShader.Create(instance, ShaderType::Vertex, L"../../Bin/Shaders/default_vert.spv");
@@ -83,11 +86,7 @@ int main()
 
 		vkCmdBindPipeline(frame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-		::VkBuffer vertexBuffers[] = { mesh.operator const Sa::VkBuffer &() };
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(frame.graphicsCommandBuffer, 0, 1, vertexBuffers, offsets);
-
-		vkCmdDraw(frame.graphicsCommandBuffer, static_cast<uint32>(vertices.size()), 1, 0, 0);
+		mesh.Draw(frame);
 
 
 		vkCmdEndRenderPass(frame.graphicsCommandBuffer);

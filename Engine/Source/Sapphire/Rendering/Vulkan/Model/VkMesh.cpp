@@ -10,37 +10,47 @@
 
 namespace Sa
 {
-	void VkMesh::Create(const IRenderInstance& _instance, const std::vector<Vertex>& _vertices)
+	void CreateBuffer(const VkDevice& _device, VkBuffer& _buffer, VkBufferUsageFlags _usage, uint32 _bufferSize, const void* _data)
 	{
-		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
-
-		const uint32 bufferSize = sizeof(Vertex) * static_cast<uint32>(_vertices.size());
-
-		// Create Staging buffer.
+		// Create temp staging buffer.
 		VkBuffer stagingBuffer;
-		stagingBuffer.Create(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		stagingBuffer.Create(_device, _bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 
 		// Map vertices memory.
 		void* data;
-		vkMapMemory(device, stagingBuffer, 0, bufferSize, 0, &data);
+		vkMapMemory(_device, stagingBuffer, 0, _bufferSize, 0, &data);
 
-		memcpy(data, _vertices.data(), bufferSize);
+		memcpy(data, _data, _bufferSize);
 
-		vkUnmapMemory(device, stagingBuffer);
+		vkUnmapMemory(_device, stagingBuffer);
 
 
-		// Create vertex buffer (device local only).
-		mVertexBuffer.Create(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		// Create saved buffer (device local only).
+		_buffer.Create(_device, _bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | _usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 
 		// Use staging buffer to transfer mapped memory.
-		VkBuffer::Copy(device, stagingBuffer, mVertexBuffer, bufferSize);
+		VkBuffer::Copy(_device, stagingBuffer, _buffer, _bufferSize);
 
 
 		// Destroy staging buffer.
-		stagingBuffer.Destroy(device);
+		stagingBuffer.Destroy(_device);
+	}
+
+	void VkMesh::Create(const IRenderInstance& _instance,
+		const std::vector<Vertex>& _vertices,
+		const std::vector<uint32>& _indices)
+	{
+		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
+
+		// Create Vertex buffer.
+		CreateBuffer(device, mVertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, sizeof(Vertex) * static_cast<uint32>(_vertices.size()), _vertices.data());
+
+		// Create Index buffer.
+		mIndicesSize = static_cast<uint32>(_indices.size());
+		CreateBuffer(device, mIndexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, sizeof(uint32) * mIndicesSize, _indices.data());
 	}
 
 	void VkMesh::Destroy(const IRenderInstance& _instance)
@@ -48,12 +58,20 @@ namespace Sa
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 		mVertexBuffer.Destroy(device);
+		mIndexBuffer.Destroy(device);
 	}
 
-
-	VkMesh::operator const VkBuffer& () const noexcept
+	void VkMesh::Draw(const IRenderFrame& _frame)
 	{
-		return mVertexBuffer;
+		const VkRenderFrame& vkFrame = _frame.As<VkRenderFrame>();
+
+		VkDeviceSize offsets[] = { 0 };
+		::VkBuffer vkHandleVertexBuffer = mVertexBuffer;
+		vkCmdBindVertexBuffers(vkFrame.graphicsCommandBuffer, 0, 1, &vkHandleVertexBuffer, offsets);
+
+		vkCmdBindIndexBuffer(vkFrame.graphicsCommandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+		vkCmdDrawIndexed(vkFrame.graphicsCommandBuffer, mIndicesSize, 1, 0, 0, 0);
 	}
 }
 

@@ -5,15 +5,17 @@
 #ifndef SAPPHIRE_RENDERING_VK_RENDER_FRAME_GUARD
 #define SAPPHIRE_RENDERING_VK_RENDER_FRAME_GUARD
 
-#include <vulkan/vulkan.h>
-
 #include <Rendering/Config.hpp>
+
+#include <Rendering/Framework/Primitives/IRenderFrame.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
+#include <vulkan/vulkan.h>
+
 namespace Sa
 {
-	class VkRenderFrame
+	class VkRenderFrame : public IRenderFrame
 	{
 	public:
 		VkImage image;
@@ -26,6 +28,14 @@ namespace Sa
 		VkSemaphore presentSemaphores;
 
 		VkFence mainFence;
+
+		VkRenderFrame(VkImage _image,
+			VkImageView _imageView,
+			VkFramebuffer _frameBuffer,
+			VkCommandBuffer _graphicsCommandBuffer,
+			VkSemaphore _acquireSemaphores,
+			VkSemaphore _presentSemaphores,
+			VkFence _mainFence) noexcept;
 	};
 }
 
