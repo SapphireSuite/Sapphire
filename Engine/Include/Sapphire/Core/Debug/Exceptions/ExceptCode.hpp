@@ -41,6 +41,12 @@ namespace Sa
 		/// Out of range access
 		OutOfRange = 101,
 
+		/// Out of memory allocation.
+		OutOfMemory,
+
+		/// memory allocation failure.
+		MemoryAllocationFailed,
+
 
 		/** Maths Errors: 200 */
 

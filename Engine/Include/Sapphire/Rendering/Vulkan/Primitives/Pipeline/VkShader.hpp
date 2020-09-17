@@ -21,8 +21,10 @@ namespace Sa
 		VkShaderModule mHandle = VK_NULL_HANDLE;
 
 	public:
-		void SA_ENGINE_API Create(const IRenderInstance& _instance, ShaderType _type, const std::wstring& _fileName) override final;
-		void SA_ENGINE_API Destroy(const IRenderInstance& _instance) override final;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void Create(const IRenderInstance& _instance, ShaderType _type, const std::wstring& _fileName) override final;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void Destroy(const IRenderInstance& _instance) override final;
 
 		operator VkShaderModule() const;
 	};

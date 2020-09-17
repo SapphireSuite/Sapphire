@@ -4,6 +4,8 @@
 
 #include <Rendering/Vulkan/Primitives/Pipeline/VkRenderPipeline.hpp>
 
+#include <Rendering/Model/Vertex.hpp>
+
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 #include <Rendering/Vulkan/Primitives/Pipeline/VkShader.hpp>
@@ -58,10 +60,10 @@ namespace Sa
 			VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,			// sType.
 			nullptr,															// pNext.
 			0,																	// flags.
-			0,																	// vertexBindingDescriptionCount.
-			nullptr,															// pVertexBindingDescriptions.
-			0,																	// vertexAttributeDescriptionCount.
-			nullptr																// pVertexAttributeDescriptions.
+			Vertex::bindingDescriptionNum,										// vertexBindingDescriptionCount.
+			Vertex::GetBindingDescription(),									// pVertexBindingDescriptions.
+			Vertex::attributeDescriptionNum,									// vertexAttributeDescriptionCount.
+			Vertex::GetAttributeDescriptions()									// pVertexAttributeDescriptions.
 		};
 
 		const VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo
@@ -72,45 +74,6 @@ namespace Sa
 			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,									// topology.
 			VK_FALSE																// primitiveRestartEnable.
 		};
-
-
-		/*
-		// Multi viewport.
-		VkViewport* viewports = new VkViewport[_viewports.size()];
-		VkRect2D* scissors = new VkRect2D[_viewports.size()];
-
-		for (uint32 i = 0u; i < _viewports.size(); ++i)
-		{
-			viewports[i] = VkViewport
-			{
-				static_cast<float>(_viewports[i].offset.x),								// x.
-				static_cast<float>(_viewports[i].offset.y),								// y.
-				static_cast<float>(_viewports[i].extent.width),							// width.
-				static_cast<float>(_viewports[i].extent.height),						// height.
-				0.0f,																	// minDepth.
-				1.0f,																	// maxDepth.
-			};
-
-			const Scissor& inScissor = _viewports[i].scissor;
-
-			scissors[i] = VkRect2D
-			{
-				VkOffset2D{ static_cast<int32>(inScissor.offset.x), static_cast<int32>(inScissor.offset.y) },				// offset.
-				VkExtent2D{ inScissor.extent.width, inScissor.extent.height } 												// extent.
-			};
-		}
-
-		const VkPipelineViewportStateCreateInfo viewportStateCreateInfo
-		{
-			VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,					// sType.
-			nullptr,																// pNext.
-			0,																		// flags.
-			static_cast<uint32>(_viewports.size()),									// viewportCount.
-			viewports,																// pViewports.
-			static_cast<uint32>(_viewports.size()),									// scissorCount.
-			scissors																// pScissors.
-		};
-		*/
 
 
 		// Create Viewport.

@@ -4,10 +4,11 @@
 #include <iostream>
 
 #include <Sapphire/Window/GLFWWindow.hpp>
+#include <Sapphire/Rendering/Model/Mesh.hpp>
+#include <Sapphire/Rendering/Model/Vertex.hpp>
 #include <Sapphire/Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Sapphire/Rendering/Vulkan/Primitives/Pipeline/VkShader.hpp>
 #include <Sapphire/Rendering/Vulkan/Primitives/Pipeline/VkRenderPipeline.hpp>
-#include <Sapphire/Rendering/Vulkan/Primitives/VkRenderPass.hpp>
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
@@ -25,6 +26,16 @@ int main()
 	window.Create(800u, 600u);
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
+
+	const std::vector<Vertex> vertices =
+	{
+		{ { 0.0f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f, 1.0f } },
+		{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f, 0.0f } },
+		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f, 1.0f } }
+	};
+
+	Mesh mesh;
+	mesh.Create(instance.GetDevice(), vertices);
 
 	VkShader vertShader;
 	vertShader.Create(instance, ShaderType::Vertex, L"../../Bin/Shaders/default_vert.spv");
@@ -72,7 +83,12 @@ int main()
 
 
 		vkCmdBindPipeline(frame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-		vkCmdDraw(frame.graphicsCommandBuffer, 3, 1, 0, 0);
+
+		VkBuffer vertexBuffers[] = { mesh };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(frame.graphicsCommandBuffer, 0, 1, vertexBuffers, offsets);
+
+		vkCmdDraw(frame.graphicsCommandBuffer, static_cast<uint32>(vertices.size()), 1, 0, 0);
 
 
 		vkCmdEndRenderPass(frame.graphicsCommandBuffer);

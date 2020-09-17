@@ -79,8 +79,9 @@ namespace Sa
 	{
 		return Viewport
 		{
-			Vec2<uint32>::Zero, GetImageExtent(),
-			ImageViewExtent{ Vec2<uint32>::Zero, GetImageExtent() }
+			// TODO: use Vec2<uint32>::Zero.
+			Vec2<uint32>(), GetImageExtent(),
+			ImageViewExtent{ Vec2<uint32>(), GetImageExtent() }
 		};
 	}
 

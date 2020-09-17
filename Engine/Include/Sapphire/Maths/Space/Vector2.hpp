@@ -80,12 +80,19 @@ namespace Sa
 		*/
 		constexpr explicit Vec2(T _scale) noexcept;
 
-		/**
-		*	\brief \e Value constructor from same Vec2 type.
-		*
-		*	\param[in] _other	Vec2 to construct from.
-		*/
-		Vec2(const Vec2& _other) = default;
+		///**
+		//*	\brief \e Move constructor from same Vec2 type.
+		//*
+		//*	\param[in] _other	Vec2 to construct from.
+		//*/
+		//Vec2(Vec2&&) = default;
+
+		///**
+		//*	\brief \e Value constructor from same Vec2 type.
+		//*
+		//*	\param[in] _other	Vec2 to construct from.
+		//*/
+		//Vec2(const Vec2&) = default;
 
 		/**
 		*	\brief \e Value constructor from another Vec2 type.
