@@ -66,6 +66,16 @@ namespace Sa
 		Vec2() = default;
 
 		/**
+		*	\brief \e Default move constructor.
+		*/
+		Vec2(Vec2&&) = default;
+
+		/**
+		*	\brief \e Default copy constructor.
+		*/
+		Vec2(const Vec2&) = default;
+
+		/**
 		*	\brief \e Value constructor.
 		*
 		*	\param[in] _x	X axis value.
