@@ -108,7 +108,7 @@ namespace Sa
 		*
 		*	\return Whether this and _other are equal.
 		*/
-		constexpr bool Equal(const Mat4& _other, T _threshold = Limits<T>::epsilon) const noexcept;
+		constexpr bool Equals(const Mat4& _other, T _threshold = Limits<T>::epsilon) const noexcept;
 
 		/**
 		*	\brief \e Getter of matrix data
