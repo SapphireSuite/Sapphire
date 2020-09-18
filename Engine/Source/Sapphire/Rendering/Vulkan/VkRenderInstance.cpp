@@ -17,9 +17,6 @@
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/VkValidationLayers.hpp>
 
-// TODO: REMOVE LATER.
-#include <Rendering/Vulkan/Model/VkTexture.hpp>
-
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
@@ -176,6 +173,8 @@ namespace Sa
 
 	void VkRenderInstance::Destroy()
 	{
+		mDevice.Destroy();
+
 #if SA_VK_VALIDATION_LAYERS
 
 		auto destroyDebugFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mHandle, "vkDestroyDebugUtilsMessengerEXT");
@@ -270,9 +269,6 @@ namespace Sa
 
 	void VkRenderInstance::Update()
 	{
-		// TODO: CLEAN LATER.
-		glfwPollEvents();
-
 		//for (auto it = mRenderSurfaceInfos.begin(); it != mRenderSurfaceInfos.end(); ++it)
 		//	it->renderSurface.GetSwapChain().Update(mDevice);
 	}

@@ -22,6 +22,8 @@ namespace Sa
 		virtual void Create(uint32 _width, uint32 _height, const char* _name = "Window") = 0;
 		virtual void Destroy() = 0;
 
+		virtual void Update() = 0;
+
 		virtual bool ShouldClose() const = 0;
 	};
 }

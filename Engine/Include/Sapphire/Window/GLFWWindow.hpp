@@ -23,9 +23,15 @@ namespace Sa
 		static void ResizeCallback(GLFWwindow* _handle, int32 _width, int32 _height);
 
 	public:
+		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Create(uint32 _width, uint32 _height, const char* _name = "Main Window") override final;
+		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Destroy() override final;
 
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void Update() override final;
+
+		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API bool ShouldClose() const override final;
 
 		operator GLFWwindow*() const;

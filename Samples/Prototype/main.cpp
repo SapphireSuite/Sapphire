@@ -3,21 +3,14 @@
 #include <string>
 #include <iostream>
 
-//#include <Sapphire/Core/Time/Chrono.hpp>
-//#include <Sapphire/Maths/Misc/Maths.hpp>
-//#include <Sapphire/Maths/Misc/Degree.hpp>
-//#include <Sapphire/Maths/Misc/Radian.hpp>
-//#include <Sapphire/Maths/Space/Quaternion.hpp>
-//#include <Sapphire/Maths/Space/Matrix4.hpp>
-//
-//
-//#include <Sapphire/Rendering/Framework/Model/UniformBufferObject.hpp>
-
-
+#include <Sapphire/Core/Time/Chrono.hpp>
+#include <Sapphire/Maths/Space/Quaternion.hpp>
 
 #include <Sapphire/Window/GLFWWindow.hpp>
 
 #include <Sapphire/Rendering/Vulkan/VkRenderInstance.hpp>
+#include <Sapphire/Rendering/Vulkan/Queue/VkCommandBuffer.hpp>
+#include <Sapphire/Rendering/Framework/Model/UniformBufferObject.hpp>
 
 // Material
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
@@ -87,77 +80,76 @@ int main()
 	mesh.Create(instance, vertices, indices);
 
 
-	//Chrono chrono;
-	//float time = 0.0f;
+	Chrono chrono;
+	float time = 0.0f;
 
-	//// Main Loop
-	//while (!window.ShouldClose())
-	//{
-	//	float deltaTime = chrono.Restart();
-	//	time += deltaTime * 0.00001f;
+	// Main Loop
+	while (!window.ShouldClose())
+	{
+		float deltaTime = chrono.Restart();
+		time += deltaTime * 0.00001f;
 
-	//	instance.Update();
+		window.Update();
+		instance.Update();
 
-	//	VkRenderFrame frame = surface.GetSwapChain().Update(instance.GetDevice());
+		VkRenderFrame frame = surface.GetSwapChain().Update(instance.GetDevice());
 
-	//	// Update Uniform Buffer.
-	//	UniformBufferObject ubo;
-	//	ubo.modelMat = (Quatf(time, Vec3f::Forward)).Matrix();
-	//	ubo.projMat.At(0, 0) = -1;			// 2/(r - l)
-	//	ubo.projMat.At(1, 1) = -1;			// 2/(t - b)
-	//	ubo.projMat.At(2, 2) = -2 / 10;		//  -2(f - n)
-	//	ubo.projMat.At(0, 3) = 0;			// -(r + l)/(r - l)
-	//	ubo.projMat.At(1, 3) = 0;			// -(t + b)/(t - b)
-	//	ubo.projMat.At(2, 3) = 0;			// -(f + n)/(f - n)
+		// Update Uniform Buffer.
+		UniformBufferObject ubo;
+		ubo.modelMat = (Quatf(time, Vec3f::Forward)).Matrix();
+		ubo.projMat.At(0, 0) = -1;			// 2/(r - l)
+		ubo.projMat.At(1, 1) = -1;			// 2/(t - b)
+		ubo.projMat.At(2, 2) = -2 / 10;		//  -2(f - n)
+		ubo.projMat.At(0, 3) = 0;			// -(r + l)/(r - l)
+		ubo.projMat.At(1, 3) = 0;			// -(t + b)/(t - b)
+		ubo.projMat.At(2, 3) = 0;			// -(f + n)/(f - n)
 
-	//	void* data;
-	//	vkMapMemory(instance.GetDevice(), frame.uniformBuffer, 0, sizeof(ubo), 0, &data);
-	//	memcpy(data, &ubo, sizeof(ubo));
-	//	vkUnmapMemory(instance.GetDevice(), frame.uniformBuffer);
-
-
-	//	const VkCommandBufferBeginInfo commandBufferBeginInfo
-	//	{
-	//		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-	//		nullptr,
-	//		VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
-	//	};
-
-	//	SA_VK_ASSERT(vkBeginCommandBuffer(frame.graphicsCommandBuffer, &commandBufferBeginInfo),
-	//		LibCommandFailed, Rendering, L"Failed to begin command buffer!");
+		void* data;
+		vkMapMemory(instance.GetDevice(), frame.uniformBuffer, 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(instance.GetDevice(), frame.uniformBuffer);
 
 
+		const VkCommandBufferBeginInfo commandBufferBeginInfo
+		{
+			VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+			nullptr,
+			VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+		};
 
-	//	const VkClearValue clearValue{ VkClearColorValue{ 0.0f, 0.0f, 0.07f, 1.0f } };
-
-	//	const VkRenderPassBeginInfo renderPassBeginInfo
-	//	{
-	//		VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,							// sType.
-	//		nullptr,															// pNext.
-	//		surface.GetRenderPass(),											// renderPass.
-	//		frame.frameBuffer,													// framebuffer
-	//		VkRect2D{ VkOffset2D{}, surface.GetImageExtent() },					// renderArea.
-	//		1,																	// clearValueCount.
-	//		&clearValue															// pClearValues.
-	//	};
-
-	//	vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		SA_VK_ASSERT(vkBeginCommandBuffer(frame.graphicsCommandBuffer, &commandBufferBeginInfo),
+			LibCommandFailed, Rendering, L"Failed to begin command buffer!");
 
 
+		const VkClearValue clearValue{ VkClearColorValue{ 0.0f, 0.0f, 0.07f, 1.0f } };
 
-	//	vkCmdBindDescriptorSets(frame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline, 0, 1, &frame.descriptorSet, 0, nullptr);
+		const VkRenderPassBeginInfo renderPassBeginInfo
+		{
+			VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,							// sType.
+			nullptr,															// pNext.
+			surface.GetRenderPass(),											// renderPass.
+			frame.frameBuffer,													// framebuffer
+			VkRect2D{ VkOffset2D{}, surface.GetImageExtent() },					// renderArea.
+			1,																	// clearValueCount.
+			&clearValue															// pClearValues.
+		};
 
-	//	mesh.Draw(frame);
+		vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	//	vkCmdEndRenderPass(frame.graphicsCommandBuffer);
+		material.Bind(frame);
 
-	//	SA_VK_ASSERT(vkEndCommandBuffer(frame.graphicsCommandBuffer),
-	//		LibCommandFailed, Rendering, L"Failed to end command buffer!");
-	//}
+		mesh.Draw(frame);
+
+		vkCmdEndRenderPass(frame.graphicsCommandBuffer);
+
+		SA_VK_ASSERT(vkEndCommandBuffer(frame.graphicsCommandBuffer),
+			LibCommandFailed, Rendering, L"Failed to end command buffer!");
+	}
 
 
 
 	// === Destroy ===
+	vkDeviceWaitIdle(instance.GetDevice());
 
 	// Destroy mesh.
 	mesh.Destroy(instance);

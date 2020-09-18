@@ -178,6 +178,7 @@ namespace Sa
 
 		mPresentQueue.Destroy(*this);
 		mGraphicsQueue.Destroy(*this);
+		mTransferQueue.Destroy(*this);
 
 		vkDestroyDevice(mLogicalDevice, nullptr);
 

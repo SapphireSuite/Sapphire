@@ -201,6 +201,7 @@ namespace Sa
 			CreationFailed, Rendering, L"Failed to create graphics pipeline!");
 	}
 
+
 	void VkRenderPipeline::CreateCommonDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
 		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
 	{
@@ -420,9 +421,10 @@ namespace Sa
 		}
 	}
 
+
 	uint32 VkRenderPipeline::GetDescriptorReserveNum(const PipelineCreateInfos& _pipelineInfos) const noexcept
 	{
-		return _pipelineInfos.textures.size() + 1;
+		return static_cast<uint32>(_pipelineInfos.textures.size()) + 1;
 	}
 
 
@@ -435,8 +437,9 @@ namespace Sa
 
 	void VkRenderPipeline::DestroyDescriptors(const VkDevice& _device)
 	{
-		vkFreeDescriptorSets(_device, mDescriptorPool, static_cast<uint32>(mDescriptorSets.size()), mDescriptorSets.data());
-		mDescriptorPool = VK_NULL_HANDLE;
+		// Not needed when vkDestroyDescriptorPool() is called. Requiere VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT flag.
+		//vkFreeDescriptorSets(_device, mDescriptorPool, static_cast<uint32>(mDescriptorSets.size()), mDescriptorSets.data());
+		mDescriptorSets.clear();
 
 		vkDestroyDescriptorSetLayout(_device, mDescriptorSetLayout, nullptr);
 		mDescriptorSetLayout = VK_NULL_HANDLE;

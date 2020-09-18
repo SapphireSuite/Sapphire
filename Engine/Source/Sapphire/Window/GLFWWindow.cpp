@@ -71,6 +71,16 @@ namespace Sa
 		mHandle = nullptr;
 	}
 
+	void GLFWWindow::Update()
+	{
+		uint32 sUpdateCount = 0u;
+
+		sUpdateCount = (sUpdateCount + 1) % sInitCount;
+		
+		if(sUpdateCount == 0)
+			glfwPollEvents();
+	}
+
 	bool GLFWWindow::ShouldClose() const
 	{
 		return glfwWindowShouldClose(mHandle);

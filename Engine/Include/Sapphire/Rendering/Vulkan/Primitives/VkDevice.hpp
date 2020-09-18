@@ -47,8 +47,7 @@ namespace Sa
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API operator ::VkDevice() const noexcept;
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API operator VkPhysicalDevice() const noexcept;
+		operator VkPhysicalDevice() const noexcept;
 	};
 }
 

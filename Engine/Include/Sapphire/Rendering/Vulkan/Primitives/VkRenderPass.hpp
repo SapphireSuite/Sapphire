@@ -27,7 +27,8 @@ namespace Sa
 		// Optimized re-creation.
 		void ReCreate(const VkDevice& _device, VkFormat _format);
 
-		operator ::VkRenderPass() const noexcept;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API operator ::VkRenderPass() const noexcept;
 	};
 }
 
