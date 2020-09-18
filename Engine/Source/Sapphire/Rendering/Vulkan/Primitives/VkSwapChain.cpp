@@ -11,6 +11,9 @@
 #include <Rendering/Vulkan/Primitives/VkRenderPass.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 
+// TODO: REMOVE LATER.
+#include <Rendering/Vulkan/Model/VkTexture.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
@@ -182,13 +185,24 @@ namespace Sa
 			nullptr												// pImmutableSamplers.
 		};
 
+		const VkDescriptorSetLayoutBinding samplerLayoutBinding
+		{
+			1,													// binding.
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,			// descriptorType.
+			1,													// descriptorCount.
+			VK_SHADER_STAGE_FRAGMENT_BIT,						// stageFlags.
+			nullptr												// pImmutableSamplers.
+		};
+
+		const VkDescriptorSetLayoutBinding bindings[]{ uboLayoutBinding , samplerLayoutBinding };
+
 		const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo
 		{
 			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,					// sType.
 			nullptr,																// pNext.
 			0,																		// flags.
-			1,																		// bindingCount.
-			&uboLayoutBinding														// pBindings.
+			sizeof(bindings) / sizeof(VkDescriptorSetLayoutBinding),				// bindingCount.
+			bindings																// pBindings.
 		};
 
 		SA_VK_ASSERT(vkCreateDescriptorSetLayout(_device, &descriptorSetLayoutInfo, nullptr, &mDescriptorSetLayout),
@@ -196,20 +210,28 @@ namespace Sa
 
 
 		// Descriptor pool creation.
-		const VkDescriptorPoolSize descriptorPoolSize
+		const VkDescriptorPoolSize uboDescriptorPoolSize
 		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,								// type.
-			imageNum,														// descriptorCount.
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,										// type.
+			imageNum,																// descriptorCount.
 		};
+
+		const VkDescriptorPoolSize samplerDescriptorPoolSize
+		{
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// type.
+			imageNum,																// descriptorCount.
+		};
+
+		const VkDescriptorPoolSize descriptorPoolSizes[]{ uboDescriptorPoolSize ,samplerDescriptorPoolSize };
 
 		const VkDescriptorPoolCreateInfo descriptorPoolInfo
 		{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,					// sType.
-			nullptr,														// pNext.
-			0,																// flags.
-			imageNum,														// maxSets.
-			1,																// poolSizeCount.
-			&descriptorPoolSize,											// pPoolSizes.
+			VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,							// sType.
+			nullptr,																// pNext.
+			0,																		// flags.
+			imageNum,																// maxSets.
+			sizeof(descriptorPoolSizes) / sizeof(VkDescriptorPoolSize),				// poolSizeCount.
+			descriptorPoolSizes,													// pPoolSizes.
 		};
 
 		SA_VK_ASSERT(vkCreateDescriptorPool(_device, &descriptorPoolInfo, nullptr, &mDescriptorPool),
@@ -232,16 +254,24 @@ namespace Sa
 		SA_VK_ASSERT(vkAllocateDescriptorSets(_device, &descriptorSetAllocInfo, mDescriptorSets.data()),
 			MemoryAllocationFailed, Rendering, L"Failed to allocate descriptor sets!");
 
+
 		for (size_t i = 0; i < imageNum; i++)
 		{
-			const VkDescriptorBufferInfo descriptorBufferInfo
+			const VkDescriptorBufferInfo uboDescriptorInfo
 			{
 				mUniformBuffers[i],									// buffer.
 				0,													// offset.
 				sizeof(UniformBufferObject)							// range.
 			};
 
-			const VkWriteDescriptorSet descriptorWrite
+			const VkDescriptorImageInfo imageDescriptorInfo
+			{
+				VkTexture::TEST.mSampler,								// sampler.
+				VkTexture::TEST.mImageView,								// imageView.
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL			// imageLayout.
+			};
+
+			const VkWriteDescriptorSet uboDescriptorWrite
 			{
 				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
 				nullptr,											// pNext.
@@ -251,11 +281,27 @@ namespace Sa
 				1,													// descriptorCount.
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
 				nullptr,											// pImageInfo.
-				&descriptorBufferInfo,								// pBufferInfo.
+				&uboDescriptorInfo,									// pBufferInfo.
 				nullptr												// pTexelBufferView.
 			};
 
-			vkUpdateDescriptorSets(_device, 1, &descriptorWrite, 0, nullptr);
+			const VkWriteDescriptorSet imageDescriptorWrite
+			{
+				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
+				nullptr,											// pNext.
+				mDescriptorSets[i],									// dstSet.
+				1,													// dstBinding.
+				0,													// dstArrayElement.
+				1,													// descriptorCount.
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,			// descriptorType.
+				&imageDescriptorInfo,								// pImageInfo.
+				nullptr,											// pBufferInfo.
+				nullptr												// pTexelBufferView.
+			};
+
+			const VkWriteDescriptorSet descriptorWrites[]{ uboDescriptorWrite, imageDescriptorWrite };
+
+			vkUpdateDescriptorSets(_device, sizeof(descriptorWrites) / sizeof(VkWriteDescriptorSet), descriptorWrites, 0, nullptr);
 		}
 
 

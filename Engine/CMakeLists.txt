@@ -27,14 +27,18 @@ target_include_directories(Engine PUBLIC Include/Sapphire)
 
 # === Input Libs ===
 
+# Vulkan.
+find_package(Vulkan REQUIRED FATAL_ERROR)
+target_link_libraries(Engine Vulkan::Vulkan)
+
+
 # GLFW.
 target_link_libraries(Engine ${PROJECT_SOURCE_DIR}/Libs/glfw-3.3/lib-vc2019/glfw3.lib)
 target_include_directories(Engine PRIVATE Libs/glfw-3.3/include)
 
 
-# Vulkan.
-find_package(Vulkan REQUIRED FATAL_ERROR)
-target_link_libraries(Engine Vulkan::Vulkan)
+# STB lib (stb_image)
+target_include_directories(Engine PRIVATE Libs/stblib)
 
 
 

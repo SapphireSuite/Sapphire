@@ -41,21 +41,13 @@ namespace Sa
 				offsetof(Vertex, normal)			// offset
 			},
 
-			//VkVertexInputAttributeDescription
-			//{
-			//	2,									// location.
-			//	0,									// binding.
-			//	VK_FORMAT_R32G32_SFLOAT,			// format.
-			//	offsetof(Vertex, texture)			// offset
-			//},
-
 			VkVertexInputAttributeDescription
 			{
 				2,									// location.
 				0,									// binding.
-				VK_FORMAT_R32G32B32_SFLOAT,			// format.
-				offsetof(Vertex, color)				// offset
-			}
+				VK_FORMAT_R32G32_SFLOAT,			// format.
+				offsetof(Vertex, texture)			// offset
+			},
 		};
 
 		return attributeDescriptions;

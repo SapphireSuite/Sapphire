@@ -4,27 +4,12 @@
 
 #include <Rendering/Vulkan/VkMacro.hpp>
 #include <Rendering/Vulkan/Primitives/VkDevice.hpp>
+#include <Rendering/Vulkan/Queue/VkCommandBuffer.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
 {
-	uint32 FindMemoryType(const VkDevice& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties)
-	{
-		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(_device, &memProperties);
-
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-		{
-			if ((_typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & _properties) == _properties)
-				return i;
-		}
-
-		SA_ASSERT(false, NotSupported, Rendering, L"Memory type requiered not supported!");
-
-		return uint32(-1);
-	}
-
 	void VkBuffer::Create(const VkDevice& _device, uint32 _size, VkBufferUsageFlags _usage, VkMemoryPropertyFlags _properties)
 	{
 		const VkBufferCreateInfo bufferInfo
@@ -72,33 +57,7 @@ namespace Sa
 
 	void VkBuffer::Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint32 _size)
 	{
-		const VkQueue& transferQueue = _device.GetTransferQueue();
-
-
-		// Allocate command buffer.
-		const VkCommandBufferAllocateInfo bufferAllocInfo
-		{
-			VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,					// sType.
-			nullptr,														// pNext.
-			transferQueue.GetCommandPool(),									// commandPool.
-			VK_COMMAND_BUFFER_LEVEL_PRIMARY,								// level.
-			1,																// commandBufferCount.
-		};
-
-		VkCommandBuffer commandBuffer;
-		vkAllocateCommandBuffers(_device, &bufferAllocInfo, &commandBuffer);
-
-
-		// Start command buffer record.
-		const VkCommandBufferBeginInfo commandBeginInfo
-		{
-			VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,					// sType.
-			nullptr,														// pNext.
-			VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,					// flags.
-			nullptr															// pInheritanceInfo.
-		};
-
-		vkBeginCommandBuffer(commandBuffer, &commandBeginInfo);
+		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device);
 
 
 		// Add copy command.
@@ -112,30 +71,23 @@ namespace Sa
 		vkCmdCopyBuffer(commandBuffer, _src, _dst, 1, &copyRegion);
 
 
-		// End command buffer record.
-		vkEndCommandBuffer(commandBuffer);
+		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer);
+	}
 
+	uint32 VkBuffer::FindMemoryType(const VkDevice& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties)
+	{
+		VkPhysicalDeviceMemoryProperties memProperties;
+		vkGetPhysicalDeviceMemoryProperties(_device, &memProperties);
 
-		// Submit commands.
-		const VkSubmitInfo submitInfo
+		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
 		{
-			VK_STRUCTURE_TYPE_SUBMIT_INFO,									// sType.
-			nullptr,														// pNext.
-			0,																// waitSemaphoreCount.
-			nullptr,														// pWaitSemaphores.
-			nullptr,														// pWaitDstStageMask.
-			1,																// commandBufferCount.
-			&commandBuffer,													// pCommandBuffers.
-			0,																// signalSemaphoreCount.
-			nullptr															// pSignalSemaphores.
-		};
+			if ((_typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & _properties) == _properties)
+				return i;
+		}
 
-		vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(transferQueue);
+		SA_ASSERT(false, NotSupported, Rendering, L"Memory type requiered not supported!");
 
-
-		// Free command buffer.
-		vkFreeCommandBuffers(_device, transferQueue.GetCommandPool(), 1, &commandBuffer);
+		return uint32(-1);
 	}
 
 	VkBuffer::operator ::VkBuffer() const noexcept

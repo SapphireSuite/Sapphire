@@ -17,6 +17,9 @@
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/VkValidationLayers.hpp>
 
+// TODO: REMOVE LATER.
+#include <Rendering/Vulkan/Model/VkTexture.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
@@ -234,6 +237,10 @@ namespace Sa
 		// 1st surface: Device not selected yet.
 		if (!mDevice.IsValid())
 			SelectDevice(renderSurfaceInfo.renderSurface);
+
+
+		// TODO: REMOVE LATER.
+		VkTexture::TEST.Create(*this, "../../Engine/Resources/Textures/SampleCat.jpg");
 
 		renderSurfaceInfo.renderSurface.Create(mDevice, mDevice.GetQueueFamilyIndices());
 

@@ -30,16 +30,16 @@ int main()
 	instance.Create();
 
 	GLFWWindow window;
-	window.Create(800u, 600u);
+	window.Create(800u, 800u);
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
 	const std::vector<Vertex> vertices =
 	{
-		{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f, 0.0f } },
-		{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f, 0.0f } },
-		{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f, 1.0f } },
-		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f, 1.0f } },
+		{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f } },
+		{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f } },
+		{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f } },
+		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
 	};
 	
 	const std::vector<uint32> indices = {0, 1, 2, 2, 3, 0};

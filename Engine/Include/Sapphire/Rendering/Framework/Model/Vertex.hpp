@@ -21,8 +21,7 @@ namespace Sa
 	public:
 		Vec3f position;
 		Vec3f normal;
-		//Vec2f texture;
-		Vec3f color;
+		Vec2f texture;
 
 #if SA_RENDERING_API == SA_VULKAN
 

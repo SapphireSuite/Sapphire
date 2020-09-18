@@ -120,9 +120,10 @@ namespace Sa
 			}
 		};
 
-		const VkPhysicalDeviceFeatures physicalDeviceFeatures
+		VkPhysicalDeviceFeatures physicalDeviceFeatures
 		{
 		};
+		physicalDeviceFeatures.samplerAnisotropy = VK_TRUE;
 
 #if SA_VK_VALIDATION_LAYERS
 
@@ -225,11 +226,14 @@ namespace Sa
 
 
 		// Check properties suitability.
-		//VkPhysicalDeviceProperties deviceProperties;
-		//vkGetPhysicalDeviceProperties(_device, &deviceProperties);
+		VkPhysicalDeviceProperties deviceProperties;
+		vkGetPhysicalDeviceProperties(_device, &deviceProperties);
 
-		//VkPhysicalDeviceFeatures deviceFeatures;
-		//vkGetPhysicalDeviceFeatures(_device, &deviceFeatures);
+		VkPhysicalDeviceFeatures deviceFeatures;
+		vkGetPhysicalDeviceFeatures(_device, &deviceFeatures);
+
+		if (!deviceFeatures.samplerAnisotropy)
+			return false;
 
 
 		return true;
