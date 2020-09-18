@@ -30,6 +30,7 @@ namespace Sa
 		// TODO: Remoce SA_ENGINE_API.
 		SA_ENGINE_API void Destroy(const IRenderInstance& _instance) override final;
 
+		VkDescriptorImageInfo CreateDescriptorImageInfo() const noexcept;
 		VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept;
 	};
 }

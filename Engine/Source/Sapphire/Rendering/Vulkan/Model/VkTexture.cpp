@@ -15,7 +15,7 @@ namespace Sa
 {
 	void TransitionImageLayout(const Sa::VkDevice& _device, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout)
 	{
-		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device);
+		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
 
 
 		VkImageMemoryBarrier barrier
@@ -65,12 +65,12 @@ namespace Sa
 		vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer);
+		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
 	void CopyBufferToImage(const Sa::VkDevice& _device, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height)
 	{
-		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device);
+		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 
 
 		const VkBufferImageCopy bufferImageCopy
@@ -95,7 +95,7 @@ namespace Sa
 		vkCmdCopyBufferToImage(commandBuffer, _buffer, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferImageCopy);
 
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer);
+		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
 	void VkTexture::Create(const IRenderInstance& _instance, const std::string& _fileName)
@@ -260,15 +260,17 @@ namespace Sa
 		mImageMemory = VK_NULL_HANDLE;
 	}
 
-	VkWriteDescriptorSet VkTexture::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept
+	VkDescriptorImageInfo VkTexture::CreateDescriptorImageInfo() const noexcept
 	{
-		const VkDescriptorImageInfo descriptorInfo
+		return VkDescriptorImageInfo
 		{
 			mSampler,											// sampler.
 			mImageView,											// imageView.
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL			// imageLayout.
 		};
-
+	}
+	VkWriteDescriptorSet VkTexture::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept
+	{
 		return VkWriteDescriptorSet
 		{
 			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
@@ -278,7 +280,7 @@ namespace Sa
 			0,													// dstArrayElement.
 			1,													// descriptorCount.
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,			// descriptorType.
-			&descriptorInfo,								// pImageInfo.
+			nullptr,											// pImageInfo.			// Will be set in pipeline.
 			nullptr,											// pBufferInfo.
 			nullptr												// pTexelBufferView.
 		};

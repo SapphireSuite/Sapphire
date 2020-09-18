@@ -201,56 +201,56 @@ namespace Sa
 			CreationFailed, Rendering, L"Failed to create graphics pipeline!");
 	}
 
-	void VkRenderPipeline::CreateDescriptors(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::CreateCommonDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
 	{
-		const VkRenderSurface& vkSurface = _pipelineInfos.surface.As<VkRenderSurface>();
-		const VkSwapChain& swapChain = vkSurface.GetSwapChain();
-		const uint32 imageNum = swapChain.GetImageNum();
-
-		std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-		layoutBindings.reserve(_pipelineInfos.textures.size() + 1);
-
-		std::vector<VkDescriptorPoolSize> poolSizes;
-		poolSizes.reserve(_pipelineInfos.textures.size() + 1);
+		(void)_pipelineInfos;
 
 		// UBO binding.
-		layoutBindings.push_back(VkDescriptorSetLayoutBinding
+		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 		{
-			0,													// binding.
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
-			1,													// descriptorCount.
-			VK_SHADER_STAGE_VERTEX_BIT,							// stageFlags.
-			nullptr												// pImmutableSamplers.
+			static_cast<uint32>(_layoutBindings.size()),						// binding.
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
+			1,																	// descriptorCount.
+			VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
+			nullptr																// pImmutableSamplers.
 		});
-
-		poolSizes.push_back(VkDescriptorPoolSize
-		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,										// type.
-			imageNum,																// descriptorCount.
-		});
-
-
-		// Texture binding.
+	}
+	void VkRenderPipeline::CreateTextureDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
+	{
 		for (auto it = _pipelineInfos.textures.begin(); it != _pipelineInfos.textures.end(); ++it)
 		{
-			layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 			{
-				static_cast<uint32>(layoutBindings.size()),			// binding.
-				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
-				1,													// descriptorCount.
-				VK_SHADER_STAGE_FRAGMENT_BIT,						// stageFlags.
-				nullptr												// pImmutableSamplers.
-			});
-
-			poolSizes.push_back(VkDescriptorPoolSize
-			{
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// type.
-				imageNum,																// descriptorCount.
+				static_cast<uint32>(_layoutBindings.size()),						// binding.
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
 			});
 		}
+	}
+	void VkRenderPipeline::CreateCustomDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
+	{
+		(void)_pipelineInfos;
+		(void)_layoutBindings;
+	}
+
+	void VkRenderPipeline::CreateDescriptorSetLayout(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	{
+		std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+		layoutBindings.reserve(GetDescriptorReserveNum(_pipelineInfos));
 
 
-		// Create descriptor set layout.
+		// Populate bindings.
+		CreateCommonDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
+		CreateTextureDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
+		CreateCustomDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
+
+
+		// Create DescriptorSetLayout.
 		const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo
 		{
 			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,					// sType.
@@ -262,9 +262,58 @@ namespace Sa
 
 		SA_VK_ASSERT(vkCreateDescriptorSetLayout(_device, &descriptorSetLayoutInfo, nullptr, &mDescriptorSetLayout),
 			CreationFailed, Rendering, L"Failed to create descriptor set layout!");
+	}
 
 
-		// Create descriptor pool.
+	void VkRenderPipeline::CreateCommonDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
+	{
+		(void)_pipelineInfos;
+
+		// UBO binding.
+		_poolSizes.push_back(VkDescriptorPoolSize
+		{
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
+			_imageNum,															// descriptorCount.
+		});
+	}
+
+	void VkRenderPipeline::CreateTextureDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
+	{
+		for (auto it = _pipelineInfos.textures.begin(); it != _pipelineInfos.textures.end(); ++it)
+		{
+			_poolSizes.push_back(VkDescriptorPoolSize
+			{
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
+				_imageNum,															// descriptorCount.
+			});
+		}
+	}
+
+	void VkRenderPipeline::CreateCustomDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
+	{
+		(void)_pipelineInfos;
+		(void)_imageNum;
+		(void)_poolSizes;
+	}
+
+	void VkRenderPipeline::CreateDescriptorPool(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	{
+		std::vector<VkDescriptorPoolSize> poolSizes;
+		poolSizes.reserve(GetDescriptorReserveNum(_pipelineInfos));
+
+		const uint32 imageNum = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain().GetImageNum();
+
+
+		// Populate poolSizes.
+		CreateCommonDescriptorPoolSize(_pipelineInfos, imageNum, poolSizes);
+		CreateTextureDescriptorPoolSize(_pipelineInfos, imageNum, poolSizes);
+		CreateCustomDescriptorPoolSize(_pipelineInfos, imageNum, poolSizes);
+
+
+		// Create DescriptorPool.
 		const VkDescriptorPoolCreateInfo descriptorPoolInfo
 		{
 			VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,							// sType.
@@ -277,11 +326,56 @@ namespace Sa
 
 		SA_VK_ASSERT(vkCreateDescriptorPool(_device, &descriptorPoolInfo, nullptr, &mDescriptorPool),
 			CreationFailed, Rendering, L"Failed to create descriptor pool!");
+	}
 
 
-		// Create Descriptor sets.
+	void VkRenderPipeline::CreateCommonWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+		std::vector<DescriptorInfo>& _descriptorInfos,
+		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
+	{
+		const std::vector<VkBuffer>& uniformBuffers = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain().GetUniformBuffers();
+
+		// UBO Binding
+		_descriptorInfos.push_back(uniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(UniformBufferObject)));
+		_descriptorWrites.push_back(uniformBuffers[_index].CreateWriteDescriptorSet(mDescriptorSets[_index], static_cast<uint32>(_descriptorWrites.size())));
+	}
+
+	void VkRenderPipeline::CreateTextureWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+		std::vector<DescriptorInfo>& _descriptorInfos,
+		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
+	{
+		for (auto it = _pipelineInfos.textures.begin(); it != _pipelineInfos.textures.end(); ++it)
+		{
+			SA_ASSERT(*it, Nullptr, Rendering, L"Pipeline bind nullptr texture!");
+
+			const VkTexture& vkTexture = (*it)->As<VkTexture>();
+
+			_descriptorInfos.push_back(vkTexture.CreateDescriptorImageInfo());
+			_descriptorWrites.push_back(vkTexture.CreateWriteDescriptorSet(mDescriptorSets[_index], static_cast<uint32>(_descriptorWrites.size())));
+		}
+	}
+
+	void VkRenderPipeline::CreateCustomWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+		std::vector<DescriptorInfo>& _descriptorInfos,
+		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
+	{
+		(void)_pipelineInfos;
+		(void)_index;
+		(void)_descriptorInfos;
+		(void)_descriptorWrites;
+	}
+
+	void VkRenderPipeline::CreateDescriptorSets(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	{
+		SA_ASSERT(mDescriptorSetLayout != VK_NULL_HANDLE, Nullptr, Rendering, L"Create descriptor sets with null descriptor layout!");
+		SA_ASSERT(mDescriptorPool != VK_NULL_HANDLE, Nullptr, Rendering, L"Create descriptor sets with null descriptor pool!");
+
+		const VkSwapChain& swapChain = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain();
+		const uint32 imageNum = swapChain.GetImageNum();
+
+
+		// Allocate Descriptor sets.
 		mDescriptorSets.resize(imageNum);
-
 		std::vector<VkDescriptorSetLayout> descriptorSetLayouts(imageNum, mDescriptorSetLayout);
 
 		const VkDescriptorSetAllocateInfo descriptorSetAllocInfo
@@ -298,29 +392,45 @@ namespace Sa
 
 
 		// Init each descriptor set.
-		const std::vector<VkBuffer>& uniformBuffers = swapChain.GetUniformBuffers();
+		std::vector<DescriptorInfo> descriptorInfos;
+		descriptorInfos.reserve(GetDescriptorReserveNum(_pipelineInfos));
+
+		std::vector<VkWriteDescriptorSet> descriptorWrites;
+		descriptorWrites.reserve(GetDescriptorReserveNum(_pipelineInfos));
 
 		for (uint32 i = 0; i < imageNum; ++i)
 		{
-			std::vector<VkWriteDescriptorSet> descriptorWrites;
-			descriptorWrites.reserve(_pipelineInfos.textures.size() + 1);
+			descriptorInfos.clear();
+			descriptorWrites.clear();
 
-			// UBO Binding
-			descriptorWrites.push_back(uniformBuffers[i].CreateWriteDescriptorSet(mDescriptorSets[i], static_cast<uint32>(descriptorWrites.size()), sizeof(UniformBufferObject)));
+			CreateCommonWriteDescriptorSets(_pipelineInfos, i, descriptorInfos, descriptorWrites);
+			CreateTextureWriteDescriptorSets(_pipelineInfos, i, descriptorInfos, descriptorWrites);
+			CreateCustomWriteDescriptorSets(_pipelineInfos, i, descriptorInfos, descriptorWrites);
 
-
-			// Texture binding.
-			for (auto it = _pipelineInfos.textures.begin(); it != _pipelineInfos.textures.end(); ++it)
+			// Init info ptr after any vector resize.
+			for (uint32 j = 0u; j < descriptorWrites.size(); ++j)
 			{
-				SA_ASSERT((*it), Nullptr, Rendering, L"Pipeline bind nullptr texture!")
-
-				const VkTexture& vkTexture = (*it)->As<VkTexture>();
-
-				descriptorWrites.push_back(vkTexture.CreateWriteDescriptorSet(mDescriptorSets[i], static_cast<uint32>(descriptorWrites.size())));
+				if (descriptorInfos[j].bIsImage)
+					descriptorWrites[j].pImageInfo = &descriptorInfos[j].image;
+				else
+					descriptorWrites[j].pBufferInfo = &descriptorInfos[j].buffer;
 			}
 
 			vkUpdateDescriptorSets(_device, static_cast<uint32>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
+	}
+
+	uint32 VkRenderPipeline::GetDescriptorReserveNum(const PipelineCreateInfos& _pipelineInfos) const noexcept
+	{
+		return _pipelineInfos.textures.size() + 1;
+	}
+
+
+	void VkRenderPipeline::CreateDescriptors(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	{
+		CreateDescriptorSetLayout(_device, _pipelineInfos);
+		CreateDescriptorPool(_device, _pipelineInfos);
+		CreateDescriptorSets(_device, _pipelineInfos);
 	}
 
 	void VkRenderPipeline::DestroyDescriptors(const VkDevice& _device)

@@ -28,6 +28,62 @@ namespace Sa
 
 		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 
+
+		void CreateCommonDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept;
+		
+		void CreateTextureDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept;
+		
+		virtual void CreateCustomDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept;
+
+		void CreateDescriptorSetLayout(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
+
+
+		void CreateCommonDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+			std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept;
+
+		void CreateTextureDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+			std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept;
+
+		virtual void CreateCustomDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+			std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept;
+
+		void CreateDescriptorPool(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
+
+
+		struct DescriptorInfo
+		{
+			bool bIsImage = false;
+
+			union
+			{
+				VkDescriptorBufferInfo buffer;
+				VkDescriptorImageInfo image;
+			};
+
+			DescriptorInfo(VkDescriptorBufferInfo _buffer) noexcept : buffer{ _buffer }, bIsImage{ false } {}
+			DescriptorInfo(VkDescriptorImageInfo _image) noexcept : image{ _image }, bIsImage{ true } {}
+		};
+
+		void CreateCommonWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+			std::vector<DescriptorInfo>& _descriptorInfos,
+			std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept;
+
+		void CreateTextureWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+			std::vector<DescriptorInfo>& _descriptorInfos,
+			std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept;
+
+		virtual void CreateCustomWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+			std::vector<DescriptorInfo>& _descriptorInfos,
+			std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept;
+
+		void CreateDescriptorSets(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
+
+		virtual uint32 GetDescriptorReserveNum(const PipelineCreateInfos& _pipelineInfos) const noexcept;
+
+
 		void CreateDescriptors(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
 		void DestroyDescriptors(const VkDevice& _device);
 

@@ -6,17 +6,14 @@
 
 namespace Sa
 {
-	void VkCommandBuffer::BeginSingleTimeCommands_Internal(const VkDevice& _device)
+	void VkCommandBuffer::BeginSingleTimeCommands_Internal(const VkDevice& _device, const VkQueue& _queue)
 	{
-		const Sa::VkQueue& transferQueue = _device.GetTransferQueue();
-
-
 		// Allocate command buffer.
 		const VkCommandBufferAllocateInfo bufferAllocInfo
 		{
 			VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,					// sType.
 			nullptr,														// pNext.
-			transferQueue.GetCommandPool(),									// commandPool.
+			_queue.GetCommandPool(),										// commandPool.
 			VK_COMMAND_BUFFER_LEVEL_PRIMARY,								// level.
 			1,																// commandBufferCount.
 		};
@@ -36,11 +33,8 @@ namespace Sa
 		vkBeginCommandBuffer(mHandle, &commandBeginInfo);
 	}
 
-	void VkCommandBuffer::EndSingleTimeCommands_Internal(const VkDevice& _device)
+	void VkCommandBuffer::EndSingleTimeCommands_Internal(const VkDevice& _device, const VkQueue& _queue)
 	{
-		const Sa::VkQueue& transferQueue = _device.GetTransferQueue();
-
-
 		// End command buffer record.
 		vkEndCommandBuffer(mHandle);
 
@@ -59,26 +53,26 @@ namespace Sa
 			nullptr															// pSignalSemaphores.
 		};
 
-		vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(transferQueue);
+		vkQueueSubmit(_queue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(_queue);
 
 
 		// Free command buffer.
-		vkFreeCommandBuffers(_device, transferQueue.GetCommandPool(), 1, &mHandle);
+		vkFreeCommandBuffers(_device, _queue.GetCommandPool(), 1, &mHandle);
 	}
 
-	VkCommandBuffer VkCommandBuffer::BeginSingleTimeCommands(const VkDevice& _device)
+	VkCommandBuffer VkCommandBuffer::BeginSingleTimeCommands(const VkDevice& _device, const VkQueue& _queue)
 	{
 		VkCommandBuffer commandBuffer;
 
-		commandBuffer.BeginSingleTimeCommands_Internal(_device);
+		commandBuffer.BeginSingleTimeCommands_Internal(_device, _queue);
 
 		return commandBuffer;
 	}
 
-	void VkCommandBuffer::EndSingleTimeCommands(const VkDevice& _device, VkCommandBuffer _commandBuffer)
+	void VkCommandBuffer::EndSingleTimeCommands(const VkDevice& _device, VkCommandBuffer _commandBuffer, const VkQueue& _queue)
 	{
-		_commandBuffer.EndSingleTimeCommands_Internal(_device);
+		_commandBuffer.EndSingleTimeCommands_Internal(_device, _queue);
 	}
 
 	VkCommandBuffer::operator ::VkCommandBuffer() const

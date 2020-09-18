@@ -14,17 +14,18 @@
 namespace Sa
 {
 	class VkDevice;
+	class VkQueue;
 
 	class VkCommandBuffer
 	{
 		::VkCommandBuffer mHandle;
 
-		void BeginSingleTimeCommands_Internal(const VkDevice& _device);
-		void EndSingleTimeCommands_Internal(const VkDevice& _device);
+		void BeginSingleTimeCommands_Internal(const VkDevice& _device, const VkQueue& _queue);
+		void EndSingleTimeCommands_Internal(const VkDevice& _device, const VkQueue& _queue);
 
 	public:
-		static VkCommandBuffer BeginSingleTimeCommands(const VkDevice& _device);
-		static void EndSingleTimeCommands(const VkDevice& _device, VkCommandBuffer _commandBuffer);
+		static VkCommandBuffer BeginSingleTimeCommands(const VkDevice& _device, const VkQueue& _queue);
+		static void EndSingleTimeCommands(const VkDevice& _device, VkCommandBuffer _commandBuffer, const VkQueue& _queue);
 
 		operator ::VkCommandBuffer() const;
 	};

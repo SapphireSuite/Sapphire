@@ -55,15 +55,17 @@ namespace Sa
 		mDeviceMemory = VK_NULL_HANDLE;
 	}
 
-	VkWriteDescriptorSet VkBuffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _size) const noexcept
+	VkDescriptorBufferInfo VkBuffer::CreateDescriptorBufferInfo(uint32 _size) const noexcept
 	{
-		const VkDescriptorBufferInfo descriptorInfo
+		return VkDescriptorBufferInfo
 		{
 			mHandle,											// buffer.
 			0,													// offset.
 			_size												// range.
 		};
-
+	}
+	VkWriteDescriptorSet VkBuffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept
+	{
 		return VkWriteDescriptorSet
 		{
 			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
@@ -74,14 +76,14 @@ namespace Sa
 			1,													// descriptorCount.
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
 			nullptr,											// pImageInfo.
-			&descriptorInfo,									// pBufferInfo.
+			nullptr,											// pBufferInfo.				// Will be set in pipeline.
 			nullptr												// pTexelBufferView.
 		};
 	}
 
 	void VkBuffer::Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint32 _size)
 	{
-		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device);
+		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 
 
 		// Add copy command.
@@ -95,7 +97,7 @@ namespace Sa
 		vkCmdCopyBuffer(commandBuffer, _src, _dst, 1, &copyRegion);
 
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer);
+		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
 	uint32 VkBuffer::FindMemoryType(const VkDevice& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties)
