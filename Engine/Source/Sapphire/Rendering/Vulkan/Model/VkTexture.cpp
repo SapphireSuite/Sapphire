@@ -13,9 +13,6 @@
 
 namespace Sa
 {
-	// TODO: REMOVE LATER.
-	VkTexture VkTexture::TEST;
-
 	void TransitionImageLayout(const Sa::VkDevice& _device, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout)
 	{
 		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device);
@@ -100,7 +97,6 @@ namespace Sa
 
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer);
 	}
-
 
 	void VkTexture::Create(const IRenderInstance& _instance, const std::string& _fileName)
 	{
@@ -252,11 +248,40 @@ namespace Sa
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 		vkDestroySampler(device, mSampler, nullptr);
+		mSampler = VK_NULL_HANDLE;
 
 		vkDestroyImageView(device, mImageView, nullptr);
+		mImageView = VK_NULL_HANDLE;
+
 		vkDestroyImage(device, mImage, nullptr);
+		mImage = VK_NULL_HANDLE;
 
 		vkFreeMemory(device, mImageMemory, nullptr); // Free memory after destroying image: memory no more used.
+		mImageMemory = VK_NULL_HANDLE;
+	}
+
+	VkWriteDescriptorSet VkTexture::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept
+	{
+		const VkDescriptorImageInfo descriptorInfo
+		{
+			mSampler,											// sampler.
+			mImageView,											// imageView.
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL			// imageLayout.
+		};
+
+		return VkWriteDescriptorSet
+		{
+			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
+			nullptr,											// pNext.
+			_descriptorSet,										// dstSet.
+			_binding,											// dstBinding.
+			0,													// dstArrayElement.
+			1,													// descriptorCount.
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,			// descriptorType.
+			&descriptorInfo,								// pImageInfo.
+			nullptr,											// pBufferInfo.
+			nullptr												// pTexelBufferView.
+		};
 	}
 }
 

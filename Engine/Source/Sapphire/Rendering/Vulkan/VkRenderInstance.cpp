@@ -238,10 +238,6 @@ namespace Sa
 		if (!mDevice.IsValid())
 			SelectDevice(renderSurfaceInfo.renderSurface);
 
-
-		// TODO: REMOVE LATER.
-		VkTexture::TEST.Create(*this, "../../Engine/Resources/Textures/SampleCat.jpg");
-
 		renderSurfaceInfo.renderSurface.Create(mDevice, mDevice.GetQueueFamilyIndices());
 
 		return renderSurfaceInfo.renderSurface;

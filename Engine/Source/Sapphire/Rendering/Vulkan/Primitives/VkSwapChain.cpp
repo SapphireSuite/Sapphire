@@ -4,15 +4,12 @@
 
 #include <Maths/Misc/Maths.hpp>
 
-#include <Rendering/Framework/Model/UniformBufferObject.hpp>
-
 #include <Rendering/Vulkan/VkMacro.hpp>
 #include <Rendering/Vulkan/Primitives/VkDevice.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderPass.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 
-// TODO: REMOVE LATER.
-#include <Rendering/Vulkan/Model/VkTexture.hpp>
+#include <Rendering/Framework/Model/UniformBufferObject.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -33,15 +30,16 @@ namespace Sa
 		return mExtent;
 	}
 
-	VkDescriptorSetLayout VkSwapChain::GetDescriptorSetLayout() const noexcept
+	const std::vector<VkBuffer>& VkSwapChain::GetUniformBuffers() const noexcept
 	{
-		return mDescriptorSetLayout;
+		return mUniformBuffers;
 	}
 
 	VkRenderFrame VkSwapChain::GetRenderFrame() const noexcept
 	{
 		return VkRenderFrame
 		{
+			mFrameIndex,
 			mImages[mImageIndex],
 			mImageViews[mImageIndex],
 			mFrameBuffers[mFrameIndex],
@@ -49,8 +47,7 @@ namespace Sa
 			mAcquireSemaphores[mFrameIndex],
 			mPresentSemaphores[mFrameIndex],
 			mMainFences[mFrameIndex],
-			mUniformBuffers[mFrameIndex],
-			mDescriptorSets[mFrameIndex]
+			mUniformBuffers[mFrameIndex]
 		};
 	}
 
@@ -171,137 +168,6 @@ namespace Sa
 		{
 			mUniformBuffers[i].Create(_device, sizeof(UniformBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-		}
-
-
-		// Create Descriptor set layout.
-		const VkDescriptorSetLayoutBinding uboLayoutBinding
-		{
-			0,													// binding.
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
-			1,													// descriptorCount.
-			VK_SHADER_STAGE_VERTEX_BIT,							// stageFlags.
-			nullptr												// pImmutableSamplers.
-		};
-
-		const VkDescriptorSetLayoutBinding samplerLayoutBinding
-		{
-			1,													// binding.
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,			// descriptorType.
-			1,													// descriptorCount.
-			VK_SHADER_STAGE_FRAGMENT_BIT,						// stageFlags.
-			nullptr												// pImmutableSamplers.
-		};
-
-		const VkDescriptorSetLayoutBinding bindings[]{ uboLayoutBinding , samplerLayoutBinding };
-
-		const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo
-		{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,					// sType.
-			nullptr,																// pNext.
-			0,																		// flags.
-			sizeof(bindings) / sizeof(VkDescriptorSetLayoutBinding),				// bindingCount.
-			bindings																// pBindings.
-		};
-
-		SA_VK_ASSERT(vkCreateDescriptorSetLayout(_device, &descriptorSetLayoutInfo, nullptr, &mDescriptorSetLayout),
-			CreationFailed, Rendering, L"Failed to create descriptor set layout!");
-
-
-		// Descriptor pool creation.
-		const VkDescriptorPoolSize uboDescriptorPoolSize
-		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,										// type.
-			imageNum,																// descriptorCount.
-		};
-
-		const VkDescriptorPoolSize samplerDescriptorPoolSize
-		{
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// type.
-			imageNum,																// descriptorCount.
-		};
-
-		const VkDescriptorPoolSize descriptorPoolSizes[]{ uboDescriptorPoolSize ,samplerDescriptorPoolSize };
-
-		const VkDescriptorPoolCreateInfo descriptorPoolInfo
-		{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,							// sType.
-			nullptr,																// pNext.
-			0,																		// flags.
-			imageNum,																// maxSets.
-			sizeof(descriptorPoolSizes) / sizeof(VkDescriptorPoolSize),				// poolSizeCount.
-			descriptorPoolSizes,													// pPoolSizes.
-		};
-
-		SA_VK_ASSERT(vkCreateDescriptorPool(_device, &descriptorPoolInfo, nullptr, &mDescriptorPool),
-			CreationFailed, Rendering, L"Failed to create descriptor pool!");
-
-
-		// Descriptor sets creation.
-		mDescriptorSets.resize(imageNum);
-		std::vector<VkDescriptorSetLayout> descriptorSetLayouts(imageNum, mDescriptorSetLayout);
-
-		const VkDescriptorSetAllocateInfo descriptorSetAllocInfo
-		{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,				// sType.
-			nullptr,													// pNext.
-			mDescriptorPool,											// descriptorPool.
-			imageNum,													// descriptorSetCount.
-			descriptorSetLayouts.data(),								// pSetLayouts.
-		};
-
-		SA_VK_ASSERT(vkAllocateDescriptorSets(_device, &descriptorSetAllocInfo, mDescriptorSets.data()),
-			MemoryAllocationFailed, Rendering, L"Failed to allocate descriptor sets!");
-
-
-		for (size_t i = 0; i < imageNum; i++)
-		{
-			const VkDescriptorBufferInfo uboDescriptorInfo
-			{
-				mUniformBuffers[i],									// buffer.
-				0,													// offset.
-				sizeof(UniformBufferObject)							// range.
-			};
-
-			const VkDescriptorImageInfo imageDescriptorInfo
-			{
-				VkTexture::TEST.mSampler,								// sampler.
-				VkTexture::TEST.mImageView,								// imageView.
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL			// imageLayout.
-			};
-
-			const VkWriteDescriptorSet uboDescriptorWrite
-			{
-				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
-				nullptr,											// pNext.
-				mDescriptorSets[i],									// dstSet.
-				0,													// dstBinding.
-				0,													// dstArrayElement.
-				1,													// descriptorCount.
-				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
-				nullptr,											// pImageInfo.
-				&uboDescriptorInfo,									// pBufferInfo.
-				nullptr												// pTexelBufferView.
-			};
-
-			const VkWriteDescriptorSet imageDescriptorWrite
-			{
-				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
-				nullptr,											// pNext.
-				mDescriptorSets[i],									// dstSet.
-				1,													// dstBinding.
-				0,													// dstArrayElement.
-				1,													// descriptorCount.
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,			// descriptorType.
-				&imageDescriptorInfo,								// pImageInfo.
-				nullptr,											// pBufferInfo.
-				nullptr												// pTexelBufferView.
-			};
-
-			const VkWriteDescriptorSet descriptorWrites[]{ uboDescriptorWrite, imageDescriptorWrite };
-
-			vkUpdateDescriptorSets(_device, sizeof(descriptorWrites) / sizeof(VkWriteDescriptorSet), descriptorWrites, 0, nullptr);
 		}
 
 
@@ -364,11 +230,6 @@ namespace Sa
 		vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(), imageNum, mGraphicsCommandBuffers.data());
 
 		vkDestroySwapchainKHR(_device, mHandle, nullptr);
-
-		// Destroy Descriptor set.
-		vkFreeDescriptorSets(_device, mDescriptorPool, GetImageNum(), mDescriptorSets.data());
-		vkDestroyDescriptorSetLayout(_device, mDescriptorSetLayout, nullptr);
-		vkDestroyDescriptorPool(_device, mDescriptorPool, nullptr);
 	}
 
 	void VkSwapChain::ReCreate(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)

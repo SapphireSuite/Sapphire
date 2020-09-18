@@ -21,16 +21,13 @@ namespace Sa
 		::VkRenderPass mHandle = VK_NULL_HANDLE;
 
 	public:
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void Create(const VkDevice& _device, VkFormat _format);
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void Destroy(const VkDevice& _device);
+		void Create(const VkDevice& _device, VkFormat _format);
+		void Destroy(const VkDevice& _device);
 
 		// Optimized re-creation.
 		void ReCreate(const VkDevice& _device, VkFormat _format);
 
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API operator ::VkRenderPass() const noexcept;
+		operator ::VkRenderPass() const noexcept;
 	};
 }
 

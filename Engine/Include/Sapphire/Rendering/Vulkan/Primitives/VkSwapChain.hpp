@@ -42,10 +42,6 @@ namespace Sa
 
 		std::vector<VkFence> mMainFences;
 
-		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
-		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
-		std::vector<VkDescriptorSet> mDescriptorSets;
-
 		std::vector<VkBuffer> mUniformBuffers;
 
 		struct SupportDetails
@@ -66,7 +62,7 @@ namespace Sa
 
 		const ImageExtent& GetImageExtent() const noexcept;
 
-		VkDescriptorSetLayout GetDescriptorSetLayout() const noexcept;
+		const std::vector<VkBuffer>& GetUniformBuffers() const noexcept;
 
 		VkRenderFrame GetRenderFrame() const noexcept;
 

@@ -16,17 +16,19 @@
 namespace Sa
 {
 	class IShader;
+	class ITexture;
 	class IRenderSurface;
 
 	class PipelineCreateInfos
 	{
 	public:
 		const IRenderSurface& surface;
+		const Viewport& viewport;
 
 		const IShader* vertexShader = nullptr;
 		const IShader* fragementShader = nullptr;
 
-		const Viewport& viewport;
+		std::vector<const ITexture*> textures;
 
 		PolygonMode polygonMode = PolygonMode::Fill;
 		CullingMode cullingMode = CullingMode::Back;

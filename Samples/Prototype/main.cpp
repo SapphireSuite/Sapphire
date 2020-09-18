@@ -22,6 +22,7 @@
 // Material
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
 #include <Sapphire/Rendering/Vulkan/Primitives/Pipeline/VkShader.hpp>
+#include <Sapphire/Rendering/Vulkan/Model/VkTexture.hpp>
 #include <Sapphire/Rendering/Vulkan/Primitives/VkRenderMaterial.hpp>
 
 // Mesh
@@ -53,14 +54,18 @@ int main()
 	VkShader fragShader;
 	fragShader.Create(instance, L"../../Bin/Shaders/default_frag.spv");
 
+	VkTexture catTexture;
+	catTexture.Create(instance, "../../Engine/Resources/Textures/SampleCat.jpg");
+
 	PipelineCreateInfos mainPipelineInfos
 	{
 		surface,
+		surface.GetViewport(),
 
 		&vertShader,
 		&fragShader,
 
-		surface.GetViewport()
+		{ &catTexture }
 	};
 
 	VkRenderMaterial material;
@@ -76,7 +81,7 @@ int main()
 		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
 	};
 	
-	const std::vector<uint32> indices = {0, 1, 2, 2, 3, 0};
+	const std::vector<uint32> indices = { 0, 1, 2, 2, 3, 0 };
 
 	VkMesh mesh;
 	mesh.Create(instance, vertices, indices);
@@ -138,7 +143,7 @@ int main()
 
 	//	vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	//	vkCmdBindPipeline(frame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
 
 	//	vkCmdBindDescriptorSets(frame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline, 0, 1, &frame.descriptorSet, 0, nullptr);
 
@@ -160,8 +165,9 @@ int main()
 	// Destroy Material.
 	material.DestroyPipeline(instance);
 
-	vertShader.Destroy(instance);
+	catTexture.Destroy(instance);
 	fragShader.Destroy(instance);
+	vertShader.Destroy(instance);
 
 
 	instance.DestroyRenderSurface(window);

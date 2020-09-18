@@ -55,6 +55,30 @@ namespace Sa
 		mDeviceMemory = VK_NULL_HANDLE;
 	}
 
+	VkWriteDescriptorSet VkBuffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _size) const noexcept
+	{
+		const VkDescriptorBufferInfo descriptorInfo
+		{
+			mHandle,											// buffer.
+			0,													// offset.
+			_size												// range.
+		};
+
+		return VkWriteDescriptorSet
+		{
+			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
+			nullptr,											// pNext.
+			_descriptorSet,										// dstSet.
+			_binding,											// dstBinding.
+			0,													// dstArrayElement.
+			1,													// descriptorCount.
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
+			nullptr,											// pImageInfo.
+			&descriptorInfo,									// pBufferInfo.
+			nullptr												// pTexelBufferView.
+		};
+	}
+
 	void VkBuffer::Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint32 _size)
 	{
 		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device);

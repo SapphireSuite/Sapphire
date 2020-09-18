@@ -16,14 +16,20 @@
 namespace Sa
 {
 	class VkDevice;
-	class VkRenderPass;
 
 	class VkRenderPipeline : public IRenderPipeline
 	{
 		VkPipeline mHandle = VK_NULL_HANDLE;
-		VkPipelineLayout mLayout = VK_NULL_HANDLE;
+		VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
+
+		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
+		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSet> mDescriptorSets;
 
 		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
+
+		void CreateDescriptors(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
+		void DestroyDescriptors(const VkDevice& _device);
 
 	public:
 		void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) override final;

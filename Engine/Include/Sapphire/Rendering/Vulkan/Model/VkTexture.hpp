@@ -17,20 +17,20 @@ namespace Sa
 {
 	class VkTexture : public ITexture
 	{
-		// TODO: PRIVATE.
-	public:
-		VkImage mImage;
-		VkImageView mImageView;
+		VkImage mImage = VK_NULL_HANDLE;
+		VkImageView mImageView = VK_NULL_HANDLE;
 
-		VkSampler mSampler;
+		VkSampler mSampler = VK_NULL_HANDLE;
 
 		VkDeviceMemory mImageMemory = VK_NULL_HANDLE;
 
-		// TODO: REMOVE LATER.
-		static VkTexture TEST;
+	public:
+		// TODO: Remoce SA_ENGINE_API.
+		SA_ENGINE_API void Create(const IRenderInstance& _instance, const std::string& _fileName) override final;
+		// TODO: Remoce SA_ENGINE_API.
+		SA_ENGINE_API void Destroy(const IRenderInstance& _instance) override final;
 
-		void Create(const IRenderInstance& _instance, const std::string& _fileName) override final;
-		void Destroy(const IRenderInstance& _instance) override final;
+		VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept;
 	};
 }
 
