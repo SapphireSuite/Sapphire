@@ -1,11 +1,12 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Vulkan/VkMacro.hpp>
-
 #include <Rendering/Vulkan/Primitives/Pipeline/VkRenderPipeline.hpp>
 
 #include <Rendering/Framework/Model/Vertex.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/ShaderType.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
 
+#include <Rendering/Vulkan/VkMacro.hpp>
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 #include <Rendering/Vulkan/Primitives/Pipeline/VkShader.hpp>
@@ -14,48 +15,44 @@
 
 namespace Sa
 {
-	VkShaderStageFlagBits GetVkShaderStage(ShaderType _shaderType)
-	{
-		switch (_shaderType)
-		{
-			case ShaderType::Fragment:
-				return VK_SHADER_STAGE_FRAGMENT_BIT;
-			case ShaderType::Geometry:
-				return VK_SHADER_STAGE_GEOMETRY_BIT;
-			case ShaderType::Compute:
-				return VK_SHADER_STAGE_COMPUTE_BIT;
-			case ShaderType::Vertex:
-			case ShaderType::Unknown:
-			default:
-				return VK_SHADER_STAGE_VERTEX_BIT;
-		}
-	}
-
-
-	void VkRenderPipeline::Create_Internal(const IRenderInstance& _instance,
-		const IRenderSurface& _surface,
-		const std::vector<const IShader*>& _shaders,
-		const Viewport& _viewport)
+	void VkRenderPipeline::Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
-		const VkRenderSurface& vkSurfaca = _surface.As<VkRenderSurface>();
+		const VkRenderSurface& vkSurface = _pipelineInfos.surface.As<VkRenderSurface>();
 
-		// Create Shader Stages.
-		VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[_shaders.size()];
+		// === Create Shader Stages ===
+		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
-		for (uint32 i = 0u; i < _shaders.size(); ++i)
+		// Create vertex shader stage.
+		if (_pipelineInfos.vertexShader)
 		{
-			shaderStages[i] = VkPipelineShaderStageCreateInfo
+			shaderStages.push_back(VkPipelineShaderStageCreateInfo
 			{
 				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
 				nullptr,															// pNext.
 				0,																	// flags.
-				GetVkShaderStage(_shaders[i]->GetShaderType()),						// stage.
-				_shaders[i]->As<VkShader>(),										// module.
+				API_GetShaderType(ShaderType::Vertex),								// stage.
+				_pipelineInfos.vertexShader->As<VkShader>(),						// module.
 				"main",																// pName.
 				nullptr,															// pSpecializationInfo.
-			};
+			});
 		}
+
+		// Create fragment shader stage.
+		if (_pipelineInfos.fragementShader)
+		{
+			shaderStages.push_back(VkPipelineShaderStageCreateInfo
+			{
+				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
+				nullptr,															// pNext.
+				0,																	// flags.
+				API_GetShaderType(ShaderType::Fragment),							// stage.
+				_pipelineInfos.fragementShader->As<VkShader>(),						// module.
+				"main",																// pName.
+				nullptr,															// pSpecializationInfo.
+			});
+		}
+
 
 
 		const VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo
@@ -79,9 +76,9 @@ namespace Sa
 		};
 
 
-		// Create Viewport.
-		const VkViewport viewport = _viewport.GetVkViewport();
-		const VkRect2D scissor = _viewport.GetVkScissor();
+		// === Create Viewport ===
+		const VkViewport viewport = _pipelineInfos.viewport.GetVkViewport();
+		const VkRect2D scissor = _pipelineInfos.viewport.GetVkScissor();
 
 		const VkPipelineViewportStateCreateInfo viewportStateCreateInfo
 		{
@@ -95,6 +92,7 @@ namespace Sa
 		};
 
 
+		// === Create Resterizer ===
 		const VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo
 		{
 			VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,				// sType.
@@ -102,9 +100,9 @@ namespace Sa
 			0,																		// flags.
 			VK_FALSE,																// depthClampEnable.
 			VK_FALSE,																// rasterizerDiscardEnable.
-			VK_POLYGON_MODE_FILL,													// polygonMode.
-			VK_CULL_MODE_BACK_BIT,													// cullMode.
-			VK_FRONT_FACE_CLOCKWISE,												// frontFace.
+			API_GetPolygonMode(_pipelineInfos.polygonMode),							// polygonMode.
+			API_GetCullingMode(_pipelineInfos.cullingMode),							// cullMode.
+			API_GetFrontFaceMode(_pipelineInfos.frontFaceMode),						// frontFace.
 			VK_FALSE,																// depthBiasEnable.
 			0.0f,																	// depthBiasConstantFactor.
 			0.0f,																	// depthBiasClamp.
@@ -156,15 +154,15 @@ namespace Sa
 
 
 
-		VkDescriptorSetLayout descriptorLayout = vkSurfaca.GetSwapChain().GetDescriptorSetLayout();
+		VkDescriptorSetLayout descriptorLayout = vkSurface.GetSwapChain().GetDescriptorSetLayout();
 
-		const VkPipelineLayoutCreateInfo  pipelineLayoutCreateInfo
+		const VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo
 		{
 			VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,							// sType.
 			nullptr,																// pNext.
 			0,																		// flags.
 			1,																		// setLayoutCount.
-			& descriptorLayout,														// pSetLayouts.
+			&descriptorLayout,														// pSetLayouts.
 			0,																		// pushConstantRangeCount.
 			nullptr																	// pPushConstantRanges.
 		};
@@ -172,15 +170,15 @@ namespace Sa
 		SA_VK_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &mLayout),
 			CreationFailed, Rendering, L"Failed to create pipeline layout!");
 
-		const VkRenderPass& renderPass = vkSurfaca.GetRenderPass();
+		const VkRenderPass& renderPass = vkSurface.GetRenderPass();
 
 		const VkGraphicsPipelineCreateInfo pipelineCreateInfo
 		{
 			VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,					// sType.
 			nullptr,															// pNext.
 			0,																	// flags.
-			static_cast<uint32>(_shaders.size()),								// stageCount.
-			shaderStages,														// pStages.
+			static_cast<uint32>(shaderStages.size()),							// stageCount.
+			shaderStages.data(),												// pStages.
 			&vertexInputCreateInfo,												// pVertexInputState.
 			&inputAssemblyCreateInfo,											// pInputAssemblyState.
 			nullptr,															// pTessellationState.
@@ -201,17 +199,16 @@ namespace Sa
 			CreationFailed, Rendering, L"Failed to create graphics pipeline!");
 	}
 
-	void VkRenderPipeline::Create(const IRenderInstance& _instance,
-		const IRenderSurface& _surface,
-		const std::vector<const IShader*>& _shaders,
-		const Viewport& _viewport)
+	void VkRenderPipeline::Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
 	{
-		Create_Internal(_instance, _surface, _shaders, _viewport);
+		Create_Internal(_instance, _pipelineInfos);
 
-		_surface.onResizeEvent.Add(std::function<void(const IRenderInstance&, const IRenderSurface&)>(
-			[this, _shaders](const IRenderInstance& _instance, const IRenderSurface& _surface)
+		// TODO: CLEAN.
+		_pipelineInfos.surface.onResizeEvent.Add(std::function<void(const IRenderInstance&, const IRenderSurface&)>(
+			[this, &_pipelineInfos](const IRenderInstance& _instance, const IRenderSurface& _surface)
 			{
-				ReCreate(_instance, _surface, _shaders, _surface.GetViewport());
+				(void)_surface;
+				ReCreate(_instance, _pipelineInfos);
 			}
 		));
 	}
@@ -227,14 +224,18 @@ namespace Sa
 		mLayout = VK_NULL_HANDLE;
 	}
 
-	void VkRenderPipeline::ReCreate(const IRenderInstance& _instance,
-		const IRenderSurface& _surface,
-		const std::vector<const IShader*>& _shaders,
-		const Viewport& _viewport)
+	void VkRenderPipeline::Bind(const IRenderFrame& _frame)
+	{
+		const VkRenderFrame& vkFrame = _frame.As<VkRenderFrame>();
+
+		vkCmdBindPipeline(vkFrame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mHandle);
+	}
+
+	void VkRenderPipeline::ReCreate(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
 	{
 		Destroy(_instance);
 
-		Create_Internal(_instance, _surface, _shaders, _viewport);
+		Create_Internal(_instance, _pipelineInfos);
 	}
 
 	VkRenderPipeline::operator VkPipeline() const

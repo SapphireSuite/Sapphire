@@ -23,31 +23,19 @@ namespace Sa
 		VkPipeline mHandle = VK_NULL_HANDLE;
 		VkPipelineLayout mLayout = VK_NULL_HANDLE;
 
-		void Create_Internal(const IRenderInstance& _instance,
-			const IRenderSurface& _surface,
-			const std::vector<const IShader*>& _shaders,
-			const Viewport& _viewport);
+		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 
 	public:
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void Create(const IRenderInstance& _instance,
-			const IRenderSurface& _surface,
-			const std::vector<const IShader*>& _shaders,
-			const Viewport& _viewport);
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void Destroy(const IRenderInstance& _instance);
+		void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) override final;
+		void Destroy(const IRenderInstance& _instance) override final;
+
+		void Bind(const IRenderFrame& _frame) override final;
 
 		// Optimized re-creation.
-		void ReCreate(const IRenderInstance& _instance,
-			const IRenderSurface& _surface,
-			const std::vector<const IShader*>& _shaders,
-			const Viewport& _viewport);
+		void ReCreate(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API operator VkPipeline() const;
-
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API operator VkPipelineLayout() const;
+		operator VkPipeline() const;
+		operator VkPipelineLayout() const;
 	};
 }
 

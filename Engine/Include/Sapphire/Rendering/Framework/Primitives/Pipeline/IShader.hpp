@@ -13,25 +13,10 @@ namespace Sa
 {
 	class IRenderInstance;
 
-	enum class ShaderType
-	{
-		Unknown,
-
-		Vertex,
-		Fragment,
-		Geometry,
-		Compute
-	};
-
 	class IShader : public IInterface
 	{
-	protected:
-		ShaderType mShaderType = ShaderType::Unknown;
-
 	public:
-		ShaderType GetShaderType() const;
-
-		virtual void Create(const IRenderInstance& _instance, ShaderType _type, const std::wstring& _fileName) = 0;
+		virtual void Create(const IRenderInstance& _instance, const std::wstring& _fileName) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 	};
 }

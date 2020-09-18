@@ -30,7 +30,7 @@ namespace Sa
 		return buffer;
 	}
 
-	void VkShader::Create(const IRenderInstance& _instance, ShaderType _type, const std::wstring& _fileName)
+	void VkShader::Create(const IRenderInstance& _instance, const std::wstring& _fileName)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
@@ -47,9 +47,8 @@ namespace Sa
 
 		SA_VK_ASSERT(vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &mHandle),
 			CreationFailed, Rendering, L"Failed to create shader module!");
-
-		mShaderType = _type;
 	}
+
 	void VkShader::Destroy(const IRenderInstance& _instance)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
@@ -57,7 +56,6 @@ namespace Sa
 		vkDestroyShaderModule(device, mHandle, nullptr);
 
 		mHandle = VK_NULL_HANDLE;
-		mShaderType = ShaderType::Unknown;
 	}
 
 	VkShader::operator VkShaderModule() const
