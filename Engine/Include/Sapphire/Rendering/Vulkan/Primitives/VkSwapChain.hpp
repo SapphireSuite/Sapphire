@@ -31,6 +31,10 @@ namespace Sa
 		uint32 mFrameIndex = 0u;
 		uint32 mImageIndex = 0u;
 
+		VkImage mDepthImage = VK_NULL_HANDLE;
+		VkDeviceMemory mDepthImageMemory = VK_NULL_HANDLE;
+		VkImageView mDepthImageView = VK_NULL_HANDLE;
+
 		std::vector<VkImage> mImages;
 		std::vector<VkImageView> mImageViews;
 
@@ -55,6 +59,9 @@ namespace Sa
 		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		ImageExtent ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+		void CreateDepthResources(const VkDevice& _device);
+		void DestroyDepthResources(const VkDevice& _device);
 
 	public:
 		uint32 GetImageNum() const noexcept;

@@ -73,7 +73,7 @@ namespace Sa
 
 	void GLFWWindow::Update()
 	{
-		uint32 sUpdateCount = 0u;
+		static uint32 sUpdateCount = 0u;
 
 		sUpdateCount = (sUpdateCount + 1) % sInitCount;
 		

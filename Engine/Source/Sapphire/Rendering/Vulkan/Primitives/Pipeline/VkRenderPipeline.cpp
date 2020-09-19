@@ -127,6 +127,22 @@ namespace Sa
 			VK_FALSE																// alphaToOneEnable.
 		};
 
+		const VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo
+		{
+			VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,				// sType.
+			nullptr,																// pNext.
+			0,																		// flags.
+			VK_TRUE,																// depthTestEnable.
+			VK_TRUE,																// depthWriteEnable.
+			VK_COMPARE_OP_LESS,														// depthCompareOp.
+			VK_FALSE,																// depthBoundsTestEnable.
+			VK_FALSE,																// stencilTestEnable.
+			{},																		// front.
+			{},																		// back.
+			0.0f,																	// minDepthBounds.
+			1.0f,																	// maxDepthBounds.
+		};
+
 		const VkPipelineColorBlendAttachmentState colorBlendAttachment
 		{
 			VK_TRUE,																// blendEnable.
@@ -187,7 +203,7 @@ namespace Sa
 			&viewportStateCreateInfo,											// pViewportState.
 			&rasterizerCreateInfo,												// pRasterizationState.
 			&multisamplingCreateInfo,											// pMultisampleState.
-			nullptr,															// pDepthStencilState.
+			&depthStencilCreateInfo,											// pDepthStencilState.
 			&colorBlendingCreateInfo,											// pColorBlendState.
 			nullptr,															// pDynamicState.
 			mPipelineLayout,													// layout.

@@ -58,7 +58,11 @@ int main()
 		&vertShader,
 		&fragShader,
 
-		{ &catTexture }
+		{ &catTexture },
+
+		PolygonMode::Fill,
+		CullingMode::None,
+		FrontFaceMode::Clockwise
 	};
 
 	VkRenderMaterial material;
@@ -66,19 +70,42 @@ int main()
 
 
 	// Create Mesh.
+	VkMesh mesh;
 	const std::vector<Vertex> vertices =
 	{
-		{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f } },
-		{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f } },
-		{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f } },
-		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
+		{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f } },
+		{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
+		{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f } },
+		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f } },
+
+		{ { 0.5f + -0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 0.0f, 0.0f } },
+		{ { 0.5f + 0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 1.0f, 0.0f } },
+		{ { 0.5f + 0.5f, 0.5f + 0.5f, -0.5f }, Vec3f::Forward, { 1.0f, 1.0f } },
+		{ { 0.5f + -0.5f, 0.5f + 0.5f, -0.5f }, Vec3f::Forward, { 0.0f, 1.0f } }
 	};
 	
-	const std::vector<uint32> indices = { 0, 1, 2, 2, 3, 0 };
+	const std::vector<uint32> indices =
+	{
+		0, 1, 2, 2, 3, 0,
+		4, 5, 6, 6, 7, 4
+	};
 
-	VkMesh mesh;
 	mesh.Create(instance, vertices, indices);
 
+	const float r = 1.0f;
+	const float l = -1.0f;
+	const float t = 1.0f;
+	const float b = -1.0f;
+	const float n = 1.0f;
+	const float f = 100.0f;
+
+	Mat4f orthoMat
+	(
+		2 / (r - l), 0, 0, -(r + l) / (r - l),
+		0, 2 / (t - b), 0, -(t + b) / (t - b),
+		0, 0, -2 / (f - n), -(f + n) / (f - n),
+		0, 0, 0, 1
+	);
 
 	Chrono chrono;
 	float time = 0.0f;
@@ -86,23 +113,19 @@ int main()
 	// Main Loop
 	while (!window.ShouldClose())
 	{
-		float deltaTime = chrono.Restart();
-		time += deltaTime * 0.00001f;
+		float deltaTime = chrono.Restart() * 0.00005f;
+		time += deltaTime;
 
 		window.Update();
 		instance.Update();
 
-		VkRenderFrame frame = surface.GetSwapChain().Update(instance.GetDevice());
-
 		// Update Uniform Buffer.
 		UniformBufferObject ubo;
-		ubo.modelMat = (Quatf(time, Vec3f::Forward)).Matrix();
-		ubo.projMat.At(0, 0) = -1;			// 2/(r - l)
-		ubo.projMat.At(1, 1) = -1;			// 2/(t - b)
-		ubo.projMat.At(2, 2) = -2 / 10;		//  -2(f - n)
-		ubo.projMat.At(0, 3) = 0;			// -(r + l)/(r - l)
-		ubo.projMat.At(1, 3) = 0;			// -(t + b)/(t - b)
-		ubo.projMat.At(2, 3) = 0;			// -(f + n)/(f - n)
+		ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Forward));
+		ubo.projMat = orthoMat;
+
+
+		VkRenderFrame frame = surface.GetSwapChain().Update(instance.GetDevice());
 
 		void* data;
 		vkMapMemory(instance.GetDevice(), frame.uniformBuffer, 0, sizeof(ubo), 0, &data);
@@ -121,7 +144,10 @@ int main()
 			LibCommandFailed, Rendering, L"Failed to begin command buffer!");
 
 
-		const VkClearValue clearValue{ VkClearColorValue{ 0.0f, 0.0f, 0.07f, 1.0f } };
+		VkClearValue clearValue[2];
+		clearValue[0].color = VkClearColorValue{ 0.0f, 0.0f, 0.07f, 1.0f };
+		clearValue[1].depthStencil = VkClearDepthStencilValue{ 1.0f, 0 };
+
 
 		const VkRenderPassBeginInfo renderPassBeginInfo
 		{
@@ -130,8 +156,8 @@ int main()
 			surface.GetRenderPass(),											// renderPass.
 			frame.frameBuffer,													// framebuffer
 			VkRect2D{ VkOffset2D{}, surface.GetImageExtent() },					// renderArea.
-			1,																	// clearValueCount.
-			&clearValue															// pClearValues.
+			sizeof(clearValue) / sizeof(VkClearValue),							// clearValueCount.
+			clearValue															// pClearValues.
 		};
 
 		vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);

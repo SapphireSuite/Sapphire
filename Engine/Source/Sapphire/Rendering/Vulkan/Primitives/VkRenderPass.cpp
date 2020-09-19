@@ -12,6 +12,7 @@ namespace Sa
 {
 	void VkRenderPass::Create(const VkDevice& _device, VkFormat _format)
 	{
+		// Color Attachement.
 		const VkAttachmentDescription colorAttachment
 		{
 			0,														// flags.
@@ -33,6 +34,28 @@ namespace Sa
 		};
 
 
+		// Depth Attachement.
+		const VkAttachmentDescription depthAttachment
+		{
+			0,														// flags.
+			VK_FORMAT_D32_SFLOAT,									// format.
+			VK_SAMPLE_COUNT_1_BIT,									// samples.
+			VK_ATTACHMENT_LOAD_OP_CLEAR,							// loadOp.
+			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
+			VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
+			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
+			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
+			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL		// finalLayout.
+		};
+
+
+		const VkAttachmentReference depthAttachmentRef
+		{
+			1,														// attachment.
+			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,		// layout.
+		};
+
+
 		const VkSubpassDescription subpass
 		{
 			0,														// flags.
@@ -42,11 +65,12 @@ namespace Sa
 			1,														// colorAttachmentCount.
 			&colorAttachmentRef,									// pColorAttachments.
 			nullptr,												// pResolveAttachments.
-			nullptr,												// pDepthStencilAttachment.
+			&depthAttachmentRef,									// pDepthStencilAttachment.
 			0,														// preserveAttachmentCount.
 			nullptr													// pPreserveAttachments.
 
 		};
+
 
 		const VkSubpassDependency subpassDependency
 		{
@@ -60,13 +84,15 @@ namespace Sa
 		};
 
 
+		VkAttachmentDescription attachements[]{ colorAttachment, depthAttachment };
+
 		const VkRenderPassCreateInfo renderPassCreateInfo
 		{
 			VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,				// sType.
 			nullptr,												// pNext.
 			VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM,				// flags.
-			1,														// attachmentCount.
-			&colorAttachment,										// pAttachments.
+			sizeof(attachements) / sizeof(VkAttachmentDescription),	// attachmentCount.
+			attachements,											// pAttachments.
 			1,														// subpassCount.
 			&subpass,												// pSubpasses.
 			1,														// dependencyCount.

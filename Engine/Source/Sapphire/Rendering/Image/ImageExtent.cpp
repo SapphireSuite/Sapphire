@@ -12,9 +12,14 @@ namespace Sa
 	{
 	}
 
-	ImageExtent::operator const VkExtent2D&() const
+	ImageExtent::operator VkExtent2D() const
 	{
-		return reinterpret_cast<const VkExtent2D&>(*this);
+		return VkExtent2D{ width , height };
+	}
+
+	ImageExtent::operator VkExtent3D() const
+	{
+		return VkExtent3D{ width , height, 1 };
 	}
 
 #endif

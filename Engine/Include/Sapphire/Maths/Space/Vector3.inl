@@ -6,7 +6,7 @@ namespace Sa
 	const Vec3<T> Vec3<T>::Zero{ T(0), T(0), T(0) };
 
 	template <typename T>
-	const Vec3<T> Vec3<T>::One{ T(1), T(1), T(0) };
+	const Vec3<T> Vec3<T>::One{ T(1), T(1), T(1) };
 
 	template <typename T>
 	const Vec3<T> Vec3<T>::Right{ T(1), T(0), T(0) };
