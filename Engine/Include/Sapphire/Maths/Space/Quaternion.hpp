@@ -14,9 +14,6 @@ namespace Sa
 	template <typename T>
 	struct Vec3;
 
-	template <typename T>
-	struct Mat4;
-
 
 	/**
 	*	\file Quaternion.hpp
@@ -306,13 +303,6 @@ namespace Sa
 		*	\return rotated forward vector normalized.
 		*/
 		constexpr Vec3<T> ForwardVector() const;
-
-		/**
-		*	\brief \e Compute Matrix from this quaternion
-		*
-		*	\return Rotation matrix.
-		*/
-		Mat4<T> Matrix() const noexcept;
 
 
 		/**
