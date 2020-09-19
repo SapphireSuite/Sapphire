@@ -104,6 +104,8 @@ namespace Sa
 		int32 texHeight = 0;
 		int32 texChannels = 0;
 
+		stbi_set_flip_vertically_on_load(true);
+
 		stbi_uc* pixels = stbi_load(_fileName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		uint32 imageSize = texWidth * texHeight * 4;
 

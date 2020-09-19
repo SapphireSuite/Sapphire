@@ -3,6 +3,9 @@
 #include <string>
 #include <iostream>
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "../../Engine/Libs/stblib/tiny_obj_loader.h"
+
 #include <Sapphire/Core/Time/Chrono.hpp>
 #include <Sapphire/Maths/Space/Transform.hpp>
 
@@ -24,6 +27,45 @@
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
+
+void LoadModel(const std::string& _filename,
+	std::vector<std::vector<Vertex>>& _meshesVertices,
+	std::vector<std::vector<uint32>>& _meshedIndices)
+{
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string warn, err;
+
+	SA_ASSERT(tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, _filename.c_str()),
+		InvalidParam, Rendering, L"Failed to load obj model!")
+
+	for (uint32 i = 0u; i < shapes.size(); ++i)
+	{
+		std::vector<Vertex>& vertices = _meshesVertices.emplace_back();
+		std::vector<uint32>& indices = _meshedIndices.emplace_back();
+
+		for (auto indexIt = shapes[i].mesh.indices.begin(); indexIt != shapes[i].mesh.indices.end(); ++indexIt)
+		{
+			const Vertex vertex
+			{
+				Vec3f(attrib.vertices[3 * indexIt->vertex_index + 0],
+				attrib.vertices[3 * indexIt->vertex_index + 1],
+				attrib.vertices[3 * indexIt->vertex_index + 2]),
+
+				Vec3f(attrib.normals[3 * indexIt->normal_index + 0],
+				attrib.normals[3 * indexIt->normal_index + 1],
+				attrib.normals[3 * indexIt->normal_index + 2]),
+
+				Vec2f(attrib.texcoords[2 * indexIt->texcoord_index + 0],
+				attrib.texcoords[2 * indexIt->texcoord_index + 1])
+			};
+
+			vertices.push_back(vertex);
+			indices.push_back(static_cast<uint32>(indices.size()));
+		}
+	}
+}
 
 int main()
 {
@@ -47,10 +89,13 @@ int main()
 	VkShader fragShader;
 	fragShader.Create(instance, L"../../Bin/Shaders/default_frag.spv");
 
-	VkTexture catTexture;
-	catTexture.Create(instance, "../../Engine/Resources/Textures/SampleCat.jpg");
+	VkTexture bodyTexture;
+	bodyTexture.Create(instance, "../../Engine/Resources/Models/Magikarp/Body.png");
 
-	PipelineCreateInfos mainPipelineInfos
+	VkTexture eyesTexture;
+	eyesTexture.Create(instance, "../../Engine/Resources/Models/Magikarp/Eyes.png");
+
+	PipelineCreateInfos bodyPipelineInfos
 	{
 		surface,
 		surface.GetViewport(),
@@ -58,39 +103,68 @@ int main()
 		&vertShader,
 		&fragShader,
 
-		{ &catTexture },
+		{ &bodyTexture },
 
 		PolygonMode::Fill,
 		CullingMode::None,
 		FrontFaceMode::Clockwise
 	};
 
-	VkRenderMaterial material;
-	material.CreatePipeline(instance, mainPipelineInfos);
+	VkRenderMaterial bodyMat;
+	bodyMat.CreatePipeline(instance, bodyPipelineInfos);
 
+	PipelineCreateInfos eyesPipelineInfos
+	{
+		surface,
+		surface.GetViewport(),
+
+		&vertShader,
+		&fragShader,
+
+		{ &eyesTexture },
+
+		PolygonMode::Fill,
+		CullingMode::None,
+		FrontFaceMode::Clockwise
+	};
+
+	VkRenderMaterial eyesMat;
+	eyesMat.CreatePipeline(instance, eyesPipelineInfos);
+
+	std::vector<std::vector<Vertex>> meshesVertices;
+	std::vector<std::vector<uint32>> meshedIndices;
+
+	LoadModel("../../Engine/Resources/Models/Magikarp/Magikarp.obj", meshesVertices, meshedIndices);
+
+	VkMesh bodyMesh;
+	bodyMesh.Create(instance, meshesVertices[0], meshedIndices[0]);
+
+	VkMesh eyesMesh;
+	eyesMesh.Create(instance, meshesVertices[1], meshedIndices[1]);
 
 	// Create Mesh.
-	VkMesh mesh;
-	const std::vector<Vertex> vertices =
-	{
-		{ { -0.5f, -0.5f, 0.5f }, Vec3f::Forward, { 0.0f, 0.0f } },
-		{ { 0.5f, -0.5f, 0.5f }, Vec3f::Forward, { 1.0f, 0.0f } },
-		{ { 0.5f, 0.5f, 0.5f }, Vec3f::Forward, { 1.0f, 1.0f } },
-		{ { -0.5f, 0.5f, 0.5f }, Vec3f::Forward, { 0.0f, 1.0f } },
+	//VkMesh mesh;
+	//const std::vector<Vertex> vertices =
+	//{
+	//	{ { -0.5f, -0.5f, 0.5f }, Vec3f::Forward, { 0.0f, 0.0f } },
+	//	{ { 0.5f, -0.5f, 0.5f }, Vec3f::Forward, { 1.0f, 0.0f } },
+	//	{ { 0.5f, 0.5f, 0.5f }, Vec3f::Forward, { 1.0f, 1.0f } },
+	//	{ { -0.5f, 0.5f, 0.5f }, Vec3f::Forward, { 0.0f, 1.0f } },
 
-		{ { 0.5f + -0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 0.0f, 0.0f } },
-		{ { 0.5f + 0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 1.0f, 0.0f } },
-		{ { 0.5f + 0.5f, 0.5f + 0.5f, -0.5f }, Vec3f::Forward, { 1.0f, 1.0f } },
-		{ { 0.5f + -0.5f, 0.5f + 0.5f, -0.5f }, Vec3f::Forward, { 0.0f, 1.0f } }
-	};
-	
-	const std::vector<uint32> indices =
-	{
-		0, 1, 2, 2, 3, 0,
-		4, 5, 6, 6, 7, 4
-	};
+	//	{ { 0.5f + -0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 0.0f, 0.0f } },
+	//	{ { 0.5f + 0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 1.0f, 0.0f } },
+	//	{ { 0.5f + 0.5f, 0.5f + 0.5f, -0.5f }, Vec3f::Forward, { 1.0f, 1.0f } },
+	//	{ { 0.5f + -0.5f, 0.5f + 0.5f, -0.5f }, Vec3f::Forward, { 0.0f, 1.0f } }
+	//};
+	//
+	//const std::vector<uint32> indices =
+	//{
+	//	0, 1, 2, 2, 3, 0,
+	//	4, 5, 6, 6, 7, 4
+	//};
 
-	mesh.Create(instance, vertices, indices);
+	//mesh.Create(instance, vertices, indices);
+
 
 	const float r = 1.0f;
 	const float l = -1.0f;
@@ -152,6 +226,7 @@ int main()
 
 		// Update Uniform Buffer.
 		UniformBufferObject ubo;
+		ubo.modelMat = Mat4f::MakeScale(Vec3f(0.000001f)) * Mat4f::MakeRotation(Quatf(90_deg, Vec3f::Right));
 		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
 		ubo.viewMat = camTr.Matrix().GetTransposed();
 		ubo.projMat = orthoMat;
@@ -194,9 +269,11 @@ int main()
 
 		vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		material.Bind(frame);
+		bodyMat.Bind(frame);
+		bodyMesh.Draw(frame);
 
-		mesh.Draw(frame);
+		eyesMat.Bind(frame);
+		eyesMesh.Draw(frame);
 
 		vkCmdEndRenderPass(frame.graphicsCommandBuffer);
 
@@ -210,12 +287,15 @@ int main()
 	vkDeviceWaitIdle(instance.GetDevice());
 
 	// Destroy mesh.
-	mesh.Destroy(instance);
+	bodyMesh.Destroy(instance);
+	eyesMesh.Destroy(instance);
 
 	// Destroy Material.
-	material.DestroyPipeline(instance);
+	bodyMat.DestroyPipeline(instance);
+	eyesMat.DestroyPipeline(instance);
 
-	catTexture.Destroy(instance);
+	bodyTexture.Destroy(instance);
+	eyesTexture.Destroy(instance);
 	fragShader.Destroy(instance);
 	vertShader.Destroy(instance);
 
