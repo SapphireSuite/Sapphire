@@ -7,6 +7,11 @@
 
 #include <Window/IWindow.hpp>
 
+
+// TODO: REMOVE LATER.
+#include <Maths/Space/Transform.hpp>
+
+
 #if SA_WINDOW_API == SA_GLFW
 
 namespace Sa
@@ -35,6 +40,9 @@ namespace Sa
 		SA_ENGINE_API bool ShouldClose() const override final;
 
 		operator GLFWwindow*() const;
+
+		// TODO: REMOVE LATER.
+		SA_ENGINE_API void TEST(Transff& _camTr, float _deltaTime);
 	};
 }
 

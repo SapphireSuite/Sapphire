@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include <Sapphire/Core/Time/Chrono.hpp>
-#include <Sapphire/Maths/Space/Quaternion.hpp>
+#include <Sapphire/Maths/Space/Transform.hpp>
 
 #include <Sapphire/Window/GLFWWindow.hpp>
 
@@ -73,10 +73,10 @@ int main()
 	VkMesh mesh;
 	const std::vector<Vertex> vertices =
 	{
-		{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f } },
-		{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
-		{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f } },
-		{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f } },
+		{ { -0.5f, -0.5f, 0.5f }, Vec3f::Forward, { 0.0f, 0.0f } },
+		{ { 0.5f, -0.5f, 0.5f }, Vec3f::Forward, { 1.0f, 0.0f } },
+		{ { 0.5f, 0.5f, 0.5f }, Vec3f::Forward, { 1.0f, 1.0f } },
+		{ { -0.5f, 0.5f, 0.5f }, Vec3f::Forward, { 0.0f, 1.0f } },
 
 		{ { 0.5f + -0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 0.0f, 0.0f } },
 		{ { 0.5f + 0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 1.0f, 0.0f } },
@@ -96,8 +96,8 @@ int main()
 	const float l = -1.0f;
 	const float t = 1.0f;
 	const float b = -1.0f;
-	const float n = 1.0f;
-	const float f = 100.0f;
+	const float n = 0.1f;
+	const float f = 15.0f;
 
 	Mat4f orthoMat
 	(
@@ -107,8 +107,36 @@ int main()
 		0, 0, 0, 1
 	);
 
+
+	const float fov = 90.0f;
+	const float ratio = 1;
+	const float scale = 1.f / tanf((fov / 2.f) * Maths::DegToRad);
+	float tan_half_angle = std::tan(Maths::DegToRad * fov / 2);
+
+	//Mat4f perspMat
+	//(
+	//	scale / ratio, 0, 0, 0,
+	//	0, scale, 0, 0,
+	//	0, 0, (f + n)/(n - f), (2 * n * f) / (n - f),
+	//	0, 0, -1, 0
+	//);
+
+
+	Mat4f perspMat
+	(
+		1 / (ratio * tan_half_angle), 0, 0, 0,
+		0, -1 / (tan_half_angle), 0, 0,
+		0, 0, -(f + n) / (f - n), -(2 * f * n) / (f - n),
+		0, 0, -1, 1
+	);
+
+
+	Transff camTr;
+	camTr.position.z = 1.0f;
+
 	Chrono chrono;
 	float time = 0.0f;
+	float speed = 0.1f;
 
 	// Main Loop
 	while (!window.ShouldClose())
@@ -119,9 +147,13 @@ int main()
 		window.Update();
 		instance.Update();
 
+		window.TEST(camTr, speed * deltaTime);
+
+
 		// Update Uniform Buffer.
 		UniformBufferObject ubo;
-		ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Forward));
+		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
+		ubo.viewMat = camTr.Matrix().GetTransposed();
 		ubo.projMat = orthoMat;
 
 

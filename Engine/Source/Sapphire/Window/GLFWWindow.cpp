@@ -31,6 +31,14 @@ namespace Sa
 {
 	uint32 GLFWWindow::sInitCount = 0u;
 
+	// TODO: Clean later:
+	static double oldX = 0.0f;
+	static double oldY = 0.0f;
+	static double mouseX = 0.0f;
+	static double mouseY = 0.0f;
+	static float dx = 0.0f;
+	static float dy = 0.0f;
+
 	void GLFWWindow::Init()
 	{
 		SA_ASSERT(glfwInit(), Init, Window, L"GLFW init failed!");
@@ -54,6 +62,21 @@ namespace Sa
 
 		glfwSetWindowUserPointer(mHandle, this);
 		glfwSetWindowSizeCallback(mHandle, ResizeCallback);
+
+
+		// TODO: Clean later:
+		auto lambda = [](GLFWwindow* window, int key, int scancode, int action, int mods)
+		{
+			if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+				glfwSetWindowShouldClose(window, GLFW_TRUE);
+		};
+
+		glfwSetKeyCallback(mHandle, lambda);
+		glfwSetInputMode(mHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		glfwGetCursorPos(mHandle, &mouseX, &mouseY);
+		oldX = mouseX;
+		oldY = mouseY;
 	}
 
 	void GLFWWindow::Destroy()
@@ -103,6 +126,39 @@ namespace Sa
 	GLFWWindow::operator GLFWwindow*() const
 	{
 		return mHandle;
+	}
+
+
+	void GLFWWindow::TEST(Transff& _camTr, float _deltaTime)
+	{
+		if (glfwGetKey(mHandle, GLFW_KEY_D) == GLFW_PRESS)
+			_camTr.position += _deltaTime * _camTr.RightVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_A) == GLFW_PRESS)
+			_camTr.position -= _deltaTime * _camTr.RightVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_Q) == GLFW_PRESS)
+			_camTr.position += _deltaTime * _camTr.UpVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_E) == GLFW_PRESS)
+			_camTr.position -= _deltaTime * _camTr.UpVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_W) == GLFW_PRESS)
+			_camTr.position -= _deltaTime * _camTr.ForwardVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_S) == GLFW_PRESS)
+			_camTr.position += _deltaTime * _camTr.ForwardVector();
+
+		glfwGetCursorPos(mHandle, &mouseX, &mouseY);
+
+		if (mouseX != oldX || mouseY != oldY)
+		{
+			dx -= static_cast<float>(mouseX - oldX) * _deltaTime * 10.0f * Maths::DegToRad;
+			dy += static_cast<float>(mouseY - oldY) * _deltaTime * 10.0f * Maths::DegToRad;
+
+			oldX = mouseX;
+			oldY = mouseY;
+
+			dx = dx > Maths::Pi ? dx - Maths::Pi : dx < -Maths::Pi ? dx + Maths::Pi : dx;
+			dy = dy > Maths::Pi ? dy - Maths::Pi : dy < -Maths::Pi ? dy + Maths::Pi : dy;
+
+			_camTr.rotation = Quatf(cos(dx), 0, sin(dx), 0) * Quatf(cos(dy), sin(dy), 0, 0);
+		}
 	}
 }
 
