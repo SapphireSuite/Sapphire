@@ -485,6 +485,77 @@ namespace Sa
 
 
 	template <typename T>
+	Mat4<T> Mat4<T>::MakeTranslation(const Vec3<T>& _transl)
+	{
+		Mat4 result = Mat4::Identity;
+
+		result.At(0, 3) = _transl.x;
+		result.At(1, 3) = _transl.y;
+		result.At(2, 3) = _transl.z;
+
+		return result;
+	}
+
+	template <typename T>
+	Mat4<T> Mat4<T>::MakeRotation(const Quat<T>& _rotation)
+	{
+		SA_ASSERT(_rotation.IsNormalized(), NonNormalized, Maths, L"Quaternion must be normalized to create rotation matrix!");
+
+		// Sources: https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
+
+		const T XW2 = 2.0f * _rotation.x * _rotation.w;
+		const T XX2 = 2.0f * _rotation.x * _rotation.x;
+		const T XY2 = 2.0f * _rotation.x * _rotation.y;
+		const T XZ2 = 2.0f * _rotation.x * _rotation.z;
+
+		const T YW2 = 2.0f * _rotation.y * _rotation.w;
+		const T YY2 = 2.0f * _rotation.y * _rotation.y;
+		const T YZ2 = 2.0f * _rotation.y * _rotation.z;
+
+		const T ZW2 = 2.0f * _rotation.z * _rotation.w;
+		const T ZZ2 = 2.0f * _rotation.z * _rotation.z;
+
+		return Mat4(
+			1.0f - YY2 - ZZ2, XY2 - ZW2, XZ2 + YW2, 0.0f,
+			XY2 + ZW2, 1.0f - XX2 - ZZ2, YZ2 - XW2, 0.0f,
+			XZ2 - YW2, YZ2 + XW2, 1.0f - XX2 - YY2, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f
+		);
+	}
+
+	template <typename T>
+	Mat4<T> Mat4<T>::MakeScale(const Vec3<T>& _scale)
+	{
+		Mat4 result = Mat4::Identity;
+
+		result.At(0, 0) = _scale.x;
+		result.At(1, 1) = _scale.y;
+		result.At(2, 2) = _scale.z;
+
+		return result;
+	}
+
+	template <typename T>
+	Mat4<T>  Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale)
+	{
+		return MakeTranslation(_transl) * MakeRotation(_rotation) * MakeScale(_scale);
+
+		//Mat4<T> result = rotation.Matrix();
+
+		//// Apply position.
+		//result.At(0, 3) = position.x;
+		//result.At(1, 3) = position.y;
+		//result.At(2, 3) = position.z;
+
+		//// Apply scale.
+		//result.At(0, 0) *= _scale.x;
+		//result.At(1, 1) *= _scale.y;
+		//result.At(2, 2) *= _scale.z;
+
+		//return result;
+	}
+
+	template <typename T>
 	constexpr Mat4<T> Mat4<T>::operator-() const noexcept
 	{
 		// Allows constexpr

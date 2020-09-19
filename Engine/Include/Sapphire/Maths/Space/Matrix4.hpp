@@ -6,6 +6,8 @@
 #define SAPPHIRE_MATHS_MATRIX4_GUARD
 
 #include <Maths/Misc/Maths.hpp>
+#include <Maths/Space/Vector3.hpp>
+#include <Maths/Space/Quaternion.hpp>
 
 namespace Sa
 {
@@ -232,6 +234,45 @@ namespace Sa
 		*	\return new inversed matrix.
 		*/
 		Mat4 GetInversed() const;
+
+
+		/**
+		*	\brief Make <b> translation matrix </b> from vector3.
+		*
+		*	\param[in] _transl	Vector to translate	
+		*
+		*	\return translation matrix.
+		*/
+		static Mat4 MakeTranslation(const Vec3<T>& _transl);
+
+		/**
+		*	\brief Make <b> rotation matrix </b> from quaternion.
+		*
+		*	\param[in] _rotation	quaternion to use for rotation.
+		*
+		*	\return rotation matrix.
+		*/
+		static Mat4 MakeRotation(const Quat<T>& _rotation);
+
+		/**
+		*	\brief Make <b> scale matrix </b> from vector3.
+		*
+		*	\param[in] _vector	Vector for scaling.
+		*
+		*	\return scale matrix.
+		*/
+		static Mat4 MakeScale(const Vec3<T>& _scale);
+
+		/**
+		*	\brief Make <b> transform matrix </b>.
+		*
+		*	\param[in] _transl		Vector for translation.
+		*	\param[in] _rotation	Quaternion for rotation.
+		*	\param[in] _scale		Vector for scale.
+		*
+		*	\return scale matrix.
+		*/
+		static Mat4 MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale);
 
 
 		/**

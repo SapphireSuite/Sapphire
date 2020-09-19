@@ -284,33 +284,6 @@ namespace Sa
 		return Rotate(Vec3<T>::Forward);
 	}
 
-	template <typename T>
-	Mat4<T> Quat<T>::Matrix() const
-	{
-		SA_ASSERT(IsNormalized(), NonNormalized, Maths, L"Quaternion must be normalized to create rotation matrix!");
-
-		// Sources: https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
-
-		const T XW2 = 2.0f * x * w;
-		const T XX2 = 2.0f * x * x;
-		const T XY2 = 2.0f * x * y;
-		const T XZ2 = 2.0f * x * z;
-
-		const T YW2 = 2.0f * y * w;
-		const T YY2 = 2.0f * y * y;
-		const T YZ2 = 2.0f * y * z;
-
-		const T ZW2 = 2.0f * z * w;
-		const T ZZ2 = 2.0f * z * z;
-
-		return Mat4(
-			1.0f - YY2 - ZZ2, XY2 - ZW2, XZ2 + YW2, 0.0f,
-			XY2 + ZW2, 1.0f - XX2 - ZZ2, YZ2 - XW2, 0.0f,
-			XZ2 - YW2, YZ2 + XW2, 1.0f - XX2 - YY2, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f
-		);
-	}
-
 
 	template <typename T>
 	constexpr Vec3<Deg<T>> Quat<T>::ToEuler() const noexcept
