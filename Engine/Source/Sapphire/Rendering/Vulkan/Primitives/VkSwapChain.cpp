@@ -2,6 +2,8 @@
 
 #include <Rendering/Vulkan/Primitives/VkSwapChain.hpp>
 
+#include <Core/Types/Variadics/SizeOf.hpp>
+
 #include <Maths/Misc/Maths.hpp>
 
 #include <Rendering/Vulkan/VkMacro.hpp>
@@ -18,7 +20,7 @@ namespace Sa
 {
 	uint32 VkSwapChain::GetImageNum() const noexcept
 	{
-		return static_cast<uint32>(mImages.size());
+		return SizeOf(mImages);
 	}
 
 	VkFormat VkSwapChain::GetImageFormat() const noexcept
@@ -54,187 +56,35 @@ namespace Sa
 
 	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
-		// Query infos.
-		SupportDetails swapChainSupport = QuerySupportDetails(_device, _surface);
+		uint32 imageNum = CreateSwapChainKHR(_device, _surface, _queueFamilyIndices);
 
-		VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
-		VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
+		CreateImageView(_device, imageNum);
 
-		mImageFormat = surfaceFormat.format;
-		mExtent = ChooseSwapExtent(swapChainSupport.capabilities);
+		CreateCommandBuffers(_device, imageNum);
 
+		CreateUniformBuffers(_device, imageNum);
 
-		// Min image count to avoid driver blocking.
-		uint32 imageNum = swapChainSupport.capabilities.minImageCount + 1;
+		CreateSemaphores(_device, imageNum);
 
-		if (swapChainSupport.capabilities.maxImageCount > 0 && imageNum > swapChainSupport.capabilities.maxImageCount)
-			imageNum = swapChainSupport.capabilities.maxImageCount;
-
-
-		VkSwapchainCreateInfoKHR swapChainCreateInfo
-		{
-			VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,					// sType.
-			nullptr,														// pNext.
-			0,																// flags.
-			_surface,														// surface.
-			imageNum,														// minImageCount.
-			surfaceFormat.format,											// imageFormat.
-			surfaceFormat.colorSpace,										// imageColorSpace.
-			mExtent,														// imageExtent.
-			1,																// imageArrayLayers.
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,							// imageUsage.
-			VK_SHARING_MODE_EXCLUSIVE, 										// imageSharingMode.
-			0,																// queueFamilyIndexCount.
-			nullptr,														// pQueueFamilyIndices.
-			swapChainSupport.capabilities.currentTransform,					// preTransform.
-			VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,								// compositeAlpha.
-			presentMode,													// presentMode.
-			VK_TRUE,														// clipped.
-			VK_NULL_HANDLE													// oldSwapchain.
-		};
-
-		if (_queueFamilyIndices.graphicsFamily != _queueFamilyIndices.presentFamily)
-		{
-			swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-			swapChainCreateInfo.queueFamilyIndexCount = 2;
-			swapChainCreateInfo.pQueueFamilyIndices = &_queueFamilyIndices.graphicsFamily;
-		}
-
-		SA_VK_ASSERT(vkCreateSwapchainKHR(_device, &swapChainCreateInfo, nullptr, &mHandle),
-			CreationFailed, Rendering, L"Failed to create swap chain!");
-
-
-		// Create images.
-		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, nullptr);
-		mImages.resize(imageNum);
-		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, mImages.data());
-
-
-		// Create Image views.
-		mImageViews.resize(imageNum);
-
-		for (uint32 i = 0; i < imageNum; i++)
-		{
-			const VkImageViewCreateInfo imageViewCreateInfo
-			{
-				VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,									// sType.
-				nullptr,																	// pNext.
-				VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT,					// flags.
-				mImages[i],																	// image.
-				VK_IMAGE_VIEW_TYPE_2D,														// viewType.
-				mImageFormat,																// format.
-
-				VkComponentMapping															// components.
-				{
-					VK_COMPONENT_SWIZZLE_IDENTITY,										// r.
-					VK_COMPONENT_SWIZZLE_IDENTITY,										// g.
-					VK_COMPONENT_SWIZZLE_IDENTITY,										// b.
-					VK_COMPONENT_SWIZZLE_IDENTITY										// a.
-				},
-				VkImageSubresourceRange														// subresourceRange.
-				{
-					VK_IMAGE_ASPECT_COLOR_BIT,											// aspectMask.
-					0,																	// baseMipLevel.
-					1,																	// levelCount.
-					0,																	// baseArrayLayer.
-					1																	// layerCount.
-				}
-			};
-
-			SA_VK_ASSERT(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &mImageViews[i]),
-				CreationFailed, Rendering, L"Failed to create image views!");
-		}
-
-
-		// Create Command Buffers.
-		mGraphicsCommandBuffers.resize(imageNum);
-
-		const VkCommandBufferAllocateInfo commandBufferAllocInfo
-		{
-			VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,							// sType.
-			nullptr,																// nullptr.
-			_device.GetGraphicsQueue().GetCommandPool(),							// commandPool.
-			VK_COMMAND_BUFFER_LEVEL_PRIMARY,										// level.
-			imageNum																// commandBufferCount.
-		};
-
-		SA_VK_ASSERT(vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, mGraphicsCommandBuffers.data()),
-			CreationFailed, Rendering, L"Failed to allocate command buffers!");
-
-
-		// Uniform buffers creation.
-		mUniformBuffers.resize(imageNum);
-		
-		for (uint32 i = 0; i < imageNum; i++)
-		{
-			mUniformBuffers[i].Create(_device, sizeof(UniformBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		}
-
-
-		// Semaphore Creation.
-		mAcquireSemaphores.resize(imageNum);
-		mPresentSemaphores.resize(imageNum);
-
-		const VkSemaphoreCreateInfo semaphoreCreateInfo
-		{
-			VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,					// sType.
-			nullptr,													// pNext.
-			0,															// flags.
-		};
-
-		for (uint32 i = 0u; i < imageNum; ++i)
-		{
-			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mAcquireSemaphores[i]),
-				CreationFailed, Rendering, L"Failed to create semaphore!");
-			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mPresentSemaphores[i]),
-				CreationFailed, Rendering, L"Failed to create semaphore!");
-		}
-
-
-		// Fence Creation.
-		mMainFences.resize(imageNum);
-
-		const VkFenceCreateInfo fenceCreateInfo
-		{
-			VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,					// sType.
-			nullptr,												// pNext.
-			VK_FENCE_CREATE_SIGNALED_BIT							// flags.
-		};
-
-		for (uint32 i = 0u; i < imageNum; ++i)
-		{
-			SA_VK_ASSERT(vkCreateFence(_device, &fenceCreateInfo, nullptr, &mMainFences[i]),
-				CreationFailed, Rendering, L"Failed to create fence!");
-		}
+		CreateFences(_device, imageNum);
 
 		CreateDepthResources(_device);
 	}
 	void VkSwapChain::Destroy(const VkDevice& _device)
 	{
-		// Destroy Semaphores and Fences.
-		const uint32 imageNum = GetImageNum();
+		DestroyImageView(_device);
 
-		for (uint32 i = 0; i < imageNum; i++)
-		{
-			vkDestroyFence(_device, mMainFences[i], nullptr);
+		DestroyCommandBuffers(_device);
 
-			vkDestroySemaphore(_device, mAcquireSemaphores[i], nullptr);
-			vkDestroySemaphore(_device, mPresentSemaphores[i], nullptr);
+		DestroySemaphores(_device);
 
-			mUniformBuffers[i].Destroy(_device);
-
-			vkDestroyImageView(_device, mImageViews[i], nullptr);
-		}
+		DestroyFences(_device);
 
 		DestroyFrameBuffers(_device);
 
 		DestroyDepthResources(_device);
 
-		// Manually free command buffers (useful for resize).
-		vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(), imageNum, mGraphicsCommandBuffers.data());
-
-		vkDestroySwapchainKHR(_device, mHandle, nullptr);
+		DestroySwapChainKHR(_device);
 	}
 
 	void VkSwapChain::ReCreate(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
@@ -423,6 +273,157 @@ namespace Sa
 		return !details.formats.empty() && !details.presentModes.empty();
 	}
 
+	uint32 VkSwapChain::CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
+	{
+		// Query infos.
+		SupportDetails swapChainSupport = QuerySupportDetails(_device, _surface);
+
+		VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
+		VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
+
+		mImageFormat = surfaceFormat.format;
+		mExtent = ChooseSwapExtent(swapChainSupport.capabilities);
+
+
+		// Min image count to avoid driver blocking.
+		uint32 imageNum = swapChainSupport.capabilities.minImageCount + 1;
+
+		if (swapChainSupport.capabilities.maxImageCount > 0 && imageNum > swapChainSupport.capabilities.maxImageCount)
+			imageNum = swapChainSupport.capabilities.maxImageCount;
+
+
+		VkSwapchainCreateInfoKHR swapChainCreateInfo
+		{
+			VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,					// sType.
+			nullptr,														// pNext.
+			0,																// flags.
+			_surface,														// surface.
+			imageNum,														// minImageCount.
+			surfaceFormat.format,											// imageFormat.
+			surfaceFormat.colorSpace,										// imageColorSpace.
+			mExtent,														// imageExtent.
+			1,																// imageArrayLayers.
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,							// imageUsage.
+			VK_SHARING_MODE_EXCLUSIVE, 										// imageSharingMode.
+			0,																// queueFamilyIndexCount.
+			nullptr,														// pQueueFamilyIndices.
+			swapChainSupport.capabilities.currentTransform,					// preTransform.
+			VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,								// compositeAlpha.
+			presentMode,													// presentMode.
+			VK_TRUE,														// clipped.
+			VK_NULL_HANDLE													// oldSwapchain.
+		};
+
+		if (_queueFamilyIndices.graphicsFamily != _queueFamilyIndices.presentFamily)
+		{
+			swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+			swapChainCreateInfo.queueFamilyIndexCount = 2;
+			swapChainCreateInfo.pQueueFamilyIndices = &_queueFamilyIndices.graphicsFamily;
+		}
+
+		SA_VK_ASSERT(vkCreateSwapchainKHR(_device, &swapChainCreateInfo, nullptr, &mHandle),
+			CreationFailed, Rendering, L"Failed to create swap chain!");
+
+
+		// Create images.
+		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, nullptr);
+		mImages.resize(imageNum);
+		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, mImages.data());
+
+		return imageNum;
+	}
+	void VkSwapChain::DestroySwapChainKHR(const VkDevice& _device)
+	{
+		vkDestroySwapchainKHR(_device, mHandle, nullptr);
+		mHandle = VK_NULL_HANDLE;
+	}
+
+	void VkSwapChain::CreateImageView(const VkDevice& _device, uint32 _imageNum)
+	{
+		mImageViews.resize(_imageNum);
+
+		for (uint32 i = 0; i < _imageNum; i++)
+		{
+			const VkImageViewCreateInfo imageViewCreateInfo
+			{
+				VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,									// sType.
+				nullptr,																	// pNext.
+				VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT,					// flags.
+				mImages[i],																	// image.
+				VK_IMAGE_VIEW_TYPE_2D,														// viewType.
+				mImageFormat,																// format.
+
+				VkComponentMapping															// components.
+				{
+					VK_COMPONENT_SWIZZLE_IDENTITY,										// r.
+					VK_COMPONENT_SWIZZLE_IDENTITY,										// g.
+					VK_COMPONENT_SWIZZLE_IDENTITY,										// b.
+					VK_COMPONENT_SWIZZLE_IDENTITY										// a.
+				},
+				VkImageSubresourceRange														// subresourceRange.
+				{
+					VK_IMAGE_ASPECT_COLOR_BIT,											// aspectMask.
+					0,																	// baseMipLevel.
+					1,																	// levelCount.
+					0,																	// baseArrayLayer.
+					1																	// layerCount.
+				}
+			};
+
+			SA_VK_ASSERT(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &mImageViews[i]),
+				CreationFailed, Rendering, L"Failed to create image views!");
+		}
+	}
+	void VkSwapChain::DestroyImageView(const VkDevice& _device)
+	{
+		for (uint32 i = 0; i < mImageViews.size(); i++)
+			vkDestroyImageView(_device, mImageViews[i], nullptr);
+
+		mImageViews.clear();
+	}
+
+	void VkSwapChain::CreateCommandBuffers(const VkDevice& _device, uint32 _imageNum)
+	{
+		mGraphicsCommandBuffers.resize(_imageNum);
+
+		const VkCommandBufferAllocateInfo commandBufferAllocInfo
+		{
+			VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,							// sType.
+			nullptr,																// nullptr.
+			_device.GetGraphicsQueue().GetCommandPool(),							// commandPool.
+			VK_COMMAND_BUFFER_LEVEL_PRIMARY,										// level.
+			_imageNum																// commandBufferCount.
+		};
+
+		SA_VK_ASSERT(vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, mGraphicsCommandBuffers.data()),
+			CreationFailed, Rendering, L"Failed to allocate command buffers!");
+	}
+	void VkSwapChain::DestroyCommandBuffers(const VkDevice& _device)
+	{
+		// Manually free command buffers (useful for resize).
+		vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(), SizeOf(mGraphicsCommandBuffers), mGraphicsCommandBuffers.data());
+
+		mGraphicsCommandBuffers.clear();
+	}
+
+	void VkSwapChain::CreateUniformBuffers(const VkDevice& _device, uint32 _imageNum)
+	{
+		mUniformBuffers.resize(_imageNum);
+
+		for (uint32 i = 0; i < _imageNum; i++)
+		{
+			mUniformBuffers[i].Create(_device, sizeof(UniformBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		}
+	}
+	void VkSwapChain::DestroyUniformBuffers(const VkDevice& _device)
+	{
+		for (uint32 i = 0; i < mUniformBuffers.size(); i++)
+			mUniformBuffers[i].Destroy(_device);
+
+		mUniformBuffers.clear();
+	}
+
 	void VkSwapChain::CreateDepthResources(const VkDevice& _device)
 	{
 		// TODO: Add flexibility. See https://vulkan-tutorial.com/Depth_buffering.
@@ -542,7 +543,6 @@ namespace Sa
 
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
-
 	void VkSwapChain::DestroyDepthResources(const VkDevice& _device)
 	{
 		vkDestroyImageView(_device, mDepthImageView, nullptr);
@@ -550,6 +550,63 @@ namespace Sa
 		vkDestroyImage(_device, mDepthImage, nullptr);
 
 		vkFreeMemory(_device, mDepthImageMemory, nullptr);
+	}
+
+	void VkSwapChain::CreateSemaphores(const VkDevice& _device, uint32 _imageNum)
+	{
+		mAcquireSemaphores.resize(_imageNum);
+		mPresentSemaphores.resize(_imageNum);
+
+		const VkSemaphoreCreateInfo semaphoreCreateInfo
+		{
+			VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,					// sType.
+			nullptr,													// pNext.
+			0,															// flags.
+		};
+
+		for (uint32 i = 0u; i < _imageNum; ++i)
+		{
+			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mAcquireSemaphores[i]),
+				CreationFailed, Rendering, L"Failed to create semaphore!");
+			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mPresentSemaphores[i]),
+				CreationFailed, Rendering, L"Failed to create semaphore!");
+		}
+	}
+	void VkSwapChain::DestroySemaphores(const VkDevice& _device)
+	{
+		for (uint32 i = 0; i < mAcquireSemaphores.size(); i++)
+		{
+			vkDestroySemaphore(_device, mAcquireSemaphores[i], nullptr);
+			vkDestroySemaphore(_device, mPresentSemaphores[i], nullptr);
+		}
+
+		mAcquireSemaphores.clear();
+		mPresentSemaphores.clear();
+	}
+
+	void VkSwapChain::CreateFences(const VkDevice& _device, uint32 _imageNum)
+	{
+		mMainFences.resize(_imageNum);
+
+		const VkFenceCreateInfo fenceCreateInfo
+		{
+			VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,					// sType.
+			nullptr,												// pNext.
+			VK_FENCE_CREATE_SIGNALED_BIT							// flags.
+		};
+
+		for (uint32 i = 0u; i < _imageNum; ++i)
+		{
+			SA_VK_ASSERT(vkCreateFence(_device, &fenceCreateInfo, nullptr, &mMainFences[i]),
+				CreationFailed, Rendering, L"Failed to create fence!");
+		}
+	}
+	void VkSwapChain::DestroyFences(const VkDevice& _device)
+	{
+		for (uint32 i = 0; i < mMainFences.size(); i++)
+			vkDestroyFence(_device, mMainFences[i], nullptr);
+
+		mMainFences.clear();
 	}
 }
 

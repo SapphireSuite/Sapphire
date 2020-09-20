@@ -2,6 +2,8 @@
 
 #include <Rendering/Vulkan/Primitives/Pipeline/VkRenderPipeline.hpp>
 
+#include <Core/Types/Variadics/SizeOf.hpp>
+
 #include <Rendering/Framework/UniformBufferObject.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/Vertex.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/ShaderType.hpp>
@@ -195,7 +197,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,					// sType.
 			nullptr,															// pNext.
 			0,																	// flags.
-			static_cast<uint32>(shaderStages.size()),							// stageCount.
+			SizeOf(shaderStages),												// stageCount.
 			shaderStages.data(),												// pStages.
 			&vertexInputCreateInfo,												// pVertexInputState.
 			&inputAssemblyCreateInfo,											// pInputAssemblyState.
@@ -218,41 +220,32 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::CreateCommonDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+	void VkRenderPipeline::CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
 		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
 	{
-		(void)_pipelineInfos;
-
 		// UBO binding.
 		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 		{
-			static_cast<uint32>(_layoutBindings.size()),						// binding.
+			SizeOf(_layoutBindings),											// binding.
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
 			1,																	// descriptorCount.
 			VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
 			nullptr																// pImmutableSamplers.
 		});
-	}
-	void VkRenderPipeline::CreateTextureDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
-		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
-	{
+
+
+		// Texture
 		for (auto it = _pipelineInfos.textures.begin(); it != _pipelineInfos.textures.end(); ++it)
 		{
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 			{
-				static_cast<uint32>(_layoutBindings.size()),						// binding.
+				SizeOf(_layoutBindings),											// binding.
 				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
 				1,																	// descriptorCount.
 				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
 				nullptr																// pImmutableSamplers.
 			});
 		}
-	}
-	void VkRenderPipeline::CreateCustomDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
-		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
-	{
-		(void)_pipelineInfos;
-		(void)_layoutBindings;
 	}
 
 	void VkRenderPipeline::CreateDescriptorSetLayout(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
@@ -262,9 +255,7 @@ namespace Sa
 
 
 		// Populate bindings.
-		CreateCommonDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
-		CreateTextureDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
-		CreateCustomDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
+		CreateDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
 
 
 		// Create DescriptorSetLayout.
@@ -273,7 +264,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,					// sType.
 			nullptr,																// pNext.
 			0,																		// flags.
-			static_cast<uint32>(layoutBindings.size()),								// bindingCount.
+			SizeOf(layoutBindings),													// bindingCount.
 			layoutBindings.data()													// pBindings.
 		};
 
@@ -282,38 +273,23 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::CreateCommonDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+	void VkRenderPipeline::CreateDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
 		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
 	{
-		(void)_pipelineInfos;
-
 		// UBO binding.
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
 			_imageNum,															// descriptorCount.
 		});
-	}
 
-	void VkRenderPipeline::CreateTextureDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
-		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
-	{
-		for (auto it = _pipelineInfos.textures.begin(); it != _pipelineInfos.textures.end(); ++it)
+
+		// Texture binding.
+		_poolSizes.insert(_poolSizes.end(), SizeOf(_pipelineInfos.textures), VkDescriptorPoolSize
 		{
-			_poolSizes.push_back(VkDescriptorPoolSize
-			{
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
-				_imageNum,															// descriptorCount.
-			});
-		}
-	}
-
-	void VkRenderPipeline::CreateCustomDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
-		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
-	{
-		(void)_pipelineInfos;
-		(void)_imageNum;
-		(void)_poolSizes;
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
+			_imageNum,															// descriptorCount.
+		});
 	}
 
 	void VkRenderPipeline::CreateDescriptorPool(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
@@ -325,9 +301,7 @@ namespace Sa
 
 
 		// Populate poolSizes.
-		CreateCommonDescriptorPoolSize(_pipelineInfos, imageNum, poolSizes);
-		CreateTextureDescriptorPoolSize(_pipelineInfos, imageNum, poolSizes);
-		CreateCustomDescriptorPoolSize(_pipelineInfos, imageNum, poolSizes);
+		CreateDescriptorPoolSize(_pipelineInfos, imageNum, poolSizes);
 
 
 		// Create DescriptorPool.
@@ -337,7 +311,7 @@ namespace Sa
 			nullptr,																// pNext.
 			0,																		// flags.
 			imageNum,																// maxSets.
-			static_cast<uint32>(poolSizes.size()),									// poolSizeCount.
+			SizeOf(poolSizes),														// poolSizeCount.
 			poolSizes.data(),														// pPoolSizes.
 		};
 
@@ -346,21 +320,18 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::CreateCommonWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+	void VkRenderPipeline::CreateWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
 		std::vector<DescriptorInfo>& _descriptorInfos,
 		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
 	{
 		const std::vector<VkBuffer>& uniformBuffers = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain().GetUniformBuffers();
 
-		// UBO Binding
+		// UBO binding
 		_descriptorInfos.push_back(uniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(UniformBufferObject)));
 		_descriptorWrites.push_back(uniformBuffers[_index].CreateWriteDescriptorSet(mDescriptorSets[_index], static_cast<uint32>(_descriptorWrites.size())));
-	}
 
-	void VkRenderPipeline::CreateTextureWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
-		std::vector<DescriptorInfo>& _descriptorInfos,
-		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
-	{
+
+		// Texture bindings.
 		for (auto it = _pipelineInfos.textures.begin(); it != _pipelineInfos.textures.end(); ++it)
 		{
 			SA_ASSERT(*it, Nullptr, Rendering, L"Pipeline bind nullptr texture!");
@@ -370,16 +341,6 @@ namespace Sa
 			_descriptorInfos.push_back(vkTexture.CreateDescriptorImageInfo());
 			_descriptorWrites.push_back(vkTexture.CreateWriteDescriptorSet(mDescriptorSets[_index], static_cast<uint32>(_descriptorWrites.size())));
 		}
-	}
-
-	void VkRenderPipeline::CreateCustomWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
-		std::vector<DescriptorInfo>& _descriptorInfos,
-		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
-	{
-		(void)_pipelineInfos;
-		(void)_index;
-		(void)_descriptorInfos;
-		(void)_descriptorWrites;
 	}
 
 	void VkRenderPipeline::CreateDescriptorSets(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
@@ -420,9 +381,7 @@ namespace Sa
 			descriptorInfos.clear();
 			descriptorWrites.clear();
 
-			CreateCommonWriteDescriptorSets(_pipelineInfos, i, descriptorInfos, descriptorWrites);
-			CreateTextureWriteDescriptorSets(_pipelineInfos, i, descriptorInfos, descriptorWrites);
-			CreateCustomWriteDescriptorSets(_pipelineInfos, i, descriptorInfos, descriptorWrites);
+			CreateWriteDescriptorSets(_pipelineInfos, i, descriptorInfos, descriptorWrites);
 
 			// Init info ptr after any vector resize.
 			for (uint32 j = 0u; j < descriptorWrites.size(); ++j)
@@ -440,7 +399,7 @@ namespace Sa
 
 	uint32 VkRenderPipeline::GetDescriptorReserveNum(const PipelineCreateInfos& _pipelineInfos) const noexcept
 	{
-		return static_cast<uint32>(_pipelineInfos.textures.size()) + 1;
+		return SizeOf(_pipelineInfos.textures) + 1;
 	}
 
 

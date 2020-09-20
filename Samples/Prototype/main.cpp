@@ -86,41 +86,6 @@ int main()
 	Magikarp.GetMaterial(1)->CreatePipeline(instance, eyesPipelineInfos);
 
 
-
-	//std::vector<std::vector<Vertex>> meshesVertices;
-	//std::vector<std::vector<uint32>> meshedIndices;
-
-	//VkMesh bodyMesh;
-	//bodyMesh.Create(instance, meshesVertices[0], meshedIndices[0]);
-
-	//VkMesh eyesMesh;
-	//eyesMesh.Create(instance, meshesVertices[1], meshedIndices[1]);
-
-
-	// Create Mesh.
-	//VkMesh mesh;
-	//const std::vector<Vertex> vertices =
-	//{
-	//	{ { -0.5f, -0.5f, 0.5f }, Vec3f::Forward, { 0.0f, 0.0f } },
-	//	{ { 0.5f, -0.5f, 0.5f }, Vec3f::Forward, { 1.0f, 0.0f } },
-	//	{ { 0.5f, 0.5f, 0.5f }, Vec3f::Forward, { 1.0f, 1.0f } },
-	//	{ { -0.5f, 0.5f, 0.5f }, Vec3f::Forward, { 0.0f, 1.0f } },
-
-	//	{ { 0.5f + -0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 0.0f, 0.0f } },
-	//	{ { 0.5f + 0.5f, 0.5f + -0.5f, -0.5f }, Vec3f::Forward, { 1.0f, 0.0f } },
-	//	{ { 0.5f + 0.5f, 0.5f + 0.5f, -0.5f }, Vec3f::Forward, { 1.0f, 1.0f } },
-	//	{ { 0.5f + -0.5f, 0.5f + 0.5f, -0.5f }, Vec3f::Forward, { 0.0f, 1.0f } }
-	//};
-	//
-	//const std::vector<uint32> indices =
-	//{
-	//	0, 1, 2, 2, 3, 0,
-	//	4, 5, 6, 6, 7, 4
-	//};
-
-	//mesh.Create(instance, vertices, indices);
-
-
 	const float r = 1.0f;
 	const float l = -1.0f;
 	const float t = 1.0f;
@@ -141,15 +106,6 @@ int main()
 	const float ratio = 1;
 	const float scale = 1.f / tanf((fov / 2.f) * Maths::DegToRad);
 	float tan_half_angle = std::tan(Maths::DegToRad * fov / 2);
-
-	//Mat4f perspMat
-	//(
-	//	scale / ratio, 0, 0, 0,
-	//	0, scale, 0, 0,
-	//	0, 0, (f + n)/(n - f), (2 * n * f) / (n - f),
-	//	0, 0, -1, 0
-	//);
-
 
 	Mat4f perspMat
 	(

@@ -60,8 +60,26 @@ namespace Sa
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		ImageExtent ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
+		uint32 CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
+		void DestroySwapChainKHR(const VkDevice& _device);
+
+		void CreateImageView(const VkDevice& _device, uint32 _imageNum);
+		void DestroyImageView(const VkDevice& _device);
+
+		void CreateCommandBuffers(const VkDevice& _device, uint32 _imageNum);
+		void DestroyCommandBuffers(const VkDevice& _device);
+
+		void CreateUniformBuffers(const VkDevice& _device, uint32 _imageNum);
+		void DestroyUniformBuffers(const VkDevice& _device);
+
 		void CreateDepthResources(const VkDevice& _device);
 		void DestroyDepthResources(const VkDevice& _device);
+
+		void CreateSemaphores(const VkDevice& _device, uint32 _imageNum);
+		void DestroySemaphores(const VkDevice& _device);
+
+		void CreateFences(const VkDevice& _device, uint32 _imageNum);
+		void DestroyFences(const VkDevice& _device);
 
 	public:
 		uint32 GetImageNum() const noexcept;
