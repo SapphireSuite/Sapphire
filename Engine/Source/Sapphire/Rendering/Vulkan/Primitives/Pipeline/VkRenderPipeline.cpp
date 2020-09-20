@@ -2,8 +2,8 @@
 
 #include <Rendering/Vulkan/Primitives/Pipeline/VkRenderPipeline.hpp>
 
-#include <Rendering/Framework/Model/Vertex.hpp>
-#include <Rendering/Framework/Model/UniformBufferObject.hpp>
+#include <Rendering/Framework/UniformBufferObject.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/Vertex.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/ShaderType.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
 
@@ -11,7 +11,7 @@
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 #include <Rendering/Vulkan/Primitives/Pipeline/VkShader.hpp>
-#include <Rendering/Vulkan/Model/VkTexture.hpp>
+#include <Rendering/Vulkan/Primitives/Pipeline/VkTexture.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 

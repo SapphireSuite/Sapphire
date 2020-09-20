@@ -7,7 +7,7 @@
 
 #include <Core/Types/IInterface.hpp>
 
-#include <Rendering/Framework/Model/Vertex.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/Vertex.hpp>
 
 namespace Sa
 {
@@ -16,13 +16,18 @@ namespace Sa
 
 	class IMesh : public IInterface
 	{
-	public:
+	protected:
 		virtual void Create(const IRenderInstance& _instance,
 			const std::vector<Vertex>& _vertices,
 			const std::vector<uint32>& _indices) = 0;
+	public:
+		static IMesh* CreateInstance(const IRenderInstance& _instance,
+			const std::vector<Vertex>& _vertices,
+			const std::vector<uint32>& _indices);
+		
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 
-		virtual void Draw(const IRenderFrame& _frame) = 0;
+		virtual void Draw(const IRenderFrame& _frame) const = 0;
 	};
 }
 

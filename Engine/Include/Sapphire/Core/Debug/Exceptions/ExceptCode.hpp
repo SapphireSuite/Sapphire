@@ -76,6 +76,9 @@ namespace Sa
 
 		/// Command from external library failed.
 		LibCommandFailed,
+
+		/// Wrong file extension.
+		WrongExtension,
 	};
 
 

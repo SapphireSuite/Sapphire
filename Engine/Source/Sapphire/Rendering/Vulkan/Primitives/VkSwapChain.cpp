@@ -10,7 +10,7 @@
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 #include <Rendering/Vulkan/Queue/VkCommandBuffer.hpp>
 
-#include <Rendering/Framework/Model/UniformBufferObject.hpp>
+#include <Rendering/Framework/UniformBufferObject.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 

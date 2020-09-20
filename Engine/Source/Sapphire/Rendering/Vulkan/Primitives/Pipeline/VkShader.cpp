@@ -10,39 +10,17 @@
 
 namespace Sa
 {
-	std::vector<char> ReadFile(const std::wstring& filename)
-	{
-		std::ifstream file(filename, std::ios::binary);
-
-		SA_ASSERT(file.is_open(), InvalidParam, Rendering, L"failed to open shader file!");
-
-		// Set cursor at end of file. file.open(filename, std::ios::ate | std::ios::binary) doesn't work.
-		file.seekg(0, std::ios::end);
-
-		uint32 fileSize = static_cast<uint32>(file.tellg());
-		std::vector<char> buffer(fileSize);
-
-		file.seekg(0);
-		file.read(buffer.data(), fileSize);
-
-		file.close();
-
-		return buffer;
-	}
-
-	void VkShader::Create(const IRenderInstance& _instance, const std::wstring& _fileName)
+	void VkShader::Create(const IRenderInstance& _instance, const std::vector<char>& _code)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
-
-		auto shaderCode = ReadFile(_fileName);
 
 		VkShaderModuleCreateInfo shaderModuleCreateInfo
 		{
 			VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,					// sType.
 			nullptr,														// pNext.
 			0,																// flags.
-			shaderCode.size(),												// codeSize.
-			reinterpret_cast<const uint32*>(shaderCode.data())				// pCode.
+			_code.size(),													// codeSize.
+			reinterpret_cast<const uint32*>(_code.data())					// pCode.
 		};
 
 		SA_VK_ASSERT(vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &mHandle),

@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Vulkan/Model/VkMesh.hpp>
+#include <Rendering/Vulkan/Primitives/Pipeline/VkMesh.hpp>
 
 #include <Rendering/Vulkan/VkMacro.hpp>
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
@@ -61,7 +61,7 @@ namespace Sa
 		mIndexBuffer.Destroy(device);
 	}
 
-	void VkMesh::Draw(const IRenderFrame& _frame)
+	void VkMesh::Draw(const IRenderFrame& _frame) const
 	{
 		const VkRenderFrame& vkFrame = _frame.As<VkRenderFrame>();
 

@@ -23,6 +23,9 @@ namespace Sa
 		Vec3f normal;
 		Vec2f texture;
 
+		bool operator==(const Vertex& _rhs) const noexcept;
+		bool operator!=(const Vertex& _rhs) const noexcept;
+
 #if SA_RENDERING_API == SA_VULKAN
 
 		static constexpr uint32 bindingDescriptionNum = 1u;

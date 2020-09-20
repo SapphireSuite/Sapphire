@@ -449,13 +449,13 @@ namespace Sa
 
 
 	template <typename T>
-	constexpr bool Vec3<T>::operator==(const Vec3& _rhs) noexcept
+	constexpr bool Vec3<T>::operator==(const Vec3& _rhs) const noexcept
 	{
 		return Equals(_rhs);
 	}
 
 	template <typename T>
-	constexpr bool Vec3<T>::operator!=(const Vec3& _rhs) noexcept
+	constexpr bool Vec3<T>::operator!=(const Vec3& _rhs) const noexcept
 	{
 		return !(*this == _rhs);
 	}

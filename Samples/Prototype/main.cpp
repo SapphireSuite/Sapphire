@@ -12,60 +12,17 @@
 #include <Sapphire/Window/GLFWWindow.hpp>
 
 #include <Sapphire/Rendering/Vulkan/VkRenderInstance.hpp>
-#include <Sapphire/Rendering/Vulkan/Queue/VkCommandBuffer.hpp>
-#include <Sapphire/Rendering/Framework/Model/UniformBufferObject.hpp>
-
-// Material
+#include <Sapphire/Rendering/Framework/UniformBufferObject.hpp>
+#include <Sapphire/Rendering/Framework/Primitives/IRenderMaterial.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
-#include <Sapphire/Rendering/Vulkan/Primitives/Pipeline/VkShader.hpp>
-#include <Sapphire/Rendering/Vulkan/Model/VkTexture.hpp>
-#include <Sapphire/Rendering/Vulkan/Primitives/VkRenderMaterial.hpp>
 
-// Mesh
-#include <Sapphire/Rendering/Vulkan/Model/VkMesh.hpp>
+#include <Sapphire/Sdk/Asset/AssetManager.hpp>
+#include <Sapphire/Sdk/Model.hpp>
 
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
 
-void LoadModel(const std::string& _filename,
-	std::vector<std::vector<Vertex>>& _meshesVertices,
-	std::vector<std::vector<uint32>>& _meshedIndices)
-{
-	tinyobj::attrib_t attrib;
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string warn, err;
-
-	SA_ASSERT(tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, _filename.c_str()),
-		InvalidParam, Rendering, L"Failed to load obj model!")
-
-	for (uint32 i = 0u; i < shapes.size(); ++i)
-	{
-		std::vector<Vertex>& vertices = _meshesVertices.emplace_back();
-		std::vector<uint32>& indices = _meshedIndices.emplace_back();
-
-		for (auto indexIt = shapes[i].mesh.indices.begin(); indexIt != shapes[i].mesh.indices.end(); ++indexIt)
-		{
-			const Vertex vertex
-			{
-				Vec3f(attrib.vertices[3 * indexIt->vertex_index + 0],
-				attrib.vertices[3 * indexIt->vertex_index + 1],
-				attrib.vertices[3 * indexIt->vertex_index + 2]),
-
-				Vec3f(attrib.normals[3 * indexIt->normal_index + 0],
-				attrib.normals[3 * indexIt->normal_index + 1],
-				attrib.normals[3 * indexIt->normal_index + 2]),
-
-				Vec2f(attrib.texcoords[2 * indexIt->texcoord_index + 0],
-				attrib.texcoords[2 * indexIt->texcoord_index + 1])
-			};
-
-			vertices.push_back(vertex);
-			indices.push_back(static_cast<uint32>(indices.size()));
-		}
-	}
-}
 
 int main()
 {
@@ -82,65 +39,63 @@ int main()
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
 
-	// Create Material.
-	VkShader vertShader;
-	vertShader.Create(instance, L"../../Bin/Shaders/default_vert.spv");
+	AssetManager assetMgr;
 
-	VkShader fragShader;
-	fragShader.Create(instance, L"../../Bin/Shaders/default_frag.spv");
+	// Load assets..
+	const IShader* unlitVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_unlit_vert.spv");
+	const IShader* unlitFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_unlit_frag.spv");
 
-	VkTexture bodyTexture;
-	bodyTexture.Create(instance, "../../Engine/Resources/Models/Magikarp/Body.png");
+	const ITexture* magikarpBodyTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body.png");
+	const ITexture* magikarpEyesTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes.png");
 
-	VkTexture eyesTexture;
-	eyesTexture.Create(instance, "../../Engine/Resources/Models/Magikarp/Eyes.png");
+	Model Magikarp = assetMgr.Model(instance, "../../Engine/Resources/Models/Magikarp/Magikarp.obj");
 
+	// Create Materials.
 	PipelineCreateInfos bodyPipelineInfos
 	{
 		surface,
 		surface.GetViewport(),
 
-		&vertShader,
-		&fragShader,
+		unlitVertShader,
+		unlitFragShader,
 
-		{ &bodyTexture },
+		{ magikarpBodyTexture },
 
 		PolygonMode::Fill,
 		CullingMode::None,
 		FrontFaceMode::Clockwise
 	};
 
-	VkRenderMaterial bodyMat;
-	bodyMat.CreatePipeline(instance, bodyPipelineInfos);
+	Magikarp.GetMaterial(0)->CreatePipeline(instance, bodyPipelineInfos);
 
 	PipelineCreateInfos eyesPipelineInfos
 	{
 		surface,
 		surface.GetViewport(),
 
-		&vertShader,
-		&fragShader,
+		unlitVertShader,
+		unlitFragShader,
 
-		{ &eyesTexture },
+		{ magikarpEyesTexture },
 
 		PolygonMode::Fill,
 		CullingMode::None,
 		FrontFaceMode::Clockwise
 	};
 
-	VkRenderMaterial eyesMat;
-	eyesMat.CreatePipeline(instance, eyesPipelineInfos);
+	Magikarp.GetMaterial(1)->CreatePipeline(instance, eyesPipelineInfos);
 
-	std::vector<std::vector<Vertex>> meshesVertices;
-	std::vector<std::vector<uint32>> meshedIndices;
 
-	LoadModel("../../Engine/Resources/Models/Magikarp/Magikarp.obj", meshesVertices, meshedIndices);
 
-	VkMesh bodyMesh;
-	bodyMesh.Create(instance, meshesVertices[0], meshedIndices[0]);
+	//std::vector<std::vector<Vertex>> meshesVertices;
+	//std::vector<std::vector<uint32>> meshedIndices;
 
-	VkMesh eyesMesh;
-	eyesMesh.Create(instance, meshesVertices[1], meshedIndices[1]);
+	//VkMesh bodyMesh;
+	//bodyMesh.Create(instance, meshesVertices[0], meshedIndices[0]);
+
+	//VkMesh eyesMesh;
+	//eyesMesh.Create(instance, meshesVertices[1], meshedIndices[1]);
+
 
 	// Create Mesh.
 	//VkMesh mesh;
@@ -269,11 +224,7 @@ int main()
 
 		vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		bodyMat.Bind(frame);
-		bodyMesh.Draw(frame);
-
-		eyesMat.Bind(frame);
-		eyesMesh.Draw(frame);
+		Magikarp.Draw(frame);
 
 		vkCmdEndRenderPass(frame.graphicsCommandBuffer);
 
@@ -286,19 +237,9 @@ int main()
 	// === Destroy ===
 	vkDeviceWaitIdle(instance.GetDevice());
 
-	// Destroy mesh.
-	bodyMesh.Destroy(instance);
-	eyesMesh.Destroy(instance);
-
-	// Destroy Material.
-	bodyMat.DestroyPipeline(instance);
-	eyesMat.DestroyPipeline(instance);
-
-	bodyTexture.Destroy(instance);
-	eyesTexture.Destroy(instance);
-	fragShader.Destroy(instance);
-	vertShader.Destroy(instance);
-
+	Magikarp.GetMaterial(0)->DestroyPipeline(instance);
+	Magikarp.GetMaterial(1)->DestroyPipeline(instance);
+	assetMgr.Free(instance);
 
 	instance.DestroyRenderSurface(window);
 	

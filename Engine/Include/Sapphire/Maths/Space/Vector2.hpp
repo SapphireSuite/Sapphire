@@ -563,7 +563,7 @@ namespace Sa
 		*
 		*	\return Whether this and _rhs are equal.
 		*/
-		constexpr bool operator==(const Vec2& _rhs) noexcept;
+		constexpr bool operator==(const Vec2& _rhs) const noexcept;
 
 		/**
 		*	\brief \e Compare 2 vector inequality.
@@ -572,7 +572,7 @@ namespace Sa
 		*
 		*	\return Whether this and _rhs are non-equal.
 		*/
-		constexpr bool operator!=(const Vec2& _rhs) noexcept;
+		constexpr bool operator!=(const Vec2& _rhs) const noexcept;
 
 
 		/**

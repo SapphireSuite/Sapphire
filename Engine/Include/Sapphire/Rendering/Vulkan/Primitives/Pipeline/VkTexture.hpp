@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDERING_VK_TEXTURE_GUARD
 #define SAPPHIRE_RENDERING_VK_TEXTURE_GUARD
 
-#include <Rendering/Framework/Model/ITexture.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/ITexture.hpp>
 
 #include <Rendering/Config.hpp>
 
@@ -25,10 +25,8 @@ namespace Sa
 		VkDeviceMemory mImageMemory = VK_NULL_HANDLE;
 
 	public:
-		// TODO: Remoce SA_ENGINE_API.
-		SA_ENGINE_API void Create(const IRenderInstance& _instance, const std::string& _fileName) override final;
-		// TODO: Remoce SA_ENGINE_API.
-		SA_ENGINE_API void Destroy(const IRenderInstance& _instance) override final;
+		void Create(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height) override final;
+		void Destroy(const IRenderInstance& _instance) override final;
 
 		VkDescriptorImageInfo CreateDescriptorImageInfo() const noexcept;
 		VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept;

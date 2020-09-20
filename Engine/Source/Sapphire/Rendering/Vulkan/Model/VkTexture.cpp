@@ -1,9 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#include <Rendering/Vulkan/Model/VkTexture.hpp>
+#include <Rendering/Vulkan/Primitives/Pipeline/VkTexture.hpp>
 
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/Buffer/VkBuffer.hpp>
@@ -98,18 +95,9 @@ namespace Sa
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
-	void VkTexture::Create(const IRenderInstance& _instance, const std::string& _fileName)
+	void VkTexture::Create(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height)
 	{
-		int32 texWidth = 0;
-		int32 texHeight = 0;
-		int32 texChannels = 0;
-
-		stbi_set_flip_vertically_on_load(true);
-
-		stbi_uc* pixels = stbi_load(_fileName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-		uint32 imageSize = texWidth * texHeight * 4;
-
-		SA_ASSERT(pixels, InvalidParam, Rendering, L"Failed to load texture image!");
+		uint32 imageSize = _width * _height * 4;
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
@@ -119,10 +107,8 @@ namespace Sa
 
 		void* data;
 		vkMapMemory(device, stagingBuffer, 0, imageSize, 0, &data);
-		memcpy(data, pixels, imageSize);
+		memcpy(data, _data, imageSize);
 		vkUnmapMemory(device, stagingBuffer);
-
-		stbi_image_free(pixels);
 
 		const VkImageCreateInfo imageCreateInfo
 		{
@@ -134,8 +120,8 @@ namespace Sa
 			
 			VkExtent3D												// extent.
 			{
-				static_cast<uint32>(texWidth),
-				static_cast<uint32>(texHeight),
+				_width,
+				_height,
 				1
 			},
 			
@@ -178,7 +164,7 @@ namespace Sa
 		// Copy image to shader.
 		TransitionImageLayout(device, mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		
-		CopyBufferToImage(device, stagingBuffer, mImage, static_cast<uint32>(texWidth), static_cast<uint32>(texHeight));
+		CopyBufferToImage(device, stagingBuffer, mImage, _width, _height);
 
 		TransitionImageLayout(device, mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 

@@ -1,9 +1,19 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Framework/Model/Vertex.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/Vertex.hpp>
 
 namespace Sa
 {
+	bool Vertex::operator == (const Vertex & _rhs) const noexcept
+	{
+		return position == _rhs.position && normal == _rhs.normal && texture == _rhs.texture;
+	}
+
+	bool Vertex::operator!=(const Vertex& _rhs) const noexcept
+	{
+		return !(*this == _rhs);
+	}
+
 #if SA_RENDERING_API == SA_VULKAN
 
 	const VkVertexInputBindingDescription* Vertex::GetBindingDescription() noexcept

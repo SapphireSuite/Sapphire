@@ -13,8 +13,12 @@ namespace Sa
 
 	class ITexture : public IInterface
 	{
+	protected:
+		virtual void Create(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height) = 0;
+
 	public:
-		virtual void Create(const IRenderInstance& _instance, const std::string& _fileName) = 0;
+		static ITexture* CreateInstance(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height);
+
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 	};
 }
