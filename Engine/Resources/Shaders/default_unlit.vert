@@ -3,12 +3,17 @@
 
 
 // Uniform.
-layout(binding = 0) uniform UniformBufferObject
+layout(binding = 0) uniform StaticUniformBuffer
 {
     mat4 view;
     mat4 proj;
+} subo;
+
+layout(binding = 1) uniform ObjectUniformBuffer
+{
     mat4 model;
-} ubo;
+} oubo;
+
 
 
 // In.
@@ -18,13 +23,13 @@ layout(location = 2) in vec2 inTexture;
 
 
 // Out.
-layout(location = 0) out vec2 fragTexUV;
+layout(location = 0) out vec2 outTexture;
 
 
 // Code
 void main()
 {
-    gl_Position = ubo.proj * inverse(ubo.view) * ubo.model * vec4(inPosition, 1.0);
+    gl_Position = subo.proj * inverse(subo.view) * oubo.model * vec4(inPosition, 1.0);
 
-    fragTexUV = inTexture;
+    outTexture = inTexture;
 }

@@ -9,7 +9,7 @@
 
 #include <Rendering/Framework/Primitives/IRenderFrame.hpp>
 
-#include <Rendering/Vulkan/Buffer/VkBuffer.hpp>
+#include <Rendering/Vulkan/Buffer/VkUniformBuffer.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -33,7 +33,7 @@ namespace Sa
 
 		VkFence mainFence;
 
-		VkBuffer uniformBuffer;
+		VkUniformBuffer uniformBuffer;
 
 		VkRenderFrame(uint32 _frameIndex,
 			VkImage _image,
@@ -43,7 +43,7 @@ namespace Sa
 			VkSemaphore _acquireSemaphores,
 			VkSemaphore _presentSemaphores,
 			VkFence _mainFence,
-			VkBuffer _uniformBuffer) noexcept;
+			VkUniformBuffer _uniformBuffer) noexcept;
 	};
 }
 

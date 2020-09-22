@@ -12,7 +12,7 @@ namespace Sa
 		VkSemaphore _acquireSemaphores,
 		VkSemaphore _presentSemaphores,
 		VkFence _mainFence,
-		VkBuffer _uniformBuffer) noexcept :
+		VkUniformBuffer _uniformBuffer) noexcept :
 		frameIndex{ _frameIndex },
 		image{ _image },
 		imageView{ _imageView },

@@ -11,6 +11,8 @@
 
 #include <Rendering/Framework/Primitives/Pipeline/IRenderPipeline.hpp>
 
+#include <Rendering/Vulkan/Buffer/VkUniformBuffer.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
@@ -26,6 +28,8 @@ namespace Sa
 		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSet> mDescriptorSets;
 
+		std::vector<VkUniformBuffer> mObjectUniformBuffers;
+
 		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 
 
@@ -38,7 +42,7 @@ namespace Sa
 		virtual void CreateDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
 			std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept;
 
-		void CreateDescriptorPool(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
+		void CreateDescriptorPool(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
 
 
 		struct DescriptorInfo
@@ -59,20 +63,24 @@ namespace Sa
 			std::vector<DescriptorInfo>& _descriptorInfos,
 			std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept;
 
-		void CreateDescriptorSets(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
-
-
-		virtual uint32 GetDescriptorReserveNum(const PipelineCreateInfos& _pipelineInfos) const noexcept;
-
+		void CreateDescriptorSets(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
 
 		void CreateDescriptors(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
 		void DestroyDescriptors(const VkDevice& _device);
+
+		void CreateUniformBuffers(const VkDevice& _device, uint32 _imageNum, uint32 _bufferSize);
+		void DestroyUniformBuffers(const VkDevice& _device);
+
+		void UpdateData(const IRenderInstance& _instance, uint32 _frameIndex, const void* _data, uint32 _dataSize, uint32 _offset);
 
 	public:
 		void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
 		void Bind(const IRenderFrame& _frame) override final;
+
+		void InitData(const IRenderInstance& _instance, const void* _data, uint32 _dataSize, uint32 _offset) override final;
+		void UpdateData(const IRenderInstance& _instance, const IRenderFrame& _frame, const void* _data, uint32 _dataSize, uint32 _offset) override final;
 
 		// Optimized re-creation.
 		void ReCreate(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);

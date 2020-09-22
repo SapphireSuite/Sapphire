@@ -19,6 +19,7 @@ namespace Sa
 
 	class VkBuffer
 	{
+	protected:
 		::VkBuffer mHandle = VK_NULL_HANDLE;
 		VkDeviceMemory mDeviceMemory = VK_NULL_HANDLE;
 

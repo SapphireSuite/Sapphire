@@ -24,6 +24,9 @@ namespace Sa
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 		const VkRenderSurface& vkSurface = _pipelineInfos.surface.As<VkRenderSurface>();
 
+		if(_pipelineInfos.uniformBufferSize > 0u)
+			CreateUniformBuffers(device, vkSurface.GetSwapChain().GetImageNum(), _pipelineInfos.uniformBufferSize);
+
 		CreateDescriptors(device, _pipelineInfos);
 
 
@@ -223,10 +226,10 @@ namespace Sa
 	void VkRenderPipeline::CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
 		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
 	{
-		// UBO binding.
+		// Static UBO binding.
 		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 		{
-			SizeOf(_layoutBindings),											// binding.
+			0,																	// binding.
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
 			1,																	// descriptorCount.
 			VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
@@ -234,24 +237,35 @@ namespace Sa
 		});
 
 
-		// Texture
-		for (auto it = _pipelineInfos.textures.begin(); it != _pipelineInfos.textures.end(); ++it)
+		// Object UBO binding.
+		if (_pipelineInfos.uniformBufferSize > 0u)
 		{
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 			{
-				SizeOf(_layoutBindings),											// binding.
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
+				1,																	// binding.
+				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
 				1,																	// descriptorCount.
-				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
 				nullptr																// pImmutableSamplers.
 			});
 		}
+
+
+		// Texture bindings.
+		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+		{
+			SizeOf(_layoutBindings),											// binding.
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
+			SizeOf(_pipelineInfos.textures),									// descriptorCount.
+			VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+			nullptr																// pImmutableSamplers.
+		});
 	}
 
 	void VkRenderPipeline::CreateDescriptorSetLayout(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
 	{
 		std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-		layoutBindings.reserve(GetDescriptorReserveNum(_pipelineInfos));
+		layoutBindings.reserve(5);
 
 
 		// Populate bindings.
@@ -276,7 +290,7 @@ namespace Sa
 	void VkRenderPipeline::CreateDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
 		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
 	{
-		// UBO binding.
+		// Static UBO binding.
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
@@ -284,24 +298,33 @@ namespace Sa
 		});
 
 
+		// Object UBO binding.
+		if (_pipelineInfos.uniformBufferSize > 0u)
+		{
+			_poolSizes.push_back(VkDescriptorPoolSize
+			{
+				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
+				_imageNum,															// descriptorCount.
+			});
+		}
+
+
 		// Texture binding.
-		_poolSizes.insert(_poolSizes.end(), SizeOf(_pipelineInfos.textures), VkDescriptorPoolSize
+		_poolSizes.push_back(VkDescriptorPoolSize
 		{
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
 			_imageNum,															// descriptorCount.
 		});
 	}
 
-	void VkRenderPipeline::CreateDescriptorPool(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::CreateDescriptorPool(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
 	{
 		std::vector<VkDescriptorPoolSize> poolSizes;
-		poolSizes.reserve(GetDescriptorReserveNum(_pipelineInfos));
-
-		const uint32 imageNum = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain().GetImageNum();
+		poolSizes.reserve(5);
 
 
 		// Populate poolSizes.
-		CreateDescriptorPoolSize(_pipelineInfos, imageNum, poolSizes);
+		CreateDescriptorPoolSize(_pipelineInfos, _imageNum, poolSizes);
 
 
 		// Create DescriptorPool.
@@ -310,7 +333,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,							// sType.
 			nullptr,																// pNext.
 			0,																		// flags.
-			imageNum,																// maxSets.
+			_imageNum,																// maxSets.
 			SizeOf(poolSizes),														// poolSizeCount.
 			poolSizes.data(),														// pPoolSizes.
 		};
@@ -324,44 +347,53 @@ namespace Sa
 		std::vector<DescriptorInfo>& _descriptorInfos,
 		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
 	{
-		const std::vector<VkBuffer>& uniformBuffers = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain().GetUniformBuffers();
+		const std::vector<VkUniformBuffer>& uniformBuffers = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain().GetUniformBuffers();
 
-		// UBO binding
+		// Static UBO binding
 		_descriptorInfos.push_back(uniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(StaticUniformBuffer)));
-		_descriptorWrites.push_back(uniformBuffers[_index].CreateWriteDescriptorSet(mDescriptorSets[_index], static_cast<uint32>(_descriptorWrites.size())));
+		_descriptorWrites.push_back(uniformBuffers[_index].CreateWriteDescriptorSet(mDescriptorSets[_index], 0));
+
+
+		// Object UBO binding
+		if (_pipelineInfos.uniformBufferSize > 0u)
+		{
+			_descriptorInfos.push_back(mObjectUniformBuffers[_index].CreateDescriptorBufferInfo(_pipelineInfos.uniformBufferSize));
+			_descriptorWrites.push_back(mObjectUniformBuffers[_index].CreateWriteDescriptorSet(mDescriptorSets[_index], 1));
+		}
 
 
 		// Texture bindings.
-		for (auto it = _pipelineInfos.textures.begin(); it != _pipelineInfos.textures.end(); ++it)
+		uint32 bindingOffset = SizeOf(_descriptorWrites);
+		
+		for(uint32 i = 0u; i < SizeOf(_pipelineInfos.textures); ++i)
 		{
-			SA_ASSERT(*it, Nullptr, Rendering, L"Pipeline bind nullptr texture!");
+			SA_ASSERT(_pipelineInfos.textures[i], Nullptr, Rendering, L"Pipeline bind nullptr texture!");
 
-			const VkTexture& vkTexture = (*it)->As<VkTexture>();
+			const VkTexture& vkTexture = _pipelineInfos.textures[i]->As<VkTexture>();
 
 			_descriptorInfos.push_back(vkTexture.CreateDescriptorImageInfo());
-			_descriptorWrites.push_back(vkTexture.CreateWriteDescriptorSet(mDescriptorSets[_index], static_cast<uint32>(_descriptorWrites.size())));
+			_descriptorWrites.push_back(vkTexture.CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset, i));
 		}
+
+		++bindingOffset;
 	}
 
-	void VkRenderPipeline::CreateDescriptorSets(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::CreateDescriptorSets(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
 	{
 		SA_ASSERT(mDescriptorSetLayout != VK_NULL_HANDLE, Nullptr, Rendering, L"Create descriptor sets with null descriptor layout!");
 		SA_ASSERT(mDescriptorPool != VK_NULL_HANDLE, Nullptr, Rendering, L"Create descriptor sets with null descriptor pool!");
 
-		const VkSwapChain& swapChain = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain();
-		const uint32 imageNum = swapChain.GetImageNum();
-
 
 		// Allocate Descriptor sets.
-		mDescriptorSets.resize(imageNum);
-		std::vector<VkDescriptorSetLayout> descriptorSetLayouts(imageNum, mDescriptorSetLayout);
+		mDescriptorSets.resize(_imageNum);
+		std::vector<VkDescriptorSetLayout> descriptorSetLayouts(_imageNum, mDescriptorSetLayout);
 
 		const VkDescriptorSetAllocateInfo descriptorSetAllocInfo
 		{
 			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,				// sType.
 			nullptr,													// pNext.
 			mDescriptorPool,											// descriptorPool.
-			imageNum,													// descriptorSetCount.
+			_imageNum,													// descriptorSetCount.
 			descriptorSetLayouts.data(),								// pSetLayouts.
 		};
 
@@ -371,12 +403,12 @@ namespace Sa
 
 		// Init each descriptor set.
 		std::vector<DescriptorInfo> descriptorInfos;
-		descriptorInfos.reserve(GetDescriptorReserveNum(_pipelineInfos));
+		descriptorInfos.reserve(5);
 
 		std::vector<VkWriteDescriptorSet> descriptorWrites;
-		descriptorWrites.reserve(GetDescriptorReserveNum(_pipelineInfos));
+		descriptorWrites.reserve(5);
 
-		for (uint32 i = 0; i < imageNum; ++i)
+		for (uint32 i = 0; i < _imageNum; ++i)
 		{
 			descriptorInfos.clear();
 			descriptorWrites.clear();
@@ -392,24 +424,20 @@ namespace Sa
 					descriptorWrites[j].pBufferInfo = &descriptorInfos[j].buffer;
 			}
 
-			vkUpdateDescriptorSets(_device, static_cast<uint32>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			vkUpdateDescriptorSets(_device, SizeOf(descriptorWrites), descriptorWrites.data(), 0, nullptr);
 		}
-	}
-
-
-	uint32 VkRenderPipeline::GetDescriptorReserveNum(const PipelineCreateInfos& _pipelineInfos) const noexcept
-	{
-		return SizeOf(_pipelineInfos.textures) + 1;
 	}
 
 
 	void VkRenderPipeline::CreateDescriptors(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
 	{
 		CreateDescriptorSetLayout(_device, _pipelineInfos);
-		CreateDescriptorPool(_device, _pipelineInfos);
-		CreateDescriptorSets(_device, _pipelineInfos);
-	}
 
+		const uint32 imageNum = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain().GetImageNum();
+
+		CreateDescriptorPool(_device, _pipelineInfos, imageNum);
+		CreateDescriptorSets(_device, _pipelineInfos, imageNum);
+	}
 	void VkRenderPipeline::DestroyDescriptors(const VkDevice& _device)
 	{
 		// Not needed when vkDestroyDescriptorPool() is called. Requiere VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT flag.
@@ -421,6 +449,24 @@ namespace Sa
 
 		vkDestroyDescriptorPool(_device, mDescriptorPool, nullptr);
 		mDescriptorPool = VK_NULL_HANDLE;
+	}
+
+	void VkRenderPipeline::CreateUniformBuffers(const VkDevice& _device, uint32 _imageNum, uint32 _bufferSize)
+	{
+		mObjectUniformBuffers.resize(_imageNum);
+
+		for (uint32 i = 0; i < _imageNum; i++)
+		{
+			mObjectUniformBuffers[i].Create(_device, _bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		}
+	}
+	void VkRenderPipeline::DestroyUniformBuffers(const VkDevice& _device)
+	{
+		for (uint32 i = 0; i < mObjectUniformBuffers.size(); i++)
+			mObjectUniformBuffers[i].Destroy(_device);
+
+		mObjectUniformBuffers.clear();
 	}
 
 	void VkRenderPipeline::Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
@@ -448,6 +494,8 @@ namespace Sa
 
 		vkDestroyPipelineLayout(device, mPipelineLayout, nullptr);
 		mPipelineLayout = VK_NULL_HANDLE;
+
+		DestroyUniformBuffers(device);
 	}
 
 	void VkRenderPipeline::Bind(const IRenderFrame& _frame)
@@ -466,6 +514,24 @@ namespace Sa
 
 		Create_Internal(_instance, _pipelineInfos);
 	}
+
+	void VkRenderPipeline::InitData(const IRenderInstance& _instance, const void* _data, uint32 _dataSize, uint32 _offset)
+	{
+		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
+
+		for (auto it = mObjectUniformBuffers.begin(); it != mObjectUniformBuffers.end(); ++it)
+			it->UpdateData(device, _data, _dataSize, _offset);
+	}
+	void VkRenderPipeline::UpdateData(const IRenderInstance& _instance, const IRenderFrame& _frame, const void* _data, uint32 _dataSize, uint32 _offset)
+	{
+		uint32 frameIndex = _frame.As<VkRenderFrame>().frameIndex;
+		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
+
+		SA_ASSERT(frameIndex >= 0u && frameIndex < mObjectUniformBuffers.size(), OutOfRange, Rendering, frameIndex, 0u, mObjectUniformBuffers.size());
+
+		mObjectUniformBuffers[frameIndex].UpdateData(device, _data, _dataSize, _offset);
+	}
+
 
 	VkRenderPipeline::operator VkPipeline() const
 	{

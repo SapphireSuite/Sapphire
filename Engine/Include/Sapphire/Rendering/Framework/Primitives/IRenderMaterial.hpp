@@ -29,6 +29,12 @@ namespace Sa
 		SA_ENGINE_API virtual void Bind(const IRenderFrame& _frame) const;
 		
 		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API virtual void InitVariable(const IRenderInstance& _instance, const void* _data, uint32 _dataSize, uint32 _offset = 0);
+
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API virtual void UpdateVariable(const IRenderInstance& _instance, const IRenderFrame& _frame, const void* _data, uint32 _dataSize, uint32 _offset = 0);
+
+		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API static IRenderMaterial* CreateInstance();
 	};
 }

@@ -20,6 +20,9 @@ namespace Sa
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 
 		virtual void Bind(const IRenderFrame& _frame) = 0;
+
+		virtual void InitData(const IRenderInstance& _instance, const void* _data, uint32 _dataSize, uint32 _offset) = 0;
+		virtual void UpdateData(const IRenderInstance& _instance, const IRenderFrame& _frame, const void* _data, uint32 _dataSize, uint32 _offset) = 0;
 	};
 }
 

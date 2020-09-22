@@ -46,7 +46,7 @@ namespace Sa
 
 		std::vector<VkFence> mMainFences;
 
-		std::vector<VkBuffer> mUniformBuffers;
+		std::vector<VkUniformBuffer> mUniformBuffers;
 
 		struct SupportDetails
 		{
@@ -87,7 +87,7 @@ namespace Sa
 
 		const ImageExtent& GetImageExtent() const noexcept;
 
-		const std::vector<VkBuffer>& GetUniformBuffers() const noexcept;
+		const std::vector<VkUniformBuffer>& GetUniformBuffers() const noexcept;
 
 		VkRenderFrame GetRenderFrame() const noexcept;
 

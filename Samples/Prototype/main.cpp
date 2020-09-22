@@ -76,7 +76,6 @@ int main()
 
 	IRenderMaterial* bodyMat = IRenderMaterial::CreateInstance();
 	bodyMat->CreatePipeline(instance, bodyPipelineInfos);
-	//Magikarp.GetMaterial(0)->CreatePipeline(instance, bodyPipelineInfos);
 
 	PipelineCreateInfos eyesPipelineInfos
 	{
@@ -95,7 +94,13 @@ int main()
 
 	IRenderMaterial* eyesMat = IRenderMaterial::CreateInstance();
 	eyesMat->CreatePipeline(instance, eyesPipelineInfos);
-	//Magikarp.GetMaterial(1)->CreatePipeline(instance, eyesPipelineInfos);
+
+	{
+		ObjectUniformBuffer oubo;
+		oubo.modelMat = Mat4f::MakeScale(Vec3f(0.000001f)) * Mat4f::MakeRotation(Quatf(90_deg, Vec3f::Right));
+		bodyMat->InitVariable(instance, &oubo, sizeof(oubo));
+		eyesMat->InitVariable(instance, &oubo, sizeof(oubo));
+	}
 
 
 	const float r = 1.0f;
@@ -144,24 +149,19 @@ int main()
 		window.Update();
 		instance.Update();
 
-		window.TEST(camTr, speed * deltaTime);
+		VkRenderFrame frame = surface.GetSwapChain().Update(instance.GetDevice());
 
+
+		window.TEST(camTr, speed * deltaTime);
 
 		// Update Uniform Buffer.
 		StaticUniformBuffer ubo;
-		ubo.modelMat = Mat4f::MakeScale(Vec3f(0.000001f)) * Mat4f::MakeRotation(Quatf(90_deg, Vec3f::Right));
 		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
 		ubo.viewMat = camTr.Matrix().GetTransposed();
 		ubo.projMat = orthoMat;
 
-
-		VkRenderFrame frame = surface.GetSwapChain().Update(instance.GetDevice());
-
-		void* data;
-		vkMapMemory(instance.GetDevice(), frame.uniformBuffer, 0, sizeof(ubo), 0, &data);
-		memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(instance.GetDevice(), frame.uniformBuffer);
-
+		frame.uniformBuffer.UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
+		
 
 		const VkCommandBufferBeginInfo commandBufferBeginInfo
 		{
@@ -213,6 +213,8 @@ int main()
 
 	//Magikarp.GetMaterial(0)->DestroyPipeline(instance);
 	//Magikarp.GetMaterial(1)->DestroyPipeline(instance);
+	bodyMat->DestroyPipeline(instance);
+	eyesMat->DestroyPipeline(instance);
 	assetMgr.Free(instance);
 
 	instance.DestroyRenderSurface(window);

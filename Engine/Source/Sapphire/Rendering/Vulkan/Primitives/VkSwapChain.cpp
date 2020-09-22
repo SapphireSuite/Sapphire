@@ -33,7 +33,7 @@ namespace Sa
 		return mExtent;
 	}
 
-	const std::vector<VkBuffer>& VkSwapChain::GetUniformBuffers() const noexcept
+	const std::vector<VkUniformBuffer>& VkSwapChain::GetUniformBuffers() const noexcept
 	{
 		return mUniformBuffers;
 	}

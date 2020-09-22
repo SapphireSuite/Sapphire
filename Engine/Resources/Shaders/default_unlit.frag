@@ -3,11 +3,11 @@
 
 
 // Uniform.
-layout(binding = 1) uniform sampler2D texSampler;
+layout(binding = 2) uniform sampler2D texSampler[1];
 
 
 // In.
-layout(location = 0) in vec2 fragTexUV;
+layout(location = 0) in vec2 inTexture;
 
 
 // Out.
@@ -17,5 +17,5 @@ layout(location = 0) out vec4 outColor;
 // Code.
 void main()
 {
-    outColor = texture(texSampler, fragTexUV);
+    outColor = texture(texSampler[0], inTexture);
 }

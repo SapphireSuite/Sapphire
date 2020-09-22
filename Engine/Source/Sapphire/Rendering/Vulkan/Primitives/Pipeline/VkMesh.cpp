@@ -2,6 +2,8 @@
 
 #include <Rendering/Vulkan/Primitives/Pipeline/VkMesh.hpp>
 
+#include <Core/Types/Variadics/SizeOf.hpp>
+
 #include <Rendering/Vulkan/VkMacro.hpp>
 #include <Rendering/Vulkan/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/Primitives/VkDevice.hpp>
@@ -46,10 +48,10 @@ namespace Sa
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 		// Create Vertex buffer.
-		CreateBuffer(device, mVertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, sizeof(Vertex) * static_cast<uint32>(_vertices.size()), _vertices.data());
+		CreateBuffer(device, mVertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, sizeof(Vertex) * SizeOf(_vertices), _vertices.data());
 
 		// Create Index buffer.
-		mIndicesSize = static_cast<uint32>(_indices.size());
+		mIndicesSize = SizeOf(_indices);
 		CreateBuffer(device, mIndexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, sizeof(uint32) * mIndicesSize, _indices.data());
 	}
 

@@ -13,7 +13,6 @@ namespace Sa
 	{
 		Mat4f viewMat = Mat4f::Identity;
 		Mat4f projMat = Mat4f::Identity;
-		Mat4f modelMat = Mat4f::Identity;
 	};
 
 	struct ObjectUniformBuffer

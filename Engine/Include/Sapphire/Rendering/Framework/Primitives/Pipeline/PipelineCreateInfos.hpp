@@ -9,6 +9,7 @@
 
 #include <Rendering/Image/Viewport.hpp>
 
+#include <Rendering/Framework/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PolygonMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/CullingMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/FrontFaceMode.hpp>
@@ -33,6 +34,8 @@ namespace Sa
 		PolygonMode polygonMode = PolygonMode::Fill;
 		CullingMode cullingMode = CullingMode::Back;
 		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
+
+		uint32 uniformBufferSize = sizeof(ObjectUniformBuffer);
 	};
 }
 
