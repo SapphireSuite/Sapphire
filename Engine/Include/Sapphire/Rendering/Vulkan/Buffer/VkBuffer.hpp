@@ -27,7 +27,7 @@ namespace Sa
 		void Destroy(const VkDevice& _device);
 
 		VkDescriptorBufferInfo CreateDescriptorBufferInfo(uint32 _size) const noexcept;
-		VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept;
+		VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem = 0u) const noexcept;
 
 		static void Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint32 _size);
 		static uint32 FindMemoryType(const VkDevice& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties);

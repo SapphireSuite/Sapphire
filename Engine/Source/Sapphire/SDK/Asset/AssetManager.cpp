@@ -120,10 +120,10 @@ namespace Sa
 
 		std::string fileExt = _filePath.substr(index + 1);
 
-		std::vector<MeshCreateInfos> meshInfos;
+		std::vector<ModelCreateInfos> modelInfos;
 
 		if (fileExt == "obj")
-			ObjLoader::Load(_filePath, meshInfos);
+			ObjLoader::Load(_filePath, modelInfos);
 		else
 			SA_ASSERT(false, WrongExtension, SDK, L"Extension not supported!");
 
@@ -131,7 +131,7 @@ namespace Sa
 		// Create Meshes.
 		std::vector<IMesh*> meshes;
 
-		for (auto it = meshInfos.begin(); it != meshInfos.end(); ++it)
+		for (auto it = modelInfos.begin(); it != modelInfos.end(); ++it)
 			meshes.push_back(IMesh::CreateInstance(_instance, it->vertices, it->indices));
 
 		return meshes;

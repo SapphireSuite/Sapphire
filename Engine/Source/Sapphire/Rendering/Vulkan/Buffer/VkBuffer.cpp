@@ -64,7 +64,7 @@ namespace Sa
 			_size												// range.
 		};
 	}
-	VkWriteDescriptorSet VkBuffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept
+	VkWriteDescriptorSet VkBuffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem) const noexcept
 	{
 		return VkWriteDescriptorSet
 		{
@@ -72,7 +72,7 @@ namespace Sa
 			nullptr,											// pNext.
 			_descriptorSet,										// dstSet.
 			_binding,											// dstBinding.
-			0,													// dstArrayElement.
+			_arrayElem,											// dstArrayElement.
 			1,													// descriptorCount.
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
 			nullptr,											// pImageInfo.

@@ -21,14 +21,15 @@ namespace Sa
 		IRenderPipeline* mPipeline = nullptr;
 
 	public:
-		static IRenderMaterial* CreateInstance();
-
 		virtual void CreatePipeline(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) = 0;
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API virtual void DestroyPipeline(const IRenderInstance& _instance);
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API virtual void Bind(const IRenderFrame& _frame) const;
+		
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API static IRenderMaterial* CreateInstance();
 	};
 }
 

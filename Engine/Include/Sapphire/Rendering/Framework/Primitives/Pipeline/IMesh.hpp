@@ -21,7 +21,8 @@ namespace Sa
 			const std::vector<Vertex>& _vertices,
 			const std::vector<uint32>& _indices) = 0;
 	public:
-		static IMesh* CreateInstance(const IRenderInstance& _instance,
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API static IMesh* CreateInstance(const IRenderInstance& _instance,
 			const std::vector<Vertex>& _vertices,
 			const std::vector<uint32>& _indices);
 		

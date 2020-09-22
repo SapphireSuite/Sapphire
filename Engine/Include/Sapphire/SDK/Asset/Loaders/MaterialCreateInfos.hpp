@@ -15,10 +15,11 @@ namespace Sa
 		Vec3f ka;
 		Vec3f ks;
 		Vec3f ke;
-		Vec3f ni;
-		Vec3f ns;
+		Vec3f tf;
 
-		std::string kdMapName;
+		float d = 0.0f;
+		float ni = 0.0f;
+		float ns = 0.0f;
 	};
 }
 

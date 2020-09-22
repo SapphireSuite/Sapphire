@@ -12,11 +12,13 @@
 #include <Sapphire/Window/GLFWWindow.hpp>
 
 #include <Sapphire/Rendering/Vulkan/VkRenderInstance.hpp>
-#include <Sapphire/Rendering/Framework/UniformBufferObject.hpp>
+#include <Sapphire/Rendering/Framework/UniformBuffers.hpp>
+#include <Sapphire/Rendering/Framework/Primitives/Pipeline/IMesh.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/IRenderMaterial.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
 
 #include <Sapphire/Sdk/Asset/AssetManager.hpp>
+#include <Sapphire/Sdk/Asset/Loaders/ObjLoader.hpp>
 #include <Sapphire/Sdk/Model.hpp>
 
 using namespace Sa;
@@ -48,7 +50,13 @@ int main()
 	const ITexture* magikarpBodyTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body.png");
 	const ITexture* magikarpEyesTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes.png");
 
-	Model Magikarp = assetMgr.Model(instance, "../../Engine/Resources/Models/Magikarp/Magikarp.obj");
+	std::vector<ModelCreateInfos> modelInfos;
+	ObjLoader::Load("../../Engine/Resources/Models/Magikarp/Magikarp.obj", modelInfos);
+	std::vector<IMesh*> Magikarp;
+	for (auto it = modelInfos.begin(); it != modelInfos.end(); ++it)
+		Magikarp.push_back(IMesh::CreateInstance(instance, it->vertices, it->indices));
+
+	//Model Magikarp = assetMgr.Model(instance, "../../Engine/Resources/Models/Magikarp/Magikarp.obj");
 
 	// Create Materials.
 	PipelineCreateInfos bodyPipelineInfos
@@ -66,7 +74,9 @@ int main()
 		FrontFaceMode::Clockwise
 	};
 
-	Magikarp.GetMaterial(0)->CreatePipeline(instance, bodyPipelineInfos);
+	IRenderMaterial* bodyMat = IRenderMaterial::CreateInstance();
+	bodyMat->CreatePipeline(instance, bodyPipelineInfos);
+	//Magikarp.GetMaterial(0)->CreatePipeline(instance, bodyPipelineInfos);
 
 	PipelineCreateInfos eyesPipelineInfos
 	{
@@ -83,7 +93,9 @@ int main()
 		FrontFaceMode::Clockwise
 	};
 
-	Magikarp.GetMaterial(1)->CreatePipeline(instance, eyesPipelineInfos);
+	IRenderMaterial* eyesMat = IRenderMaterial::CreateInstance();
+	eyesMat->CreatePipeline(instance, eyesPipelineInfos);
+	//Magikarp.GetMaterial(1)->CreatePipeline(instance, eyesPipelineInfos);
 
 
 	const float r = 1.0f;
@@ -136,7 +148,7 @@ int main()
 
 
 		// Update Uniform Buffer.
-		UniformBufferObject ubo;
+		StaticUniformBuffer ubo;
 		ubo.modelMat = Mat4f::MakeScale(Vec3f(0.000001f)) * Mat4f::MakeRotation(Quatf(90_deg, Vec3f::Right));
 		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
 		ubo.viewMat = camTr.Matrix().GetTransposed();
@@ -180,7 +192,13 @@ int main()
 
 		vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		Magikarp.Draw(frame);
+		bodyMat->Bind(frame);
+		Magikarp[0]->Draw(frame);
+
+		eyesMat->Bind(frame);
+		Magikarp[1]->Draw(frame);
+
+		//Magikarp.Draw(frame);
 
 		vkCmdEndRenderPass(frame.graphicsCommandBuffer);
 
@@ -193,8 +211,8 @@ int main()
 	// === Destroy ===
 	vkDeviceWaitIdle(instance.GetDevice());
 
-	Magikarp.GetMaterial(0)->DestroyPipeline(instance);
-	Magikarp.GetMaterial(1)->DestroyPipeline(instance);
+	//Magikarp.GetMaterial(0)->DestroyPipeline(instance);
+	//Magikarp.GetMaterial(1)->DestroyPipeline(instance);
 	assetMgr.Free(instance);
 
 	instance.DestroyRenderSurface(window);

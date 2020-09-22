@@ -12,7 +12,7 @@
 #include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
 #include <Rendering/Vulkan/Queue/VkCommandBuffer.hpp>
 
-#include <Rendering/Framework/UniformBufferObject.hpp>
+#include <Rendering/Framework/UniformBuffers.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -412,7 +412,7 @@ namespace Sa
 
 		for (uint32 i = 0; i < _imageNum; i++)
 		{
-			mUniformBuffers[i].Create(_device, sizeof(UniformBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			mUniformBuffers[i].Create(_device, sizeof(StaticUniformBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		}
 	}

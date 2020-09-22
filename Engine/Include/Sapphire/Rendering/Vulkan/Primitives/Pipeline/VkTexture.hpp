@@ -29,7 +29,7 @@ namespace Sa
 		void Destroy(const IRenderInstance& _instance) override final;
 
 		VkDescriptorImageInfo CreateDescriptorImageInfo() const noexcept;
-		VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept;
+		VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem = 0u) const noexcept;
 	};
 }
 

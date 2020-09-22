@@ -257,7 +257,7 @@ namespace Sa
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL			// imageLayout.
 		};
 	}
-	VkWriteDescriptorSet VkTexture::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) const noexcept
+	VkWriteDescriptorSet VkTexture::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem) const noexcept
 	{
 		return VkWriteDescriptorSet
 		{
@@ -265,7 +265,7 @@ namespace Sa
 			nullptr,											// pNext.
 			_descriptorSet,										// dstSet.
 			_binding,											// dstBinding.
-			0,													// dstArrayElement.
+			_arrayElem,											// dstArrayElement.
 			1,													// descriptorCount.
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,			// descriptorType.
 			nullptr,											// pImageInfo.			// Will be set in pipeline.

@@ -150,7 +150,7 @@ namespace Sa
 
 		return true;
 	}
-	void ProcessComment(std::istringstream&& stream, std::vector<MeshCreateInfos>& _meshInfos, InternalMeshLoadData& data)
+	void ProcessComment(std::istringstream&& stream, std::vector<ModelCreateInfos>& _modelInfos, InternalMeshLoadData& data)
 	{
 		std::string type;
 		std::string name;
@@ -162,15 +162,15 @@ namespace Sa
 		if (type == "object" && data.vertices->size())
 		{
 			// Add sub mesh.
-			MeshCreateInfos& subMesh = _meshInfos.emplace_back();
+			ModelCreateInfos& subMesh = _modelInfos.emplace_back();
 
 			data.indexCount = 0u;
 
-			data.vertices = &_meshInfos[1].vertices;
-			data.indices = &_meshInfos[1].indices;
+			data.vertices = &_modelInfos[1].vertices;
+			data.indices = &_modelInfos[1].indices;
 		}
 	}
-	bool ProcessLine(std::istringstream&& stream, std::vector<MeshCreateInfos>& _meshInfos, InternalMeshLoadData& data)
+	bool ProcessLine(std::istringstream&& stream, std::vector<ModelCreateInfos>& _modelInfos, InternalMeshLoadData& data)
 	{
 		std::string type;
 
@@ -185,41 +185,86 @@ namespace Sa
 		else if (type == "vn")
 			return ProcessNormal(Move(stream), data);
 		else if (type == "#")
-			ProcessComment(Move(stream), _meshInfos, data);
+			ProcessComment(Move(stream), _modelInfos, data);
 
 		return true;
 	}
 
-	void ParseModel(const std::string& _filePath, std::vector<MeshCreateInfos>& _meshInfos)
+	void ParseModel(const std::string& _filePath, std::vector<ModelCreateInfos>& _modelInfos)
 	{
 		// Add first mesh.
-		_meshInfos.emplace_back();
+		_modelInfos.emplace_back();
 		InternalMeshLoadData data;
-		data.vertices = &_meshInfos[0].vertices;
-		data.indices = &_meshInfos[0].indices;
+		data.vertices = &_modelInfos[0].vertices;
+		data.indices = &_modelInfos[0].indices;
 
 		std::string line;
 		std::ifstream fs(_filePath);
-		SA_ASSERT(fs.is_open(), InvalidParam, SDK, L"Failed to open file");
+		SA_ASSERT(fs.is_open(), InvalidParam, SDK, L"Failed to open obj file");
 
 		while (std::getline(fs, line))
 		{
 			if (line.empty())
 				continue;
 
-			bool bRes = ProcessLine(std::istringstream(line), _meshInfos, data);
+			bool bRes = ProcessLine(std::istringstream(line), _modelInfos, data);
 
 			SA_ASSERT(bRes, InvalidParam, SDK, L"OBJ parsing error: invalid file.");
 		}
 	}
 
-	void ParseMaterial(const std::string& _filePath, std::vector<MeshCreateInfos>& _meshInfos)
+	void ParseMaterial(const std::string& _filePath, std::vector<ModelCreateInfos>& _modelInfos)
 	{
-		//uint32 index = static_cast<uint32>(_filePath.rfind('.'));
-
+#define PARSE_MAT_FLT(cParseName, cVarName)\
+	else if(type == #cParseName)\
+	{\
+		if (!(stream >> _modelInfos[currIndex].matInfos.cVarName))\
+			SA_ASSERT(false, InvalidParam, SDK, L"mtl parsing error: invalid file.")\
 	}
 
-	void ObjLoader::Load(const std::string& _filePath, std::vector<MeshCreateInfos>& _meshInfos)
+#define PARSE_MAT_VEC3(cParseName, cVarName)\
+	else if(type == #cParseName)\
+	{\
+		if (!(stream >> _modelInfos[currIndex].matInfos.cVarName.x >> _modelInfos[currIndex].matInfos.cVarName.y >> _modelInfos[currIndex].matInfos.cVarName.z))\
+			SA_ASSERT(false, InvalidParam, SDK, L"mtl parsing error: invalid file.")\
+	}
+	
+		uint32 index = static_cast<uint32>(_filePath.rfind('.'));
+		SA_ASSERT(index < _filePath.size(), InvalidParam, SDK, L"Invalid path");
+
+
+		std::ifstream fs(_filePath.substr(0, index + 1) + "mtl");
+		SA_ASSERT(fs.is_open(), InvalidParam, SDK, L"Failed to open mtl file");
+
+		std::string line;
+		std::string type;
+		uint32 currIndex = uint32(-1);
+
+		while (std::getline(fs, line))
+		{
+			if (line.empty())
+				continue;
+
+			std::istringstream stream(line);
+
+			stream >> type;
+
+			if (type == "newmtl")
+				++currIndex;
+
+			PARSE_MAT_VEC3(Kd, kd)
+			PARSE_MAT_VEC3(Ka, ka)
+			PARSE_MAT_VEC3(Ks, ks)
+			PARSE_MAT_VEC3(Ka, ka)
+			PARSE_MAT_VEC3(Ke, ke)
+			PARSE_MAT_VEC3(Tf, tf)
+			PARSE_MAT_FLT(d, d)
+			PARSE_MAT_FLT(Ni, ni)
+			PARSE_MAT_FLT(Ns, ns)
+		}
+	}
+
+	void ObjLoader::Load(const std::string& _filePath, std::vector<ModelCreateInfos>& _modelInfos)
 	{
 #if SA_DEBUG
 
@@ -229,7 +274,7 @@ namespace Sa
 
 #endif
 
-		ParseModel(_filePath, _meshInfos);
-		ParseMaterial(_filePath, _meshInfos);
+		ParseModel(_filePath, _modelInfos);
+		ParseMaterial(_filePath, _modelInfos);
 	}
 }

@@ -4,7 +4,7 @@
 
 #include <Core/Types/Variadics/SizeOf.hpp>
 
-#include <Rendering/Framework/UniformBufferObject.hpp>
+#include <Rendering/Framework/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/Vertex.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/ShaderType.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
@@ -327,7 +327,7 @@ namespace Sa
 		const std::vector<VkBuffer>& uniformBuffers = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain().GetUniformBuffers();
 
 		// UBO binding
-		_descriptorInfos.push_back(uniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(UniformBufferObject)));
+		_descriptorInfos.push_back(uniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(StaticUniformBuffer)));
 		_descriptorWrites.push_back(uniformBuffers[_index].CreateWriteDescriptorSet(mDescriptorSets[_index], static_cast<uint32>(_descriptorWrites.size())));
 
 

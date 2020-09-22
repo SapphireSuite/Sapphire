@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_SDK_MESH_CREATE_INFOS_GUARD
-#define SAPPHIRE_SDK_MESH_CREATE_INFOS_GUARD
+#ifndef SAPPHIRE_SDK_MODEL_CREATE_INFOS_GUARD
+#define SAPPHIRE_SDK_MODEL_CREATE_INFOS_GUARD
 
 #include <vector>
 
@@ -14,7 +14,7 @@
 
 namespace Sa
 {
-	struct MeshCreateInfos
+	struct ModelCreateInfos
 	{
 		std::vector<Vertex> vertices;
 		std::vector<uint32> indices;

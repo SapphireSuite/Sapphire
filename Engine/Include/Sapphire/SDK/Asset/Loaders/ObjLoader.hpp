@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_SDK_OBJ_LOADER_GUARD
 #define SAPPHIRE_SDK_OBJ_LOADER_GUARD
 
-#include <Sdk/Asset/Loaders/MeshCreateInfos.hpp>
+#include <Sdk/Asset/Loaders/ModelCreateInfos.hpp>
 
 namespace Sa
 {
@@ -14,7 +14,8 @@ namespace Sa
 	public:
 		~ObjLoader() = delete;
 
-		static void Load(const std::string& _filePath, std::vector<MeshCreateInfos>& _meshInfos);
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API static void Load(const std::string& _filePath, std::vector<ModelCreateInfos>& _modelInfos);
 	};
 }
 
