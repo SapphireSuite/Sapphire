@@ -7,12 +7,12 @@ layout(binding = 0) uniform StaticUniformBuffer
 {
     mat4 view;
     mat4 proj;
-} subo;
+} s_ubo;
 
 layout(binding = 1) uniform ObjectUniformBuffer
 {
     mat4 model;
-} oubo;
+} o_ubo;
 
 
 
@@ -29,7 +29,7 @@ layout(location = 0) out vec2 outTexture;
 // Code
 void main()
 {
-    gl_Position = subo.proj * inverse(subo.view) * oubo.model * vec4(inPosition, 1.0);
+    gl_Position = s_ubo.proj * inverse(s_ubo.view) * o_ubo.model * vec4(inPosition, 1.0);
 
     outTexture = inTexture;
 }

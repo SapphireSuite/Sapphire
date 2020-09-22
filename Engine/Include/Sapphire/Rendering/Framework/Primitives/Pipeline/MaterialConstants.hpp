@@ -2,14 +2,14 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_SDK_MATERIAL_CREATE_INFOS_GUARD
-#define SAPPHIRE_SDK_MATERIAL_CREATE_INFOS_GUARD
+#ifndef SAPPHIRE_RENDERING_MATERIAL_CONSTANTS_GUARD
+#define SAPPHIRE_RENDERING_MATERIAL_CONSTANTS_GUARD
 
 #include <Maths/Space/Vector3.hpp>
 
 namespace Sa
 {
-	struct MaterialCreateInfos
+	struct MaterialConstants
 	{
 		Vec3f kd;
 		Vec3f ka;

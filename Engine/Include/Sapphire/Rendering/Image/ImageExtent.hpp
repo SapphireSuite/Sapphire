@@ -25,6 +25,8 @@ namespace Sa
 
 		ImageExtent() = default;
 
+		SA_ENGINE_API ImageExtent(uint32 _width, uint32 _height);
+
 #if SA_RENDERING_API == SA_VULKAN
 
 		ImageExtent(const VkExtent2D& _extent);

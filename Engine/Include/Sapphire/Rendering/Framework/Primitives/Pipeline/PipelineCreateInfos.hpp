@@ -13,6 +13,7 @@
 #include <Rendering/Framework/Primitives/Pipeline/PolygonMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/CullingMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/FrontFaceMode.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/MaterialConstants.hpp>
 
 namespace Sa
 {
@@ -28,6 +29,8 @@ namespace Sa
 
 		const IShader* vertexShader = nullptr;
 		const IShader* fragementShader = nullptr;
+
+		MaterialConstants matConstants;
 
 		std::vector<const ITexture*> textures;
 

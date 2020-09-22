@@ -9,8 +9,7 @@
 
 #include <Core/Types/Int.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/Vertex.hpp>
-
-#include <Sdk/Asset/Loaders/MaterialCreateInfos.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/MaterialConstants.hpp>
 
 namespace Sa
 {
@@ -19,7 +18,7 @@ namespace Sa
 		std::vector<Vertex> vertices;
 		std::vector<uint32> indices;
 
-		MaterialCreateInfos matInfos;
+		MaterialConstants matConstants;
 	};
 }
 

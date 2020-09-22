@@ -33,6 +33,13 @@ namespace Sa
 		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 
 
+		void CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages, const PipelineCreateInfos& _pipelineInfos);
+		
+		void CreatePushConstants(std::vector<VkPushConstantRange>& _constants, const PipelineCreateInfos& _pipelineInfos);
+		
+		void UpdatePushConstants(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
+
+
 		virtual void CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
 			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept;
 
@@ -70,8 +77,6 @@ namespace Sa
 
 		void CreateUniformBuffers(const VkDevice& _device, uint32 _imageNum, uint32 _bufferSize);
 		void DestroyUniformBuffers(const VkDevice& _device);
-
-		void UpdateData(const IRenderInstance& _instance, uint32 _frameIndex, const void* _data, uint32 _dataSize, uint32 _offset);
 
 	public:
 		void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) override final;

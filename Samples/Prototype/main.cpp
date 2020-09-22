@@ -71,6 +71,8 @@ int main()
 			unlitVertShader,
 			unlitFragShader,
 
+			modelInfos[0].matConstants,
+
 			{ magikarpBodyTexture, magikarpBodyNormTexture, magikarpBodySpecTexture, magikarpBodyPowTexture },
 
 			PolygonMode::Fill,
@@ -95,6 +97,8 @@ int main()
 
 			unlitVertShader,
 			unlitFragShader,
+
+			modelInfos[1].matConstants,
 
 			{ magikarpEyesTexture, magikarpEyesNormTexture, magikarpEyesSpecTexture, magikarpEyesPowTexture },
 

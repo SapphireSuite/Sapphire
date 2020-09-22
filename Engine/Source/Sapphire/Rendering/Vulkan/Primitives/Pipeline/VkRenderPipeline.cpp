@@ -4,6 +4,7 @@
 
 #include <Core/Types/Variadics/SizeOf.hpp>
 
+#include <Rendering/Vulkan/Queue/VkCommandBuffer.hpp>
 #include <Rendering/Framework/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/Vertex.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/ShaderType.hpp>
@@ -30,38 +31,8 @@ namespace Sa
 		CreateDescriptors(device, _pipelineInfos);
 
 
-		// === Create Shader Stages ===
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-
-		// Create vertex shader stage.
-		if (_pipelineInfos.vertexShader)
-		{
-			shaderStages.push_back(VkPipelineShaderStageCreateInfo
-			{
-				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
-				nullptr,															// pNext.
-				0,																	// flags.
-				API_GetShaderType(ShaderType::Vertex),								// stage.
-				_pipelineInfos.vertexShader->As<VkShader>(),						// module.
-				"main",																// pName.
-				nullptr,															// pSpecializationInfo.
-			});
-		}
-
-		// Create fragment shader stage.
-		if (_pipelineInfos.fragementShader)
-		{
-			shaderStages.push_back(VkPipelineShaderStageCreateInfo
-			{
-				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
-				nullptr,															// pNext.
-				0,																	// flags.
-				API_GetShaderType(ShaderType::Fragment),							// stage.
-				_pipelineInfos.fragementShader->As<VkShader>(),						// module.
-				"main",																// pName.
-				nullptr,															// pSpecializationInfo.
-			});
-		}
+		CreateShaderStages(shaderStages, _pipelineInfos);
 
 
 		const VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo
@@ -178,6 +149,9 @@ namespace Sa
 		};
 
 
+		std::vector<VkPushConstantRange> pushConstants;
+		CreatePushConstants(pushConstants, _pipelineInfos);
+
 		const VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo
 		{
 			VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,							// sType.
@@ -185,12 +159,14 @@ namespace Sa
 			0,																		// flags.
 			1,																		// setLayoutCount.
 			&mDescriptorSetLayout,													// pSetLayouts.
-			0,																		// pushConstantRangeCount.
-			nullptr																	// pPushConstantRanges.
+			SizeOf(pushConstants),													// pushConstantRangeCount.
+			pushConstants.data()													// pPushConstantRanges.
 		};
 
 		SA_VK_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &mPipelineLayout),
 			CreationFailed, Rendering, L"Failed to create pipeline layout!");
+
+		UpdatePushConstants(device, _pipelineInfos);
 
 
 		const VkRenderPass& renderPass = vkSurface.GetRenderPass();
@@ -220,6 +196,64 @@ namespace Sa
 
 		SA_VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mHandle),
 			CreationFailed, Rendering, L"Failed to create graphics pipeline!");
+	}
+
+
+	void VkRenderPipeline::CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages, const PipelineCreateInfos& _pipelineInfos)
+	{
+		_shaderStages.reserve(5u);
+
+		// Create vertex shader stage.
+		if (_pipelineInfos.vertexShader)
+		{
+			_shaderStages.push_back(VkPipelineShaderStageCreateInfo
+			{
+				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
+				nullptr,															// pNext.
+				0,																	// flags.
+				API_GetShaderType(ShaderType::Vertex),								// stage.
+				_pipelineInfos.vertexShader->As<VkShader>(),						// module.
+				"main",																// pName.
+				nullptr,															// pSpecializationInfo.
+			});
+		}
+
+		// Create fragment shader stage.
+		if (_pipelineInfos.fragementShader)
+		{
+			_shaderStages.push_back(VkPipelineShaderStageCreateInfo
+			{
+				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
+				nullptr,															// pNext.
+				0,																	// flags.
+				API_GetShaderType(ShaderType::Fragment),							// stage.
+				_pipelineInfos.fragementShader->As<VkShader>(),						// module.
+				"main",																// pName.
+				nullptr,															// pSpecializationInfo.
+			});
+		}
+	}
+
+	void VkRenderPipeline::CreatePushConstants(std::vector<VkPushConstantRange>& _constants, const PipelineCreateInfos& _pipelineInfos)
+	{
+		_constants.reserve(3u);
+
+
+		// Add material's constants.
+		_constants.push_back(VkPushConstantRange{
+			VK_SHADER_STAGE_FRAGMENT_BIT,
+			0u,
+			sizeof(_pipelineInfos.matConstants)
+		});
+	}
+	void VkRenderPipeline::UpdatePushConstants(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	{
+		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
+	
+		// Push material's constants.
+		vkCmdPushConstants(commandBuffer, mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(_pipelineInfos.matConstants), &_pipelineInfos.matConstants);
+		
+		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
 

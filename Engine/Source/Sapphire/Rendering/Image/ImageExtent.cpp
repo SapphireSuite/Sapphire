@@ -4,6 +4,12 @@
 
 namespace Sa
 {
+	ImageExtent::ImageExtent(uint32 _width, uint32 _height) :
+		width{ _width },
+		height{ _height }
+	{
+	}
+
 #if SA_RENDERING_API == SA_VULKAN
 
 	ImageExtent::ImageExtent(const VkExtent2D& _extent) :

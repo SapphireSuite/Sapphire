@@ -218,14 +218,14 @@ namespace Sa
 #define PARSE_MAT_FLT(cParseName, cVarName)\
 	else if(type == #cParseName)\
 	{\
-		if (!(stream >> _modelInfos[currIndex].matInfos.cVarName))\
+		if (!(stream >> _modelInfos[currIndex].matConstants.cVarName))\
 			SA_ASSERT(false, InvalidParam, SDK, L"mtl parsing error: invalid file.")\
 	}
 
 #define PARSE_MAT_VEC3(cParseName, cVarName)\
 	else if(type == #cParseName)\
 	{\
-		if (!(stream >> _modelInfos[currIndex].matInfos.cVarName.x >> _modelInfos[currIndex].matInfos.cVarName.y >> _modelInfos[currIndex].matInfos.cVarName.z))\
+		if (!(stream >> _modelInfos[currIndex].matConstants.cVarName.x >> _modelInfos[currIndex].matConstants.cVarName.y >> _modelInfos[currIndex].matConstants.cVarName.z))\
 			SA_ASSERT(false, InvalidParam, SDK, L"mtl parsing error: invalid file.")\
 	}
 	
