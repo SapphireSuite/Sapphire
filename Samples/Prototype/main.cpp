@@ -43,12 +43,9 @@ int main()
 
 	AssetManager assetMgr;
 
-	// Load assets..
-	const IShader* unlitVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_unlit_vert.spv");
-	const IShader* unlitFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_unlit_frag.spv");
-
-	const ITexture* magikarpBodyTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body.png");
-	const ITexture* magikarpEyesTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes.png");
+	// Load assets.
+	const IShader* unlitVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_lit_vert.spv");
+	const IShader* unlitFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_lit_frag.spv");
 
 	std::vector<ModelCreateInfos> modelInfos;
 	ObjLoader::Load("../../Engine/Resources/Models/Magikarp/Magikarp.obj", modelInfos);
@@ -59,47 +56,61 @@ int main()
 	//Model Magikarp = assetMgr.Model(instance, "../../Engine/Resources/Models/Magikarp/Magikarp.obj");
 
 	// Create Materials.
-	PipelineCreateInfos bodyPipelineInfos
+	IRenderMaterial* magikarpBodyMat = IRenderMaterial::CreateInstance();
 	{
-		surface,
-		surface.GetViewport(),
+		const ITexture* magikarpBodyTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body.png");
+		const ITexture* magikarpBodyNormTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body_norm.png");
+		const ITexture* magikarpBodySpecTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body_spc.png");
+		const ITexture* magikarpBodyPowTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body_pow.png");
 
-		unlitVertShader,
-		unlitFragShader,
+		PipelineCreateInfos bodyPipelineInfos
+		{
+			surface,
+			surface.GetViewport(),
 
-		{ magikarpBodyTexture },
+			unlitVertShader,
+			unlitFragShader,
 
-		PolygonMode::Fill,
-		CullingMode::None,
-		FrontFaceMode::Clockwise
-	};
+			{ magikarpBodyTexture, magikarpBodyNormTexture, magikarpBodySpecTexture, magikarpBodyPowTexture },
 
-	IRenderMaterial* bodyMat = IRenderMaterial::CreateInstance();
-	bodyMat->CreatePipeline(instance, bodyPipelineInfos);
+			PolygonMode::Fill,
+			CullingMode::None,
+			FrontFaceMode::Clockwise
+		};
 
-	PipelineCreateInfos eyesPipelineInfos
+		magikarpBodyMat->CreatePipeline(instance, bodyPipelineInfos);
+	}
+
+	IRenderMaterial* magikarpEyesMat = IRenderMaterial::CreateInstance();
 	{
-		surface,
-		surface.GetViewport(),
+		const ITexture* magikarpEyesTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes.png");
+		const ITexture* magikarpEyesNormTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes_norm.png");
+		const ITexture* magikarpEyesSpecTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes_spc.png");
+		const ITexture* magikarpEyesPowTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes_pow.png");
 
-		unlitVertShader,
-		unlitFragShader,
+		PipelineCreateInfos eyesPipelineInfos
+		{
+			surface,
+			surface.GetViewport(),
 
-		{ magikarpEyesTexture },
+			unlitVertShader,
+			unlitFragShader,
 
-		PolygonMode::Fill,
-		CullingMode::None,
-		FrontFaceMode::Clockwise
-	};
+			{ magikarpEyesTexture, magikarpEyesNormTexture, magikarpEyesSpecTexture, magikarpEyesPowTexture },
 
-	IRenderMaterial* eyesMat = IRenderMaterial::CreateInstance();
-	eyesMat->CreatePipeline(instance, eyesPipelineInfos);
+			PolygonMode::Fill,
+			CullingMode::None,
+			FrontFaceMode::Clockwise
+		};
+
+		magikarpEyesMat->CreatePipeline(instance, eyesPipelineInfos);
+	}
 
 	{
 		ObjectUniformBuffer oubo;
 		oubo.modelMat = Mat4f::MakeScale(Vec3f(0.000001f)) * Mat4f::MakeRotation(Quatf(90_deg, Vec3f::Right));
-		bodyMat->InitVariable(instance, &oubo, sizeof(oubo));
-		eyesMat->InitVariable(instance, &oubo, sizeof(oubo));
+		magikarpBodyMat->InitVariable(instance, &oubo, sizeof(oubo));
+		magikarpEyesMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
 
 
@@ -108,7 +119,7 @@ int main()
 	const float t = 1.0f;
 	const float b = -1.0f;
 	const float n = 0.1f;
-	const float f = 15.0f;
+	const float f = 10.0f;
 
 	Mat4f orthoMat
 	(
@@ -127,7 +138,7 @@ int main()
 	Mat4f perspMat
 	(
 		1 / (ratio * tan_half_angle), 0, 0, 0,
-		0, -1 / (tan_half_angle), 0, 0,
+		0, 1 / (tan_half_angle), 0, 0,
 		0, 0, -(f + n) / (f - n), -(2 * f * n) / (f - n),
 		0, 0, -1, 1
 	);
@@ -158,7 +169,7 @@ int main()
 		StaticUniformBuffer ubo;
 		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
 		ubo.viewMat = camTr.Matrix().GetTransposed();
-		ubo.projMat = orthoMat;
+		ubo.projMat = perspMat.GetTransposed();
 
 		frame.uniformBuffer.UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
 		
@@ -192,10 +203,10 @@ int main()
 
 		vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		bodyMat->Bind(frame);
+		magikarpBodyMat->Bind(frame);
 		Magikarp[0]->Draw(frame);
 
-		eyesMat->Bind(frame);
+		magikarpEyesMat->Bind(frame);
 		Magikarp[1]->Draw(frame);
 
 		//Magikarp.Draw(frame);
@@ -213,8 +224,8 @@ int main()
 
 	//Magikarp.GetMaterial(0)->DestroyPipeline(instance);
 	//Magikarp.GetMaterial(1)->DestroyPipeline(instance);
-	bodyMat->DestroyPipeline(instance);
-	eyesMat->DestroyPipeline(instance);
+	magikarpBodyMat->DestroyPipeline(instance);
+	magikarpEyesMat->DestroyPipeline(instance);
 	assetMgr.Free(instance);
 
 	instance.DestroyRenderSurface(window);
