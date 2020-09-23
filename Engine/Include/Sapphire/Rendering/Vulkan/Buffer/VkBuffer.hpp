@@ -23,8 +23,17 @@ namespace Sa
 		::VkBuffer mHandle = VK_NULL_HANDLE;
 		VkDeviceMemory mDeviceMemory = VK_NULL_HANDLE;
 
+		void Create_Internal(const VkDevice& _device,
+			uint32 _size, VkBufferUsageFlags _usage,
+			VkMemoryPropertyFlags _properties,
+			const void* _data = nullptr);
+
 	public:
-		void Create(const VkDevice& _device, uint32 _size, VkBufferUsageFlags _usage, VkMemoryPropertyFlags _properties);
+		void Create(const VkDevice& _device,
+			uint32 _size,
+			VkBufferUsageFlags _usage,
+			VkMemoryPropertyFlags _properties,
+			const void* _data = nullptr);
 		void Destroy(const VkDevice& _device);
 
 		VkDescriptorBufferInfo CreateDescriptorBufferInfo(uint32 _size) const noexcept;

@@ -12,47 +12,26 @@
 
 namespace Sa
 {
-	void CreateBuffer(const VkDevice& _device, VkBuffer& _buffer, VkBufferUsageFlags _usage, uint32 _bufferSize, const void* _data)
-	{
-		// Create temp staging buffer.
-		VkBuffer stagingBuffer;
-		stagingBuffer.Create(_device, _bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-
-		// Map vertices memory.
-		void* data;
-		vkMapMemory(_device, stagingBuffer, 0, _bufferSize, 0, &data);
-
-		memcpy(data, _data, _bufferSize);
-
-		vkUnmapMemory(_device, stagingBuffer);
-
-
-		// Create saved buffer (device local only).
-		_buffer.Create(_device, _bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | _usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-
-		// Use staging buffer to transfer mapped memory.
-		VkBuffer::Copy(_device, stagingBuffer, _buffer, _bufferSize);
-
-
-		// Destroy staging buffer.
-		stagingBuffer.Destroy(_device);
-	}
-
 	void VkMesh::Create(const IRenderInstance& _instance,
 		const std::vector<Vertex>& _vertices,
 		const std::vector<uint32>& _indices)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
+
 		// Create Vertex buffer.
-		CreateBuffer(device, mVertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, sizeof(Vertex) * SizeOf(_vertices), _vertices.data());
+		mVertexBuffer.Create(device, sizeof(Vertex) * SizeOf(_vertices),
+			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			_vertices.data());
+
 
 		// Create Index buffer.
 		mIndicesSize = SizeOf(_indices);
-		CreateBuffer(device, mIndexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, sizeof(uint32) * mIndicesSize, _indices.data());
+		mIndexBuffer.Create(device, sizeof(uint32) * mIndicesSize,
+			VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			_indices.data());
 	}
 
 	void VkMesh::Destroy(const IRenderInstance& _instance)

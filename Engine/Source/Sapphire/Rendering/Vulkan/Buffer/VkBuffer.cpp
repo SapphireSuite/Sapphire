@@ -10,7 +10,10 @@
 
 namespace Sa
 {
-	void VkBuffer::Create(const VkDevice& _device, uint32 _size, VkBufferUsageFlags _usage, VkMemoryPropertyFlags _properties)
+	void VkBuffer::Create_Internal(const VkDevice& _device,
+		uint32 _size, VkBufferUsageFlags _usage,
+		VkMemoryPropertyFlags _properties,
+		const void* _data)
 	{
 		const VkBufferCreateInfo bufferInfo
 		{
@@ -44,6 +47,47 @@ namespace Sa
 			MemoryAllocationFailed, Rendering, L"Failed to allocate vertex buffer memory!");
 
 		vkBindBufferMemory(_device, mHandle, mDeviceMemory, 0);
+
+
+		// Map memory.
+		if (_data)
+		{
+			void* deviceData;
+			vkMapMemory(_device, mDeviceMemory, 0, _size, 0, &deviceData);
+
+			memcpy(deviceData, _data, _size);
+
+			vkUnmapMemory(_device, mDeviceMemory);
+		}
+	}
+
+	void VkBuffer::Create(const VkDevice& _device,
+		uint32 _size, VkBufferUsageFlags _usage,
+		VkMemoryPropertyFlags _properties,
+		const void* _data)
+	{
+		// Use staging buffer for device local buffer.
+		if (_properties == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+		{
+			// Create temp staging buffer.
+			VkBuffer stagingBuffer;
+			stagingBuffer.Create_Internal(_device, _size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _data);
+
+
+			// Create saved buffer (device local only).
+			Create_Internal(_device, _size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | _usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+
+			// Use staging buffer to transfer mapped memory.
+			VkBuffer::Copy(_device, stagingBuffer, *this, _size);
+
+
+			// Destroy staging buffer.
+			stagingBuffer.Destroy(_device);
+		}
+		else
+			Create_Internal(_device, _size, _usage, _properties, _data);
 	}
 
 	void VkBuffer::Destroy(const VkDevice& _device)

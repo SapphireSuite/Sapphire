@@ -144,6 +144,7 @@ branches:
     - /^(?i:WIP)_.*$/
     - /^(?i:temp).*$/
     - /^(?i:test).*$/
+    - dev_rendering
 
   # Whitelist.
   only:
