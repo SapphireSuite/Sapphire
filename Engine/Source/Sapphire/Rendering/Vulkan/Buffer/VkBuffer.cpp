@@ -2,9 +2,9 @@
 
 #include <Rendering/Vulkan/Buffer/VkBuffer.hpp>
 
-#include <Rendering/Vulkan/VkMacro.hpp>
-#include <Rendering/Vulkan/Primitives/VkDevice.hpp>
-#include <Rendering/Vulkan/Queue/VkCommandBuffer.hpp>
+#include <Rendering/Vulkan/System/VkMacro.hpp>
+#include <Rendering/Vulkan/System/VkDevice.hpp>
+#include <Rendering/Vulkan/Buffer/VkCommandBuffer.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 

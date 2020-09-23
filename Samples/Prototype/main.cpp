@@ -11,11 +11,11 @@
 
 #include <Sapphire/Window/GLFWWindow.hpp>
 
-#include <Sapphire/Rendering/Vulkan/VkRenderInstance.hpp>
-#include <Sapphire/Rendering/Framework/UniformBuffers.hpp>
-#include <Sapphire/Rendering/Framework/Primitives/Pipeline/IMesh.hpp>
-#include <Sapphire/Rendering/Framework/Primitives/IRenderMaterial.hpp>
+#include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
+#include <Sapphire/Rendering/Framework/Primitives/Mesh/IMesh.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Light/ILight.hpp>
+#include <Sapphire/Rendering/Framework/Misc/UniformBuffers.hpp>
+#include <Sapphire/Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
 
 #include <Sapphire/Sdk/Asset/AssetManager.hpp>

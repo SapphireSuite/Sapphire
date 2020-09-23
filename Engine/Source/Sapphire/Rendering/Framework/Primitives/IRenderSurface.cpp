@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Framework/Primitives/IRenderSurface.hpp>
+#include <Rendering/Framework/System/IRenderSurface.hpp>
 
 namespace Sa
 {

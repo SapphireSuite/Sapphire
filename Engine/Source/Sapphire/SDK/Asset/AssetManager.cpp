@@ -7,9 +7,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include <Rendering/Framework/Primitives/Pipeline/IMesh.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/ITexture.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/IShader.hpp>
+#include <Rendering/Framework/Primitives/Mesh/IMesh.hpp>
+#include <Rendering/Framework/Primitives/Shader/IShader.hpp>
+#include <Rendering/Framework/Primitives/Texture/ITexture.hpp>
 
 #include <Sdk/Model.hpp>
 #include <Sdk/Asset/Loaders/ObjLoader.hpp>

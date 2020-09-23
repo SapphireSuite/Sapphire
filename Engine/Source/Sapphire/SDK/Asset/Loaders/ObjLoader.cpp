@@ -13,7 +13,7 @@
 
 #include <Maths/Space/Vector2.hpp>
 #include <Maths/Space/Vector3.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/Vertex.hpp>
+#include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
 
 template <class T>
 inline void hash_combine(std::size_t& seed, const T& v)

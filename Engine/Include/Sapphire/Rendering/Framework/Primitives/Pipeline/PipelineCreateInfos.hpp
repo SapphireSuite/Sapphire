@@ -9,11 +9,11 @@
 
 #include <Rendering/Image/Viewport.hpp>
 
-#include <Rendering/Framework/UniformBuffers.hpp>
+#include <Rendering/Framework/Misc/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PolygonMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/CullingMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/FrontFaceMode.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/MaterialConstants.hpp>
+#include <Rendering/Framework/Primitives/Material/MaterialConstants.hpp>
 
 namespace Sa
 {

@@ -2,7 +2,7 @@
 
 #include <Rendering/Vulkan/Primitives/Light/VkLight.hpp>
 
-#include <Rendering/Vulkan/VkRenderInstance.hpp>
+#include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 
 namespace Sa
 {

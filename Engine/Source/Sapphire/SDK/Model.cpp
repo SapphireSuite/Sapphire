@@ -4,8 +4,8 @@
 
 #include <Collections/Debug>
 
-#include <Rendering/Framework/Primitives/Pipeline/IMesh.hpp>
-#include <Rendering/Framework/Primitives/IRenderMaterial.hpp>
+#include <Rendering/Framework/Primitives/Mesh/IMesh.hpp>
+#include <Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
 
 namespace Sa
 {

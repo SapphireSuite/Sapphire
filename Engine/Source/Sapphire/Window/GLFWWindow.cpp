@@ -10,8 +10,8 @@
 
 #include <vulkan/vulkan.h>
 
-#include <Rendering/Vulkan/VkRenderInstance.hpp>
-#include <Rendering/Vulkan/Primitives/VkRenderSurface.hpp>
+#include <Rendering/Vulkan/System/VkRenderInstance.hpp>
+#include <Rendering/Vulkan/System/VkRenderSurface.hpp>
 
 #else
 

@@ -4,7 +4,7 @@
 
 #include <Rendering/Vulkan/Buffer/VkUniformBuffer.hpp>
 
-#include <Rendering/Vulkan/Primitives/VkDevice.hpp>
+#include <Rendering/Vulkan/System/VkDevice.hpp>
 
 namespace Sa
 {

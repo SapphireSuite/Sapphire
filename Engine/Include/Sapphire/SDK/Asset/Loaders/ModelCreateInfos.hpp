@@ -8,8 +8,8 @@
 #include <vector>
 
 #include <Core/Types/Int.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/Vertex.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/MaterialConstants.hpp>
+#include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
+#include <Rendering/Framework/Primitives/Material/MaterialConstants.hpp>
 
 namespace Sa
 {
