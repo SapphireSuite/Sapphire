@@ -92,6 +92,11 @@ namespace Sa
 
 	void VkBuffer::Destroy(const VkDevice& _device)
 	{
+#if SA_DEBUG
+		if (mHandle == VK_NULL_HANDLE || mDeviceMemory == VK_NULL_HANDLE)
+			SA_LOG(L"Destroy a non-created (or already destroyed) buffer!", Warning, Rendering);
+#endif
+
 		vkDestroyBuffer(_device, mHandle, nullptr);
 		vkFreeMemory(_device, mDeviceMemory, nullptr); // Should be freed after destroying buffer.
 

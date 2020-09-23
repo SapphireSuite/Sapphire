@@ -15,6 +15,7 @@
 #include <Sapphire/Rendering/Framework/UniformBuffers.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/IMesh.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/IRenderMaterial.hpp>
+#include <Sapphire/Rendering/Framework/Primitives/Light/ILight.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
 
 #include <Sapphire/Sdk/Asset/AssetManager.hpp>
@@ -39,6 +40,13 @@ int main()
 	window.Create(800u, 800u);
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
+
+
+	// Create Lights.
+	PLightInfos pLight1;
+	pLight1.position = Vec3f(-3.0f, 1.0f, 0.0f);
+
+	ILight& plight1 = instance.InstantiatePointLight(pLight1);
 
 
 	AssetManager assetMgr;

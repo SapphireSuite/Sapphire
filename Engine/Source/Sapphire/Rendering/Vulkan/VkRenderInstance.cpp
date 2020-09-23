@@ -106,6 +106,15 @@ namespace Sa
 		return mRenderSurfaceInfos[0].renderSurface;
 	}
 
+	const std::vector<VkLight>& VkRenderInstance::GetPointLights() const
+	{
+		return mPointLights;
+	}
+	const std::vector<VkLight>& VkRenderInstance::GetDirectionalLights() const
+	{
+		return mDirectionalLights;
+	}
+
 	void VkRenderInstance::Create()
 	{
 		// Init Vulkan.
@@ -173,6 +182,10 @@ namespace Sa
 
 	void VkRenderInstance::Destroy()
 	{
+		DestroyLights();
+
+
+		// Destroy system.
 		mDevice.Destroy();
 
 #if SA_VK_VALIDATION_LAYERS
@@ -265,6 +278,51 @@ namespace Sa
 		}
 
 		SA_ASSERT(bFound, InvalidParam, Rendering, L"Window not registered as render surface!")
+	}
+
+	ILight& VkRenderInstance::InstantiatePointLight(const PLightInfos& _infos)
+	{
+		VkLight& pLight = mPointLights.emplace_back();
+
+		pLight.Create(*this, _infos);
+
+		return pLight;
+	}
+	void VkRenderInstance::DestroyPointLight(const ILight& _pLight)
+	{
+		SA_ASSERT(&_pLight >= &mPointLights[0] && &_pLight < &mPointLights[0] + mPointLights.size(),
+			InvalidParam, Rendering, L"Destroy unregistered point light!");
+
+		mPointLights.erase(mPointLights.begin() + (&_pLight - static_cast<const ILight*>(&mPointLights[0])));
+	}
+
+	ILight& VkRenderInstance::InstantiateDirectionalLight(const DLightInfos& _infos)
+	{
+		VkLight& dLight = mDirectionalLights.emplace_back();
+
+		dLight.Create(*this, _infos);
+
+		return dLight;
+	}
+	void VkRenderInstance::DestroyDirectionalLight(const ILight& _pLight)
+	{
+		SA_ASSERT(&_pLight >= &mDirectionalLights[0] && &_pLight < &mDirectionalLights[0] + mDirectionalLights.size(),
+			InvalidParam, Rendering, L"Destroy unregistered directional light!");
+
+		mDirectionalLights.erase(mDirectionalLights.begin() + (&_pLight - static_cast<const ILight*>(&mPointLights[0])));
+	}
+
+	void VkRenderInstance::DestroyLights()
+	{
+		for (auto it = mPointLights.begin(); it != mPointLights.end(); ++it)
+			it->Destroy(*this);
+
+		mPointLights.clear();
+
+		for (auto it = mDirectionalLights.begin(); it != mDirectionalLights.end(); ++it)
+			it->Destroy(*this);
+
+		mDirectionalLights.clear();
 	}
 
 	void VkRenderInstance::Update()
