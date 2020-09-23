@@ -22,13 +22,14 @@ namespace Sa
 {
 	void VkRenderPipeline::Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
 	{
-		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
+		const VkRenderInstance& vkInstance = _instance.As<VkRenderInstance>();
+		const VkDevice& device = vkInstance.GetDevice();
 		const VkRenderSurface& vkSurface = _pipelineInfos.surface.As<VkRenderSurface>();
 
 		if(_pipelineInfos.uniformBufferSize > 0u)
 			CreateUniformBuffers(device, vkSurface.GetSwapChain().GetImageNum(), _pipelineInfos.uniformBufferSize);
 
-		CreateDescriptors(device, _pipelineInfos);
+		CreateDescriptors(vkInstance, _pipelineInfos);
 
 
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
@@ -248,16 +249,16 @@ namespace Sa
 	}
 	void VkRenderPipeline::UpdatePushConstants(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
 	{
-		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
+		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
 	
 		// Push material's constants.
 		vkCmdPushConstants(commandBuffer, mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(_pipelineInfos.matConstants), &_pipelineInfos.matConstants);
 		
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
+		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
 
-	void VkRenderPipeline::CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+	void VkRenderPipeline::CreateDescriptorSetLayoutBindings(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos,
 		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
 	{
 		// Static UBO binding.
@@ -285,25 +286,61 @@ namespace Sa
 		}
 
 
+		// Light bindings.
+		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
+		{
+			// Point lights.
+			uint32 pLightNum = SizeOf(_instance.GetPointLights());
+
+			if (pLightNum > 0u)
+			{
+				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					SizeOf(_layoutBindings),											// binding.
+					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
+					pLightNum,															// descriptorCount.
+					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,			// stageFlags.
+					nullptr																// pImmutableSamplers.
+				});
+			}
+
+
+			// Directional lights.
+			uint32 dLightNum = SizeOf(_instance.GetDirectionalLights());
+
+			if (dLightNum > 0u)
+			{
+				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					SizeOf(_layoutBindings),											// binding.
+					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
+					dLightNum,															// descriptorCount.
+					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,			// stageFlags.
+					nullptr																// pImmutableSamplers.
+				});
+			}
+		}
+
+
 		// Texture bindings.
 		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 		{
-			SizeOf(_layoutBindings),											// binding.
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
-			SizeOf(_pipelineInfos.textures),									// descriptorCount.
-			VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
-			nullptr																// pImmutableSamplers.
+			SizeOf(_layoutBindings),												// binding.
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// descriptorType.
+			SizeOf(_pipelineInfos.textures),										// descriptorCount.
+			VK_SHADER_STAGE_FRAGMENT_BIT,											// stageFlags.
+			nullptr																	// pImmutableSamplers.
 		});
 	}
 
-	void VkRenderPipeline::CreateDescriptorSetLayout(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::CreateDescriptorSetLayout(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
 	{
 		std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
 		layoutBindings.reserve(5);
 
 
 		// Populate bindings.
-		CreateDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
+		CreateDescriptorSetLayoutBindings(_instance, _pipelineInfos, layoutBindings);
 
 
 		// Create DescriptorSetLayout.
@@ -316,12 +353,12 @@ namespace Sa
 			layoutBindings.data()													// pBindings.
 		};
 
-		SA_VK_ASSERT(vkCreateDescriptorSetLayout(_device, &descriptorSetLayoutInfo, nullptr, &mDescriptorSetLayout),
+		SA_VK_ASSERT(vkCreateDescriptorSetLayout(_instance.GetDevice(), &descriptorSetLayoutInfo, nullptr, &mDescriptorSetLayout),
 			CreationFailed, Rendering, L"Failed to create descriptor set layout!");
 	}
 
 
-	void VkRenderPipeline::CreateDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+	void VkRenderPipeline::CreateDescriptorPoolSize(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
 		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
 	{
 		// Static UBO binding.
@@ -343,7 +380,33 @@ namespace Sa
 		}
 
 
-		// Texture binding.
+		// Light bindings.
+		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
+		{
+			// Point lights.
+			if (SizeOf(_instance.GetPointLights()) > 0u)
+			{
+				_poolSizes.push_back(VkDescriptorPoolSize
+				{
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
+					_imageNum,															// descriptorCount.
+				});
+			}
+
+
+			// Directional lights.
+			if (SizeOf(_instance.GetDirectionalLights()) > 0u)
+			{
+				_poolSizes.push_back(VkDescriptorPoolSize
+				{
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
+					_imageNum,															// descriptorCount.
+				});
+			}
+		}
+
+
+		// Texture bindings.
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
@@ -351,14 +414,14 @@ namespace Sa
 		});
 	}
 
-	void VkRenderPipeline::CreateDescriptorPool(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
+	void VkRenderPipeline::CreateDescriptorPool(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
 	{
 		std::vector<VkDescriptorPoolSize> poolSizes;
 		poolSizes.reserve(5);
 
 
 		// Populate poolSizes.
-		CreateDescriptorPoolSize(_pipelineInfos, _imageNum, poolSizes);
+		CreateDescriptorPoolSize(_instance, _pipelineInfos, _imageNum, poolSizes);
 
 
 		// Create DescriptorPool.
@@ -372,12 +435,12 @@ namespace Sa
 			poolSizes.data(),														// pPoolSizes.
 		};
 
-		SA_VK_ASSERT(vkCreateDescriptorPool(_device, &descriptorPoolInfo, nullptr, &mDescriptorPool),
+		SA_VK_ASSERT(vkCreateDescriptorPool(_instance.GetDevice(), &descriptorPoolInfo, nullptr, &mDescriptorPool),
 			CreationFailed, Rendering, L"Failed to create descriptor pool!");
 	}
 
 
-	void VkRenderPipeline::CreateWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+	void VkRenderPipeline::CreateWriteDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _index,
 		std::vector<DescriptorInfo>& _descriptorInfos,
 		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
 	{
@@ -385,20 +448,53 @@ namespace Sa
 
 		// Static UBO binding
 		_descriptorInfos.push_back(uniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(StaticUniformBuffer)));
-		_descriptorWrites.push_back(uniformBuffers[_index].CreateWriteDescriptorSet(mDescriptorSets[_index], 0));
+		_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 0));
 
 
 		// Object UBO binding
 		if (_pipelineInfos.uniformBufferSize > 0u)
 		{
 			_descriptorInfos.push_back(mObjectUniformBuffers[_index].CreateDescriptorBufferInfo(_pipelineInfos.uniformBufferSize));
-			_descriptorWrites.push_back(mObjectUniformBuffers[_index].CreateWriteDescriptorSet(mDescriptorSets[_index], 1));
+			_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 1));
 		}
 
+		uint32 bindingOffset = SizeOf(_descriptorWrites);
+
+
+		// Light bindings.
+		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
+		{
+			// Point lights.
+			const std::vector<VkPointLight>& pLights = _instance.GetPointLights();
+
+			if (SizeOf(pLights) > 0u)
+			{
+				for (uint32 i = 0u; i < SizeOf(pLights); ++i)
+				{
+					_descriptorInfos.push_back(pLights[i].CreateDescriptorBufferInfo());
+					_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset, i));
+				}
+
+				++bindingOffset;
+			}
+
+			// Directional lights.
+			const std::vector<VkDirectionalLight>& dLights = _instance.GetDirectionalLights();
+
+			if (SizeOf(dLights) > 0u)
+			{
+				for (uint32 i = 0u; i < SizeOf(dLights); ++i)
+				{
+					_descriptorInfos.push_back(dLights[i].CreateDescriptorBufferInfo());
+					_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset, i));
+				}
+
+				++bindingOffset;
+			}
+		}
+		
 
 		// Texture bindings.
-		uint32 bindingOffset = SizeOf(_descriptorWrites);
-		
 		for(uint32 i = 0u; i < SizeOf(_pipelineInfos.textures); ++i)
 		{
 			SA_ASSERT(_pipelineInfos.textures[i], Nullptr, Rendering, L"Pipeline bind nullptr texture!");
@@ -406,13 +502,13 @@ namespace Sa
 			const VkTexture& vkTexture = _pipelineInfos.textures[i]->As<VkTexture>();
 
 			_descriptorInfos.push_back(vkTexture.CreateDescriptorImageInfo());
-			_descriptorWrites.push_back(vkTexture.CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset, i));
+			_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset, i));
 		}
 
 		++bindingOffset;
 	}
 
-	void VkRenderPipeline::CreateDescriptorSets(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
+	void VkRenderPipeline::CreateDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
 	{
 		SA_ASSERT(mDescriptorSetLayout != VK_NULL_HANDLE, Nullptr, Rendering, L"Create descriptor sets with null descriptor layout!");
 		SA_ASSERT(mDescriptorPool != VK_NULL_HANDLE, Nullptr, Rendering, L"Create descriptor sets with null descriptor pool!");
@@ -431,7 +527,7 @@ namespace Sa
 			descriptorSetLayouts.data(),								// pSetLayouts.
 		};
 
-		SA_VK_ASSERT(vkAllocateDescriptorSets(_device, &descriptorSetAllocInfo, mDescriptorSets.data()),
+		SA_VK_ASSERT(vkAllocateDescriptorSets(_instance.GetDevice(), &descriptorSetAllocInfo, mDescriptorSets.data()),
 			MemoryAllocationFailed, Rendering, L"Failed to allocate descriptor sets!");
 
 
@@ -447,7 +543,7 @@ namespace Sa
 			descriptorInfos.clear();
 			descriptorWrites.clear();
 
-			CreateWriteDescriptorSets(_pipelineInfos, i, descriptorInfos, descriptorWrites);
+			CreateWriteDescriptorSets(_instance, _pipelineInfos, i, descriptorInfos, descriptorWrites);
 
 			// Init info ptr after any vector resize.
 			for (uint32 j = 0u; j < descriptorWrites.size(); ++j)
@@ -458,19 +554,19 @@ namespace Sa
 					descriptorWrites[j].pBufferInfo = &descriptorInfos[j].buffer;
 			}
 
-			vkUpdateDescriptorSets(_device, SizeOf(descriptorWrites), descriptorWrites.data(), 0, nullptr);
+			vkUpdateDescriptorSets(_instance.GetDevice(), SizeOf(descriptorWrites), descriptorWrites.data(), 0, nullptr);
 		}
 	}
 
 
-	void VkRenderPipeline::CreateDescriptors(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::CreateDescriptors(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
 	{
-		CreateDescriptorSetLayout(_device, _pipelineInfos);
+		CreateDescriptorSetLayout(_instance, _pipelineInfos);
 
 		const uint32 imageNum = _pipelineInfos.surface.As<VkRenderSurface>().GetSwapChain().GetImageNum();
 
-		CreateDescriptorPool(_device, _pipelineInfos, imageNum);
-		CreateDescriptorSets(_device, _pipelineInfos, imageNum);
+		CreateDescriptorPool(_instance, _pipelineInfos, imageNum);
+		CreateDescriptorSets(_instance, _pipelineInfos, imageNum);
 	}
 	void VkRenderPipeline::DestroyDescriptors(const VkDevice& _device)
 	{
@@ -515,6 +611,11 @@ namespace Sa
 				ReCreate(_instance, _pipelineInfos);
 			}
 		));
+
+		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
+		{
+			// TODO: ADD Pipeline recreation event.
+		}
 	}
 
 	void VkRenderPipeline::Destroy(const IRenderInstance& _instance)

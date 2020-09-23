@@ -17,13 +17,14 @@ namespace Sa
 
 	class VkLight : public ILight
 	{
+	protected:
 		VkUniformBuffer mUniformBuffer;
 
 	public:
 		void Create(const IRenderInstance& _instance, const LightInfos& _infos) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
-		operator VkUniformBuffer() const;
+		VkDescriptorBufferInfo CreateDescriptorBufferInfo() const noexcept;
 	};
 
 #endif

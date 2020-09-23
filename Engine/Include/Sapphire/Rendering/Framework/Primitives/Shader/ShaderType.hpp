@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_SHADER_TYPE
-#define SAPPHIRE_RENDERING_SHADER_TYPE
+#ifndef SAPPHIRE_RENDERING_SHADER_TYPE_GUARD
+#define SAPPHIRE_RENDERING_SHADER_TYPE_GUARD
 
 #include <Rendering/Config.hpp>
 
@@ -24,6 +24,7 @@ namespace Sa
 		Geometry,
 		Compute
 	};
+
 
 #if SA_RENDERING_API == SA_VULKAN
 

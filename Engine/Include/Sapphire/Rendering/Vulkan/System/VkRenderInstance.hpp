@@ -10,7 +10,9 @@
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
 #include <Rendering/Vulkan/System/VkRenderSurface.hpp>
-#include <Rendering/Vulkan/Primitives/Light/VkLight.hpp>
+
+#include <Rendering/Vulkan/Primitives/Light/VkPointLight.hpp>
+#include <Rendering/Vulkan/Primitives/Light/VkDirectionalLight.hpp>
 
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -31,8 +33,8 @@ namespace Sa
 
 		std::vector<RenderSurfaceInfos> mRenderSurfaceInfos;
 
-		std::vector<VkLight> mPointLights;
-		std::vector<VkLight> mDirectionalLights;
+		std::vector<VkPointLight> mPointLights;
+		std::vector<VkDirectionalLight> mDirectionalLights;
 
 
 #if SA_VK_VALIDATION_LAYERS
@@ -59,8 +61,8 @@ namespace Sa
 
 		const VkRenderSurface& GetRenderSurface(const IWindow& _window) const;
 
-		const std::vector<VkLight>& GetPointLights() const;
-		const std::vector<VkLight>& GetDirectionalLights() const;
+		const std::vector<VkPointLight>& GetPointLights() const;
+		const std::vector<VkDirectionalLight>& GetDirectionalLights() const;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Create() override final;
@@ -73,12 +75,12 @@ namespace Sa
 		SA_ENGINE_API void DestroyRenderSurface(const IWindow& _window) override final;
 
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API ILight& InstantiatePointLight(const PLightInfos& _infos) override final;
+		SA_ENGINE_API ILight& InstantiatePointLight(const LightInfos& _infos) override final;
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void DestroyPointLight(const ILight& _pLight) override final;
 
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API ILight& InstantiateDirectionalLight(const DLightInfos& _infos) override final;
+		SA_ENGINE_API ILight& InstantiateDirectionalLight(const LightInfos& _infos) override final;
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void DestroyDirectionalLight(const ILight& _pLight) override final;
 

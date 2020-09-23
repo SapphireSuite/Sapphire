@@ -113,7 +113,7 @@ namespace Sa
 			_size												// range.
 		};
 	}
-	VkWriteDescriptorSet VkBuffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem) const noexcept
+	VkWriteDescriptorSet VkBuffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem) noexcept
 	{
 		return VkWriteDescriptorSet
 		{

@@ -43,8 +43,9 @@ int main()
 
 
 	// Create Lights.
-	PLightInfos pLight1;
-	pLight1.position = Vec3f(-3.0f, 1.0f, 0.0f);
+	LightInfos pLight1;
+	pLight1.position = Vec3f(-2.0f, -2.0f, -4.0f);
+	pLight1.color = Vec3f(0.9f, 0.7f, 0.3f);
 
 	ILight& plight1 = instance.InstantiatePointLight(pLight1);
 
@@ -52,8 +53,8 @@ int main()
 	AssetManager assetMgr;
 
 	// Load assets.
-	const IShader* unlitVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_lit_vert.spv");
-	const IShader* unlitFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_lit_frag.spv");
+	const IShader* litVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_lit_vert.spv");
+	const IShader* litFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_lit_frag.spv");
 
 	std::vector<ModelCreateInfos> modelInfos;
 	ObjLoader::Load("../../Engine/Resources/Models/Magikarp/Magikarp.obj", modelInfos);
@@ -76,16 +77,17 @@ int main()
 			surface,
 			surface.GetViewport(),
 
-			unlitVertShader,
-			unlitFragShader,
+			litVertShader,
+			litFragShader,
 
 			modelInfos[0].matConstants,
 
 			{ magikarpBodyTexture, magikarpBodyNormTexture, magikarpBodySpecTexture, magikarpBodyPowTexture },
 
 			PolygonMode::Fill,
-			CullingMode::None,
-			FrontFaceMode::Clockwise
+			CullingMode::Back,
+			FrontFaceMode::Clockwise,
+			ShaderModel::Lit
 		};
 
 		magikarpBodyMat->CreatePipeline(instance, bodyPipelineInfos);
@@ -103,16 +105,17 @@ int main()
 			surface,
 			surface.GetViewport(),
 
-			unlitVertShader,
-			unlitFragShader,
+			litVertShader,
+			litFragShader,
 
 			modelInfos[1].matConstants,
 
 			{ magikarpEyesTexture, magikarpEyesNormTexture, magikarpEyesSpecTexture, magikarpEyesPowTexture },
 
 			PolygonMode::Fill,
-			CullingMode::None,
-			FrontFaceMode::Clockwise
+			CullingMode::Back,
+			FrontFaceMode::Clockwise,
+			ShaderModel::Lit
 		};
 
 		magikarpEyesMat->CreatePipeline(instance, eyesPipelineInfos);

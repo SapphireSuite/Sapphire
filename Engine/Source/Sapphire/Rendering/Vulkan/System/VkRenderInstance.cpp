@@ -106,11 +106,11 @@ namespace Sa
 		return mRenderSurfaceInfos[0].renderSurface;
 	}
 
-	const std::vector<VkLight>& VkRenderInstance::GetPointLights() const
+	const std::vector<VkPointLight>& VkRenderInstance::GetPointLights() const
 	{
 		return mPointLights;
 	}
-	const std::vector<VkLight>& VkRenderInstance::GetDirectionalLights() const
+	const std::vector<VkDirectionalLight>& VkRenderInstance::GetDirectionalLights() const
 	{
 		return mDirectionalLights;
 	}
@@ -280,9 +280,9 @@ namespace Sa
 		SA_ASSERT(bFound, InvalidParam, Rendering, L"Window not registered as render surface!")
 	}
 
-	ILight& VkRenderInstance::InstantiatePointLight(const PLightInfos& _infos)
+	ILight& VkRenderInstance::InstantiatePointLight(const LightInfos& _infos)
 	{
-		VkLight& pLight = mPointLights.emplace_back();
+		VkPointLight& pLight = mPointLights.emplace_back();
 
 		pLight.Create(*this, _infos);
 
@@ -296,9 +296,9 @@ namespace Sa
 		mPointLights.erase(mPointLights.begin() + (&_pLight - static_cast<const ILight*>(&mPointLights[0])));
 	}
 
-	ILight& VkRenderInstance::InstantiateDirectionalLight(const DLightInfos& _infos)
+	ILight& VkRenderInstance::InstantiateDirectionalLight(const LightInfos& _infos)
 	{
-		VkLight& dLight = mDirectionalLights.emplace_back();
+		VkDirectionalLight& dLight = mDirectionalLights.emplace_back();
 
 		dLight.Create(*this, _infos);
 

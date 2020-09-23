@@ -11,11 +11,18 @@ namespace Sa
 {
 	struct MaterialConstants
 	{
-		Vec3f kd;
-		Vec3f ka;
-		Vec3f ks;
-		Vec3f ke;
-		Vec3f tf;
+		// Ambiant constant.
+		alignas(16) Vec3f ka;
+
+		// Diffuse constant.
+		alignas(16) Vec3f kd;
+
+		// Specular constant.
+		alignas(16) Vec3f ks;
+
+		alignas(16) Vec3f ke;
+
+		alignas(16) Vec3f tf;
 
 		float d = 0.0f;
 		float ni = 0.0f;

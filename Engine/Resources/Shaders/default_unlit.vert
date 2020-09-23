@@ -7,12 +7,12 @@ layout(binding = 0) uniform StaticUniformBuffer
 {
     mat4 view;
     mat4 proj;
-} s_ubo;
+} sUBO;
 
 layout(binding = 1) uniform ObjectUniformBuffer
 {
     mat4 model;
-} o_ubo;
+} oUBO;
 
 
 
@@ -23,13 +23,17 @@ layout(location = 2) in vec2 inTexture;
 
 
 // Out.
-layout(location = 0) out vec2 outTexture;
+layout(location = 0) out DataBlock
+{
+	vec2 texture;
+} vsOut;
 
 
 // Code
 void main()
 {
-    gl_Position = s_ubo.proj * inverse(s_ubo.view) * o_ubo.model * vec4(inPosition, 1.0);
+    gl_Position = sUBO.proj * inverse(sUBO.view) * oUBO.model * vec4(inPosition, 1.0);
 
-    outTexture = inTexture;
+    vsOut.texture = inTexture;
+    //outTexture = inTexture * tiling + offset;
 }

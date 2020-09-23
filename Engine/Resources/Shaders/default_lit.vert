@@ -7,14 +7,26 @@ layout(binding = 0) uniform StaticUniformBuffer
 {
     mat4 view;
     mat4 proj;
-} s_ubo;
+} sUBO;
 
 layout(binding = 1) uniform ObjectUniformBuffer
 {
     mat4 model;
-} o_ubo;
+} oUBO;
 
 
+layout (binding = 2) uniform PointLight
+{
+    vec3 position;
+
+	vec3 color;
+	
+	float ambiant;
+	float diffuse;
+	float specular;
+    
+    float shininess;
+} pLights[1];
 
 // In.
 layout(location = 0) in vec3 inPosition;
@@ -23,13 +35,33 @@ layout(location = 2) in vec2 inTexture;
 
 
 // Out.
-layout(location = 0) out vec2 outTexture;
+layout(location = 0) out DataBlock
+{
+    vec3 position;
+	vec3 normal;
+	vec2 texture;
+
+	vec3 camPosition;
+} vsOut;
 
 
 // Code
 void main()
 {
-    gl_Position = s_ubo.proj * inverse(s_ubo.view) * o_ubo.model * vec4(inPosition, 1.0);
+    // Position.
+    vsOut.position = mat3(oUBO.model) * inPosition;
+    gl_Position = sUBO.proj * inverse(sUBO.view) * vec4(vsOut.position, 1.0);
 
-    outTexture = inTexture;
+
+    // Normal
+    vsOut.normal = mat3(oUBO.model) * inNormal;
+
+
+    // Texture
+    vsOut.texture = inTexture;
+    //out.texture = inTexture * tiling + offset;
+
+
+    // Vector camera.
+	vsOut.camPosition = sUBO.view[3].xyz;
 }

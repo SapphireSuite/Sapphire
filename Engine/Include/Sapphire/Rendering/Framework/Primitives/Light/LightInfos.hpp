@@ -11,23 +11,25 @@ namespace Sa
 {
 	struct LightInfos
 	{
-		Vec3f color = Vec3f::One;
+		alignas(16) Vec3f position;
 
-		float ambiant = 0.1f;
-		float diffuse = 0.6f;
-		float specular = 0.3f;
+		alignas(16) Vec3f color = Vec3f::One;
+
+		float ambiant = 0.01f;
+		float diffuse = 0.64f;
+		float specular = 0.35f;
 
 		float shininess = 100.0f;
 	};
 
-	struct DLightInfos : public LightInfos
-	{
-	};
+	//struct DLightInfos : public LightInfos
+	//{
+	//};
 
-	struct PLightInfos : public LightInfos
-	{
-		Vec3f position;
-	};
+	//struct PLightInfos : public LightInfos
+	//{
+	//	//Vec3f position;
+	//};
 }
 
 #endif // GUARD

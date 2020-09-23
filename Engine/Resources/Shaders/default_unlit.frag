@@ -3,11 +3,14 @@
 
 
 // Uniform.
-layout(binding = 2) uniform sampler2D texSampler[1];
+layout(binding = 2) uniform sampler2D texSamplers[1];
 
 
 // In.
-layout(location = 0) in vec2 inTexture;
+layout(location = 0) in DataBlock
+{
+	vec2 texture;
+} fsIn;
 
 
 // Out.
@@ -17,5 +20,5 @@ layout(location = 0) out vec4 outColor;
 // Code.
 void main()
 {
-    outColor = texture(texSampler[0], inTexture);
+    outColor = texture(texSamplers[0], fsIn.texture);
 }

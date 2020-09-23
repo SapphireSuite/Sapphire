@@ -10,7 +10,7 @@ namespace Sa
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
-		mUniformBuffer.Create(device, sizeof(_infos),
+		mUniformBuffer.Create(device, sizeof(LightInfos),
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_infos);
 	}
@@ -21,9 +21,8 @@ namespace Sa
 		mUniformBuffer.Destroy(device);
 	}
 
-
-	VkLight::operator VkUniformBuffer() const
+	VkDescriptorBufferInfo VkLight::CreateDescriptorBufferInfo() const noexcept
 	{
-		return mUniformBuffer;
+		return mUniformBuffer.CreateDescriptorBufferInfo(sizeof(LightInfos));
 	}
 }

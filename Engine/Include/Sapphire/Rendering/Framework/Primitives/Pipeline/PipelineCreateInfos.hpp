@@ -14,6 +14,7 @@
 #include <Rendering/Framework/Primitives/Pipeline/CullingMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/FrontFaceMode.hpp>
 #include <Rendering/Framework/Primitives/Material/MaterialConstants.hpp>
+#include <Rendering/Framework/Primitives/Shader/ShaderModel.hpp>
 
 namespace Sa
 {
@@ -37,6 +38,7 @@ namespace Sa
 		PolygonMode polygonMode = PolygonMode::Fill;
 		CullingMode cullingMode = CullingMode::Back;
 		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
+		ShaderModel shaderModel = ShaderModel::Unknown;
 
 		uint32 uniformBufferSize = sizeof(ObjectUniformBuffer);
 	};

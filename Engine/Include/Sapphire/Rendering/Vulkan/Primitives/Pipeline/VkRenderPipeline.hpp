@@ -18,6 +18,7 @@
 namespace Sa
 {
 	class VkDevice;
+	class VkRenderInstance;
 
 	class VkRenderPipeline : public IRenderPipeline
 	{
@@ -40,16 +41,16 @@ namespace Sa
 		void UpdatePushConstants(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
 
 
-		virtual void CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+		virtual void CreateDescriptorSetLayoutBindings(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos,
 			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept;
 
-		void CreateDescriptorSetLayout(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
+		void CreateDescriptorSetLayout(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 
 
-		virtual void CreateDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+		virtual void CreateDescriptorPoolSize(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
 			std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept;
 
-		void CreateDescriptorPool(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
+		void CreateDescriptorPool(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
 
 
 		struct DescriptorInfo
@@ -66,13 +67,13 @@ namespace Sa
 			DescriptorInfo(VkDescriptorImageInfo _image) noexcept : image{ _image }, bIsImage{ true } {}
 		};
 
-		virtual void CreateWriteDescriptorSets(const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+		virtual void CreateWriteDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _index,
 			std::vector<DescriptorInfo>& _descriptorInfos,
 			std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept;
 
-		void CreateDescriptorSets(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
+		void CreateDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
 
-		void CreateDescriptors(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
+		void CreateDescriptors(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 		void DestroyDescriptors(const VkDevice& _device);
 
 		void CreateUniformBuffers(const VkDevice& _device, uint32 _imageNum, uint32 _bufferSize);
