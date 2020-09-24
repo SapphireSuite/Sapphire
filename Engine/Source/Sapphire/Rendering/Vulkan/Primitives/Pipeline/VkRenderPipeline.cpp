@@ -32,8 +32,9 @@ namespace Sa
 		CreateDescriptors(vkInstance, _pipelineInfos);
 
 
+		std::vector<ShaderStageCreateInfos> stagesInfos;
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-		CreateShaderStages(shaderStages, _pipelineInfos);
+		CreateShaderStages(shaderStages, stagesInfos, _pipelineInfos);
 
 
 		const VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo
@@ -194,9 +195,10 @@ namespace Sa
 			CreationFailed, Rendering, L"Failed to create graphics pipeline!");
 	}
 
-
-	void VkRenderPipeline::CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages,
+		std::vector<ShaderStageCreateInfos>& _stagesInfos, const PipelineCreateInfos& _pipelineInfos)
 	{
+		_stagesInfos.reserve(5u);
 		_shaderStages.reserve(5u);
 
 		// Create vertex shader stage.
@@ -217,6 +219,26 @@ namespace Sa
 		// Create fragment shader stage.
 		if (_pipelineInfos.fragementShader)
 		{
+			ShaderStageCreateInfos& stageInfos = _stagesInfos.emplace_back();
+
+			stageInfos.specEntries =
+			{
+				VkSpecializationMapEntry
+				{
+					1,								// constantID.
+					0,								// offset.
+					sizeof(int)						// size.
+				}
+			};
+
+			stageInfos.specInfos = VkSpecializationInfo
+			{
+				SizeOf(stageInfos.specEntries),		// mapEntryCount.
+				stageInfos.specEntries.data(),		// pMapEntries.
+				sizeof(int),						// dataSize.
+				&_pipelineInfos.illumModel			// pData.
+			};
+
 			_shaderStages.push_back(VkPipelineShaderStageCreateInfo
 			{
 				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
@@ -225,7 +247,7 @@ namespace Sa
 				API_GetShaderType(ShaderType::Fragment),							// stage.
 				_pipelineInfos.fragementShader->As<VkShader>(),						// module.
 				"main",																// pName.
-				nullptr,															// pSpecializationInfo.
+				&stageInfos.specInfos,												// pSpecializationInfo.
 			});
 		}
 	}
@@ -260,7 +282,7 @@ namespace Sa
 
 
 		// Light bindings.
-		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
+		if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindings.
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
@@ -365,7 +387,7 @@ namespace Sa
 
 
 		// Light bindings.
-		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
+		if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindigs.
 			_poolSizes.push_back(VkDescriptorPoolSize
@@ -454,7 +476,7 @@ namespace Sa
 
 
 		// Light bindings.
-		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
+		if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindigs.
 			_descriptorInfos.push_back(mMatConstantUniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(MaterialConstants)));
@@ -620,7 +642,7 @@ namespace Sa
 			}
 		));
 
-		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
+		if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// TODO: ADD Pipeline recreation event.
 		}

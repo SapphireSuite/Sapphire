@@ -36,7 +36,14 @@ namespace Sa
 		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 
 
-		void CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages, const PipelineCreateInfos& _pipelineInfos);
+		struct ShaderStageCreateInfos
+		{
+			std::vector<VkSpecializationMapEntry> specEntries;
+			VkSpecializationInfo specInfos;
+		};
+
+		void CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages,
+			std::vector<ShaderStageCreateInfos>& _stagesInfos, const PipelineCreateInfos& _pipelineInfos);
 		
 
 		virtual void CreateDescriptorSetLayoutBindings(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos,

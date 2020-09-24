@@ -53,8 +53,8 @@ int main()
 	AssetManager assetMgr;
 
 	// Load assets.
-	const IShader* litVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_lit_vert.spv");
-	const IShader* litFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_lit_frag.spv");
+	const IShader* vertShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_vert.spv");
+	const IShader* fragShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_frag.spv");
 
 	std::vector<ModelCreateInfos> modelInfos;
 	ObjLoader::Load("../../Engine/Resources/Models/Magikarp/Magikarp.obj", modelInfos);
@@ -77,8 +77,8 @@ int main()
 			surface,
 			surface.GetViewport(),
 
-			litVertShader,
-			litFragShader,
+			vertShader,
+			fragShader,
 
 			modelInfos[0].matConstants,
 
@@ -87,7 +87,7 @@ int main()
 			PolygonMode::Fill,
 			CullingMode::Back,
 			FrontFaceMode::Clockwise,
-			ShaderModel::Lit
+			IlluminationModel::PBR
 		};
 
 		magikarpBodyMat->CreatePipeline(instance, bodyPipelineInfos);
@@ -105,8 +105,8 @@ int main()
 			surface,
 			surface.GetViewport(),
 
-			litVertShader,
-			litFragShader,
+			vertShader,
+			fragShader,
 
 			modelInfos[1].matConstants,
 
@@ -115,7 +115,7 @@ int main()
 			PolygonMode::Fill,
 			CullingMode::Back,
 			FrontFaceMode::Clockwise,
-			ShaderModel::Lit
+			IlluminationModel::PBR
 		};
 
 		magikarpEyesMat->CreatePipeline(instance, eyesPipelineInfos);
