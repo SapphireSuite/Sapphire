@@ -6,28 +6,28 @@
 layout(binding = 2) uniform MaterialConstants
 {
 	// Ambiant constant.
-	vec3 Ka;
+	vec3 ka;
 
 	// Diffuse constant.
-    vec3 Kd;
+    vec3 kd;
 
 	// Specular constant.
-	vec3 Ks;
+	vec3 ks;
 
 	// Emissive constant.
-	vec3 Ke;
+	vec3 ke;
 
-
-	vec3 Tf;
+	// Transmission filter.
+	vec3 tf;
+	
+	// Used for shininess.
+	float roughness;
 
 	// Transparency.
-	float d;
+	float alpha;
 
-	// Optical density (refraction index).
-	float Ni;
-
-	// Specular exponent.
-	float Ns;
+	// Optical density (Refractive index).
+	float refraction;
 } matConsts;
 
 layout (binding = 3) uniform PointLight
@@ -39,8 +39,6 @@ layout (binding = 3) uniform PointLight
 	float ambiant;
 	float diffuse;
 	float specular;
-    
-    float shininess;
 } pLights[1];
 
 layout(binding = 4) uniform sampler2D texSamplers[4];
@@ -103,22 +101,26 @@ void BlinnPhongIllumination()
 	// Halfway vector.
 	vec3 vHalf = normalize(vLight + vCam);
 
+
+	// Convert roughness into shininess.
+	float shininess = (2.0 / pow(matConsts.roughness, 2)) - 2;
+
 	// Normal facing light.
 	float facing = dot(vNorm, vLight) > 0.0 ? 1.0 : 0.0;
 	
 
 	// Ambiant component.
-	vec3 Ra = pLights[0].color * pLights[0].ambiant * matConsts.Ka;
+	vec3 Ra = pLights[0].color * pLights[0].ambiant * matConsts.ka;
 	
 	// Diffuse component.
-	vec3 Rd = pLights[0].color * pLights[0].diffuse * matConsts.Kd * texture(texSamplers[0], fsIn.texture).xyz;
+	vec3 Rd = pLights[0].color * pLights[0].diffuse * matConsts.kd * texture(texSamplers[0], fsIn.texture).xyz;
 
 	// Specular component.
-	vec3 Rs = pLights[0].color * pLights[0].specular * matConsts.Ks;
+	vec3 Rs = pLights[0].color * pLights[0].specular * matConsts.ks;
 
 
 	vec3 diffuse = Rd * max(dot(vNorm, vLight), 0.0);
-	vec3 specular = Rs * pow(max(dot(vNorm, vHalf), 0.0), pLights[0].shininess) * facing;  
+	vec3 specular = Rs * pow(max(dot(vNorm, vHalf), 0.0), shininess) * facing;  
 	
 	float attenuation = 1.0 / (kc + kl * length(vLight) + kq * dot(vLight, vLight));
 	
@@ -142,29 +144,32 @@ void PBRIllumination()
 	vec3 vHalf = normalize(vLight + vCam);
 
 
+	// Convert roughness into shininess.
+	float shininess = (2.0 / pow(matConsts.roughness, 2)) - 2;
+
 	/* 
 	*	Normalization factor: Gotanda approximation.
 	*	Source: http://research.tri-ace.com/Data/course_note_practical_implementation_at_triace.pdf
 	*/
-	//float normFactor = 0.0397436 * pLights[0].shininess + 0.0856832;
-	float normFactor = (pLights[0].shininess + 2) / (4 /** PI*/ * (2 - pow(2, -pLights[0].shininess / 2)));
+	//float normFactor = 0.0397436 * shininess + 0.0856832;
+	float normFactor = (shininess + 2) / (4 /** PI*/ * (2 - pow(2, -shininess / 2)));
 
 	// Geometric factor: Neumann "Albedo pumped-up".
 	float G = 1.0 / max(dot(vNorm, vLight), dot(vNorm, vCam));
 
 
 	// Ambiant component.
-	vec3 Ra = pLights[0].color * pLights[0].ambiant * matConsts.Ka;
+	vec3 Ra = pLights[0].color * pLights[0].ambiant * matConsts.ka;
 	
 	// Diffuse component.
-	vec3 Rd = pLights[0].color * pLights[0].diffuse * matConsts.Kd * texture(texSamplers[0], fsIn.texture).xyz;
+	vec3 Rd = pLights[0].color * pLights[0].diffuse * matConsts.kd * texture(texSamplers[0], fsIn.texture).xyz;
 
 	// Specular component.
-	vec3 Rs = pLights[0].color * pLights[0].specular * matConsts.Ks;
+	vec3 Rs = pLights[0].color * pLights[0].specular * matConsts.ks;
 
 
 	vec3 diffuseBRDF = Rd/* / PI*/;
-	vec3 specularBRDF = Rs * normFactor * Fresnel(0.8, dot(vCam, vHalf)) * G * pow(max(dot(vNorm, vHalf), 0.0), pLights[0].shininess);
+	vec3 specularBRDF = Rs * normFactor * Fresnel(0.8, dot(vCam, vHalf)) * G * pow(max(dot(vNorm, vHalf), 0.0), shininess);
 	
 	outColor.xyz = Ra + (diffuseBRDF + specularBRDF) * dot(vNorm, vLight);
 	outColor.a = 1.0;

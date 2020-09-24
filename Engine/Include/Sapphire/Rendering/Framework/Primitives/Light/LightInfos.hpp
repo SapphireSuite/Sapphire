@@ -5,7 +5,11 @@
 #ifndef SAPPHIRE_RENDERING_LIGHT_INFOS_GUARD
 #define SAPPHIRE_RENDERING_LIGHT_INFOS_GUARD
 
+#include <Core/Support/Pragma.hpp>
+
 #include <Maths/Space/Vector3.hpp>
+
+SA_PRAGMA_SDWARN("", 4324)
 
 namespace Sa
 {
@@ -18,8 +22,6 @@ namespace Sa
 		float ambiant = 0.01f;
 		float diffuse = 0.64f;
 		float specular = 0.35f;
-
-		float shininess = 100.0f;
 	};
 
 	//struct DLightInfos : public LightInfos
@@ -31,5 +33,7 @@ namespace Sa
 	//	//Vec3f position;
 	//};
 }
+
+SA_PRAGMA_EDWARN()
 
 #endif // GUARD
