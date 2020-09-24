@@ -133,7 +133,7 @@ int main()
 	const float l = -1.0f;
 	const float t = 1.0f;
 	const float b = -1.0f;
-	const float n = 0.1f;
+	const float n = 0.5f;
 	const float f = 10.0f;
 
 	Mat4f orthoMat
@@ -145,7 +145,7 @@ int main()
 	);
 
 
-	const float fov = 90.0f;
+	const float fov = 60.0f;
 	const float ratio = 1;
 	const float scale = 1.f / tanf((fov / 2.f) * Maths::DegToRad);
 	float tan_half_angle = std::tan(Maths::DegToRad * fov / 2);
@@ -184,7 +184,7 @@ int main()
 		StaticUniformBuffer ubo;
 		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
 		ubo.viewMat = camTr.Matrix().GetTransposed();
-		ubo.projMat = perspMat.GetTransposed();
+		ubo.projMat = perspMat;
 
 		frame.uniformBuffer.UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
 		
