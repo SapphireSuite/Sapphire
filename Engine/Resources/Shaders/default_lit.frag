@@ -3,7 +3,26 @@
 
 
 // Uniform.
-layout (binding = 2) uniform PointLight
+layout(binding = 2) uniform MaterialConstants
+{
+	// Ambiant constant.
+	vec3 Ka;
+
+	// Diffuse constant.
+    vec3 Kd;
+
+	// Specular constant.
+	vec3 Ks;
+
+	vec3 Ke;
+	vec3 Tf;
+
+	float d;
+	float Ni;
+	float Ns;
+} matConsts;
+
+layout (binding = 3) uniform PointLight
 {
 	vec3 position;
 
@@ -16,28 +35,16 @@ layout (binding = 2) uniform PointLight
     float shininess;
 } pLights[1];
 
-layout(binding = 3) uniform sampler2D texSamplers[4];
+layout(binding = 4) uniform sampler2D texSamplers[4];
 
 
 // Constants.
-layout(push_constant) uniform MaterialConstants
-{
-	vec3 Ka;
-    vec3 Kd;
-	vec3 Ks;
-	vec3 Ke;
-	vec3 Tf;
-
-	float d;
-	float Ni;
-	float Ns;
-} matConsts;
-
 const float PI = 3.14159265359;
 
-const float kc = 0.01; //constant
-const float kl = 0.2; //linear
-const float kq = 0.2; //quadratic
+const float kc = 0.01;	//constant
+const float kl = 0.2;	//linear
+const float kq = 0.2;	//quadratic
+
 
 // In.
 layout(location = 0) in DataBlock

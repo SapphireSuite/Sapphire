@@ -30,16 +30,14 @@ namespace Sa
 		std::vector<VkDescriptorSet> mDescriptorSets;
 
 		std::vector<VkUniformBuffer> mObjectUniformBuffers;
+		std::vector<VkUniformBuffer> mMatConstantUniformBuffers;
+
 
 		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 
 
 		void CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages, const PipelineCreateInfos& _pipelineInfos);
 		
-		void CreatePushConstants(std::vector<VkPushConstantRange>& _constants, const PipelineCreateInfos& _pipelineInfos);
-		
-		void UpdatePushConstants(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos);
-
 
 		virtual void CreateDescriptorSetLayoutBindings(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos,
 			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept;
@@ -76,7 +74,7 @@ namespace Sa
 		void CreateDescriptors(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 		void DestroyDescriptors(const VkDevice& _device);
 
-		void CreateUniformBuffers(const VkDevice& _device, uint32 _imageNum, uint32 _bufferSize);
+		void CreateUniformBuffers(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
 		void DestroyUniformBuffers(const VkDevice& _device);
 
 	public:

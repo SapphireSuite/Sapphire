@@ -3,7 +3,7 @@
 
 
 // Uniform.
-layout(binding = 2) uniform sampler2D texSamplers[1];
+layout(binding = 4) uniform sampler2D texSamplers[1];
 
 
 // In.

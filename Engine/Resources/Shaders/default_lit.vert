@@ -14,8 +14,7 @@ layout(binding = 1) uniform ObjectUniformBuffer
     mat4 model;
 } oUBO;
 
-
-layout (binding = 2) uniform PointLight
+layout (binding = 3) uniform PointLight
 {
     vec3 position;
 
@@ -27,6 +26,7 @@ layout (binding = 2) uniform PointLight
     
     float shininess;
 } pLights[1];
+
 
 // In.
 layout(location = 0) in vec3 inPosition;

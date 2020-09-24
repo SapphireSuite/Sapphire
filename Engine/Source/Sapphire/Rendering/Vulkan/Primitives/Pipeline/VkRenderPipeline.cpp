@@ -27,7 +27,7 @@ namespace Sa
 		const VkRenderSurface& vkSurface = _pipelineInfos.surface.As<VkRenderSurface>();
 
 		if(_pipelineInfos.uniformBufferSize > 0u)
-			CreateUniformBuffers(device, vkSurface.GetSwapChain().GetImageNum(), _pipelineInfos.uniformBufferSize);
+			CreateUniformBuffers(device, _pipelineInfos, vkSurface.GetSwapChain().GetImageNum());
 
 		CreateDescriptors(vkInstance, _pipelineInfos);
 
@@ -150,9 +150,6 @@ namespace Sa
 		};
 
 
-		std::vector<VkPushConstantRange> pushConstants;
-		CreatePushConstants(pushConstants, _pipelineInfos);
-
 		const VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo
 		{
 			VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,							// sType.
@@ -160,14 +157,12 @@ namespace Sa
 			0,																		// flags.
 			1,																		// setLayoutCount.
 			&mDescriptorSetLayout,													// pSetLayouts.
-			SizeOf(pushConstants),													// pushConstantRangeCount.
-			pushConstants.data()													// pPushConstantRanges.
+			0,																		// pushConstantRangeCount.
+			nullptr																	// pPushConstantRanges.
 		};
 
 		SA_VK_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &mPipelineLayout),
 			CreationFailed, Rendering, L"Failed to create pipeline layout!");
-
-		UpdatePushConstants(device, _pipelineInfos);
 
 
 		const VkRenderPass& renderPass = vkSurface.GetRenderPass();
@@ -235,28 +230,6 @@ namespace Sa
 		}
 	}
 
-	void VkRenderPipeline::CreatePushConstants(std::vector<VkPushConstantRange>& _constants, const PipelineCreateInfos& _pipelineInfos)
-	{
-		_constants.reserve(3u);
-
-
-		// Add material's constants.
-		_constants.push_back(VkPushConstantRange{
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			0u,
-			sizeof(_pipelineInfos.matConstants)
-		});
-	}
-	void VkRenderPipeline::UpdatePushConstants(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos)
-	{
-		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
-	
-		// Push material's constants.
-		vkCmdPushConstants(commandBuffer, mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(_pipelineInfos.matConstants), &_pipelineInfos.matConstants);
-		
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
-	}
-
 
 	void VkRenderPipeline::CreateDescriptorSetLayoutBindings(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos,
 		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
@@ -289,6 +262,17 @@ namespace Sa
 		// Light bindings.
 		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
 		{
+			// Material UBO bindings.
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				SizeOf(_layoutBindings),											// binding.
+				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
+			});
+
+
 			// Point lights.
 			uint32 pLightNum = SizeOf(_instance.GetPointLights());
 
@@ -383,6 +367,14 @@ namespace Sa
 		// Light bindings.
 		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
 		{
+			// Material UBO bindigs.
+			_poolSizes.push_back(VkDescriptorPoolSize
+			{
+				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
+				_imageNum,															// descriptorCount.
+			});
+
+
 			// Point lights.
 			if (SizeOf(_instance.GetPointLights()) > 0u)
 			{
@@ -464,6 +456,13 @@ namespace Sa
 		// Light bindings.
 		if (_pipelineInfos.shaderModel != ShaderModel::Unlit)
 		{
+			// Material UBO bindigs.
+			_descriptorInfos.push_back(mMatConstantUniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(MaterialConstants)));
+			_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset));
+
+			++bindingOffset;
+
+
 			// Point lights.
 			const std::vector<VkPointLight>& pLights = _instance.GetPointLights();
 
@@ -581,22 +580,31 @@ namespace Sa
 		mDescriptorPool = VK_NULL_HANDLE;
 	}
 
-	void VkRenderPipeline::CreateUniformBuffers(const VkDevice& _device, uint32 _imageNum, uint32 _bufferSize)
+	void VkRenderPipeline::CreateUniformBuffers(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
 	{
 		mObjectUniformBuffers.resize(_imageNum);
+		mMatConstantUniformBuffers.resize(_imageNum);
 
 		for (uint32 i = 0; i < _imageNum; i++)
 		{
-			mObjectUniformBuffers[i].Create(_device, _bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			mObjectUniformBuffers[i].Create(_device, _pipelineInfos.uniformBufferSize,
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+			mMatConstantUniformBuffers[i].Create(_device, sizeof(MaterialConstants),
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_pipelineInfos.matConstants);
 		}
 	}
 	void VkRenderPipeline::DestroyUniformBuffers(const VkDevice& _device)
 	{
 		for (uint32 i = 0; i < mObjectUniformBuffers.size(); i++)
+		{
 			mObjectUniformBuffers[i].Destroy(_device);
+			mMatConstantUniformBuffers[i].Destroy(_device);
+		}
 
 		mObjectUniformBuffers.clear();
+		mMatConstantUniformBuffers.clear();
 	}
 
 	void VkRenderPipeline::Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
