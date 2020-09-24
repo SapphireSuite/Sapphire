@@ -224,19 +224,28 @@ namespace Sa
 			stageInfos.specEntries =
 			{
 				VkSpecializationMapEntry
+
+				// Alpha model.
 				{
-					1,								// constantID.
-					0,								// offset.
-					sizeof(int)						// size.
+					1,									// constantID.
+					0,									// offset.
+					sizeof(int)							// size.
+				},
+				
+				// Illumination Model.
+				{
+					2,									// constantID.
+					sizeof(int),						// offset.
+					sizeof(int)							// size.
 				}
 			};
 
 			stageInfos.specInfos = VkSpecializationInfo
 			{
-				SizeOf(stageInfos.specEntries),		// mapEntryCount.
-				stageInfos.specEntries.data(),		// pMapEntries.
-				sizeof(int),						// dataSize.
-				&_pipelineInfos.illumModel			// pData.
+				SizeOf(stageInfos.specEntries),			// mapEntryCount.
+				stageInfos.specEntries.data(),			// pMapEntries.
+				2 * sizeof(int),						// dataSize.
+				&_pipelineInfos.alphaModel				// pData.
 			};
 
 			_shaderStages.push_back(VkPipelineShaderStageCreateInfo

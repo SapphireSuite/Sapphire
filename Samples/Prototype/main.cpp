@@ -87,6 +87,7 @@ int main()
 			PolygonMode::Fill,
 			CullingMode::Back,
 			FrontFaceMode::Clockwise,
+			AlphaModel::Opaque,
 			IlluminationModel::PBR
 		};
 
@@ -115,6 +116,7 @@ int main()
 			PolygonMode::Fill,
 			CullingMode::Back,
 			FrontFaceMode::Clockwise,
+			AlphaModel::Opaque,
 			IlluminationModel::PBR
 		};
 

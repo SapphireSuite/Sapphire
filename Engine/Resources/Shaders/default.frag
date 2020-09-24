@@ -47,7 +47,8 @@ layout(binding = 4) uniform sampler2D texSamplers[4];
 // Constants.
 const float PI = 3.14159265359;
 
-layout(constant_id = 1) const int illumModel = 1;
+layout(constant_id = 1) const int alphaModel = 0;
+layout(constant_id = 2) const int illumModel = 1;
 
 
 // In.
@@ -73,12 +74,20 @@ float Fresnel(float _f0, float _cosTheta);
 
 void main()
 {
+	// Illumination model.
 	if(illumModel == 0)				// Unlit.
-		outColor = texture(texSamplers[0], fsIn.texture);
+		outColor.xyz = texture(texSamplers[0], fsIn.texture).xyz;
 	else if(illumModel == 1)
 		BlinnPhongIllumination();	// Lit: simple Blinn-Phong implementation.
 	else if(illumModel == 2)
 		PBRIllumination();			// Lit: Physically based using BRDF.
+
+
+	// Alpha model.
+	if(alphaModel == 0)				// Opaque.
+		outColor.a = 1.0;
+	else if(alphaModel == 1)		// Allows transparency.
+		outColor.a = matConsts.alpha;
 }
 
 void BlinnPhongIllumination()
@@ -125,7 +134,6 @@ void BlinnPhongIllumination()
 	float attenuation = 1.0 / (kc + kl * length(vLight) + kq * dot(vLight, vLight));
 	
 	outColor.xyz = Ra + attenuation * (diffuse + specular);
-	outColor.a = 1.0;
 }
 
 
@@ -172,7 +180,6 @@ void PBRIllumination()
 	vec3 specularBRDF = Rs * normFactor * Fresnel(0.8, dot(vCam, vHalf)) * G * pow(max(dot(vNorm, vHalf), 0.0), shininess);
 	
 	outColor.xyz = Ra + (diffuseBRDF + specularBRDF) * dot(vNorm, vLight);
-	outColor.a = 1.0;
 }
 
 
