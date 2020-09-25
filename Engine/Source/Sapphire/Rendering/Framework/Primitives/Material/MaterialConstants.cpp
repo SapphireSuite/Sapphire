@@ -6,13 +6,15 @@
 
 namespace Sa
 {
-	void MaterialConstants::SetShininess(float _shininess)
+	void MaterialConstants::SetRoughness(float _roughness)
 	{
-		roughness = Maths::Sqrt(2 / (_shininess + 2));
+		// Convert roughness into shininess.
+		shininess = (2.0f / Maths::Pow(_roughness, 2.0f)) - 2.0f;
 	}
 
 	void MaterialConstants::SetSmoothness(float _smoothness)
 	{
-		roughness = 1.0f - _smoothness;
+		// Convert smoothness into shininess.
+		SetRoughness(1.0f - _smoothness);
 	}
 }

@@ -32,8 +32,7 @@ namespace Sa
 		alignas(16) Vec3f tf = Vec3f::One;
 
 
-		// Used for shininess.
-		float roughness = 0.0f;
+		float shininess = 10.0f;
 
 		// Transparency.
 		float alpha = 1.0;
@@ -42,10 +41,10 @@ namespace Sa
 		float refractIndex = 1.0f;
 
 
-		// Set roughness from shininess.
-		void SetShininess(float _shininess);
+		// Set shininess from roughness.
+		void SetRoughness(float _roughness);
 
-		// Set roughness from smoothness.
+		// Set shininess from smoothness.
 		void SetSmoothness(float _smoothness);
 	};
 }

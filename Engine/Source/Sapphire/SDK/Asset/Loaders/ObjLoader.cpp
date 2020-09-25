@@ -260,15 +260,7 @@ namespace Sa
 			PARSE_MAT_VEC3(Tf, tf)
 			PARSE_MAT_FLT(d, alpha)
 			PARSE_MAT_FLT(Ni, refractIndex)
-			else if (type == "Ns")
-			{
-				float shininess = 0.0f;
-
-				if (!(stream >> shininess))
-					SA_ASSERT(false, InvalidParam, SDK, L"mtl parsing error: invalid file.");
-
-				_modelInfos[currIndex].matConstants.SetShininess(shininess);
-			}
+			PARSE_MAT_FLT(Ns, shininess)
 		}
 	}
 

@@ -20,8 +20,7 @@ layout(binding = 2) uniform MaterialConstants
 	// Transmission filter.
 	vec3 tf;
 	
-	// Used for shininess.
-	float roughness;
+	float shininess;
 
 	// Transparency.
 	float alpha;
@@ -111,11 +110,14 @@ void BlinnPhongIllumination()
 	vec3 vHalf = normalize(vLight + vCam);
 
 
-	// Convert roughness into shininess.
-	float shininess = (2.0 / pow(matConsts.roughness, 2)) - 2;
+	float cosTheta = dot(vNorm, vLight);
+
+	// Blinn-Phong variant. Phong formula is: dot(vNorm, vCam)
+	float cosAlpha = max(dot(vNorm, vHalf), 0.0);
+
 
 	// Normal facing light.
-	float facing = dot(vNorm, vLight) > 0.0 ? 1.0 : 0.0;
+	float facing = cosTheta > 0.0 ? 1.0 : 0.0;
 	
 
 	// Ambiant component.
@@ -128,8 +130,8 @@ void BlinnPhongIllumination()
 	vec3 Rs = pLights[0].color * pLights[0].specular * matConsts.ks;
 
 
-	vec3 diffuse = Rd * max(dot(vNorm, vLight), 0.0);
-	vec3 specular = Rs * pow(max(dot(vNorm, vHalf), 0.0), shininess) * facing;  
+	vec3 diffuse = Rd * max(cosTheta, 0.0);
+	vec3 specular = Rs * pow(cosAlpha, matConsts.shininess) * facing;  
 	
 	float attenuation = 1.0 / (kc + kl * length(vLight) + kq * dot(vLight, vLight));
 	
@@ -152,18 +154,21 @@ void PBRIllumination()
 	vec3 vHalf = normalize(vLight + vCam);
 
 
-	// Convert roughness into shininess.
-	float shininess = (2.0 / pow(matConsts.roughness, 2)) - 2;
+	float cosTheta = dot(vNorm, vLight);
+
+	// Blinn-Phong variant. Phong formula is: dot(vNorm, vCam)
+	float cosAlpha = max(dot(vNorm, vHalf), 0.0);
+
 
 	/* 
 	*	Normalization factor: Gotanda approximation.
 	*	Source: http://research.tri-ace.com/Data/course_note_practical_implementation_at_triace.pdf
 	*/
-	//float normFactor = 0.0397436 * shininess + 0.0856832;
-	float normFactor = (shininess + 2) / (4 /** PI*/ * (2 - pow(2, -shininess / 2)));
+	//float normFactor = 0.0397436 * matConsts.shininess + 0.0856832;
+	float normFactor = (matConsts.shininess + 2) / (4 /** PI*/ * (2 - pow(2, -matConsts.shininess / 2)));
 
 	// Geometric factor: Neumann "Albedo pumped-up".
-	float G = 1.0 / max(dot(vNorm, vLight), dot(vNorm, vCam));
+	float G = 1.0 / max(cosTheta, dot(vNorm, vCam));
 
 
 	// Ambiant component.
@@ -177,9 +182,9 @@ void PBRIllumination()
 
 
 	vec3 diffuseBRDF = Rd/* / PI*/;
-	vec3 specularBRDF = Rs * normFactor * Fresnel(0.8, dot(vCam, vHalf)) * G * pow(max(dot(vNorm, vHalf), 0.0), shininess);
+	vec3 specularBRDF = Rs * normFactor * Fresnel(0.8, dot(vCam, vHalf)) * G * pow(cosAlpha, matConsts.shininess);
 	
-	outColor.xyz = Ra + (diffuseBRDF + specularBRDF) * dot(vNorm, vLight);
+	outColor.xyz = Ra + (diffuseBRDF + specularBRDF) * cosTheta;
 }
 
 
