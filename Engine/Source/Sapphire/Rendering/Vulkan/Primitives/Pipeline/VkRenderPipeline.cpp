@@ -4,9 +4,9 @@
 
 #include <Core/Types/Variadics/SizeOf.hpp>
 
-#include <Rendering/Framework/Misc/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
 #include <Rendering/Framework/Primitives/Shader/ShaderType.hpp>
+#include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>

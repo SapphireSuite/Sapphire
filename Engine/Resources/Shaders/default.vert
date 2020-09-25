@@ -5,13 +5,18 @@
 // Uniform.
 layout(binding = 0) uniform StaticUniformBuffer
 {
-    mat4 view;
+    mat4 viewInv;
     mat4 proj;
 } sUBO;
 
 layout(binding = 1) uniform ObjectUniformBuffer
 {
     mat4 model;
+
+    float tillingUV;
+
+    float offsetUV;
+
 } oUBO;
 
 layout (binding = 3) uniform PointLight
@@ -50,7 +55,7 @@ void main()
 {
     // Position.
     vsOut.position = mat3(oUBO.model) * inPosition;
-    gl_Position = sUBO.proj * inverse(sUBO.view) * vec4(vsOut.position, 1.0);
+    gl_Position = sUBO.proj * sUBO.viewInv * vec4(vsOut.position, 1.0);
 
 
     // Normal
@@ -58,10 +63,9 @@ void main()
 
 
     // Texture
-    vsOut.texture = inTexture;
-    //out.texture = inTexture * tiling + offset;
+    vsOut.texture = inTexture * oUBO.tillingUV + oUBO.offsetUV;
 
 
-    // Vector camera.
-	vsOut.camPosition = sUBO.view[3].xyz;
+    // Camera's vectors.
+	vsOut.camPosition = sUBO.viewInv[3].xyz;
 }

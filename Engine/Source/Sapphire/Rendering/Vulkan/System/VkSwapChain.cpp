@@ -11,7 +11,7 @@
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
 #include <Rendering/Vulkan/System/VkRenderSurface.hpp>
 
-#include <Rendering/Framework/Misc/UniformBuffers.hpp>
+#include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 
 #include <Rendering/Vulkan/Buffer/VkCommandBuffer.hpp>
 

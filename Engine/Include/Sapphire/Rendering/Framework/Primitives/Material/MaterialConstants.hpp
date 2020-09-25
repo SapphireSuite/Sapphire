@@ -32,10 +32,12 @@ namespace Sa
 		alignas(16) Vec3f tf = Vec3f::One;
 
 
-		float shininess = 10.0f;
-
 		// Transparency.
 		float alpha = 1.0;
+
+		float shininess = 10.0f;
+
+		float metallic = 0.5f;
 
 		// Optical density (Refractive index).
 		float refractIndex = 1.0f;

@@ -20,10 +20,12 @@ layout(binding = 2) uniform MaterialConstants
 	// Transmission filter.
 	vec3 tf;
 	
-	float shininess;
-
 	// Transparency.
 	float alpha;
+
+	float shininess;
+
+	float metallic;
 
 	// Optical density (Refractive index).
 	float refraction;
@@ -66,22 +68,20 @@ layout(location = 0) out vec4 outColor;
 
 
 // Code.
-void BlinnPhongIllumination();
-void PBRIllumination();
+void ComputeAlpha();
+void ComputeIllumination();
 
-float Fresnel(float _f0, float _cosTheta);
 
 void main()
 {
-	// Illumination model.
-	if(illumModel == 0)				// Unlit.
-		outColor.xyz = texture(texSamplers[0], fsIn.texture).xyz;
-	else if(illumModel == 1)
-		BlinnPhongIllumination();	// Lit: simple Blinn-Phong implementation.
-	else if(illumModel == 2)
-		PBRIllumination();			// Lit: Physically based using BRDF.
+	ComputeAlpha();
+
+	ComputeIllumination();
+}
 
 
+void ComputeAlpha()
+{
 	// Alpha model.
 	if(alphaModel == 0)				// Opaque.
 		outColor.a = 1.0;
@@ -89,77 +89,120 @@ void main()
 		outColor.a = matConsts.alpha;
 }
 
-void BlinnPhongIllumination()
+
+struct IlluminationData
+{
+	// Normal vector.
+	vec3 vNorm;
+
+	// Object to light direction.
+	vec3 vLight;
+
+	// Object to camera direction.
+	vec3 vCam;
+
+	// Halfway vector.
+	vec3 vHalf;
+
+
+	// Dot(Normal, vLight).
+	float cosTheta;
+
+	// Blinn-Phong variant: dot(vNorm, vCam). Phong formula is: Dot(vNorm, vCam).
+	float cosAlpha;
+
+
+	// Ambiant component.
+	vec3 Ra;
+	
+	// Diffuse component.
+	vec3 Rd;
+
+	// Specular component.
+	vec3 Rs;
+};
+
+void PBRIllumination(IlluminationData _data);
+void BlinnPhongIllumination(IlluminationData _data);
+float Fresnel(float _f0, float _cosTheta);
+
+void ComputeIllumination()
+{
+	// Illumination model: Unlit
+	if(illumModel == 0)
+	{
+		outColor.xyz = texture(texSamplers[0], fsIn.texture).xyz;
+		return;
+	}
+
+
+	// Illumination model: Lit.
+	IlluminationData data;
+
+	// Albedo from texture.
+	vec3 albedo = texture(texSamplers[0], fsIn.texture).xyz;
+
+
+	// Normal vector.
+	data.vNorm = normalize(fsIn.normal);
+
+	// Object to light direction.
+	data.vLight = normalize(pLights[0].position - fsIn.position);
+
+	// Object to camera direction.
+	data.vCam = normalize(fsIn.position - fsIn.camPosition);
+
+	// Halfway vector.
+	data.vHalf = normalize(data.vLight + data.vCam);
+
+
+	data.cosTheta = dot(data.vNorm, data.vLight);
+
+	// Blinn-Phong variant. Phong formula is: dot(vNorm, vCam)
+	data.cosAlpha = max(dot(data.vNorm, data.vHalf), 0.0);
+
+
+	// Ambiant component.
+	data.Ra = pLights[0].color * pLights[0].ambiant * matConsts.ka;
+	
+	// Diffuse component.
+	data.Rd = pLights[0].color * pLights[0].diffuse * matConsts.kd * mix(albedo, vec3(0.0), matConsts.metallic);
+
+	// Specular component.
+	data.Rs = pLights[0].color * pLights[0].specular * matConsts.ks * mix(vec3(1.0), albedo, matConsts.metallic);
+
+
+	// Illumination model.
+	if(illumModel == 1)
+		BlinnPhongIllumination(data);	// Simple Blinn-Phong implementation.
+	else if(illumModel == 2)
+		PBRIllumination(data);			// Physically based using BRDF.
+}
+
+void BlinnPhongIllumination(IlluminationData _data)
 {
 	// Attenuation constants.
 	const float kc = 0.01;	// Constant.
 	const float kl = 0.2;	// Linear.
 	const float kq = 0.2;	// Quadratic.
-
-
-	// Normal vector.
-	vec3 vNorm = normalize(fsIn.normal);
-
-	// Object to light direction.
-	vec3 vLight = normalize(pLights[0].position - fsIn.position);
-
-	// Object to camera direction.
-	vec3 vCam = normalize(fsIn.position - fsIn.camPosition);
-
-	// Halfway vector.
-	vec3 vHalf = normalize(vLight + vCam);
-
-
-	float cosTheta = dot(vNorm, vLight);
-
-	// Blinn-Phong variant. Phong formula is: dot(vNorm, vCam)
-	float cosAlpha = max(dot(vNorm, vHalf), 0.0);
-
+	
 
 	// Normal facing light.
-	float facing = cosTheta > 0.0 ? 1.0 : 0.0;
+	float facing = _data.cosTheta > 0.0 ? 1.0 : 0.0;
+
+	vec3 diffuse = _data.Rd * max(_data.cosTheta, 0.0);
+	vec3 specular = _data.Rs * pow(_data.cosAlpha, matConsts.shininess) * facing;  
+	
+	float attenuation = 1.0 / (kc + kl * length(_data.vLight) + kq * dot(_data.vLight, _data.vLight));
 	
 
-	// Ambiant component.
-	vec3 Ra = pLights[0].color * pLights[0].ambiant * matConsts.ka;
-	
-	// Diffuse component.
-	vec3 Rd = pLights[0].color * pLights[0].diffuse * matConsts.kd * texture(texSamplers[0], fsIn.texture).xyz;
-
-	// Specular component.
-	vec3 Rs = pLights[0].color * pLights[0].specular * matConsts.ks;
-
-
-	vec3 diffuse = Rd * max(cosTheta, 0.0);
-	vec3 specular = Rs * pow(cosAlpha, matConsts.shininess) * facing;  
-	
-	float attenuation = 1.0 / (kc + kl * length(vLight) + kq * dot(vLight, vLight));
-	
-	outColor.xyz = Ra + attenuation * (diffuse + specular);
+	//  Output.
+	outColor.xyz = _data.Ra + attenuation * (diffuse + specular);
 }
 
 
-void PBRIllumination()
+void PBRIllumination(IlluminationData _data)
 {
-	// Normal vector.
-	vec3 vNorm = normalize(fsIn.normal);
-
-	// Object to light direction.
-	vec3 vLight = normalize(pLights[0].position - fsIn.position);
-
-	// Object to camera direction.
-	vec3 vCam = normalize(fsIn.position - fsIn.camPosition);
-
-	// Halfway vector.
-	vec3 vHalf = normalize(vLight + vCam);
-
-
-	float cosTheta = dot(vNorm, vLight);
-
-	// Blinn-Phong variant. Phong formula is: dot(vNorm, vCam)
-	float cosAlpha = max(dot(vNorm, vHalf), 0.0);
-
-
 	/* 
 	*	Normalization factor: Gotanda approximation.
 	*	Source: http://research.tri-ace.com/Data/course_note_practical_implementation_at_triace.pdf
@@ -168,23 +211,15 @@ void PBRIllumination()
 	float normFactor = (matConsts.shininess + 2) / (4 /** PI*/ * (2 - pow(2, -matConsts.shininess / 2)));
 
 	// Geometric factor: Neumann "Albedo pumped-up".
-	float G = 1.0 / max(cosTheta, dot(vNorm, vCam));
+	float G = 1.0 / max(_data.cosTheta, dot(_data.vNorm, _data.vCam));
 
 
-	// Ambiant component.
-	vec3 Ra = pLights[0].color * pLights[0].ambiant * matConsts.ka;
+	vec3 diffuseBRDF = _data.Rd/* / PI*/;
+	vec3 specularBRDF = _data.Rs * normFactor * /*Fresnel(0.8, dot(vCam, vHalf)) **/ G * pow(_data.cosAlpha, matConsts.shininess);
 	
-	// Diffuse component.
-	vec3 Rd = pLights[0].color * pLights[0].diffuse * matConsts.kd * texture(texSamplers[0], fsIn.texture).xyz;
 
-	// Specular component.
-	vec3 Rs = pLights[0].color * pLights[0].specular * matConsts.ks;
-
-
-	vec3 diffuseBRDF = Rd/* / PI*/;
-	vec3 specularBRDF = Rs * normFactor * Fresnel(0.8, dot(vCam, vHalf)) * G * pow(cosAlpha, matConsts.shininess);
-	
-	outColor.xyz = Ra + (diffuseBRDF + specularBRDF) * cosTheta;
+	//  Output.
+	outColor.xyz = _data.Ra + (diffuseBRDF + specularBRDF) * _data.cosTheta;
 }
 
 

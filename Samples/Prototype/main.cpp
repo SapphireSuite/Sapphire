@@ -11,12 +11,13 @@
 
 #include <Sapphire/Window/GLFWWindow.hpp>
 
-#include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Mesh/IMesh.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Light/ILight.hpp>
-#include <Sapphire/Rendering/Framework/Misc/UniformBuffers.hpp>
+#include <Sapphire/Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
+
+#include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
 
 #include <Sapphire/Sdk/Asset/AssetManager.hpp>
 #include <Sapphire/Sdk/Asset/Loaders/ObjLoader.hpp>
@@ -185,7 +186,7 @@ int main()
 		// Update Uniform Buffer.
 		StaticUniformBuffer ubo;
 		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
-		ubo.viewMat = camTr.Matrix().GetTransposed();
+		ubo.viewInvMat = camTr.Matrix().GetTransposed().Inverse();
 		ubo.projMat = perspMat;
 
 		frame.uniformBuffer.UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
