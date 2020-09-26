@@ -135,7 +135,7 @@ struct IlluminationData
 
 void PBRIllumination(IlluminationData _data);
 void BlinnPhongIllumination(IlluminationData _data);
-float Fresnel(float _f0, float _cosTheta);
+float Fresnel(float _shininess, float _cosTheta);
 
 void ComputeIllumination()
 {
@@ -226,7 +226,7 @@ void PBRIllumination(IlluminationData _data)
 
 
 	vec3 diffuseBRDF = _data.Rd/* / PI*/;
-	vec3 specularBRDF = _data.Rs * normFactor * /*Fresnel(0.8, dot(vCam, vHalf)) **/ G * pow(_data.cosAlpha, matConsts.shininess);
+	vec3 specularBRDF = _data.Rs * normFactor * Fresnel(matConsts.shininess, dot(_data.vCam, _data.vHalf)) * G * pow(_data.cosAlpha, matConsts.shininess);
 	
 
 	//  Output.
@@ -234,10 +234,12 @@ void PBRIllumination(IlluminationData _data)
 }
 
 
-float Fresnel(float _f0, float _cosTheta)
+float Fresnel(float _shininess, float _cosTheta)
 {
 	// f0: Material reflectance at 0 degree.
+	const float f0 = pow((1 - _shininess) / (1 + _shininess), 2);
 
-	// Schlick’s approximation.
-	return _f0 + (1 - _f0) * pow(1 - _cosTheta, 5);
+
+	// Schlick's approximation.
+	return f0 + (1 - f0) * pow(1 - _cosTheta, 5);
 }
