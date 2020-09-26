@@ -21,25 +21,12 @@ layout(binding = 1) uniform ObjectUniformBuffer
     mat4 model;
 
 	// Material UV tilling.
-    float uvTilling;
+    float tillingUV;
 
 	// Material UV offset.
-    float uvOffset;
+    float offsetUV;
 
 } oUBO;
-
-layout (binding = 3) uniform PointLight
-{
-    vec3 position;
-
-	vec3 color;
-	
-	float ambiant;
-	float diffuse;
-	float specular;
-    
-    float shininess;
-} pLights[1];
 
 
 // In.
@@ -51,30 +38,20 @@ layout(location = 2) in vec2 inTexture;
 // Out.
 layout(location = 0) out DataBlock
 {
-    vec3 position;
-	vec3 normal;
 	vec2 texture;
-
-	vec3 camPosition;
 } vsOut;
 
 
 // Code
 void main()
 {
+    // always facing camera
+    mat4 viewRot = inverse(sUBO.viewInv);
+    viewRot[3].xyz = vec3(0,0,0);
+
     // Position.
-    vsOut.position = mat3(oUBO.model) * inPosition;
-    gl_Position = sUBO.proj * sUBO.viewInv * oUBO.model * vec4(inPosition, 1.0);
-
-
-    // Normal
-    vsOut.normal = mat3(oUBO.model) * inNormal;
-
+    gl_Position = sUBO.proj * sUBO.viewInv *  oUBO.model * viewRot * vec4(inPosition, 1.0);
 
     // Texture
-    vsOut.texture = inTexture * oUBO.uvTilling + oUBO.uvOffset;
-
-
-    // Camera's vectors.
-	vsOut.camPosition = sUBO.viewInv[3].xyz;
+    vsOut.texture = inTexture * oUBO.tillingUV + oUBO.offsetUV;
 }

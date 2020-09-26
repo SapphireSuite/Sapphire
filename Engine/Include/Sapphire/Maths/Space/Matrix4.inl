@@ -538,21 +538,16 @@ namespace Sa
 	template <typename T>
 	Mat4<T>  Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale)
 	{
-		return MakeTranslation(_transl) * MakeRotation(_rotation) * MakeScale(_scale);
+		//return MakeTranslation(_transl) * MakeRotation(_rotation) * MakeScale(_scale);
 
-		//Mat4<T> result = rotation.Matrix();
+		Mat4<T> result = MakeScale(_scale) * MakeRotation(_rotation);
 
-		//// Apply position.
-		//result.At(0, 3) = position.x;
-		//result.At(1, 3) = position.y;
-		//result.At(2, 3) = position.z;
+		// Apply position.
+		result.At(0, 3) = _transl.x;
+		result.At(1, 3) = _transl.y;
+		result.At(2, 3) = _transl.z;
 
-		//// Apply scale.
-		//result.At(0, 0) *= _scale.x;
-		//result.At(1, 1) *= _scale.y;
-		//result.At(2, 2) *= _scale.z;
-
-		//return result;
+		return result;
 	}
 
 	template <typename T>

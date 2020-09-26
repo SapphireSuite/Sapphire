@@ -45,7 +45,7 @@ int main()
 
 	// Create Lights.
 	LightInfos pLight1;
-	pLight1.position = Vec3f(-2.0f, -2.0f, -4.0f);
+	pLight1.position = Vec3f(3.0f, -2.0f, 2.0f);
 	pLight1.color = Vec3f(0.9f, 0.7f, 0.3f);
 
 	ILight& plight1 = instance.InstantiatePointLight(pLight1);
@@ -126,9 +126,97 @@ int main()
 
 	{
 		ObjectUniformBuffer oubo;
-		oubo.modelMat = Mat4f::MakeScale(Vec3f(0.000001f)) * Mat4f::MakeRotation(Quatf(90_deg, Vec3f::Right));
+		oubo.modelMat = Transff(Vec3f(-1.0f, 1.0, -2.5f), Quatf(180, Vec3f::Up) * Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix().GetTransposed();
 		magikarpBodyMat->InitVariable(instance, &oubo, sizeof(oubo));
 		magikarpEyesMat->InitVariable(instance, &oubo, sizeof(oubo));
+	}
+
+
+	// Create Gizmo
+	IMesh* squareMesh = nullptr;
+	{
+		const std::vector<Vertex> vertices =
+		{
+			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
+			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f } },
+			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f } },
+			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f } },
+		};
+
+		const std::vector<uint32> indices =
+		{
+			0, 1, 2, 2, 3, 0
+		};
+
+		squareMesh = IMesh::CreateInstance(instance, vertices, indices);
+	}
+
+	IRenderMaterial* gizmoMat = IRenderMaterial::CreateInstance();
+	{
+		const IShader* gizmoVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/gizmo_vert.spv");
+		const IShader* gizmoFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/gizmo_frag.spv");
+
+		const ITexture* gizmoTexture = assetMgr.Texture(instance, "../../Engine/Resources/Textures/SampleCat.jpg");
+
+		PipelineCreateInfos bodyPipelineInfos
+		{
+			surface,
+			surface.GetViewport(),
+
+			gizmoVertShader,
+			gizmoFragShader,
+
+			MaterialConstants{},
+
+			{ gizmoTexture },
+
+			PolygonMode::Fill,
+			CullingMode::None,
+			FrontFaceMode::Clockwise,
+			AlphaModel::Opaque,
+			IlluminationModel::None
+		};
+
+		gizmoMat->CreatePipeline(instance, bodyPipelineInfos);
+	}
+
+	IRenderMaterial* gizmoBPMat = IRenderMaterial::CreateInstance();
+	{
+		const IShader* gizmoVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/gizmo_vert.spv");
+		const IShader* gizmoFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/gizmo_frag.spv");
+
+		const ITexture* gizmoTexture = assetMgr.Texture(instance, "../../Engine/Resources/Textures/SampleCat.jpg");
+
+		PipelineCreateInfos bodyPipelineInfos
+		{
+			surface,
+			{
+				Vec2<uint32>(800u, 0u), {800u, 800u},
+				ImageViewExtent{ Vec2<uint32>::Zero, surface.GetImageExtent() }
+			},
+
+			gizmoVertShader,
+			gizmoFragShader,
+
+			MaterialConstants{},
+
+			{ gizmoTexture },
+
+			PolygonMode::Fill,
+			CullingMode::None,
+			FrontFaceMode::Clockwise,
+			AlphaModel::Opaque,
+			IlluminationModel::None
+		};
+
+		gizmoBPMat->CreatePipeline(instance, bodyPipelineInfos);
+	}
+
+	{
+		ObjectUniformBuffer oubo;
+		oubo.modelMat = Transff(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix().GetTransposed();
+		gizmoMat->InitVariable(instance, &oubo, sizeof(oubo));
+		gizmoBPMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
 
 
@@ -227,6 +315,11 @@ int main()
 		magikarpEyesMat->Bind(frame);
 		Magikarp[1]->Draw(frame);
 
+
+
+		// Draw gizmos.
+		gizmoMat->Bind(frame);
+		squareMesh->Draw(frame);
 		//Magikarp.Draw(frame);
 
 		vkCmdEndRenderPass(frame.graphicsCommandBuffer);

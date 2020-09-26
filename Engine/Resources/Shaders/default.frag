@@ -42,7 +42,7 @@ layout (binding = 3) uniform PointLight
 	float specular;
 } pLights[1];
 
-layout(binding = 4) uniform sampler2D texSamplers[4];
+layout(binding = 5) uniform sampler2D texSamplers[4];
 
 
 // Constants.
@@ -83,10 +83,21 @@ void main()
 void ComputeAlpha()
 {
 	// Alpha model.
-	if(alphaModel == 0)				// Opaque.
+
+
+	// Opaque.
+	if(alphaModel == 0)
+	{
 		outColor.a = 1.0;
-	else if(alphaModel == 1)		// Allows transparency.
-		outColor.a = matConsts.alpha;
+		return;
+	}
+
+
+	// Allows transparency.
+	outColor.a = texture(texSamplers[0], fsIn.texture).a * matConsts.alpha;
+
+	if(outColor.a < 0.001)
+		discard;
 }
 
 

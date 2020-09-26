@@ -37,7 +37,7 @@ namespace Sa
 
 		float shininess = 10.0f;
 
-		float metallic = 0.5f;
+		float metallic = 0.35f;
 
 		// Optical density (Refractive index).
 		float refractIndex = 1.0f;

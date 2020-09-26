@@ -40,7 +40,7 @@ namespace Sa
 		CullingMode cullingMode = CullingMode::Back;
 		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
 		AlphaModel alphaModel = AlphaModel::Opaque;
-		IlluminationModel illumModel = IlluminationModel::BlinnPhong;
+		IlluminationModel illumModel = IlluminationModel::PBR;
 
 		uint32 uniformBufferSize = sizeof(ObjectUniformBuffer);
 	};

@@ -24,10 +24,10 @@ namespace Sa
 		Mat4f modelMat = Mat4f::Identity;
 
 		// Material UV tilling.
-		float tillingUV = 1.0f;
+		float uvTilling = 1.0f;
 
-		// Materuak UV offset.
-		float offsetUV = 0.0f;
+		// Material UV offset.
+		float uvOffset = 0.0f;
 	};
 }
 

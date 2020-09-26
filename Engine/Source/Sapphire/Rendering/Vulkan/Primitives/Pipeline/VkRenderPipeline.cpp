@@ -291,12 +291,12 @@ namespace Sa
 
 
 		// Light bindings.
-		if (_pipelineInfos.illumModel != IlluminationModel::None)
+		//if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindings.
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 			{
-				SizeOf(_layoutBindings),											// binding.
+				2,																	// binding.
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
 				1,																	// descriptorCount.
 				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
@@ -311,7 +311,7 @@ namespace Sa
 			{
 				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 				{
-					SizeOf(_layoutBindings),											// binding.
+					3,																	// binding.
 					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
 					pLightNum,															// descriptorCount.
 					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,			// stageFlags.
@@ -327,7 +327,7 @@ namespace Sa
 			{
 				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 				{
-					SizeOf(_layoutBindings),											// binding.
+					4,																	// binding.
 					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
 					dLightNum,															// descriptorCount.
 					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,			// stageFlags.
@@ -340,7 +340,7 @@ namespace Sa
 		// Texture bindings.
 		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 		{
-			SizeOf(_layoutBindings),												// binding.
+			5,																		// binding.
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// descriptorType.
 			SizeOf(_pipelineInfos.textures),										// descriptorCount.
 			VK_SHADER_STAGE_FRAGMENT_BIT,											// stageFlags.
@@ -396,7 +396,7 @@ namespace Sa
 
 
 		// Light bindings.
-		if (_pipelineInfos.illumModel != IlluminationModel::None)
+		//if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindigs.
 			_poolSizes.push_back(VkDescriptorPoolSize
@@ -411,7 +411,7 @@ namespace Sa
 			{
 				_poolSizes.push_back(VkDescriptorPoolSize
 				{
-					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
+					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
 					_imageNum,															// descriptorCount.
 				});
 			}
@@ -422,7 +422,7 @@ namespace Sa
 			{
 				_poolSizes.push_back(VkDescriptorPoolSize
 				{
-					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
+					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
 					_imageNum,															// descriptorCount.
 				});
 			}
@@ -481,17 +481,13 @@ namespace Sa
 			_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 1));
 		}
 
-		uint32 bindingOffset = SizeOf(_descriptorWrites);
-
 
 		// Light bindings.
-		if (_pipelineInfos.illumModel != IlluminationModel::None)
+		//if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindigs.
 			_descriptorInfos.push_back(mMatConstantUniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(MaterialConstants)));
-			_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset));
-
-			++bindingOffset;
+			_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 2));
 
 
 			// Point lights.
@@ -502,10 +498,8 @@ namespace Sa
 				for (uint32 i = 0u; i < SizeOf(pLights); ++i)
 				{
 					_descriptorInfos.push_back(pLights[i].CreateDescriptorBufferInfo());
-					_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset, i));
+					_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 3, i));
 				}
-
-				++bindingOffset;
 			}
 
 			// Directional lights.
@@ -516,10 +510,8 @@ namespace Sa
 				for (uint32 i = 0u; i < SizeOf(dLights); ++i)
 				{
 					_descriptorInfos.push_back(dLights[i].CreateDescriptorBufferInfo());
-					_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset, i));
+					_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 4, i));
 				}
-
-				++bindingOffset;
 			}
 		}
 		
@@ -532,10 +524,8 @@ namespace Sa
 			const VkTexture& vkTexture = _pipelineInfos.textures[i]->As<VkTexture>();
 
 			_descriptorInfos.push_back(vkTexture.CreateDescriptorImageInfo());
-			_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], bindingOffset, i));
+			_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], 5, i));
 		}
-
-		++bindingOffset;
 	}
 
 	void VkRenderPipeline::CreateDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
