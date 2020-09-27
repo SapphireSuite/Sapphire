@@ -29,8 +29,8 @@ namespace Sa
 		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSet> mDescriptorSets;
 
+		VkUniformBuffer mMatConstantUniformBuffer;
 		std::vector<VkUniformBuffer> mObjectUniformBuffers;
-		std::vector<VkUniformBuffer> mMatConstantUniformBuffers;
 
 
 		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
@@ -60,14 +60,14 @@ namespace Sa
 
 		struct DescriptorInfo
 		{
-			bool bIsImage = false;
-
 			union
 			{
 				VkDescriptorBufferInfo buffer;
 				VkDescriptorImageInfo image;
 			};
 
+			bool bIsImage = false;
+			
 			DescriptorInfo(VkDescriptorBufferInfo _buffer) noexcept : buffer{ _buffer }, bIsImage{ false } {}
 			DescriptorInfo(VkDescriptorImageInfo _image) noexcept : image{ _image }, bIsImage{ true } {}
 		};

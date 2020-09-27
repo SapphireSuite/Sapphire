@@ -12,8 +12,7 @@ namespace Sa
 	class VkUniformBuffer : public VkBuffer
 	{
 	public:
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void UpdateData(const VkDevice& _device, const void* _data, uint32 _size, uint32 _offset = 0);
+		static VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem = 0u) noexcept;
 	};
 }
 

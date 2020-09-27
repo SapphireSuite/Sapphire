@@ -31,18 +31,33 @@ layout(binding = 2) uniform MaterialConstants
 	float refraction;
 } matConsts;
 
-layout (binding = 3) uniform PointLight
+
+struct Light
 {
 	vec3 position;
 
+	int type;
+
 	vec3 color;
+
+	bool bEnabled;
 	
+	vec3 direction;
+
+	float cutOff;
+
 	float ambiant;
 	float diffuse;
 	float specular;
-} pLights[1];
+};
 
-layout(binding = 5) uniform sampler2D texSamplers[4];
+layout (binding = 3) buffer LightBuffer
+{
+	Light lights[];
+} lightBuffer;
+
+
+layout(binding = 4) uniform sampler2D texSamplers[3];
 
 
 // Constants.
@@ -103,6 +118,9 @@ void ComputeAlpha()
 
 struct IlluminationData
 {
+	// Albedo from texture.
+	vec3 albedo;
+
 	// Normal vector.
 	vec3 vNorm;
 
@@ -133,8 +151,10 @@ struct IlluminationData
 	vec3 Rs;
 };
 
-void PBRIllumination(IlluminationData _data);
-void BlinnPhongIllumination(IlluminationData _data);
+vec3 ComputeLight(Light _light, IlluminationData _data);
+vec3 PBRIllumination(IlluminationData _data);
+vec3 BlinnPhongIllumination(IlluminationData _data);
+
 float Fresnel(float _shininess, float _cosTheta);
 
 void ComputeIllumination()
@@ -149,48 +169,67 @@ void ComputeIllumination()
 
 	// Illumination model: Lit.
 	IlluminationData data;
+	outColor.xyz = vec3(0);
+
 
 	// Albedo from texture.
-	vec3 albedo = texture(texSamplers[0], fsIn.texture).xyz;
-
+	data.albedo = texture(texSamplers[0], fsIn.texture).xyz;
 
 	// Normal vector.
 	data.vNorm = normalize(fsIn.normal);
 
-	// Object to light direction.
-	data.vLight = normalize(pLights[0].position - fsIn.position);
-
 	// Object to camera direction.
 	data.vCam = normalize(fsIn.position - fsIn.camPosition);
+	
+
+	// Compute each lights.
+	for(int i = 0; i < lightBuffer.lights.length(); ++i)
+	{
+		if(lightBuffer.lights[i].bEnabled)
+			outColor.xyz += ComputeLight(lightBuffer.lights[i], data);
+	}
+}
+
+vec3 ComputeLight(Light _light, IlluminationData _data)
+{
+	// Object to light direction.
+
+	if(_light.type == 0)			// Point light.
+		_data.vLight = normalize(_light.position - fsIn.position);
+	else if(_light.type == 1)		// Directionnal light.
+		_data.vLight = normalize(-_light.direction);
+	else if(_light.type == 2)		// Spot light.
+		;
+
 
 	// Halfway vector.
-	data.vHalf = normalize(data.vLight + data.vCam);
+	_data.vHalf = normalize(_data.vLight + _data.vCam);
 
 
-	data.cosTheta = dot(data.vNorm, data.vLight);
+	_data.cosTheta = dot(_data.vNorm, _data.vLight);
 
 	// Blinn-Phong variant. Phong formula is: dot(vNorm, vCam)
-	data.cosAlpha = max(dot(data.vNorm, data.vHalf), 0.0);
+	_data.cosAlpha = max(dot(_data.vNorm, _data.vHalf), 0.0);
 
 
 	// Ambiant component.
-	data.Ra = pLights[0].color * pLights[0].ambiant * matConsts.ka;
+	_data.Ra = _light.color * _light.ambiant * matConsts.ka;
 	
 	// Diffuse component.
-	data.Rd = pLights[0].color * pLights[0].diffuse * matConsts.kd * mix(albedo, vec3(0.0), matConsts.metallic);
+	_data.Rd = _light.color * _light.diffuse * matConsts.kd * mix(_data.albedo, vec3(0.0), matConsts.metallic);
 
 	// Specular component.
-	data.Rs = pLights[0].color * pLights[0].specular * matConsts.ks * mix(vec3(1.0), albedo, matConsts.metallic);
+	_data.Rs = _light.color * _light.specular * matConsts.ks * mix(vec3(1.0), _data.albedo, matConsts.metallic);
 
 
 	// Illumination model.
 	if(illumModel == 1)
-		BlinnPhongIllumination(data);	// Simple Blinn-Phong implementation.
+		return BlinnPhongIllumination(_data);	// Simple Blinn-Phong implementation.
 	else if(illumModel == 2)
-		PBRIllumination(data);			// Physically based using BRDF.
+		return PBRIllumination(_data);			// Physically based using BRDF.
 }
 
-void BlinnPhongIllumination(IlluminationData _data)
+vec3 BlinnPhongIllumination(IlluminationData _data)
 {
 	// Attenuation constants.
 	const float kc = 0.01;	// Constant.
@@ -204,15 +243,16 @@ void BlinnPhongIllumination(IlluminationData _data)
 	vec3 diffuse = _data.Rd * max(_data.cosTheta, 0.0);
 	vec3 specular = _data.Rs * pow(_data.cosAlpha, matConsts.shininess) * facing;  
 	
+	// TODO: Attenuation for Directionnal and Spot light?
 	float attenuation = 1.0 / (kc + kl * length(_data.vLight) + kq * dot(_data.vLight, _data.vLight));
 	
 
 	//  Output.
-	outColor.xyz = _data.Ra + attenuation * (diffuse + specular);
+	return _data.Ra + attenuation * (diffuse + specular);
 }
 
 
-void PBRIllumination(IlluminationData _data)
+vec3 PBRIllumination(IlluminationData _data)
 {
 	/* 
 	*	Normalization factor: Gotanda approximation.
@@ -230,7 +270,7 @@ void PBRIllumination(IlluminationData _data)
 	
 
 	//  Output.
-	outColor.xyz = _data.Ra + (diffuseBRDF + specularBRDF) * _data.cosTheta;
+	return _data.Ra + (diffuseBRDF + specularBRDF) * _data.cosTheta;
 }
 
 

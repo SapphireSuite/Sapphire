@@ -55,7 +55,14 @@ namespace Sa
 			}
 		}
 
-		SA_ASSERT(mDevice.IsValid(), NotSupported, Rendering, L"No suitable GPU found!")
+		SA_ASSERT(mDevice.IsValid(), NotSupported, Rendering, L"No suitable GPU found!");
+
+		OnDeviceCreated();
+	}
+
+	void VkRenderInstance::OnDeviceCreated()
+	{
+		mLightBuffer.Create(mDevice);
 	}
 
 	const std::vector<const char*>& VkRenderInstance::GetRequiredExtensions() noexcept
@@ -106,13 +113,9 @@ namespace Sa
 		return mRenderSurfaceInfos[0].renderSurface;
 	}
 
-	const std::vector<VkPointLight>& VkRenderInstance::GetPointLights() const
+	const VkStorageBuffer<LightInfos>& VkRenderInstance::GetLightBuffer() const noexcept
 	{
-		return mPointLights;
-	}
-	const std::vector<VkDirectionalLight>& VkRenderInstance::GetDirectionalLights() const
-	{
-		return mDirectionalLights;
+		return mLightBuffer;
 	}
 
 	void VkRenderInstance::Create()
@@ -182,8 +185,7 @@ namespace Sa
 
 	void VkRenderInstance::Destroy()
 	{
-		DestroyLights();
-
+		mLightBuffer.Destroy(mDevice);
 
 		// Destroy system.
 		mDevice.Destroy();
@@ -280,49 +282,9 @@ namespace Sa
 		SA_ASSERT(bFound, InvalidParam, Rendering, L"Window not registered as render surface!")
 	}
 
-	ILight& VkRenderInstance::InstantiatePointLight(const LightInfos& _infos)
+	void VkRenderInstance::InstantiateLight(const LightInfos& _infos)
 	{
-		VkPointLight& pLight = mPointLights.emplace_back();
-
-		pLight.Create(*this, _infos);
-
-		return pLight;
-	}
-	void VkRenderInstance::DestroyPointLight(const ILight& _pLight)
-	{
-		SA_ASSERT(&_pLight >= &mPointLights[0] && &_pLight < &mPointLights[0] + mPointLights.size(),
-			InvalidParam, Rendering, L"Destroy unregistered point light!");
-
-		mPointLights.erase(mPointLights.begin() + (&_pLight - static_cast<const ILight*>(&mPointLights[0])));
-	}
-
-	ILight& VkRenderInstance::InstantiateDirectionalLight(const LightInfos& _infos)
-	{
-		VkDirectionalLight& dLight = mDirectionalLights.emplace_back();
-
-		dLight.Create(*this, _infos);
-
-		return dLight;
-	}
-	void VkRenderInstance::DestroyDirectionalLight(const ILight& _pLight)
-	{
-		SA_ASSERT(&_pLight >= &mDirectionalLights[0] && &_pLight < &mDirectionalLights[0] + mDirectionalLights.size(),
-			InvalidParam, Rendering, L"Destroy unregistered directional light!");
-
-		mDirectionalLights.erase(mDirectionalLights.begin() + (&_pLight - static_cast<const ILight*>(&mPointLights[0])));
-	}
-
-	void VkRenderInstance::DestroyLights()
-	{
-		for (auto it = mPointLights.begin(); it != mPointLights.end(); ++it)
-			it->Destroy(*this);
-
-		mPointLights.clear();
-
-		for (auto it = mDirectionalLights.begin(); it != mDirectionalLights.end(); ++it)
-			it->Destroy(*this);
-
-		mDirectionalLights.clear();
+		mLightBuffer.Add(mDevice, _infos);
 	}
 
 	void VkRenderInstance::Update()

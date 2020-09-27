@@ -20,7 +20,8 @@ namespace Sa
 	public:
 		mutable Event<void(const IRenderInstance&, const IRenderSurface&)> onResizeEvent;
 
-		virtual void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height);
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API virtual void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height);
 
 		virtual const ImageExtent& GetImageExtent() const noexcept = 0;
 		virtual Viewport GetViewport() const noexcept  = 0;

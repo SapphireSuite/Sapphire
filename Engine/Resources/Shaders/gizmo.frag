@@ -3,7 +3,7 @@
 
 
 // Uniform.
-layout(binding = 5) uniform sampler2D texSamplers[4];
+layout(binding = 4) uniform sampler2D texSamplers[4];
 
 
 // Constants.

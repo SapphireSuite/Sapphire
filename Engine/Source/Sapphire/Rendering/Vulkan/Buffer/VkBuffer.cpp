@@ -10,6 +10,11 @@
 
 namespace Sa
 {
+	bool VkBuffer::IsValid() const noexcept
+	{
+		return mHandle != VK_NULL_HANDLE && mDeviceMemory != VK_NULL_HANDLE;
+	}
+
 	void VkBuffer::Create_Internal(const VkDevice& _device,
 		uint32 _size, VkBufferUsageFlags _usage,
 		VkMemoryPropertyFlags _properties,
@@ -104,6 +109,19 @@ namespace Sa
 		mDeviceMemory = VK_NULL_HANDLE;
 	}
 
+	void VkBuffer::UpdateData(const VkDevice& _device, const void* _data, uint32 _size, uint32 _offset)
+	{
+		SA_ASSERT(_data, Nullptr, Rendering, L"Update nullptr data!");
+
+		void* bufferData = nullptr;
+
+		vkMapMemory(_device, mDeviceMemory, _offset, _size, 0, &bufferData);
+
+		memcpy(bufferData, _data, _size);
+
+		vkUnmapMemory(_device, mDeviceMemory);
+	}
+
 	VkDescriptorBufferInfo VkBuffer::CreateDescriptorBufferInfo(uint32 _size) const noexcept
 	{
 		return VkDescriptorBufferInfo
@@ -113,7 +131,7 @@ namespace Sa
 			_size												// range.
 		};
 	}
-	VkWriteDescriptorSet VkBuffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem) noexcept
+	VkWriteDescriptorSet VkBuffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, VkDescriptorType _type, uint32 _binding, uint32 _arrayElem) noexcept
 	{
 		return VkWriteDescriptorSet
 		{
@@ -123,7 +141,7 @@ namespace Sa
 			_binding,											// dstBinding.
 			_arrayElem,											// dstArrayElement.
 			1,													// descriptorCount.
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,					// descriptorType.
+			_type,												// descriptorType.
 			nullptr,											// pImageInfo.
 			nullptr,											// pBufferInfo.				// Will be set in pipeline.
 			nullptr												// pTexelBufferView.

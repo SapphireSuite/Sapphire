@@ -9,25 +9,15 @@
 
 #include <Rendering/Config.hpp>
 
-#include <Rendering/Vulkan/Buffer/VkUniformBuffer.hpp>
+#if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
 {
-#if SA_RENDERING_API == SA_VULKAN
-
 	class VkLight : public ILight
 	{
-	protected:
-		VkUniformBuffer mUniformBuffer;
-
-	public:
-		void Create(const IRenderInstance& _instance, const LightInfos& _infos) override final;
-		void Destroy(const IRenderInstance& _instance) override final;
-
-		VkDescriptorBufferInfo CreateDescriptorBufferInfo() const noexcept;
 	};
+}
 
 #endif
-}
 
 #endif // GUARD

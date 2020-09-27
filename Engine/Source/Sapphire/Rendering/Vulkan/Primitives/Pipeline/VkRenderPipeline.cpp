@@ -291,7 +291,7 @@ namespace Sa
 
 
 		// Light bindings.
-		//if (_pipelineInfos.illumModel != IlluminationModel::None)
+		if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindings.
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
@@ -304,43 +304,22 @@ namespace Sa
 			});
 
 
-			// Point lights.
-			uint32 pLightNum = SizeOf(_instance.GetPointLights());
-
-			if (pLightNum > 0u)
+			// Light buffer binding.
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 			{
-				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
-				{
-					3,																	// binding.
-					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
-					pLightNum,															// descriptorCount.
-					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,			// stageFlags.
-					nullptr																// pImmutableSamplers.
-				});
-			}
-
-
-			// Directional lights.
-			uint32 dLightNum = SizeOf(_instance.GetDirectionalLights());
-
-			if (dLightNum > 0u)
-			{
-				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
-				{
-					4,																	// binding.
-					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
-					dLightNum,															// descriptorCount.
-					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,			// stageFlags.
-					nullptr																// pImmutableSamplers.
-				});
-			}
+				3,																	// binding.
+				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,									// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
+			});
 		}
 
 
 		// Texture bindings.
 		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 		{
-			5,																		// binding.
+			4,																		// binding.
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// descriptorType.
 			SizeOf(_pipelineInfos.textures),										// descriptorCount.
 			VK_SHADER_STAGE_FRAGMENT_BIT,											// stageFlags.
@@ -379,8 +358,8 @@ namespace Sa
 		// Static UBO binding.
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-			_imageNum,															// descriptorCount.
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,										// type.
+			_imageNum,																// descriptorCount.
 		});
 
 
@@ -396,44 +375,30 @@ namespace Sa
 
 
 		// Light bindings.
-		//if (_pipelineInfos.illumModel != IlluminationModel::None)
+		if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindigs.
 			_poolSizes.push_back(VkDescriptorPoolSize
 			{
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-				_imageNum,															// descriptorCount.
+				1,																	// descriptorCount.
 			});
 
 
-			// Point lights.
-			if (SizeOf(_instance.GetPointLights()) > 0u)
+			// Light buffer binding.
+			_poolSizes.push_back(VkDescriptorPoolSize
 			{
-				_poolSizes.push_back(VkDescriptorPoolSize
-				{
-					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-					_imageNum,															// descriptorCount.
-				});
-			}
-
-
-			// Directional lights.
-			if (SizeOf(_instance.GetDirectionalLights()) > 0u)
-			{
-				_poolSizes.push_back(VkDescriptorPoolSize
-				{
-					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-					_imageNum,															// descriptorCount.
-				});
-			}
+				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,									// type.
+				1,																	// descriptorCount.
+			});
 		}
 
 
 		// Texture bindings.
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
-			_imageNum,															// descriptorCount.
+			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// type.
+			1,																		// descriptorCount.
 		});
 	}
 
@@ -471,48 +436,30 @@ namespace Sa
 
 		// Static UBO binding
 		_descriptorInfos.push_back(uniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(StaticUniformBuffer)));
-		_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 0));
+		_descriptorWrites.push_back(VkUniformBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 0));
 
 
 		// Object UBO binding
 		if (_pipelineInfos.uniformBufferSize > 0u)
 		{
 			_descriptorInfos.push_back(mObjectUniformBuffers[_index].CreateDescriptorBufferInfo(_pipelineInfos.uniformBufferSize));
-			_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 1));
+			_descriptorWrites.push_back(VkUniformBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 1));
 		}
 
 
 		// Light bindings.
-		//if (_pipelineInfos.illumModel != IlluminationModel::None)
+		if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindigs.
-			_descriptorInfos.push_back(mMatConstantUniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(MaterialConstants)));
-			_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 2));
+			_descriptorInfos.push_back(mMatConstantUniformBuffer.CreateDescriptorBufferInfo(sizeof(MaterialConstants)));
+			_descriptorWrites.push_back(VkUniformBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 2));
 
 
-			// Point lights.
-			const std::vector<VkPointLight>& pLights = _instance.GetPointLights();
+			// Lights UBO bindigs.
+			const VkStorageBuffer<LightInfos>& lightBuffer = _instance.GetLightBuffer();
 
-			if (SizeOf(pLights) > 0u)
-			{
-				for (uint32 i = 0u; i < SizeOf(pLights); ++i)
-				{
-					_descriptorInfos.push_back(pLights[i].CreateDescriptorBufferInfo());
-					_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 3, i));
-				}
-			}
-
-			// Directional lights.
-			const std::vector<VkDirectionalLight>& dLights = _instance.GetDirectionalLights();
-
-			if (SizeOf(dLights) > 0u)
-			{
-				for (uint32 i = 0u; i < SizeOf(dLights); ++i)
-				{
-					_descriptorInfos.push_back(dLights[i].CreateDescriptorBufferInfo());
-					_descriptorWrites.push_back(VkBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 4, i));
-				}
-			}
+			_descriptorInfos.push_back(lightBuffer.CreateDescriptorBufferInfo());
+			_descriptorWrites.push_back(lightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 3));
 		}
 		
 
@@ -524,7 +471,7 @@ namespace Sa
 			const VkTexture& vkTexture = _pipelineInfos.textures[i]->As<VkTexture>();
 
 			_descriptorInfos.push_back(vkTexture.CreateDescriptorImageInfo());
-			_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], 5, i));
+			_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], 4, i));
 		}
 	}
 
@@ -604,28 +551,25 @@ namespace Sa
 	void VkRenderPipeline::CreateUniformBuffers(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
 	{
 		mObjectUniformBuffers.resize(_imageNum);
-		mMatConstantUniformBuffers.resize(_imageNum);
 
 		for (uint32 i = 0; i < _imageNum; i++)
 		{
 			mObjectUniformBuffers[i].Create(_device, _pipelineInfos.uniformBufferSize,
 				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-			mMatConstantUniformBuffers[i].Create(_device, sizeof(MaterialConstants),
-				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_pipelineInfos.matConstants);
 		}
+
+		mMatConstantUniformBuffer.Create(_device, sizeof(MaterialConstants),
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_pipelineInfos.matConstants);
 	}
 	void VkRenderPipeline::DestroyUniformBuffers(const VkDevice& _device)
 	{
 		for (uint32 i = 0; i < mObjectUniformBuffers.size(); i++)
-		{
 			mObjectUniformBuffers[i].Destroy(_device);
-			mMatConstantUniformBuffers[i].Destroy(_device);
-		}
-
+		
 		mObjectUniformBuffers.clear();
-		mMatConstantUniformBuffers.clear();
+
+		mMatConstantUniformBuffer.Destroy(_device);
 	}
 
 	void VkRenderPipeline::Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)

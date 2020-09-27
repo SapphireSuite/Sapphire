@@ -4,11 +4,11 @@
 
 #include <Collections/Debug>
 
-namespace Sa
-{
 #if SA_RENDERING_API == SA_VULKAN
 
-	VkCullModeFlagBits API_GetCullingMode(CullingMode _mode) noexcept
+namespace Sa
+{
+	VkCullModeFlags API_GetCullingMode(CullingMode _mode) noexcept
 	{
 		switch (_mode)
 		{
@@ -23,7 +23,6 @@ namespace Sa
 				return VK_CULL_MODE_NONE;
 		}
 	}
+}
 
 #endif
-
-}

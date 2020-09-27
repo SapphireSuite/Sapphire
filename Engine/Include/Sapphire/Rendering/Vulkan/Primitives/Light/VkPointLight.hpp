@@ -7,19 +7,15 @@
 
 #include <Rendering/Vulkan/Primitives/Light/VkLight.hpp>
 
-#include <Rendering/Config.hpp>
+#if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
 {
-#if SA_RENDERING_API == SA_VULKAN
-
 	class VkPointLight : public VkLight
 	{
-	public:
-		//VkDescriptorBufferInfo CreateDescriptorBufferInfo() const noexcept override final;
 	};
+}
 
 #endif
-}
 
 #endif // GUARD

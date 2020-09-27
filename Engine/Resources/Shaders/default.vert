@@ -28,19 +28,6 @@ layout(binding = 1) uniform ObjectUniformBuffer
 
 } oUBO;
 
-layout (binding = 3) uniform PointLight
-{
-    vec3 position;
-
-	vec3 color;
-	
-	float ambiant;
-	float diffuse;
-	float specular;
-    
-    float shininess;
-} pLights[1];
-
 
 // In.
 layout(location = 0) in vec3 inPosition;

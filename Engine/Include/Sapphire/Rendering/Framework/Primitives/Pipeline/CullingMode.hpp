@@ -30,7 +30,7 @@ namespace Sa
 
 #if SA_RENDERING_API == SA_VULKAN
 
-	VkCullModeFlagBits API_GetCullingMode(CullingMode _mode) noexcept;
+	VkCullModeFlags API_GetCullingMode(CullingMode _mode) noexcept;
 
 #endif
 
