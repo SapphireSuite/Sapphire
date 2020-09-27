@@ -129,7 +129,7 @@ namespace Sa
 	}
 
 
-	void GLFWWindow::TEST(Transff& _camTr, float _deltaTime)
+	void GLFWWindow::TEST(Transff& _camTr, Vec3f& _lightPos, float _deltaTime)
 	{
 		if (glfwGetKey(mHandle, GLFW_KEY_D) == GLFW_PRESS)
 			_camTr.position += _deltaTime * _camTr.RightVector();
@@ -159,6 +159,21 @@ namespace Sa
 
 			_camTr.rotation = Quatf(cos(dx), 0, sin(dx), 0) * Quatf(cos(dy), sin(dy), 0, 0);
 		}
+
+
+
+		if (glfwGetKey(mHandle, GLFW_KEY_J) == GLFW_PRESS)
+			_lightPos -= _deltaTime * _camTr.RightVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_L) == GLFW_PRESS)
+			_lightPos += _deltaTime * _camTr.RightVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_U) == GLFW_PRESS)
+			_lightPos += _deltaTime * _camTr.UpVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_O) == GLFW_PRESS)
+			_lightPos -= _deltaTime * _camTr.UpVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_I) == GLFW_PRESS)
+			_lightPos -= _deltaTime * _camTr.ForwardVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_K) == GLFW_PRESS)
+			_lightPos += _deltaTime * _camTr.ForwardVector();
 	}
 }
 

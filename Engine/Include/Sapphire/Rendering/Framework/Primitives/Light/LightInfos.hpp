@@ -15,34 +15,90 @@ namespace Sa
 {
 	enum class LightType
 	{
-		Point,
-
 		Directionnal,
 
-		Spot
+		Point,
+
+		Spot,
+
+		Max
 	};
 
-	struct LightInfos
+	// Point light infos.
+	struct PLightInfos
 	{
-		// Used for Point and Spot.
 		Vec3f position;
-		
-		LightType type;
+
+		bool bEnabled = true;
 
 		// Lighting color.
 		alignas(16) Vec3f color = Vec3f::One;
 
-		bool bEnable = true;
 
-		// Used for Directionnal and Spot.
-		alignas(16) Vec3f direction = Vec3f::Forward;
+		float intensity = 1.0f;
 
-		// Used for Spot (use empty align space).
-		float cutOff = 60.0f;
+		// Max range.
+		float range = 10.0f;
+
 
 		// Lighting components.
 		float ambiant = 0.01f;
+
 		float diffuse = 0.64f;
+
+		float specular = 0.35f;
+	};
+
+
+	// Directionnal light infos.
+	struct DLightInfos
+	{
+		// Used for Directionnal and Spot.
+		alignas(16) Vec3f direction = Vec3f::Forward;
+
+		bool bEnabled = true;
+
+		// Lighting color.
+		alignas(16) Vec3f color = Vec3f::One;
+
+		float intensity = 1.0f;
+
+
+		// Lighting components.
+		float ambiant = 0.01f;
+
+		float diffuse = 0.64f;
+
+		float specular = 0.35f;
+	};
+
+
+	// Spot light infos.
+	struct SLightInfos
+	{
+		Vec3f position;
+
+		bool bEnabled = true;
+
+		alignas(16) Vec3f direction = Vec3f::Forward;
+
+		float cutOff = 60.0f;
+
+		// Lighting color.
+		alignas(16) Vec3f color = Vec3f::One;
+
+
+		float intensity = 1.0f;
+
+		// Max range.
+		float range = 10.0f;
+
+
+		// Lighting components.
+		float ambiant = 0.01f;
+
+		float diffuse = 0.64f;
+
 		float specular = 0.35f;
 	};
 }

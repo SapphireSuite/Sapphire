@@ -20,12 +20,15 @@ namespace Sa
 	{
 		VkBuffer mHandle;
 
-		uint32 mSize = 0u;
-		uint32 mCapacity = 0u;
+		// Buffer size on device.
+		uint32 mDeviceSize = 0u;
+
+		std::vector<uint32> mFreeIndices;
+
+		void InitNewObjects(const VkDevice& _device, uint32 _prevSize, uint32 _newSize);
 
 	public:
 		uint32 Size() const noexcept;
-		uint32 Capacity() const noexcept;
 
 		uint32 Add(const VkDevice& _device, const T& _object);
 		void Remove(const VkDevice& _device, uint32 _id);

@@ -14,7 +14,9 @@ namespace Sa
 	class IWindow;
 	class IRenderSurface;
 	
-	struct LightInfos;
+	struct PLightInfos;
+	struct DLightInfos;
+	struct SLightInfos;
 
 	class IRenderInstance : public IInterface
 	{
@@ -26,9 +28,16 @@ namespace Sa
 		virtual void DestroyRenderSurface(const IWindow& _window) = 0;
 
 		
-		virtual void InstantiateLight(const LightInfos& _infos) = 0;
+		virtual uint32 InstantiatePointLight(const PLightInfos& _infos) = 0;
+		virtual void DestroyPointLight(uint32 _id) = 0;
 
+		virtual uint32 InstantiateDirectionnalLight(const DLightInfos& _infos) = 0;
+		virtual void DestroyDirectionnalLight(uint32 _id) = 0;
 		
+		virtual uint32 InstantiateSpotLight(const SLightInfos& _infos) = 0;
+		virtual void DestroySpotLight(uint32 _id) = 0;
+
+
 		virtual void Update() = 0;
 	};
 }

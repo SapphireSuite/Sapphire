@@ -62,7 +62,9 @@ namespace Sa
 
 	void VkRenderInstance::OnDeviceCreated()
 	{
-		mLightBuffer.Create(mDevice);
+		mPointLightBuffer.Create(mDevice);
+		mDirectionnalLightBuffer.Create(mDevice);
+		mSpotLightBuffer.Create(mDevice);
 	}
 
 	const std::vector<const char*>& VkRenderInstance::GetRequiredExtensions() noexcept
@@ -113,10 +115,21 @@ namespace Sa
 		return mRenderSurfaceInfos[0].renderSurface;
 	}
 
-	const VkStorageBuffer<LightInfos>& VkRenderInstance::GetLightBuffer() const noexcept
+	const VkStorageBuffer<PLightInfos>& VkRenderInstance::GetPointLightBuffer() const noexcept
 	{
-		return mLightBuffer;
+		return mPointLightBuffer;
 	}
+
+	const VkStorageBuffer<DLightInfos>& VkRenderInstance::GetDirectionnalLightBuffer() const noexcept
+	{
+		return mDirectionnalLightBuffer;
+	}
+
+	const VkStorageBuffer<SLightInfos>& VkRenderInstance::GetSpotLightBuffer() const noexcept
+	{
+		return mSpotLightBuffer;
+	}
+
 
 	void VkRenderInstance::Create()
 	{
@@ -185,7 +198,9 @@ namespace Sa
 
 	void VkRenderInstance::Destroy()
 	{
-		mLightBuffer.Destroy(mDevice);
+		mPointLightBuffer.Destroy(mDevice);
+		mDirectionnalLightBuffer.Destroy(mDevice);
+		mSpotLightBuffer.Destroy(mDevice);
 
 		// Destroy system.
 		mDevice.Destroy();
@@ -282,10 +297,37 @@ namespace Sa
 		SA_ASSERT(bFound, InvalidParam, Rendering, L"Window not registered as render surface!")
 	}
 
-	void VkRenderInstance::InstantiateLight(const LightInfos& _infos)
+
+	uint32 VkRenderInstance::InstantiatePointLight(const PLightInfos& _infos)
 	{
-		mLightBuffer.Add(mDevice, _infos);
+		return mPointLightBuffer.Add(mDevice, _infos);
 	}
+
+	void VkRenderInstance::DestroyPointLight(uint32 _id)
+	{
+		mPointLightBuffer.Remove(mDevice, _id);
+	}
+
+	uint32 VkRenderInstance::InstantiateDirectionnalLight(const DLightInfos& _infos)
+	{
+		return mDirectionnalLightBuffer.Add(mDevice, _infos);
+	}
+
+	void VkRenderInstance::DestroyDirectionnalLight(uint32 _id)
+	{
+		mDirectionnalLightBuffer.Remove(mDevice, _id);
+	}
+
+	uint32 VkRenderInstance::InstantiateSpotLight(const SLightInfos& _infos)
+	{
+		return mSpotLightBuffer.Add(mDevice, _infos);
+	}
+
+	void VkRenderInstance::DestroySpotLight(uint32 _id)
+	{
+		mSpotLightBuffer.Remove(mDevice, _id);
+	}
+
 
 	void VkRenderInstance::Update()
 	{

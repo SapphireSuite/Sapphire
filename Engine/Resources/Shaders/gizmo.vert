@@ -45,7 +45,7 @@ layout(location = 0) out DataBlock
 // Code
 void main()
 {
-    // always facing camera
+    // always facing camera.
     mat4 viewRot = inverse(sUBO.viewInv);
     viewRot[3].xyz = vec3(0,0,0);
 

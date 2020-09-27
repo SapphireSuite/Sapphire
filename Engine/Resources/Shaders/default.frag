@@ -3,61 +3,110 @@
 
 
 // Uniform.
-layout(binding = 2) uniform MaterialConstants
+layout(binding = 2) uniform sampler2D texSamplers[3];
+
+
+layout(binding = 3) uniform MaterialConstants
 {
 	// Ambiant constant.
 	vec3 ka;
-
-	// Diffuse constant.
-    vec3 kd;
-
-	// Specular constant.
-	vec3 ks;
-
-	// Emissive constant.
-	vec3 ke;
-
-	// Transmission filter.
-	vec3 tf;
 	
 	// Transparency.
 	float alpha;
 
+	// Diffuse constant.
+    vec3 kd;
+
 	float shininess;
+
+	// Specular constant.
+	vec3 ks;
 
 	float metallic;
 
+	// Emissive constant.
+	vec3 ke;
+
 	// Optical density (Refractive index).
 	float refraction;
+
+	// Transmission filter.
+	vec3 tf;
 } matConsts;
 
 
-struct Light
+// Directionnal Light.
+struct DirectionnalLight
 {
-	vec3 position;
-
-	int type;
-
-	vec3 color;
-
-	bool bEnabled;
-	
 	vec3 direction;
 
-	float cutOff;
+	bool bEnabled;
+
+	vec3 color;
+	
+	float intensity;
 
 	float ambiant;
 	float diffuse;
 	float specular;
 };
 
-layout (binding = 3) buffer LightBuffer
+layout (binding = 4) buffer DirectionnalLightBuffer
 {
-	Light lights[];
-} lightBuffer;
+	DirectionnalLight lights[];
+} dLightBuffer;
 
 
-layout(binding = 4) uniform sampler2D texSamplers[3];
+// Point Light.
+struct PointLight
+{
+	vec3 position;
+
+	bool bEnabled;
+
+	vec3 color;
+	
+	float intensity;
+
+	float range;
+
+	float ambiant;
+	float diffuse;
+	float specular;
+};
+
+layout (binding = 5) buffer PointLightBuffer
+{
+	PointLight lights[];
+} pLightBuffer;
+
+
+// Spot Light.
+struct SpotLight
+{
+	vec3 position;
+
+	bool bEnabled;
+
+	vec3 direction;
+
+	float cutOff;
+
+	vec3 color;
+	
+	float intensity;
+
+	float range;
+
+	float ambiant;
+	float diffuse;
+	float specular;
+};
+
+layout (binding = 6) buffer SpotLightBuffer
+{
+	SpotLight lights[];
+} sLightBuffer;
 
 
 // Constants.
@@ -151,11 +200,8 @@ struct IlluminationData
 	vec3 Rs;
 };
 
-vec3 ComputeLight(Light _light, IlluminationData _data);
-vec3 PBRIllumination(IlluminationData _data);
-vec3 BlinnPhongIllumination(IlluminationData _data);
-
-float Fresnel(float _shininess, float _cosTheta);
+void ComputeLights(IlluminationData _data);
+vec3 ComputeIlluminationModel(IlluminationData _data);
 
 void ComputeIllumination()
 {
@@ -182,26 +228,12 @@ void ComputeIllumination()
 	data.vCam = normalize(fsIn.position - fsIn.camPosition);
 	
 
-	// Compute each lights.
-	for(int i = 0; i < lightBuffer.lights.length(); ++i)
-	{
-		if(lightBuffer.lights[i].bEnabled)
-			outColor.xyz += ComputeLight(lightBuffer.lights[i], data);
-	}
+	ComputeLights(data);
 }
 
-vec3 ComputeLight(Light _light, IlluminationData _data)
+
+void FillIlluminationData(inout IlluminationData _data, vec3 _color, float _ambiant, float _diffuse, float _specular)
 {
-	// Object to light direction.
-
-	if(_light.type == 0)			// Point light.
-		_data.vLight = normalize(_light.position - fsIn.position);
-	else if(_light.type == 1)		// Directionnal light.
-		_data.vLight = normalize(-_light.direction);
-	else if(_light.type == 2)		// Spot light.
-		;
-
-
 	// Halfway vector.
 	_data.vHalf = normalize(_data.vLight + _data.vCam);
 
@@ -213,44 +245,40 @@ vec3 ComputeLight(Light _light, IlluminationData _data)
 
 
 	// Ambiant component.
-	_data.Ra = _light.color * _light.ambiant * matConsts.ka;
+	_data.Ra = _color * _ambiant * matConsts.ka * _data.albedo;
 	
 	// Diffuse component.
-	_data.Rd = _light.color * _light.diffuse * matConsts.kd * mix(_data.albedo, vec3(0.0), matConsts.metallic);
+	_data.Rd = _color * _diffuse * matConsts.kd * mix(_data.albedo, vec3(0.0), matConsts.metallic);
 
 	// Specular component.
-	_data.Rs = _light.color * _light.specular * matConsts.ks * mix(vec3(1.0), _data.albedo, matConsts.metallic);
-
-
-	// Illumination model.
-	if(illumModel == 1)
-		return BlinnPhongIllumination(_data);	// Simple Blinn-Phong implementation.
-	else if(illumModel == 2)
-		return PBRIllumination(_data);			// Physically based using BRDF.
+	_data.Rs = _color * _specular * matConsts.ks * mix(vec3(1.0), _data.albedo, matConsts.metallic);
 }
 
+
+// Blinn-Phong illumination.
 vec3 BlinnPhongIllumination(IlluminationData _data)
 {
-	// Attenuation constants.
-	const float kc = 0.01;	// Constant.
-	const float kl = 0.2;	// Linear.
-	const float kq = 0.2;	// Quadratic.
-	
-
 	// Normal facing light.
 	float facing = _data.cosTheta > 0.0 ? 1.0 : 0.0;
 
 	vec3 diffuse = _data.Rd * max(_data.cosTheta, 0.0);
-	vec3 specular = _data.Rs * pow(_data.cosAlpha, matConsts.shininess) * facing;  
+	vec3 specular = _data.Rs * pow(_data.cosAlpha, matConsts.shininess) * facing;
 	
-	// TODO: Attenuation for Directionnal and Spot light?
-	float attenuation = 1.0 / (kc + kl * length(_data.vLight) + kq * dot(_data.vLight, _data.vLight));
-	
-
 	//  Output.
-	return _data.Ra + attenuation * (diffuse + specular);
+	return _data.Ra + diffuse + specular;
 }
 
+
+// PBR illumination.
+float Fresnel(float _shininess, float _cosTheta)
+{
+	// f0: Material reflectance at 0 degree.
+	const float f0 = pow((1 - _shininess) / (1 + _shininess), 2);
+
+
+	// Schlick's approximation.
+	return f0 + (1 - f0) * pow(1 - _cosTheta, 5);
+}
 
 vec3 PBRIllumination(IlluminationData _data)
 {
@@ -273,13 +301,84 @@ vec3 PBRIllumination(IlluminationData _data)
 	return _data.Ra + (diffuseBRDF + specularBRDF) * _data.cosTheta;
 }
 
-
-float Fresnel(float _shininess, float _cosTheta)
+float ComputeAttenuation(vec3 _lightPosition, float _lightRange)
 {
-	// f0: Material reflectance at 0 degree.
-	const float f0 = pow((1 - _shininess) / (1 + _shininess), 2);
+	float distance = length(_lightPosition - fsIn.position);
+
+	return max(1 - (distance / _lightRange), 0.0);
+}
+
+vec3 ComputeDirectionnalLight(DirectionnalLight _light, IlluminationData _data)
+{
+	// Object to light direction.
+	_data.vLight = normalize(-_light.direction);
+
+	FillIlluminationData(_data, _light.color * _light.intensity, _light.ambiant, _light.diffuse, _light.specular);
+
+	return ComputeIlluminationModel(_data);
+}
+
+vec3 ComputePointLight(PointLight _light, IlluminationData _data)
+{
+	// Object to light direction.
+	_data.vLight = normalize(_light.position - fsIn.position);
+
+	FillIlluminationData(_data, _light.color * _light.intensity, _light.ambiant, _light.diffuse, _light.specular);
+
+	return ComputeAttenuation(_light.position, _light.range) * ComputeIlluminationModel(_data);
+}
+
+vec3 ComputeSpotLight(SpotLight _light, IlluminationData _data)
+{
+	// Object to light direction.
+	_data.vLight = normalize(_light.position - fsIn.position);
 
 
-	// Schlick's approximation.
-	return f0 + (1 - f0) * pow(1 - _cosTheta, 5);
+	float theta = dot(_data.vLight, normalize(_light.direction));
+
+	// Fragment not in spot light.
+	if(theta < _light.cutOff)
+		return _data.Ra;
+
+
+	FillIlluminationData(_data, _light.color* _light.intensity, _light.ambiant, _light.diffuse, _light.specular);
+
+
+	return ComputeAttenuation(_light.position, _light.range) * ComputeIlluminationModel(_data);
+}
+
+
+vec3 ComputeIlluminationModel(IlluminationData _data)
+{
+	// Illumination model.
+
+	if(illumModel == 1)
+		return BlinnPhongIllumination(_data);					// Simple Blinn-Phong implementation.
+	else if(illumModel == 2)
+		return PBRIllumination(_data);							// Physically based using BRDF.
+}
+
+void ComputeLights(IlluminationData _data)
+{
+	// Directionnal Lights.
+	for(int i = 0; i < dLightBuffer.lights.length(); ++i)
+	{
+		if(dLightBuffer.lights[i].bEnabled)
+			outColor.xyz += ComputeDirectionnalLight(dLightBuffer.lights[i], _data);
+	}
+
+	// Point Lights.
+	for(int i = 0; i < pLightBuffer.lights.length(); ++i)
+	{
+		if(pLightBuffer.lights[i].bEnabled)
+			outColor.xyz += ComputePointLight(pLightBuffer.lights[i], _data);
+	}
+
+
+	// Spot Lights.
+	for(int i = 0; i < sLightBuffer.lights.length(); ++i)
+	{
+		if(sLightBuffer.lights[i].bEnabled)
+			outColor.xyz += ComputeSpotLight(sLightBuffer.lights[i], _data);
+	}
 }

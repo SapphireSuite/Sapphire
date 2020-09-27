@@ -12,7 +12,6 @@
 #include <Sapphire/Window/GLFWWindow.hpp>
 
 #include <Sapphire/Rendering/Framework/Primitives/Mesh/IMesh.hpp>
-#include <Sapphire/Rendering/Framework/Primitives/Light/ILight.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
@@ -44,11 +43,11 @@ int main()
 
 
 	// Create Lights.
-	LightInfos pLight1;
+	PLightInfos pLight1;
 	pLight1.position = Vec3f(3.0f, -2.0f, 2.0f);
 	pLight1.color = Vec3f(0.9f, 0.7f, 0.3f);
 
-	ILight& plight1 = instance.InstantiatePointLight(pLight1);
+	uint32 pLight1ID = instance.InstantiatePointLight(pLight1);
 
 
 	AssetManager assetMgr;
@@ -269,7 +268,7 @@ int main()
 		VkRenderFrame frame = surface.GetSwapChain().Update(instance.GetDevice());
 
 
-		window.TEST(camTr, speed * deltaTime);
+		window.TEST(camTr, pLight1.position, speed * deltaTime);
 
 		// Update Uniform Buffer.
 		StaticUniformBuffer ubo;
@@ -279,6 +278,16 @@ int main()
 
 		frame.uniformBuffer.UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
 		
+		{
+			ObjectUniformBuffer oubo;
+			oubo.modelMat = Transff(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix().GetTransposed();
+			gizmoMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
+			gizmoBPMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
+
+			vkDeviceWaitIdle(instance.GetDevice());
+			instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1, pLight1ID);
+		}
+
 
 		const VkCommandBufferBeginInfo commandBufferBeginInfo
 		{

@@ -34,7 +34,10 @@ namespace Sa
 		std::vector<RenderSurfaceInfos> mRenderSurfaceInfos;
 
 
-		VkStorageBuffer<LightInfos> mLightBuffer;
+	public: // TODO: REMOVE LATER.
+		VkStorageBuffer<PLightInfos> mPointLightBuffer;
+		VkStorageBuffer<DLightInfos> mDirectionnalLightBuffer;
+		VkStorageBuffer<SLightInfos> mSpotLightBuffer;
 
 
 #if SA_VK_VALIDATION_LAYERS
@@ -61,7 +64,9 @@ namespace Sa
 
 		const VkRenderSurface& GetRenderSurface(const IWindow& _window) const;
 
-		const VkStorageBuffer<LightInfos>& GetLightBuffer() const noexcept;
+		const VkStorageBuffer<PLightInfos>& GetPointLightBuffer() const noexcept;
+		const VkStorageBuffer<DLightInfos>& GetDirectionnalLightBuffer() const noexcept;
+		const VkStorageBuffer<SLightInfos>& GetSpotLightBuffer() const noexcept;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Create() override final;
@@ -75,7 +80,20 @@ namespace Sa
 
 
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void InstantiateLight(const LightInfos& _infos) override final;
+		SA_ENGINE_API uint32 InstantiatePointLight(const PLightInfos& _infos) override final;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void DestroyPointLight(uint32 _id) override final;
+
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API uint32 InstantiateDirectionnalLight(const DLightInfos& _infos) override final;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void DestroyDirectionnalLight(uint32 _id) override final;
+
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API uint32 InstantiateSpotLight(const SLightInfos& _infos) override final;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void DestroySpotLight(uint32 _id) override final;
+
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Update() override final;
