@@ -44,11 +44,17 @@ int main()
 
 	// Create Lights.
 	PLightInfos pLight1;
-	pLight1.position = Vec3f(3.0f, -2.0f, 2.0f);
+	pLight1.position = Vec3f(-1.0f, -2.0f, 3.0f);
 	pLight1.color = Vec3f(0.9f, 0.7f, 0.3f);
 
 	uint32 pLight1ID = instance.InstantiatePointLight(pLight1);
 
+	PLightInfos pLight2;
+	pLight2.position = Vec3f(-2.0f, -2.0f, -2.0f);
+	pLight2.color = Vec3f(0.9f, 0.7f, 0.3f);
+	pLight2.intensity = 5.0f;
+
+	uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
 
 	AssetManager assetMgr;
 
@@ -250,7 +256,7 @@ int main()
 
 
 	Transff camTr;
-	camTr.position.z = 1.0f;
+	camTr.position = Vec3f(-2.0f, -1.0f, 5.0f);
 
 	Chrono chrono;
 	float time = 0.0f;

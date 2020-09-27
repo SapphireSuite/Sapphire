@@ -163,17 +163,17 @@ namespace Sa
 
 
 		if (glfwGetKey(mHandle, GLFW_KEY_J) == GLFW_PRESS)
-			_lightPos -= _deltaTime * _camTr.RightVector();
+			_lightPos -= _deltaTime * Vec3f::Right;
 		if (glfwGetKey(mHandle, GLFW_KEY_L) == GLFW_PRESS)
-			_lightPos += _deltaTime * _camTr.RightVector();
+			_lightPos += _deltaTime * Vec3f::Right;
 		if (glfwGetKey(mHandle, GLFW_KEY_U) == GLFW_PRESS)
-			_lightPos += _deltaTime * _camTr.UpVector();
+			_lightPos += _deltaTime * Vec3f::Up;
 		if (glfwGetKey(mHandle, GLFW_KEY_O) == GLFW_PRESS)
-			_lightPos -= _deltaTime * _camTr.UpVector();
+			_lightPos -= _deltaTime * Vec3f::Up;
 		if (glfwGetKey(mHandle, GLFW_KEY_I) == GLFW_PRESS)
-			_lightPos -= _deltaTime * _camTr.ForwardVector();
+			_lightPos -= _deltaTime * Vec3f::Forward;
 		if (glfwGetKey(mHandle, GLFW_KEY_K) == GLFW_PRESS)
-			_lightPos += _deltaTime * _camTr.ForwardVector();
+			_lightPos += _deltaTime * Vec3f::Forward;
 	}
 }
 

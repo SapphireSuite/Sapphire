@@ -298,7 +298,7 @@ vec3 PBRIllumination(IlluminationData _data)
 	
 
 	//  Output.
-	return _data.Ra + (diffuseBRDF + specularBRDF) * _data.cosTheta;
+	return max(_data.Ra + (diffuseBRDF + specularBRDF) * _data.cosTheta, vec3(0.0));
 }
 
 float ComputeAttenuation(vec3 _lightPosition, float _lightRange)
