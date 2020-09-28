@@ -41,6 +41,8 @@ namespace Sa
 		// Transmission filter.
 		alignas(16) Vec3f tf = Vec3f::One;
 
+		// Fresnel reflectance.
+		float reflectance = 0.5f;
 
 		// Set shininess from roughness.
 		void SetRoughness(float _roughness);

@@ -32,6 +32,9 @@ layout(binding = 3) uniform MaterialConstants
 
 	// Transmission filter.
 	vec3 tf;
+
+	// Fresnel reflectance.
+	float reflectance;
 } matConsts;
 
 
@@ -198,6 +201,10 @@ struct IlluminationData
 
 	// Specular component.
 	vec3 Rs;
+
+
+	// Fresnel f0 (reflectance at 0).
+	vec3 f0;
 };
 
 void ComputeLights(IlluminationData _data);
@@ -252,6 +259,10 @@ void FillIlluminationData(inout IlluminationData _data, vec3 _color, float _ambi
 
 	// Specular component.
 	_data.Rs = _color * _specular * matConsts.ks * mix(vec3(1.0), _data.albedo, matConsts.metallic);
+
+
+	// Fresnel reflectance.
+	_data.f0 = mix(vec3(0.16 * matConsts.reflectance * matConsts.reflectance), _data.albedo, matConsts.metallic);
 }
 
 
@@ -270,14 +281,10 @@ vec3 BlinnPhongIllumination(IlluminationData _data)
 
 
 // PBR illumination.
-float Fresnel(float _shininess, float _cosTheta)
+vec3 Fresnel(vec3 _f0, float _cosTheta)
 {
-	// f0: Material reflectance at 0 degree.
-	const float f0 = pow((1 - _shininess) / (1 + _shininess), 2);
-
-
 	// Schlick's approximation.
-	return f0 + (1 - f0) * pow(1 - _cosTheta, 5);
+	return _f0 + (1 - _f0) * pow(1 - _cosTheta, 5);
 }
 
 vec3 PBRIllumination(IlluminationData _data)
@@ -294,7 +301,7 @@ vec3 PBRIllumination(IlluminationData _data)
 
 
 	vec3 diffuseBRDF = _data.Rd/* / PI*/;
-	vec3 specularBRDF = _data.Rs * normFactor * Fresnel(matConsts.shininess, dot(_data.vCam, _data.vHalf)) * G * pow(_data.cosAlpha, matConsts.shininess);
+	vec3 specularBRDF = _data.Rs * normFactor * Fresnel(_data.f0, dot(_data.vCam, _data.vHalf)) * G * pow(_data.cosAlpha, matConsts.shininess);
 	
 
 	//  Output.
