@@ -132,7 +132,15 @@ namespace Sa
 	{
 		SA_ASSERT(_index < 16u, OutOfRange, Maths, _index, 0u, 15u);
 
+#if SA_MATRIX_ROW_MAJOR
+	
 		return data[_index];
+
+#else
+
+		return data[(_index * 4u) % 15u];
+#endif
+
 	}
 
 	template <typename T>
@@ -140,7 +148,14 @@ namespace Sa
 	{
 		SA_ASSERT(_index < 16u, OutOfRange, Maths, _index, 0u, 15u);
 
+#if SA_MATRIX_ROW_MAJOR
+
 		return data[_index];
+
+#else
+
+		return data[(_index * 4u) % 15u];
+#endif
 	}
 
 	template <typename T>
@@ -191,12 +206,25 @@ namespace Sa
 	{
 		// Allows constexpr
 
+#if SA_MATRIX_ROW_MAJOR
+
 		return Mat4(
 			data[0] * _scale, data[1] * _scale, data[2] * _scale, data[3] * _scale,
 			data[4] * _scale, data[5] * _scale, data[6] * _scale, data[7] * _scale,
 			data[8] * _scale, data[9] * _scale, data[10] * _scale, data[11] * _scale,
 			data[12] * _scale, data[13] * _scale, data[14] * _scale, data[15] * _scale
 		);
+
+#else
+
+		return Mat4(
+			data[0] * _scale, data[4] * _scale, data[8] * _scale, data[12] * _scale,
+			data[1] * _scale, data[5] * _scale, data[9] * _scale, data[13] * _scale,
+			data[2] * _scale, data[6] * _scale, data[10] * _scale, data[14] * _scale,
+			data[3] * _scale, data[7] * _scale, data[11] * _scale, data[15] * _scale
+		);
+
+#endif
 	}
 
 	template <typename T>
@@ -217,6 +245,8 @@ namespace Sa
 
 		// Allows constexpr
 
+#if SA_MATRIX_ROW_MAJOR
+
 		return Mat4(
 			data[0] / _scale, data[1] / _scale, data[2] / _scale, data[3] / _scale,
 			data[4] / _scale, data[5] / _scale, data[6] / _scale, data[7] / _scale,
@@ -224,6 +254,16 @@ namespace Sa
 			data[12] / _scale, data[13] / _scale, data[14] / _scale, data[15] / _scale
 		);
 
+#else
+
+		return Mat4(
+			data[0] / _scale, data[4] / _scale, data[8] / _scale, data[12] / _scale,
+			data[1] / _scale, data[5] / _scale, data[9] / _scale, data[13] / _scale,
+			data[2] / _scale, data[6] / _scale, data[10] / _scale, data[14] / _scale,
+			data[3] / _scale, data[7] / _scale, data[11] / _scale, data[15] / _scale
+		);
+
+#endif
 	}
 
 	template <typename T>
@@ -246,12 +286,25 @@ namespace Sa
 	{
 		// Allows constexpr.
 
+#if SA_MATRIX_ROW_MAJOR
+
 		return Mat4(
 			data[0], data[4], data[8], data[12],
 			data[1], data[5], data[9], data[13],
 			data[2], data[6], data[10], data[14],
 			data[3], data[7], data[11], data[15]
 		);
+
+#else
+
+		return Mat4(
+			data[0], data[1], data[2], data[3],
+			data[4], data[5], data[6], data[7],
+			data[8], data[9], data[10], data[11],
+			data[12], data[13], data[14], data[15]
+		);
+
+#endif
 	}
 
 	template <typename T>
@@ -483,21 +536,78 @@ namespace Sa
 		return result;
 	}
 
-
 	template <typename T>
-	Mat4<T> Mat4<T>::MakeTranslation(const Vec3<T>& _transl)
+	Mat4<T>& Mat4<T>::APIConvert()
 	{
-		Mat4 result = Mat4::Identity;
+		/*
+		*	Sapphire coordinate system: Right handed no rotation.
+		*
+		*		y
+		*		|
+		*		|
+		*		------- x
+		*	   /
+		*	  /
+		*	 z
+		*/
 
-		result.At(0, 3) = _transl.x;
-		result.At(1, 3) = _transl.y;
-		result.At(2, 3) = _transl.z;
+#if SA_RENDERING_API == SA_VULKAN
 
-		return result;
+		/*
+		*	Vulkan coordinate system: Left handed rotation Z 180
+		*
+		*		------ x
+		*	  / |
+		*	 /	|
+		*	z	y
+		*/
+
+#if SA_MATRIX_ROW_MAJOR
+
+		// Inverse Y axis.
+		data[7] *= -1;
+
+#else
+		// Inverse Y axis.
+		data[13] *= -1;
+
+#endif
+
+#endif
+
+		return *this;
 	}
 
 	template <typename T>
-	Mat4<T> Mat4<T>::MakeRotation(const Quat<T>& _rotation)
+	Mat4<T> Mat4<T>::GetAPIConverted() const
+	{
+		return Mat4(*this).APIConvert();
+	}
+
+	template <typename T>
+	Mat4<T> Mat4<T>::MakeTranslation(const Vec3<T>& _transl, bool _bAPIConvert)
+	{
+		Mat4 result = Mat4::Identity;
+
+#if SA_MATRIX_ROW_MAJOR
+
+		result.data[3] = _transl.x;
+		result.data[7] = _transl.x;
+		result.data[11] = _transl.x;
+
+#else
+
+		result.data[12] = _transl.x;
+		result.data[13] = _transl.x;
+		result.data[14] = _transl.x;
+
+#endif
+
+		return _bAPIConvert ? result.APIConvert() : result;
+	}
+
+	template <typename T>
+	Mat4<T> Mat4<T>::MakeRotation(const Quat<T>& _rotation, bool _bAPIConvert)
 	{
 		SA_ASSERT(_rotation.IsNormalized(), NonNormalized, Maths, L"Quaternion must be normalized to create rotation matrix!");
 
@@ -515,39 +625,53 @@ namespace Sa
 		const T ZW2 = 2.0f * _rotation.z * _rotation.w;
 		const T ZZ2 = 2.0f * _rotation.z * _rotation.z;
 
-		return Mat4(
+		Mat4 result(
 			1.0f - YY2 - ZZ2, XY2 - ZW2, XZ2 + YW2, 0.0f,
 			XY2 + ZW2, 1.0f - XX2 - ZZ2, YZ2 - XW2, 0.0f,
 			XZ2 - YW2, YZ2 + XW2, 1.0f - XX2 - YY2, 0.0f,
 			0.0f, 0.0f, 0.0f, 1.0f
 		);
+
+		return _bAPIConvert ? result.APIConvert() : result;
 	}
 
 	template <typename T>
-	Mat4<T> Mat4<T>::MakeScale(const Vec3<T>& _scale)
+	Mat4<T> Mat4<T>::MakeScale(const Vec3<T>& _scale, bool _bAPIConvert)
 	{
 		Mat4 result = Mat4::Identity;
 
-		result.At(0, 0) = _scale.x;
-		result.At(1, 1) = _scale.y;
-		result.At(2, 2) = _scale.z;
+		result.data[0] = _scale.x;
+		result.data[5] = _scale.y;
+		result.data[10] = _scale.z;
 
-		return result;
+		return _bAPIConvert ? result.APIConvert() : result;
 	}
 
 	template <typename T>
-	Mat4<T>  Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale)
+	Mat4<T> Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale, bool _bAPIConvert)
 	{
 		//return MakeTranslation(_transl) * MakeRotation(_rotation) * MakeScale(_scale);
 
-		Mat4<T> result = MakeScale(_scale) * MakeRotation(_rotation);
+		Mat4<T> result = MakeScale(_scale, false) * MakeRotation(_rotation, false);
 
 		// Apply position.
-		result.At(0, 3) = _transl.x;
-		result.At(1, 3) = _transl.y;
-		result.At(2, 3) = _transl.z;
 
-		return result;
+#if SA_MATRIX_ROW_MAJOR
+
+		result.data[3] = _transl.x;
+		result.data[7] = _transl.y;
+		result.data[11] = _transl.z;
+
+#else
+
+		result.data[12] = _transl.x;
+		result.data[13] = _transl.y;
+		result.data[14] = _transl.z;
+
+#endif
+
+
+		return _bAPIConvert ? result.APIConvert() : result;
 	}
 
 	template <typename T>
@@ -555,12 +679,25 @@ namespace Sa
 	{
 		// Allows constexpr
 
+#if SA_MATRIX_ROW_MAJOR
+
 		return Mat4(
 			-data[0], -data[1], -data[2], -data[3],
 			-data[4], -data[5], -data[6], -data[7],
 			-data[8], -data[9], -data[10], -data[11],
 			-data[12], -data[13], -data[14], -data[15]
 		);
+
+#else
+
+		return Mat4(
+			-data[0], -data[4], -data[8], -data[12],
+			-data[1], -data[5], -data[9], -data[13],
+			-data[2], -data[6], -data[10], -data[14],
+			-data[3], -data[7], -data[11], -data[15]
+		);
+
+#endif
 	}
 
 	template <typename T>
@@ -580,6 +717,8 @@ namespace Sa
 	{
 		// Allows constexpr.
 
+#if SA_MATRIX_ROW_MAJOR
+
 		return Mat4(
 			data[0] + _rhs.data[0],
 			data[1] + _rhs.data[1],
@@ -598,12 +737,37 @@ namespace Sa
 			data[14] + _rhs.data[14],
 			data[15] + _rhs.data[15]
 		);
+
+#else
+
+		return Mat4(
+			data[0] + _rhs.data[0],
+			data[4] + _rhs.data[4],
+			data[8] + _rhs.data[8],
+			data[12] + _rhs.data[12],
+			data[1] + _rhs.data[1],
+			data[5] + _rhs.data[5],
+			data[9] + _rhs.data[9],
+			data[13] + _rhs.data[13],
+			data[2] + _rhs.data[2],
+			data[6] + _rhs.data[6],
+			data[10] + _rhs.data[10],
+			data[14] + _rhs.data[14],
+			data[3] + _rhs.data[3],
+			data[7] + _rhs.data[7],
+			data[11] + _rhs.data[11],
+			data[15] + _rhs.data[15]
+		);
+
+#endif
 	}
 
 	template <typename T>
 	constexpr Mat4<T> Mat4<T>::operator-(const Mat4& _rhs) const noexcept
 	{
 		// Allows constexpr.
+
+#if SA_MATRIX_ROW_MAJOR
 
 		return Mat4(
 			data[0] - _rhs.data[0],
@@ -623,12 +787,37 @@ namespace Sa
 			data[14] - _rhs.data[14],
 			data[15] - _rhs.data[15]
 		);
+
+#else
+
+		return Mat4(
+			data[0] - _rhs.data[0],
+			data[4] - _rhs.data[4],
+			data[8] - _rhs.data[8],
+			data[12] - _rhs.data[12],
+			data[1] - _rhs.data[1],
+			data[5] - _rhs.data[5],
+			data[9] - _rhs.data[9],
+			data[13] - _rhs.data[13],
+			data[2] - _rhs.data[2],
+			data[6] - _rhs.data[6],
+			data[10] - _rhs.data[10],
+			data[14] - _rhs.data[14],
+			data[3] - _rhs.data[3],
+			data[7] - _rhs.data[7],
+			data[11] - _rhs.data[11],
+			data[15] - _rhs.data[15]
+		);
+
+#endif
 	}
 
 	template <typename T>
 	constexpr Mat4<T> Mat4<T>::operator*(const Mat4& _rhs) const noexcept
 	{
 		// Allows constexpr.
+
+#if SA_MATRIX_ROW_MAJOR
 
 		return Mat4<T>(
 			data[0] * _rhs.data[0] + data[1] * _rhs.data[4] + data[2] * _rhs.data[8] + data[3] * _rhs.data[12],
@@ -651,6 +840,32 @@ namespace Sa
 			data[12] * _rhs.data[2] + data[13] * _rhs.data[6] + data[14] * _rhs.data[10] + data[15] * _rhs.data[14],
 			data[12] * _rhs.data[3] + data[13] * _rhs.data[7] + data[14] * _rhs.data[11] + data[15] * _rhs.data[15]
 			);
+
+#else
+
+		return Mat4<T>(
+			data[0] * _rhs.data[0] + data[1] * _rhs.data[4] + data[2] * _rhs.data[8] + data[3] * _rhs.data[12],
+			data[4] * _rhs.data[0] + data[5] * _rhs.data[4] + data[6] * _rhs.data[8] + data[7] * _rhs.data[12],
+			data[8] * _rhs.data[0] + data[9] * _rhs.data[4] + data[10] * _rhs.data[8] + data[11] * _rhs.data[12],
+			data[12] * _rhs.data[0] + data[13] * _rhs.data[4] + data[14] * _rhs.data[8] + data[15] * _rhs.data[12],
+
+			data[0] * _rhs.data[1] + data[1] * _rhs.data[5] + data[2] * _rhs.data[9] + data[3] * _rhs.data[13],
+			data[4] * _rhs.data[1] + data[5] * _rhs.data[5] + data[6] * _rhs.data[9] + data[7] * _rhs.data[13],
+			data[8] * _rhs.data[1] + data[9] * _rhs.data[5] + data[10] * _rhs.data[9] + data[11] * _rhs.data[13],
+			data[12] * _rhs.data[1] + data[13] * _rhs.data[5] + data[14] * _rhs.data[9] + data[15] * _rhs.data[13],
+
+			data[0] * _rhs.data[2] + data[1] * _rhs.data[6] + data[2] * _rhs.data[10] + data[3] * _rhs.data[14],
+			data[4] * _rhs.data[2] + data[5] * _rhs.data[6] + data[6] * _rhs.data[10] + data[7] * _rhs.data[14],
+			data[8] * _rhs.data[2] + data[9] * _rhs.data[6] + data[10] * _rhs.data[10] + data[11] * _rhs.data[14],
+			data[12] * _rhs.data[2] + data[13] * _rhs.data[6] + data[14] * _rhs.data[10] + data[15] * _rhs.data[14],
+
+			data[0] * _rhs.data[3] + data[1] * _rhs.data[7] + data[2] * _rhs.data[11] + data[3] * _rhs.data[15],
+			data[4] * _rhs.data[3] + data[5] * _rhs.data[7] + data[6] * _rhs.data[11] + data[7] * _rhs.data[15],
+			data[8] * _rhs.data[3] + data[9] * _rhs.data[7] + data[10] * _rhs.data[11] + data[11] * _rhs.data[15],
+			data[12] * _rhs.data[3] + data[13] * _rhs.data[7] + data[14] * _rhs.data[11] + data[15] * _rhs.data[15]
+			);
+
+#endif
 	}
 
 	template <typename T>
@@ -734,12 +949,7 @@ namespace Sa
 	{
 		// Allows constexpr.
 
-		return Mat4(
-			static_cast<TIn>(data[0]), static_cast<TIn>(data[1]), static_cast<TIn>(data[2]), static_cast<TIn>(data[3]),
-			static_cast<TIn>(data[4]), static_cast<TIn>(data[5]), static_cast<TIn>(data[6]), static_cast<TIn>(data[7]),
-			static_cast<TIn>(data[8]), static_cast<TIn>(data[9]), static_cast<TIn>(data[10]), static_cast<TIn>(data[11]),
-			static_cast<TIn>(data[12]), static_cast<TIn>(data[13]), static_cast<TIn>(data[14]), static_cast<TIn>(data[15])
-		);
+		return Mat4<TIn>(*this);
 	}
 
 
@@ -773,11 +983,24 @@ namespace Sa
 		SA_ASSERT(!Maths::Equals0(data[14]), DivisionBy0, Maths, L"Inverse scale matrix [14] == 0!");
 		SA_ASSERT(!Maths::Equals0(data[15]), DivisionBy0, Maths, L"Inverse scale matrix [15] == 0!");
 
+#if SA_MATRIX_ROW_MAJOR
+
 		return Mat4(
 			_lhs / data[0], _lhs / data[1], _lhs / data[2], _lhs / data[3],
 			_lhs / data[4], _lhs / data[5], _lhs / data[6], _lhs / data[7],
 			_lhs / data[8], _lhs / data[9], _lhs / data[10], _lhs / data[11],
 			_lhs / data[12], _lhs / data[13], _lhs / data[14], _lhs / data[15]
 		);
+
+#else
+
+		return Mat4(
+			_lhs / data[0], _lhs / data[4], _lhs / data[8], _lhs / data[12],
+			_lhs / data[1], _lhs / data[5], _lhs / data[9], _lhs / data[13],
+			_lhs / data[2], _lhs / data[6], _lhs / data[10], _lhs / data[14],
+			_lhs / data[3], _lhs / data[7], _lhs / data[11], _lhs / data[15]
+		);
+
+#endif
 	}
 }

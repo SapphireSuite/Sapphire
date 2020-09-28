@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_MATHS_MATRIX4_GUARD
 #define SAPPHIRE_MATHS_MATRIX4_GUARD
 
+#include <Core/Algorithms/Swap.hpp>
+
 #include <Maths/Misc/Maths.hpp>
 #include <Maths/Space/Vector3.hpp>
 #include <Maths/Space/Quaternion.hpp>
@@ -237,31 +239,49 @@ namespace Sa
 
 
 		/**
+		*	\brief \b Convert this matrix for rendering API coordinate system.
+		*
+		*	\return self converted matrix.
+		*/
+		Mat4& APIConvert();
+
+		/**
+		*	\brief \b Convert this matrix for rendering API coordinate system.
+		*
+		*	\return new converted matrix.
+		*/
+		Mat4 GetAPIConverted() const;
+
+
+		/**
 		*	\brief Make <b> translation matrix </b> from vector3.
 		*
-		*	\param[in] _transl	Vector to translate	
+		*	\param[in] _transl	Vector to translate
+		*	\param[in] _bAPIConvert	Should convert matrix to Rendering API coordinate system.
 		*
 		*	\return translation matrix.
 		*/
-		static Mat4 MakeTranslation(const Vec3<T>& _transl);
+		static Mat4 MakeTranslation(const Vec3<T>& _transl, bool _bAPIConvert = true);
 
 		/**
 		*	\brief Make <b> rotation matrix </b> from quaternion.
 		*
 		*	\param[in] _rotation	quaternion to use for rotation.
+		*	\param[in] _bAPIConvert	Should convert matrix to Rendering API coordinate system.
 		*
 		*	\return rotation matrix.
 		*/
-		static Mat4 MakeRotation(const Quat<T>& _rotation);
+		static Mat4 MakeRotation(const Quat<T>& _rotation, bool _bAPIConvert = true);
 
 		/**
 		*	\brief Make <b> scale matrix </b> from vector3.
 		*
 		*	\param[in] _vector	Vector for scaling.
+		*	\param[in] _bAPIConvert	Should convert matrix to Rendering API coordinate system.
 		*
 		*	\return scale matrix.
 		*/
-		static Mat4 MakeScale(const Vec3<T>& _scale);
+		static Mat4 MakeScale(const Vec3<T>& _scale, bool _bAPIConvert = true);
 
 		/**
 		*	\brief Make <b> transform matrix </b>.
@@ -269,10 +289,11 @@ namespace Sa
 		*	\param[in] _transl		Vector for translation.
 		*	\param[in] _rotation	Quaternion for rotation.
 		*	\param[in] _scale		Vector for scale.
+		*	\param[in] _bAPIConvert	Should convert matrix to Rendering API coordinate system.
 		*
 		*	\return scale matrix.
 		*/
-		static Mat4 MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale);
+		static Mat4 MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale, bool _bAPIConvert = true);
 
 
 		/**

@@ -6,6 +6,7 @@
 #define SAPPHIRE_MATHS_CONFIG_GUARD
 
 #include <Core/Config.hpp>
+#include <Rendering/Config.hpp>
 
 /**
 *	\file Maths/Config.hpp
@@ -17,12 +18,8 @@
 */
 
 
-#ifndef SA_MATRIX_ROW_MAJOR
-
-	/// Whether Mat4 use row major. Otherwise, column major.
-	#define SA_MATRIX_ROW_MAJOR 1
-
-#endif
+/// Whether Mat4 use row major. Otherwise, column major.
+#define SA_MATRIX_ROW_MAJOR 1 && SA_RENDERING_API != SA_VULKAN
 
 
 /** \} */

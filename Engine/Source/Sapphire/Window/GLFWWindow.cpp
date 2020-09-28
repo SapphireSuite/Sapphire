@@ -136,9 +136,9 @@ namespace Sa
 		if (glfwGetKey(mHandle, GLFW_KEY_A) == GLFW_PRESS)
 			_camTr.position -= _deltaTime * _camTr.RightVector();
 		if (glfwGetKey(mHandle, GLFW_KEY_Q) == GLFW_PRESS)
-			_camTr.position += _deltaTime * _camTr.UpVector();
-		if (glfwGetKey(mHandle, GLFW_KEY_E) == GLFW_PRESS)
 			_camTr.position -= _deltaTime * _camTr.UpVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_E) == GLFW_PRESS)
+			_camTr.position += _deltaTime * _camTr.UpVector();
 		if (glfwGetKey(mHandle, GLFW_KEY_W) == GLFW_PRESS)
 			_camTr.position -= _deltaTime * _camTr.ForwardVector();
 		if (glfwGetKey(mHandle, GLFW_KEY_S) == GLFW_PRESS)
@@ -167,9 +167,9 @@ namespace Sa
 		if (glfwGetKey(mHandle, GLFW_KEY_L) == GLFW_PRESS)
 			_lightPos += _deltaTime * Vec3f::Right;
 		if (glfwGetKey(mHandle, GLFW_KEY_U) == GLFW_PRESS)
-			_lightPos += _deltaTime * Vec3f::Up;
-		if (glfwGetKey(mHandle, GLFW_KEY_O) == GLFW_PRESS)
 			_lightPos -= _deltaTime * Vec3f::Up;
+		if (glfwGetKey(mHandle, GLFW_KEY_O) == GLFW_PRESS)
+			_lightPos += _deltaTime * Vec3f::Up;
 		if (glfwGetKey(mHandle, GLFW_KEY_I) == GLFW_PRESS)
 			_lightPos -= _deltaTime * Vec3f::Forward;
 		if (glfwGetKey(mHandle, GLFW_KEY_K) == GLFW_PRESS)
