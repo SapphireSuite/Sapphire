@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <Sdk/Config.hpp>
+#include <SDK/Config.hpp>
 
 namespace Sa
 {

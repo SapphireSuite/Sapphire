@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include <Sdk/Config.hpp>
+#include <SDK/Config.hpp>
 
 #include <Core/Types/Int.hpp>
 

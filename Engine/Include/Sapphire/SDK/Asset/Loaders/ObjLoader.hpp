@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_SDK_OBJ_LOADER_GUARD
 #define SAPPHIRE_SDK_OBJ_LOADER_GUARD
 
-#include <Sdk/Asset/Loaders/ModelCreateInfos.hpp>
+#include <SDK/Asset/Loaders/ModelCreateInfos.hpp>
 
 namespace Sa
 {

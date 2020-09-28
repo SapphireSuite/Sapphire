@@ -19,9 +19,9 @@
 
 #include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
 
-#include <Sapphire/Sdk/Asset/AssetManager.hpp>
-#include <Sapphire/Sdk/Asset/Loaders/ObjLoader.hpp>
-#include <Sapphire/Sdk/Model.hpp>
+#include <Sapphire/SDK/Asset/AssetManager.hpp>
+#include <Sapphire/SDK/Asset/Loaders/ObjLoader.hpp>
+#include <Sapphire/SDK/Model.hpp>
 
 using namespace Sa;
 

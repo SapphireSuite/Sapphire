@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Sdk/Asset/AssetManager.hpp>
+#include <SDK/Asset/AssetManager.hpp>
 
 #include <fstream>
 
@@ -11,8 +11,8 @@
 #include <Rendering/Framework/Primitives/Shader/IShader.hpp>
 #include <Rendering/Framework/Primitives/Texture/ITexture.hpp>
 
-#include <Sdk/Model.hpp>
-#include <Sdk/Asset/Loaders/ObjLoader.hpp>
+#include <SDK/Model.hpp>
+#include <SDK/Asset/Loaders/ObjLoader.hpp>
 
 namespace Sa
 {

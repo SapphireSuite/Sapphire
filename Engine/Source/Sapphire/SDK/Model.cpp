@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Sdk/Model.hpp>
+#include <SDK/Model.hpp>
 
 #include <Collections/Debug>
 
