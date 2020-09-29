@@ -53,7 +53,6 @@ int main()
 	LOG("=== 3 ===");
 
 	auto lambda1 = [](int i) { LOG("Lambda: " << i) };
-	//auto lambda2 = [&a](int i) { LOG("A Lambda: " << i) a.Pim(i); };
 	
 	event.Add(lambda1);
 
@@ -82,6 +81,27 @@ int main()
 
 	event.Execute(6);
 
+
+	LOG("=== 7 ===");
+
+	Event<int(int)> event2;
+
+	auto lambda2 = [](int i) { LOG("R Lambda: " << i) return i * 2; };
+	int res = 7;
+
+	event2.Add(lambda2);
+	event2.Add(lambda2, &res);
+
+
+	event2(res);
+
+	LOG("Res: " << res)
+
+	event2.Execute(res);
+
+	LOG("Res: " << res)
+
+	event2.Remove(lambda2);
 
 
 	LOG("\n=== End ===");

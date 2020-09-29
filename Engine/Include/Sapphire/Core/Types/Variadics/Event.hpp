@@ -11,77 +11,131 @@
 
 namespace Sa
 {
+	namespace Internal
+	{
+		template <typename FuncHandle, typename FuncMemberHandle, typename R, typename... Args>
+		class EventBase
+		{
+		protected:
+			template <typename C>
+			struct FuncMemberData
+			{
+				C* caller = nullptr;
+				R(C::* func)(Args...) = nullptr;
+			};
+
+			std::vector<FuncHandle> mFunctions;
+			std::vector<FuncMemberHandle> mMemberFunctions;
+
+		public:
+			EventBase() = default;
+
+			EventBase(EventBase&&) = delete;
+			EventBase(const EventBase&) = delete;
+
+			~EventBase();
+
+
+			bool IsEmpty() const noexcept;
+
+			void Clear();
+
+
+			void Add(R(*_func)(Args...));
+
+			template <typename C>
+			void Add(C* _caller, R(C::* _func)(Args...));
+
+
+			void Remove(R(*_func)(Args...));
+
+			template <typename C>
+			void Remove(C* _caller, R(C::* _func)(Args...));
+
+
+			void RRemove(R(*_func)(Args...));
+
+			template <typename C>
+			void RRemove(C* _caller, R(C::* _func)(Args...));
+
+
+			void Execute(const Args&... _args);
+
+
+			EventBase& operator=(EventBase&&) = delete;
+			EventBase& operator=(const EventBase&) = delete;
+
+			void operator+=(R(*_func)(Args...));
+			void operator-=(R(*_func)(Args...));
+
+			void operator()(const Args&... _args);
+		};
+
+
+		template <typename... Args>
+		struct FuncHandle_void
+		{
+			void(*func)(Args...) = nullptr;
+		};
+
+		template <typename... Args>
+		struct FuncMemberHandle_void
+		{
+			void* data = nullptr;
+			void(*func)(void*, Args...) = nullptr;
+		};
+
+
+		template <typename R, typename... Args>
+		struct FuncHandle_R
+		{
+			R(*func)(Args...) = nullptr;
+			R* result = nullptr;
+		};
+
+		template <typename R, typename... Args>
+		struct FuncMemberHandle_R
+		{
+			void* data = nullptr;
+			R(*func)(void*, Args...) = nullptr;
+			R* result = nullptr;
+		};
+	}
+
+
 	template <typename R, typename... Args>
 	class Event;
 
-	template <typename R, typename... Args>
-	class Event<R(Args...)>
+	template <typename... Args>
+	class Event<void(Args...)> : public Internal::EventBase<Internal::FuncHandle_void<Args...>, Internal::FuncMemberHandle_void<Args...>, void, Args...>
 	{
-		struct FuncHandle
-		{
-			R(* func)(Args...) = nullptr;
-		};
+	};
 
-		std::vector<FuncHandle> mFunctions;
 
+	template <typename R, typename... Args>
+	class Event<R(Args...)> : public Internal::EventBase<Internal::FuncHandle_R<R, Args...>, Internal::FuncMemberHandle_R<R, Args...>, R, Args...>
+	{
+		using FuncHandle = Internal::FuncHandle_R<R, Args...>;
+		using FuncMemberHandle = Internal::FuncMemberHandle_R<R, Args...>;
+		using Base = Internal::EventBase<FuncHandle, FuncMemberHandle, R, Args...>;
 
 		template <typename C>
-		struct FuncMemberData
-		{
-			C* caller = nullptr;
-			R(C::* func)(Args...) = nullptr;
-		};
+		using FuncMemberData = typename Base::template FuncMemberData<C>;
 
-		struct FuncMemberHandle
-		{
-			void* data;
-			R(*func)(void*, Args...);
-		};
-
-		std::vector<FuncMemberHandle> mMemberFunctions;
+		using Base::mFunctions;
+		using Base::mMemberFunctions;
 
 	public:
-		Event() = default;
+		using Base::Add;
 
-		Event(Event&&) = delete;
-		Event(const Event&) = delete;
-
-		~Event();
-
-
-		bool IsEmpty() const noexcept;
-
-		void Clear();
-
-
-		void Add(R(*_func)(Args...));
+		void Add(R(*_func)(Args...), R* _result);
 
 		template <typename C>
-		void Add(C* _caller, R(C::* _func)(Args...));
+		void Add(C * _caller, R(C:: * _func)(Args...), R* _result);
 
+		void Execute(const Args&... _args);
 
-		void Remove(R(* _func)(Args...));
-
-		template <typename C>
-		void Remove(C* _caller, R(C::* _func)(Args...));
-
-
-		void RRemove(R(* _func)(Args...));
-
-		template <typename C>
-		void RRemove(C* _caller, R(C::* _func)(Args...));
-
-
-		void Execute(Args... _args);
-
-
-		Event& operator=(Event&&) = delete;
-		Event& operator=(const Event&) = delete;
-
-		void operator+=(R(*_func)(Args...));
-		void operator-=(R(*_func)(Args...));
-
-		void operator()(Args... _args);
+		void operator()(const Args&... _args);
 	};
 }
 
