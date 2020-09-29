@@ -239,21 +239,6 @@ namespace Sa
 
 
 		/**
-		*	\brief \b Convert this matrix for rendering API coordinate system.
-		*
-		*	\return self converted matrix.
-		*/
-		Mat4& APIConvert();
-
-		/**
-		*	\brief \b Convert this matrix for rendering API coordinate system.
-		*
-		*	\return new converted matrix.
-		*/
-		Mat4 GetAPIConverted() const;
-
-
-		/**
 		*	\brief Make <b> translation matrix </b> from vector3.
 		*
 		*	\param[in] _transl	Vector to translate
@@ -261,7 +246,7 @@ namespace Sa
 		*
 		*	\return translation matrix.
 		*/
-		static Mat4 MakeTranslation(const Vec3<T>& _transl, bool _bAPIConvert = true);
+		static Mat4 MakeTranslation(const Vec3<T>& _transl);
 
 		/**
 		*	\brief Make <b> rotation matrix </b> from quaternion.
@@ -271,7 +256,7 @@ namespace Sa
 		*
 		*	\return rotation matrix.
 		*/
-		static Mat4 MakeRotation(const Quat<T>& _rotation, bool _bAPIConvert = true);
+		static Mat4 MakeRotation(const Quat<T>& _rotation);
 
 		/**
 		*	\brief Make <b> scale matrix </b> from vector3.
@@ -281,7 +266,7 @@ namespace Sa
 		*
 		*	\return scale matrix.
 		*/
-		static Mat4 MakeScale(const Vec3<T>& _scale, bool _bAPIConvert = true);
+		static Mat4 MakeScale(const Vec3<T>& _scale);
 
 		/**
 		*	\brief Make <b> transform matrix </b>.
@@ -293,7 +278,7 @@ namespace Sa
 		*
 		*	\return scale matrix.
 		*/
-		static Mat4 MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale, bool _bAPIConvert = true);
+		static Mat4 MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale);
 
 
 		/**

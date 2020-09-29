@@ -536,56 +536,9 @@ namespace Sa
 		return result;
 	}
 
-	template <typename T>
-	Mat4<T>& Mat4<T>::APIConvert()
-	{
-		/*
-		*	Sapphire coordinate system: Right handed no rotation.
-		*
-		*		y
-		*		|
-		*		|
-		*		------- x
-		*	   /
-		*	  /
-		*	 z
-		*/
-
-#if SA_RENDERING_API == SA_VULKAN
-
-		/*
-		*	Vulkan coordinate system: Left handed rotation Z 180
-		*
-		*		------ x
-		*	  / |
-		*	 /	|
-		*	z	y
-		*/
-
-#if SA_MATRIX_ROW_MAJOR
-
-		// Inverse Y axis.
-		data[7] *= -1;
-
-#else
-		// Inverse Y axis.
-		data[13] *= -1;
-
-#endif
-
-#endif
-
-		return *this;
-	}
 
 	template <typename T>
-	Mat4<T> Mat4<T>::GetAPIConverted() const
-	{
-		return Mat4(*this).APIConvert();
-	}
-
-	template <typename T>
-	Mat4<T> Mat4<T>::MakeTranslation(const Vec3<T>& _transl, bool _bAPIConvert)
+	Mat4<T> Mat4<T>::MakeTranslation(const Vec3<T>& _transl)
 	{
 		Mat4 result = Mat4::Identity;
 
@@ -603,11 +556,11 @@ namespace Sa
 
 #endif
 
-		return _bAPIConvert ? result.APIConvert() : result;
+		return result;
 	}
 
 	template <typename T>
-	Mat4<T> Mat4<T>::MakeRotation(const Quat<T>& _rotation, bool _bAPIConvert)
+	Mat4<T> Mat4<T>::MakeRotation(const Quat<T>& _rotation)
 	{
 		SA_ASSERT(_rotation.IsNormalized(), NonNormalized, Maths, L"Quaternion must be normalized to create rotation matrix!");
 
@@ -632,11 +585,11 @@ namespace Sa
 			0.0f, 0.0f, 0.0f, 1.0f
 		);
 
-		return _bAPIConvert ? result.APIConvert() : result;
+		return result;
 	}
 
 	template <typename T>
-	Mat4<T> Mat4<T>::MakeScale(const Vec3<T>& _scale, bool _bAPIConvert)
+	Mat4<T> Mat4<T>::MakeScale(const Vec3<T>& _scale)
 	{
 		Mat4 result = Mat4::Identity;
 
@@ -644,15 +597,15 @@ namespace Sa
 		result.data[5] = _scale.y;
 		result.data[10] = _scale.z;
 
-		return _bAPIConvert ? result.APIConvert() : result;
+		return result;
 	}
 
 	template <typename T>
-	Mat4<T> Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale, bool _bAPIConvert)
+	Mat4<T> Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale)
 	{
 		//return MakeTranslation(_transl) * MakeRotation(_rotation) * MakeScale(_scale);
 
-		Mat4<T> result = MakeScale(_scale, false) * MakeRotation(_rotation, false);
+		Mat4<T> result = MakeScale(_scale) * MakeRotation(_rotation);
 
 		// Apply position.
 
@@ -671,7 +624,7 @@ namespace Sa
 #endif
 
 
-		return _bAPIConvert ? result.APIConvert() : result;
+		return result;
 	}
 
 	template <typename T>

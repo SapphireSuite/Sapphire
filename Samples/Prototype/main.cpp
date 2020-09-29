@@ -45,13 +45,13 @@ int main()
 
 	// Create Lights.
 	PLightInfos pLight1;
-	pLight1.position = API_ConvertCoordinates(Vec3f(-1.0f, 2.0f, 3.0f));
+	pLight1.position = API_ConvertCoordinateSystem(Vec3f(-1.0f, 2.0f, 3.0f));
 	pLight1.color = Vec3f(0.9f, 0.7f, 0.3f);
 
 	uint32 pLight1ID = instance.InstantiatePointLight(pLight1);
 
 	PLightInfos pLight2;
-	pLight2.position = API_ConvertCoordinates(Vec3f(-2.0f, 2.0f, -2.0f));
+	pLight2.position = API_ConvertCoordinateSystem(Vec3f(-2.0f, 2.0f, -2.0f));
 	pLight2.color = Vec3f(0.9f, 0.7f, 0.3f);
 	pLight2.intensity = 5.0f;
 
@@ -132,7 +132,8 @@ int main()
 
 	{
 		ObjectUniformBuffer oubo;
-		oubo.modelMat = Transff(Vec3f(-1.0f, -1.0, -2.5f), Quatf(180, Vec3f::Up) * Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix();
+		oubo.modelMat = API_ConvertCoordinateSystem(Transff(Vec3f(-1.0f, -1.0, -2.5f),
+			Quatf(180, Vec3f::Up) * Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix());
 		magikarpBodyMat->InitVariable(instance, &oubo, sizeof(oubo));
 		magikarpEyesMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
@@ -220,7 +221,7 @@ int main()
 
 	{
 		ObjectUniformBuffer oubo;
-		oubo.modelMat = Transff(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix();
+		oubo.modelMat = API_ConvertCoordinateSystem(Transff(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
 		gizmoMat->InitVariable(instance, &oubo, sizeof(oubo));
 		gizmoBPMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
@@ -258,7 +259,7 @@ int main()
 
 	Transff camTr;
 	camTr.position = Vec3f(-2.0f, 1.0f, 5.0f);
-	Vec3f pL1Pos = API_ConvertCoordinates(pLight1.position);
+	Vec3f pL1Pos = API_ConvertCoordinateSystem(pLight1.position);
 
 	Chrono chrono;
 	float time = 0.0f;
@@ -281,19 +282,19 @@ int main()
 		// Update Uniform Buffer.
 		StaticUniformBuffer ubo;
 		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
-		ubo.viewInvMat = camTr.Matrix().Inverse();
+		ubo.viewInvMat = API_ConvertCoordinateSystem(camTr.Matrix()).Inverse();
 		ubo.projMat = perspMat;
 
 		frame.uniformBuffer.UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
 		
 		{
 			ObjectUniformBuffer oubo;
-			oubo.modelMat = Transff(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix();
+			oubo.modelMat = API_ConvertCoordinateSystem(Transff(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
 			gizmoMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
 			gizmoBPMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
 
 			vkDeviceWaitIdle(instance.GetDevice());
-			pLight1.position = API_ConvertCoordinates(pL1Pos);
+			pLight1.position = API_ConvertCoordinateSystem(pL1Pos);
 			instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1, pLight1ID);
 		}
 
