@@ -4,6 +4,8 @@
 
 #include <Rendering/Vulkan/System/VkDevice.hpp>
 
+#if SA_RENDERING_API == SA_VULKAN
+
 namespace Sa
 {
 	void VkCommandBuffer::BeginSingleTimeCommands_Internal(const VkDevice& _device, const VkQueue& _queue)
@@ -80,3 +82,5 @@ namespace Sa
 		return mHandle;
 	}
 }
+
+#endif

@@ -2,6 +2,8 @@
 
 #include <Rendering/Vulkan/System/VkRenderFrame.hpp>
 
+#if SA_RENDERING_API == SA_VULKAN
+
 namespace Sa
 {
 	VkRenderFrame::VkRenderFrame(uint32 _frameIndex,
@@ -25,3 +27,5 @@ namespace Sa
 	{
 	}
 }
+
+#endif

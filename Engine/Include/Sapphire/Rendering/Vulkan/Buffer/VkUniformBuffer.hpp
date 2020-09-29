@@ -7,6 +7,8 @@
 
 #include <Rendering/Vulkan/Buffer/VkBuffer.hpp>
 
+#if SA_RENDERING_API == SA_VULKAN
+
 namespace Sa
 {
 	class VkUniformBuffer : public VkBuffer
@@ -15,5 +17,7 @@ namespace Sa
 		static VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem = 0u) noexcept;
 	};
 }
+
+#endif
 
 #endif // GUARD
