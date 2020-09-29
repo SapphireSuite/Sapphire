@@ -132,7 +132,7 @@ int main()
 
 	{
 		ObjectUniformBuffer oubo;
-		oubo.modelMat = API_ConvertCoordinateSystem(Transff(Vec3f(-1.0f, -1.0, -2.5f),
+		oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-1.0f, -1.0, -2.5f),
 			Quatf(180, Vec3f::Up) * Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix());
 		magikarpBodyMat->InitVariable(instance, &oubo, sizeof(oubo));
 		magikarpEyesMat->InitVariable(instance, &oubo, sizeof(oubo));
@@ -221,7 +221,7 @@ int main()
 
 	{
 		ObjectUniformBuffer oubo;
-		oubo.modelMat = API_ConvertCoordinateSystem(Transff(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+		oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
 		gizmoMat->InitVariable(instance, &oubo, sizeof(oubo));
 		gizmoBPMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
@@ -257,7 +257,7 @@ int main()
 	);
 
 
-	Transff camTr;
+	TransffPRS camTr;
 	camTr.position = Vec3f(-2.0f, 1.0f, 5.0f);
 	Vec3f pL1Pos = API_ConvertCoordinateSystem(pLight1.position);
 
@@ -289,7 +289,7 @@ int main()
 		
 		{
 			ObjectUniformBuffer oubo;
-			oubo.modelMat = API_ConvertCoordinateSystem(Transff(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+			oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
 			gizmoMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
 			gizmoBPMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
 

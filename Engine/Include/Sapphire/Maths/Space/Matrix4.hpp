@@ -273,10 +273,40 @@ namespace Sa
 		*
 		*	\param[in] _transl		Vector for translation.
 		*	\param[in] _rotation	Quaternion for rotation.
+		*
+		*	\return transform matrix.
+		*/
+		static Mat4 MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation);
+
+		/**
+		*	\brief Make <b> transform matrix </b>.
+		*
+		*	\param[in] _transl		Vector for translation.
 		*	\param[in] _scale		Vector for scale.
 		*	\param[in] _bAPIConvert	Should convert matrix to Rendering API coordinate system.
 		*
-		*	\return scale matrix.
+		*	\return transform matrix.
+		*/
+		static Mat4 MakeTransform(const Vec3<T>& _transl, const Vec3<T>& _scale);
+
+		/**
+		*	\brief Make <b> transform matrix </b>.
+		*
+		*	\param[in] _rotation	Quaternion for rotation.
+		*	\param[in] _scale		Vector for scale.
+		*
+		*	\return transform matrix.
+		*/
+		static Mat4 MakeTransform(const Quat<T>& _rotation, const Vec3<T>& _scale);
+
+		/**
+		*	\brief Make <b> transform matrix </b>.
+		*
+		*	\param[in] _transl		Vector for translation.
+		*	\param[in] _rotation	Quaternion for rotation.
+		*	\param[in] _scale		Vector for scale.
+		*
+		*	\return transform matrix.
 		*/
 		static Mat4 MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale);
 

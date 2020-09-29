@@ -601,11 +601,9 @@ namespace Sa
 	}
 
 	template <typename T>
-	Mat4<T> Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale)
+	Mat4<T>  Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation)
 	{
-		//return MakeTranslation(_transl) * MakeRotation(_rotation) * MakeScale(_scale);
-
-		Mat4<T> result = MakeScale(_scale) * MakeRotation(_rotation);
+		Mat4<T> result = MakeRotation(_rotation);
 
 		// Apply position.
 
@@ -623,6 +621,59 @@ namespace Sa
 
 #endif
 
+		return result;
+	}
+
+	template <typename T>
+	Mat4<T>  Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Vec3<T>& _scale)
+	{
+		Mat4<T> result = MakeScale(_scale);
+
+		// Apply position.
+
+#if SA_MATRIX_ROW_MAJOR
+
+		result.data[3] = _transl.x;
+		result.data[7] = _transl.y;
+		result.data[11] = _transl.z;
+
+#else
+
+		result.data[12] = _transl.x;
+		result.data[13] = _transl.y;
+		result.data[14] = _transl.z;
+
+#endif
+
+		return result;
+	}
+
+	template <typename T>
+	Mat4<T>  Mat4<T>::MakeTransform(const Quat<T>& _rotation, const Vec3<T>& _scale)
+	{
+		return MakeScale(_scale) * MakeRotation(_rotation);
+	}
+
+	template <typename T>
+	Mat4<T>  Mat4<T>::MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale)
+	{
+		Mat4<T> result = MakeScale(_scale) * MakeRotation(_rotation);
+
+		// Apply position.
+
+#if SA_MATRIX_ROW_MAJOR
+
+		result.data[3] = _transl.x;
+		result.data[7] = _transl.y;
+		result.data[11] = _transl.z;
+
+#else
+
+		result.data[12] = _transl.x;
+		result.data[13] = _transl.y;
+		result.data[14] = _transl.z;
+
+#endif
 
 		return result;
 	}

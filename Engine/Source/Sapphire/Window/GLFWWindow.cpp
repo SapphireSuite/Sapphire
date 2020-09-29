@@ -129,7 +129,7 @@ namespace Sa
 	}
 
 
-	void GLFWWindow::TEST(Transff& _camTr, Vec3f& _lightPos, float _deltaTime)
+	void GLFWWindow::TEST(TransffPRS& _camTr, Vec3f& _lightPos, float _deltaTime)
 	{
 		if (glfwGetKey(mHandle, GLFW_KEY_D) == GLFW_PRESS)
 			_camTr.position += _deltaTime * _camTr.RightVector();

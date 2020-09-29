@@ -42,7 +42,7 @@ namespace Sa
 		operator GLFWwindow*() const;
 
 		// TODO: REMOVE LATER.
-		SA_ENGINE_API void TEST(Transff& _camTr, Vec3f& _lightPos, float _deltaTime);
+		SA_ENGINE_API void TEST(TransffPRS& _camTr, Vec3f& _lightPos, float _deltaTime);
 	};
 }
 
