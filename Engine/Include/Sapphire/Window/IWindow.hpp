@@ -17,7 +17,7 @@ namespace Sa
 	class IWindow : public IInterface
 	{
 	public:
-		mutable Event<void(const IWindow&, uint32, uint32)> onResizeEvent;
+		//mutable Event<void(const IWindow&, uint32, uint32)> onResizeEvent;
 
 		virtual void Create(uint32 _width, uint32 _height, const char* _name = "Window") = 0;
 		virtual void Destroy() = 0;

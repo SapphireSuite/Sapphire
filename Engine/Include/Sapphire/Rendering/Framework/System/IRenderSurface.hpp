@@ -18,7 +18,7 @@ namespace Sa
 	class IRenderSurface : public IInterface
 	{
 	public:
-		mutable Event<void(const IRenderInstance&, const IRenderSurface&)> onResizeEvent;
+		//mutable Event<void(const IRenderInstance&, const IRenderSurface&)> onResizeEvent;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API virtual void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height);

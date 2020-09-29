@@ -83,7 +83,7 @@ namespace Sa
 	{
 		SA_ASSERT(mHandle, Nullptr, Window, L"Window handle nulltpr! Try to destroy a non-created window, call Create() first.");
 
-		onResizeEvent.Clear();
+		//onResizeEvent.Clear();
 
 		glfwDestroyWindow(mHandle);
 
@@ -120,7 +120,7 @@ namespace Sa
 		// Resize callback event.
 		IWindow* window = reinterpret_cast<IWindow*>(glfwGetWindowUserPointer(_handle));
 
-		window->onResizeEvent(*window, static_cast<uint32>(_width), static_cast<uint32>(_height));
+		//window->onResizeEvent(*window, static_cast<uint32>(_width), static_cast<uint32>(_height));
 	}
 
 	GLFWWindow::operator GLFWwindow*() const

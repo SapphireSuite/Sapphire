@@ -9,6 +9,6 @@ namespace Sa
 		(void)_width;
 		(void)_height;
 
-		onResizeEvent(_instance, *this);
+		//onResizeEvent(_instance, *this);
 	}
 }

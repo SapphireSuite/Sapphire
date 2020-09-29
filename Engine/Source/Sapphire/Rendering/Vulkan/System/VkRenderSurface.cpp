@@ -55,7 +55,7 @@ namespace Sa
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
-		onResizeEvent.Clear();
+		//onResizeEvent.Clear();
 
 		mSwapChain.DestroyFrameBuffers(_device);
 

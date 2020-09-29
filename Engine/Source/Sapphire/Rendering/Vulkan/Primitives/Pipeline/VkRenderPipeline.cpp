@@ -597,13 +597,13 @@ namespace Sa
 		Create_Internal(_instance, _pipelineInfos);
 
 		// TODO: CLEAN.
-		_pipelineInfos.surface.onResizeEvent.Add(std::function<void(const IRenderInstance&, const IRenderSurface&)>(
-			[this, &_pipelineInfos](const IRenderInstance& _instance, const IRenderSurface& _surface)
-			{
-				(void)_surface;
-				ReCreate(_instance, _pipelineInfos);
-			}
-		));
+		//_pipelineInfos.surface.onResizeEvent.Add(std::function<void(const IRenderInstance&, const IRenderSurface&)>(
+		//	[this, &_pipelineInfos](const IRenderInstance& _instance, const IRenderSurface& _surface)
+		//	{
+		//		(void)_surface;
+		//		ReCreate(_instance, _pipelineInfos);
+		//	}
+		//));
 
 		if (_pipelineInfos.illumModel != IlluminationModel::None)
 		{
