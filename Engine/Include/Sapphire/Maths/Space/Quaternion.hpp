@@ -34,7 +34,7 @@ namespace Sa
 	struct Quat
 	{
 		/// Quaternion's W component.
-		T w = T();
+		T w = T(1);
 
 		/// Quaternion's X component.
 		T x = T();
