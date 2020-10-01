@@ -49,11 +49,11 @@ namespace Sa
 			SA_ASSERT(_func, Nullptr, Tools, L"Add nullptr function!");
 
 			mMemberFunctions.push_back(FuncMemberHandle{
-				static_cast<void*>(new FuncMemberData<C>{_caller, _func}),
+				new FuncMemberData<C, R, Args...>{ _caller, _func },
 
 				[](void* _data, Args... _args)
 				{
-					FuncMemberData<C>* cData = static_cast<FuncMemberData<C>*>(_data);
+					FuncMemberData<C, R, Args...>* cData = reinterpret_cast<FuncMemberData<C, R, Args...>*>(_data);
 
 					SA_ASSERT(cData, Nullptr, Tools, L"Internal function call: data nullptr!");
 
@@ -87,7 +87,7 @@ namespace Sa
 
 			for (auto it = mMemberFunctions.begin(); it != mMemberFunctions.end(); ++it)
 			{
-				FuncMemberData<C>* data = static_cast<FuncMemberData<C>*>(it->data);
+				FuncMemberData<C, R, Args...>* data = reinterpret_cast<FuncMemberData<C, R, Args...>*>(it->data);
 
 				SA_ASSERT(data, Nullptr, Tools, L"Internal function call: data nullptr!");
 
@@ -126,7 +126,7 @@ namespace Sa
 
 			for (auto it = mMemberFunctions.rbegin(); it != mMemberFunctions.rend(); ++it)
 			{
-				FuncMemberData<C>* data = static_cast<FuncMemberData<C>*>(it->data);
+				FuncMemberData<C, R, Args...>* data = reinterpret_cast<FuncMemberData<C, R, Args...>*>(it->data);
 
 				SA_ASSERT(data, Nullptr, Tools, L"Internal function call: data nullptr!");
 
@@ -188,11 +188,11 @@ namespace Sa
 		SA_ASSERT(_func, Nullptr, Tools, L"Add nullptr function!");
 
 		mMemberFunctions.push_back(FuncMemberHandle{
-			static_cast<void*>(new FuncMemberData<C>{_caller, _func}),
+			new Internal::FuncMemberData<C, R, Args...>{ _caller, _func },
 
 			[](void* _data, Args... _args)
 			{
-				FuncMemberData<C>* cData = static_cast<FuncMemberData<C>*>(_data);
+				Internal::FuncMemberData<C, R, Args...>* cData = reinterpret_cast<Internal::FuncMemberData<C, R, Args...>*>(_data);
 
 				SA_ASSERT(cData, Nullptr, Tools, L"Internal function call: data nullptr!");
 
