@@ -17,13 +17,6 @@ namespace Sa
 		class EventBase
 		{
 		protected:
-			template <typename C>
-			struct FuncMemberData
-			{
-				C* caller = nullptr;
-				R(C::* func)(Args...) = nullptr;
-			};
-
 			std::vector<FuncHandle> mFunctions;
 			std::vector<FuncMemberHandle> mMemberFunctions;
 
@@ -71,6 +64,24 @@ namespace Sa
 			void operator()(const Args&... _args);
 		};
 
+		struct FuncMemberDataBase
+		{
+			// Ensure correct destruction on delete.
+			virtual ~FuncMemberDataBase() = default;
+		};
+
+		template <typename C, typename R, typename... Args>
+		struct FuncMemberData : public FuncMemberDataBase
+		{
+			C* caller = nullptr;
+			R(C::* func)(Args...) = nullptr;
+
+			FuncMemberData(C* _caller, R(C::* _func)(Args...)) :
+				caller{ _caller },
+				func{ _func }
+			{}
+		};
+
 
 		template <typename... Args>
 		struct FuncHandle_void
@@ -81,7 +92,7 @@ namespace Sa
 		template <typename... Args>
 		struct FuncMemberHandle_void
 		{
-			void* data = nullptr;
+			FuncMemberDataBase* data = nullptr;
 			void(*func)(void*, Args...) = nullptr;
 		};
 
@@ -96,7 +107,7 @@ namespace Sa
 		template <typename R, typename... Args>
 		struct FuncMemberHandle_R
 		{
-			void* data = nullptr;
+			FuncMemberDataBase* data = nullptr;
 			R(*func)(void*, Args...) = nullptr;
 			R* result = nullptr;
 		};
@@ -118,9 +129,6 @@ namespace Sa
 		using FuncHandle = Internal::FuncHandle_R<R, Args...>;
 		using FuncMemberHandle = Internal::FuncMemberHandle_R<R, Args...>;
 		using Base = Internal::EventBase<FuncHandle, FuncMemberHandle, R, Args...>;
-
-		template <typename C>
-		using FuncMemberData = typename Base::template FuncMemberData<C>;
 
 		using Base::mFunctions;
 		using Base::mMemberFunctions;
