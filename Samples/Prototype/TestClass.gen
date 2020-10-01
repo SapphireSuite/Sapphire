@@ -1,0 +1,57 @@
+#include <Sapphire/Collections/Reflection>
+
+
+// === Class ===
+#ifdef SA_CLASS_TYPE
+#undef SA_CLASS_TYPE
+#endif
+
+#define SA_CLASS_TYPE TestClass
+
+
+#ifdef SA_CLASS_NAME
+#undef SA_CLASS_NAME
+#endif
+
+#define SA_CLASS_NAME "TestClass"
+
+
+#ifdef SA_REFLECT
+#undef SA_REFLECT
+#endif
+
+#define SA_REFLECT() SA_GENERATE_CLASS_BODY()
+
+
+
+// === Fields ===
+#ifdef SA_FIELD_NUM
+#undef SA_FIELD_NUM
+#endif
+
+#define SA_FIELD_NUM 2
+
+
+#ifdef SA_FILL_FIELDS
+#undef SA_FILL_FIELDS
+#endif
+
+#define SA_FILL_FIELDS()\
+	SA_PUSH_FIELD(int, x)\
+	SA_PUSH_FIELD(std::string, str)\
+
+
+
+// === Functions ===
+#ifdef SA_FUNCTION_NUM
+#undef SA_FUNCTION_NUM
+#endif
+
+#define SA_FUNCTION_NUM 0
+
+
+#ifdef SA_FILL_FUNCTIONS
+#undef SA_FILL_FUNCTIONS
+#endif
+
+#define SA_FILL_FUNCTIONS()
