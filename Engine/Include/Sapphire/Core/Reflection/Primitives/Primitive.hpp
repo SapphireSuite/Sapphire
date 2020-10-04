@@ -15,8 +15,12 @@ namespace Sa
 	{
 		std::string name;
 
-		Primitive() = default;
-		SA_ENGINE_API Primitive(const std::string& _name) noexcept;
+		SA_ENGINE_API Primitive() noexcept;
+		SA_ENGINE_API Primitive(Primitive&& _other) noexcept;
+		SA_ENGINE_API Primitive(const Primitive& _other) noexcept;
+
+		SA_ENGINE_API Primitive(const char* _name) noexcept;
+		
 		virtual ~Primitive() = default;
 	};
 }

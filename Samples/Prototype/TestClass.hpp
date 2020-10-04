@@ -5,7 +5,7 @@
 #include "TestClass.gen"
 
 SA_CLASS()
-class TestClass
+class TestClass : public Sa::Object
 {
 	SA_REFLECT();
 

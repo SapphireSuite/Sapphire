@@ -13,12 +13,14 @@ namespace Sa
 {
 	struct Field : public Primitive
 	{
+		Type* type = nullptr;
 		const uint32 offset = uint32(-1);
-		const Type& type;
 
+		SA_ENGINE_API Field() noexcept;
 		SA_ENGINE_API Field(Field&& _other) noexcept;
 		SA_ENGINE_API Field(const Field& _other) noexcept;
-		SA_ENGINE_API Field(const std::string& _name, uint32 _offset, const Type& _type) noexcept;
+
+		SA_ENGINE_API Field(const char* _name, Type* _type, uint32 _offset) noexcept;
 	};
 }
 

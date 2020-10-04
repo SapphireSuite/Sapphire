@@ -11,16 +11,16 @@
 
 namespace Sa
 {
-	class Reflector
+	class SA_ENGINE_API Reflector
 	{
 		std::unordered_map<std::string, Type*> types;
 
-		SA_ENGINE_API static Reflector sInstance;
+		static Reflector sInstance;
 
 		Reflector() = default;
 
-		SA_ENGINE_API static Type* FindType(const char* _tName);
-		SA_ENGINE_API static void AddType(const char* _tName, Type* _type);
+		static Type* FindType(const char* _tName);
+		static void AddType(const char* _tName, Type* _type);
 
 	public:
 		~Reflector();

@@ -21,7 +21,8 @@ namespace Sa
 
 	// registered types.
 	#define SA_PUSH_FIELD(_fType, _fName)\
-		tInfos.fields.push_back(Field(#_fName, offsetof(SA_CLASS_TYPE, _fName), Reflector::GetType<_fType>(#_fType)));
+		tInfos.Add(Field());
+		//tInfos.Add(Field(#_fName, Reflector::GetType<_fType>(#_fType), offsetof(SA_CLASS_TYPE, _fName)));
 
 	#define SA_FILL_TYPES()\
 			SA_FILL_FIELDS()\
@@ -45,19 +46,9 @@ namespace Sa
 		\
 			return tInfos;\
 		}\
-		virtual const Class& TypeInfos() const\
+		const Class& TypeInfos() const override\
 		{\
 			return STypeInfos();\
-		}\
-		\
-		virtual std::string Serialize()\
-		{\
-			return STypeInfos().Serialize(static_cast<void*>(this));\
-		}\
-		virtual void Deserialize(const std::string& str)\
-		{\
-			const char* temp = str.data();\
-			STypeInfos().Deserialize(static_cast<void*>(this), temp);\
 		}
 
 	#define SA_GENERATE_CLASS_BODY()\

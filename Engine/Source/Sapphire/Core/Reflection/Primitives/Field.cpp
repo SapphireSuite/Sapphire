@@ -6,24 +6,28 @@
 
 namespace Sa
 {
+	Field::Field() noexcept
+	{
+	}
+
 	Field::Field(Field&& _other) noexcept :
 		Primitive(Move(_other)),
-		offset{ _other.offset },
-		type{ _other.type }
+		type{ _other.type },
+		offset{ _other.offset }
 	{
 	}
 
 	Field::Field(const Field& _other) noexcept :
 		Primitive(_other),
-		offset{ _other.offset },
-		type{ _other.type }
+		type{ _other.type },
+		offset{ _other.offset }
 	{
 	}
 
-	Field::Field(const std::string& _name, uint32 _offset, const Type& _type) noexcept :
+	Field::Field(const char* _name, Type* _type, uint32 _offset) noexcept :
 		Primitive(_name),
-		offset{ _offset },
-		type{ _type }
+		type{ _type },
+		offset{ _offset }
 	{
 	}
 }

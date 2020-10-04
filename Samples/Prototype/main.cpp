@@ -25,7 +25,7 @@ int main()
 	LOG(test1.x);
 	LOG(test1.str);
 
-	auto aa = test1.TypeInfos();
+	const Sa::Class& aa = test1.TypeInfos();
 
 	//LOG("\n=== Serialize ===");
 	//std::string testSrl = test1.Serialize();

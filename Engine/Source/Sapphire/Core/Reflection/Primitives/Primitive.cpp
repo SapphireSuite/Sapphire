@@ -2,9 +2,23 @@
 
 #include <Core/Reflection/Primitives/Primitive.hpp>
 
+#include <Core/Algorithms/Move.hpp>
+
 namespace Sa
 {
-	Primitive::Primitive(const std::string& _name) noexcept : name{ _name }
+	Primitive::Primitive() noexcept
+	{
+	}
+
+	Primitive::Primitive(Primitive&& _other) noexcept : name{ Move(_other.name) }
+	{
+	}
+
+	Primitive::Primitive(const Primitive& _other) noexcept : name{ _other.name }
+	{
+	}
+
+	Primitive::Primitive(const char* _name) noexcept : name{ _name }
 	{
 	}
 }

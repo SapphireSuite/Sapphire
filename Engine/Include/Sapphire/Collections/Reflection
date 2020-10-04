@@ -5,6 +5,7 @@
 #ifndef SAPPHIRE_COLLECTIONS_REFLECTION_GUARD
 #define SAPPHIRE_COLLECTIONS_REFLECTION_GUARD
 
+#include <Core/Reflection/Object.hpp>
 #include <Core/Reflection/ReflectMacros.hpp>
 
 #endif // GUARD
