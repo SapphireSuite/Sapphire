@@ -3,9 +3,6 @@
 #include <string>
 #include <iostream>
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "../../Engine/Libs/stblib/tiny_obj_loader.h"
-
 #include <Sapphire/Core/Time/Chrono.hpp>
 #include <Sapphire/Maths/Space/Transform.hpp>
 
