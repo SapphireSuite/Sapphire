@@ -20,54 +20,27 @@
 //#include <Sapphire/SDK/Asset/Loaders/ObjLoader.hpp>
 #include <Sapphire/SDK/Model.hpp>
 
-#include <Sapphire/SDK/Resources/Assets/TextureAsset.hpp>
+#include <Sapphire/SDK/Resources/Assets/MeshAsset.hpp>
 #include <Sapphire/SDK/Resources/Assets/ShaderAsset.hpp>
+#include <Sapphire/SDK/Resources/Assets/TextureAsset.hpp>
 
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
 
-ITexture* magikarpBody = nullptr;
-ITexture* magikarpEyes = nullptr;
-
 IShader* defaultVertShader = nullptr;
 IShader* defaultFragShader = nullptr;
 
+// Magikarp
+IMesh* magikarpBody = nullptr;
+IMesh* magikarpEyes = nullptr;
+
+ITexture* magikarpBodyTexture = nullptr;
+ITexture* magikarpEyesTexture = nullptr;
+
 void CreateResources(const IRenderInstance& _instance)
 {
-	// Magikarp Body.
-	{
-		TextureAsset magikarpBodyAsset;
-
-		// Try load.
-		if (!magikarpBodyAsset.Load("Bin/Magikarp/body_T.spha"))
-		{
-			// Import on load failed.
-			magikarpBodyAsset = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Body.png");
-			magikarpBodyAsset.Save("Bin/Magikarp/body_T.spha");
-		}
-
-		magikarpBody = magikarpBodyAsset.Create(_instance);
-	}
-
-
-	// Magikarp Eyes.
-	{
-		TextureAsset magikarpEyesAsset;
-
-		// Try load.
-		if (!magikarpEyesAsset.Load("Bin/Magikarp/eye_T.spha"))
-		{
-			// Import on load failed.
-			magikarpEyesAsset = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Eyes.png");
-			magikarpEyesAsset.Save("Bin/Magikarp/eye_T.spha");
-		}
-
-		magikarpEyes = magikarpEyesAsset.Create(_instance);
-	}
-
-
-	// Vertex Shader.
+	// Default Vertex Shader.
 	{
 		ShaderAsset defaultVertexShaderAsset;
 
@@ -83,7 +56,7 @@ void CreateResources(const IRenderInstance& _instance)
 	}
 
 
-	// Fragment Shader.
+	// Default Fragment Shader.
 	{
 		ShaderAsset defaultFragmentShaderAsset;
 
@@ -97,15 +70,72 @@ void CreateResources(const IRenderInstance& _instance)
 
 		defaultFragShader = defaultFragmentShaderAsset.Create(_instance);
 	}
+
+
+	// === Magikarp ===
+
+	// Magikarp Body Texture.
+	{
+		TextureAsset magikarpBodyTextureAsset;
+
+		// Try load.
+		if (!magikarpBodyTextureAsset.Load("Bin/Magikarp/body_T.spha"))
+		{
+			// Import on load failed.
+			magikarpBodyTextureAsset = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Body.png");
+			magikarpBodyTextureAsset.Save("Bin/Magikarp/body_T.spha");
+		}
+
+		magikarpBodyTexture = magikarpBodyTextureAsset.Create(_instance);
+	}
+
+
+	// Magikarp Eyes Texture.
+	{
+		TextureAsset magikarpEyesAssetTexture;
+
+		// Try load.
+		if (!magikarpEyesAssetTexture.Load("Bin/Magikarp/eye_T.spha"))
+		{
+			// Import on load failed.
+			magikarpEyesAssetTexture = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Eyes.png");
+			magikarpEyesAssetTexture.Save("Bin/Magikarp/eye_T.spha");
+		}
+
+		magikarpEyesTexture = magikarpEyesAssetTexture.Create(_instance);
+	}
+
+
+	// Magikarp Mesh.
+	{
+		std::vector<MeshAsset> magikarpMeshAssets(2);
+
+		// Try load.
+		if (!magikarpMeshAssets[0].Load("Bin/Magikarp/body_M.spha") || !magikarpMeshAssets[1].Load("Bin/Magikarp/eyes_M.spha"))
+		{
+			// Import on load failed.
+			magikarpMeshAssets = MeshAsset::Import("../../Engine/Resources/Models/Magikarp/Magikarp.obj");
+
+
+			magikarpMeshAssets[0].Save("Bin/Magikarp/body_M.spha");
+			magikarpMeshAssets[1].Save("Bin/Magikarp/eyes_M.spha");
+		}
+
+		magikarpBody = magikarpMeshAssets[0].Create(_instance);
+		magikarpEyes = magikarpMeshAssets[1].Create(_instance);
+	}
 }
 
 void DestroyResources(const IRenderInstance& _instance)
 {
-	defaultFragShader->Destroy(_instance);
-	defaultVertShader->Destroy(_instance);
-
 	magikarpEyes->Destroy(_instance);
 	magikarpBody->Destroy(_instance);
+
+	magikarpEyesTexture->Destroy(_instance);
+	magikarpBodyTexture->Destroy(_instance);
+
+	defaultFragShader->Destroy(_instance);
+	defaultVertShader->Destroy(_instance);
 }
 
 int main()

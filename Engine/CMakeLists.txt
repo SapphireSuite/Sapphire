@@ -37,8 +37,8 @@ target_link_libraries(Engine ${PROJECT_SOURCE_DIR}/Libs/glfw-3.3/lib-vc2019/glfw
 target_include_directories(Engine PRIVATE Libs/glfw-3.3/include)
 
 
-# STB lib (stb_image)
-target_include_directories(Engine PRIVATE Libs/stblib)
+# tiny header libs.
+target_include_directories(Engine PRIVATE Libs/tiny)
 
 
 

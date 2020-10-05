@@ -25,6 +25,8 @@ namespace Sa
 
 		Material,
 
+		Mesh,
+
 		Model
 	};
 
