@@ -144,10 +144,9 @@ branches:
     - /^(?i:WIP)_.*$/
     - /^(?i:temp).*$/
     - /^(?i:test).*$/
-    - dev_rendering
 
   # Whitelist.
   only:
     - master
-    - /^dev_.*$/
-    - /^rework.*$/
+    #- /^dev_.*$/
+    #- /^rework.*$/
