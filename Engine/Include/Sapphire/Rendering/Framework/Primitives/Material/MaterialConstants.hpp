@@ -16,30 +16,27 @@ namespace Sa
 {
 	struct MaterialConstants
 	{
-		// Ambiant constant.
-		alignas(16) Vec3f ka = Vec3f::One;
+		// Ambient constant.
+		alignas(16) Vec3f ambient = Vec3f::One;
 
 		// Transparency.
 		float alpha = 1.0;
 
 		// Diffuse constant.
-		alignas(16) Vec3f kd = Vec3f::One;
+		alignas(16) Vec3f diffuse = Vec3f::One;
 
 		float shininess = 10.0f;
 
 		// Specular constant.
-		alignas(16) Vec3f ks = Vec3f::One;
+		alignas(16) Vec3f specular = Vec3f::One;
 
 		float metallic = 0.35f;
 
 		// Emissive constant.
-		alignas(16) Vec3f ke;
+		alignas(16) Vec3f emissive;
 
 		// Optical density (Refractive index).
 		float refractIndex = 1.0f;
-
-		// Transmission filter.
-		alignas(16) Vec3f tf = Vec3f::One;
 
 		// Fresnel reflectance.
 		float reflectance = 0.5f;

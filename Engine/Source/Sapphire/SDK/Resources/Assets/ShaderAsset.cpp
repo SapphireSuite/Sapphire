@@ -71,7 +71,7 @@ namespace Sa
 	ShaderAsset ShaderAsset::Import(const std::string& _resourcePath)
 	{
 		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
-			InvalidParam, SDK_Import, L"Shader file extension not supported yet!");
+			WrongExtension, SDK_Import, L"Shader file extension not supported yet!");
 
 		// TODO: Compile shader.
 

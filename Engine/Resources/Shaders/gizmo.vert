@@ -19,13 +19,6 @@ layout(binding = 1) uniform ObjectUniformBuffer
 {
 	// Model transformation matrix.
     mat4 model;
-
-	// Material UV tilling.
-    float tillingUV;
-
-	// Material UV offset.
-    float offsetUV;
-
 } oUBO;
 
 
@@ -53,5 +46,5 @@ void main()
     gl_Position = sUBO.proj * sUBO.viewInv *  oUBO.model * viewRot * vec4(inPosition, 1.0);
 
     // Texture
-    vsOut.texture = inTexture * oUBO.tillingUV + oUBO.offsetUV;
+    vsOut.texture = inTexture;
 }

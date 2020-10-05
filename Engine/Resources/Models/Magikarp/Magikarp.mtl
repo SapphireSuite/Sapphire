@@ -8,8 +8,8 @@ d 1
 Ni 1
 Ns 2
 illum 2
-map_Kd body.png
-map_d body.png
+map_Kd Body.png
+map_d Body.png
 
 newmtl _4099
 Kd 1 1 1
@@ -21,6 +21,6 @@ d 1
 Ni 1
 Ns 100
 illum 2
-map_Kd eyes.png
-map_d eyes.png
+map_Kd Eyes.png
+map_d Eyes.png
 

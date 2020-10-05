@@ -10,6 +10,13 @@
 
 namespace Sa
 {
+#if SA_DEBUG
+
+	// Supported extensions.
+	constexpr const char* extensions[]{ "obj" };
+
+#endif
+
 	MeshAsset::MeshAsset() noexcept : IAsset(AssetType::Mesh)
 	{
 	}
@@ -81,11 +88,27 @@ namespace Sa
 
 	std::vector<MeshAsset> MeshAsset::Import(const std::string& _resourcePath)
 	{
+		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
+			WrongExtension, SDK_Import, L"Mesh file extension not supported yet!");
+
+		std::string extension = GetResourceExtension(_resourcePath);
+
+		if (extension == "obj")
+			return ImportOBJ(_resourcePath);
+
+
+		SA_ASSERT(false, WrongExtension, SDK_Import, L"Mesh file extension not supported yet!");
+
+		return std::vector<MeshAsset>();
+	}
+
+	std::vector<MeshAsset> MeshAsset::ImportOBJ(const std::string& _resourcePath)
+	{
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
-		std::string warn, err;
+		std::string warn; std::string error;
 
-		SA_ASSERT(tinyobj::LoadObj(&attrib, &shapes, nullptr, &warn, &err, _resourcePath.c_str()),
+		SA_ASSERT(tinyobj::LoadObj(&attrib, &shapes, nullptr, &warn, &error, _resourcePath.c_str()),
 			InvalidParam, Rendering, L"Failed to load obj model!");
 
 		std::vector<MeshAsset> meshes(shapes.size());

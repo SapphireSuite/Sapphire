@@ -16,6 +16,7 @@
 #include <Rendering/Framework/Primitives/Pipeline/IlluminationModel.hpp>
 
 #include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
+#include <Rendering/Framework/Primitives/Material/MaterialConstants.hpp>
 
 namespace Sa
 {
@@ -29,11 +30,15 @@ namespace Sa
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
 		void UnLoad_Internal(bool _bFreeResources) override;
 
+		static std::vector<MaterialAsset> ImportMTL(const std::string& _resourcePath);
+
 	public:
 		std::string vertexShaderPath;
 		std::string fragmentShaderPath;
 
 		std::vector<std::string> texturePaths;
+
+		MaterialConstants matConstants;
 
 		uint32 uniformBufferSize = sizeof(ObjectUniformBuffer);
 
@@ -48,7 +53,7 @@ namespace Sa
 		SA_ENGINE_API ~MaterialAsset();
 
 
-		SA_ENGINE_API IRenderMaterial* Create(const IRenderInstance& _instance);
+		SA_ENGINE_API IRenderMaterial* Create(const IRenderInstance& _instance, const IRenderSurface& _surface);
 
 		SA_ENGINE_API static std::vector<MaterialAsset> Import(const std::string& _resourcePath);
 

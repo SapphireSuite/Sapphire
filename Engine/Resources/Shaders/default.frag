@@ -8,30 +8,27 @@ layout(binding = 2) uniform sampler2D texSamplers[3];
 
 layout(binding = 3) uniform MaterialConstants
 {
-	// Ambiant constant.
-	vec3 ka;
+	// Ambient constant.
+	vec3 ambient;
 	
 	// Transparency.
 	float alpha;
 
 	// Diffuse constant.
-    vec3 kd;
+    vec3 diffuse;
 
 	float shininess;
 
 	// Specular constant.
-	vec3 ks;
+	vec3 specular;
 
 	float metallic;
 
 	// Emissive constant.
-	vec3 ke;
+	vec3 emissive;
 
 	// Optical density (Refractive index).
 	float refraction;
-
-	// Transmission filter.
-	vec3 tf;
 
 	// Fresnel reflectance.
 	float reflectance;
@@ -49,7 +46,7 @@ struct DirectionnalLight
 	
 	float intensity;
 
-	float ambiant;
+	float ambient;
 	float diffuse;
 	float specular;
 };
@@ -73,7 +70,7 @@ struct PointLight
 
 	float range;
 
-	float ambiant;
+	float ambient;
 	float diffuse;
 	float specular;
 };
@@ -101,7 +98,7 @@ struct SpotLight
 
 	float range;
 
-	float ambiant;
+	float ambient;
 	float diffuse;
 	float specular;
 };
@@ -193,7 +190,7 @@ struct IlluminationData
 	float cosAlpha;
 
 
-	// Ambiant component.
+	// Ambient component.
 	vec3 Ra;
 	
 	// Diffuse component.
@@ -239,7 +236,7 @@ void ComputeIllumination()
 }
 
 
-void FillIlluminationData(inout IlluminationData _data, vec3 _color, float _ambiant, float _diffuse, float _specular)
+void FillIlluminationData(inout IlluminationData _data, vec3 _color, float _ambient, float _diffuse, float _specular)
 {
 	// Halfway vector.
 	_data.vHalf = normalize(_data.vLight + _data.vCam);
@@ -251,14 +248,14 @@ void FillIlluminationData(inout IlluminationData _data, vec3 _color, float _ambi
 	_data.cosAlpha = max(dot(_data.vNorm, _data.vHalf), 0.0);
 
 
-	// Ambiant component.
-	_data.Ra = _color * _ambiant * matConsts.ka * _data.albedo;
+	// Ambient component.
+	_data.Ra = _color * _ambient * matConsts.ambient * _data.albedo;
 	
 	// Diffuse component.
-	_data.Rd = _color * _diffuse * matConsts.kd * mix(_data.albedo, vec3(0.0), matConsts.metallic);
+	_data.Rd = _color * _diffuse * matConsts.diffuse * mix(_data.albedo, vec3(0.0), matConsts.metallic);
 
 	// Specular component.
-	_data.Rs = _color * _specular * matConsts.ks * mix(vec3(1.0), _data.albedo, matConsts.metallic);
+	_data.Rs = _color * _specular * matConsts.specular * mix(vec3(1.0), _data.albedo, matConsts.metallic);
 
 
 	// Fresnel reflectance.
@@ -320,7 +317,7 @@ vec3 ComputeDirectionnalLight(DirectionnalLight _light, IlluminationData _data)
 	// Object to light direction.
 	_data.vLight = normalize(-_light.direction);
 
-	FillIlluminationData(_data, _light.color * _light.intensity, _light.ambiant, _light.diffuse, _light.specular);
+	FillIlluminationData(_data, _light.color * _light.intensity, _light.ambient, _light.diffuse, _light.specular);
 
 	return ComputeIlluminationModel(_data);
 }
@@ -330,7 +327,7 @@ vec3 ComputePointLight(PointLight _light, IlluminationData _data)
 	// Object to light direction.
 	_data.vLight = normalize(_light.position - fsIn.position);
 
-	FillIlluminationData(_data, _light.color * _light.intensity, _light.ambiant, _light.diffuse, _light.specular);
+	FillIlluminationData(_data, _light.color * _light.intensity, _light.ambient, _light.diffuse, _light.specular);
 
 	return ComputeAttenuation(_light.position, _light.range) * ComputeIlluminationModel(_data);
 }
@@ -348,7 +345,7 @@ vec3 ComputeSpotLight(SpotLight _light, IlluminationData _data)
 		return _data.Ra;
 
 
-	FillIlluminationData(_data, _light.color* _light.intensity, _light.ambiant, _light.diffuse, _light.specular);
+	FillIlluminationData(_data, _light.color* _light.intensity, _light.ambient, _light.diffuse, _light.specular);
 
 
 	return ComputeAttenuation(_light.position, _light.range) * ComputeIlluminationModel(_data);

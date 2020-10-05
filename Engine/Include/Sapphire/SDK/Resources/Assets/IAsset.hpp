@@ -42,6 +42,8 @@ namespace Sa
 		virtual bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) = 0;
 		virtual void UnLoad_Internal(bool _bFreeResources) = 0;
 
+		static std::string GetResourceExtension(const std::string& _resourcePath);
+
 #if SA_DEBUG
 		static bool CheckExtensionSupport(const std::string& _resourcePath, const char* const* _extensions, uint32 _extensionSize);
 #endif

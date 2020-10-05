@@ -95,17 +95,22 @@ namespace Sa
 		UnLoad_Internal(_bFreeResources);
 	}
 
+	std::string IAsset::GetResourceExtension(const std::string& _resourcePath)
+	{
+		uint32 extIndex = _resourcePath.find_last_of('.');
+
+		SA_ASSERT(extIndex != -1, InvalidParam, SDK_Import, L"File path invalid extension!");
+		SA_ASSERT(extIndex + 1 < _resourcePath.size(), InvalidParam, SDK_Import, L"File path invalid extension!");
+
+		return _resourcePath.substr(extIndex + 1);
+	}
+
 #if SA_DEBUG
 
 	bool IAsset::CheckExtensionSupport(const std::string& _resourcePath, const char* const* _extensions, uint32 _extensionSize)
 	{
-		// Check extension support.
-		uint32 extIndex = _resourcePath.find_last_of('.');
-
-		SA_ASSERT(extIndex != -1, InvalidParam, SDK_Import, L"File path invalid extension!");
-
 		bool bValidExt = false;
-		std::string extension = _resourcePath.substr(extIndex + 1);
+		std::string extension = GetResourceExtension(_resourcePath);
 
 		for (uint32 i = 0; i < _extensionSize; ++i)
 		{

@@ -22,6 +22,8 @@ namespace Sa
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
 		void UnLoad_Internal(bool _bFreeResources) override;
 
+		SA_ENGINE_API static std::vector<MeshAsset> ImportOBJ(const std::string& _resourcePath);
+
 	public:
 		SA_ENGINE_API MeshAsset() noexcept;
 		SA_ENGINE_API MeshAsset(std::vector<Vertex>&& _vertices, std::vector<uint32>&& _indices);

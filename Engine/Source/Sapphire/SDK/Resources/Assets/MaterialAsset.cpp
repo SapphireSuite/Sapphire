@@ -2,6 +2,8 @@
 
 #include <SDK/Resources/Assets/MaterialAsset.hpp>
 
+#include <tiny_obj_loader.h>
+
 #include <Core/Algorithms/Move.hpp>
 
 #include <Core/Types/Variadics/SizeOf.hpp>
@@ -118,20 +120,84 @@ namespace Sa
 	}
 
 
-	IRenderMaterial* MaterialAsset::Create(const IRenderInstance& _instance)
+	IRenderMaterial* MaterialAsset::Create(const IRenderInstance& _instance, const IRenderSurface& _surface)
 	{
-		// TODO LATER.
+		// TODO: IMPLEMENTATION.
 		return nullptr;
+
+		//IRenderMaterial* result = IRenderMaterial::CreateInstance();
+
+		//PipelineCreateInfos pipelineInfos
+		//{
+		//	_surface,
+		//	_surface.GetViewport(),
+
+		//	magikarpVertShader,
+		//	magikarpFragShader,
+
+		//	matConstants,
+
+		//	{ magikarpBodyTexture },
+
+		//	uniformBufferSize,
+
+		//	alphaModel,
+		//	polygonMode,
+		//	cullingMode,
+		//	frontFaceMode,
+		//	illumModel
+		//};
+
+		//result->CreatePipeline(_instance, pipelineInfos);
+
+		//return result;
 	}
 
 	std::vector<MaterialAsset> MaterialAsset::Import(const std::string& _resourcePath)
 	{
 		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
-			InvalidParam, SDK_Import, L"Shader file extension not supported yet!");
+			WrongExtension, SDK_Import, L"Material file extension not supported yet!");
 
-		// Todo: parse mtl...
+		std::string extension = GetResourceExtension(_resourcePath);
+
+		if (extension == "mtl")
+			return ImportMTL(_resourcePath);
+
+
+		SA_ASSERT(false, WrongExtension, SDK_Import, L"Material file extension not supported yet!");
 
 		return std::vector<MaterialAsset>();
+	}
+
+	std::vector<MaterialAsset> MaterialAsset::ImportMTL(const std::string& _resourcePath)
+	{
+		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
+			InvalidParam, SDK_Import, L"Shader file extension not supported yet!");
+
+		std::map<std::string, int> matMap;
+		std::vector<tinyobj::material_t> materials;
+		std::ifstream stream(_resourcePath);
+		std::string warn; std::string error;
+
+		tinyobj::LoadMtl(&matMap, &materials, &stream, &warn, &error);
+
+		std::vector<MaterialAsset> result(materials.size());
+
+		for (uint32 i = 0u; i < SizeOf(result); ++i)
+		{
+			result[i].matConstants.ambient = Vec3f(materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2]);
+			result[i].matConstants.diffuse = Vec3f(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]);
+			result[i].matConstants.specular = Vec3f(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]);
+			result[i].matConstants.emissive = Vec3f(materials[i].emission[0], materials[i].emission[1], materials[i].emission[2]);
+
+			result[i].matConstants.alpha = materials[i].dissolve;
+
+			result[i].matConstants.shininess = materials[i].shininess;
+
+			result[i].matConstants.refractIndex = materials[i].ior;
+		}
+
+		return result;
 	}
 
 

@@ -16,10 +16,6 @@
 
 #include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
 
-//#include <Sapphire/SDK/Asset/AssetManager.hpp>
-//#include <Sapphire/SDK/Asset/Loaders/ObjLoader.hpp>
-#include <Sapphire/SDK/Model.hpp>
-
 #include <Sapphire/SDK/Resources/Assets/MeshAsset.hpp>
 #include <Sapphire/SDK/Resources/Assets/ShaderAsset.hpp>
 #include <Sapphire/SDK/Resources/Assets/TextureAsset.hpp>
@@ -150,7 +146,7 @@ void CreateResources(const IRenderInstance& _instance, const IRenderSurface& _su
 			if (!magikarpMaterialAssets[0].Load(materialAssets[0]) || !magikarpMaterialAssets[1].Load(materialAssets[1]))
 			{
 				// Import on load failed.
-				//magikarpMaterialAssets = MaterialAsset::Import("../../Engine/Resources/Models/Magikarp/Magikarp.mtl");
+				magikarpMaterialAssets = MaterialAsset::Import("../../Engine/Resources/Models/Magikarp/Magikarp.mtl");
 
 				magikarpMaterialAssets[0].vertexShaderPath = vertShaderAsset;
 				magikarpMaterialAssets[1].vertexShaderPath = vertShaderAsset;
@@ -165,8 +161,8 @@ void CreateResources(const IRenderInstance& _instance, const IRenderSurface& _su
 				magikarpMaterialAssets[1].Save(materialAssets[1]);
 			}
 
-			magikarpBodyMat = magikarpMaterialAssets[0].Create(_instance);
-			magikarpBodyMat = magikarpMaterialAssets[1].Create(_instance);
+			magikarpBodyMat = magikarpMaterialAssets[0].Create(_instance, _surface);
+			magikarpEyesMat = magikarpMaterialAssets[1].Create(_instance, _surface);
 
 			// TODO: REMOVE LATER.
 			{
@@ -302,7 +298,7 @@ void CreateResources(const IRenderInstance& _instance, const IRenderSurface& _su
 				gizmoMaterialAsset.Save(materialAssets);
 			}
 
-			gizmoMat = gizmoMaterialAsset.Create(_instance);
+			gizmoMat = gizmoMaterialAsset.Create(_instance, _surface);
 
 			// TODO: REMOVE LATER.
 			{
@@ -318,7 +314,7 @@ void CreateResources(const IRenderInstance& _instance, const IRenderSurface& _su
 
 					{ },
 
-					sizeof(ObjectUniformBuffer),
+					sizeof(Mat4f),
 
 					AlphaModel::Opaque,
 					PolygonMode::Fill,
@@ -399,9 +395,8 @@ int main()
 	}
 
 	{
-		ObjectUniformBuffer oubo;
-		oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-		gizmoMat->InitVariable(instance, &oubo, sizeof(oubo));
+		Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+		gizmoMat->InitVariable(instance, &modelMat, sizeof(Mat4f));
 	}
 
 
