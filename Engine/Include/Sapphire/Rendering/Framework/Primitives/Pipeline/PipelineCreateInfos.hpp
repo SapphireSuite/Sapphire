@@ -9,11 +9,12 @@
 
 #include <Rendering/Image/Viewport.hpp>
 
+#include <Rendering/Framework/Primitives/Pipeline/AlphaModel.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PolygonMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/CullingMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/FrontFaceMode.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/AlphaModel.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/IlluminationModel.hpp>
+
 #include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Material/MaterialConstants.hpp>
 
@@ -36,13 +37,13 @@ namespace Sa
 
 		std::vector<const ITexture*> textures;
 
+		uint32 uniformBufferSize = sizeof(ObjectUniformBuffer);
+
+		AlphaModel alphaModel = AlphaModel::Opaque;
 		PolygonMode polygonMode = PolygonMode::Fill;
 		CullingMode cullingMode = CullingMode::Back;
 		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
-		AlphaModel alphaModel = AlphaModel::Opaque;
 		IlluminationModel illumModel = IlluminationModel::PBR;
-
-		uint32 uniformBufferSize = sizeof(ObjectUniformBuffer);
 	};
 }
 

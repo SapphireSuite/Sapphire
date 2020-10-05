@@ -23,119 +23,339 @@
 #include <Sapphire/SDK/Resources/Assets/MeshAsset.hpp>
 #include <Sapphire/SDK/Resources/Assets/ShaderAsset.hpp>
 #include <Sapphire/SDK/Resources/Assets/TextureAsset.hpp>
+#include <Sapphire/SDK/Resources/Assets/MaterialAsset.hpp>
 
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
 
-IShader* defaultVertShader = nullptr;
-IShader* defaultFragShader = nullptr;
 
 // Magikarp
-IMesh* magikarpBody = nullptr;
-IMesh* magikarpEyes = nullptr;
+IShader* magikarpVertShader = nullptr;
+IShader* magikarpFragShader = nullptr;
 
 ITexture* magikarpBodyTexture = nullptr;
 ITexture* magikarpEyesTexture = nullptr;
 
-void CreateResources(const IRenderInstance& _instance)
+IMesh* magikarpBodyMesh = nullptr;
+IMesh* magikarpEyesMesh = nullptr;
+
+IRenderMaterial* magikarpBodyMat = nullptr;
+IRenderMaterial* magikarpEyesMat = nullptr;
+
+// Gizmo
+IShader* gizmoVertShader = nullptr;
+IShader* gizmoFragShader = nullptr;
+
+IMesh* gizmoMesh = nullptr;
+IRenderMaterial* gizmoMat = nullptr;
+
+void CreateResources(const IRenderInstance& _instance, const IRenderSurface& _surface)
 {
-	// Default Vertex Shader.
-	{
-		ShaderAsset defaultVertexShaderAsset;
-
-		// Try load.
-		if (!defaultVertexShaderAsset.Load("Bin/Shader/default_vert.spha"))
-		{
-			// Import on load failed.
-			defaultVertexShaderAsset = ShaderAsset::Import("../../Bin/Shaders/default_vert.spv");
-			defaultVertexShaderAsset.Save("Bin/Shader/default_vert.spha");
-		}
-
-		defaultVertShader = defaultVertexShaderAsset.Create(_instance);
-	}
-
-
-	// Default Fragment Shader.
-	{
-		ShaderAsset defaultFragmentShaderAsset;
-
-		// Try load.
-		if (!defaultFragmentShaderAsset.Load("Bin/Shader/default_frag.spha"))
-		{
-			// Import on load failed.
-			defaultFragmentShaderAsset = ShaderAsset::Import("../../Bin/Shaders/default_vert.spv");
-			defaultFragmentShaderAsset.Save("Bin/Shader/default_frag.spha");
-		}
-
-		defaultFragShader = defaultFragmentShaderAsset.Create(_instance);
-	}
-
-
 	// === Magikarp ===
-
-	// Magikarp Body Texture.
 	{
-		TextureAsset magikarpBodyTextureAsset;
+		constexpr const char* vertShaderAsset = "Bin/Magikarp/Magikarp_VS.spha";
+		constexpr const char* fragShaderAsset = "Bin/Magikarp/Magikarp_FS.spha";
 
-		// Try load.
-		if (!magikarpBodyTextureAsset.Load("Bin/Magikarp/body_T.spha"))
+		constexpr const char* textureAssets[] = { "Bin/Magikarp/Body_T.spha", "Bin/Magikarp/Eyes_T.spha" };
+		constexpr const char* meshAssets[] = { "Bin/Magikarp/Body_M.spha", "Bin/Magikarp/Eyes_M.spha" };
+		constexpr const char* materialAssets[] = { "Bin/Magikarp/Body_Mat.spha", "Bin/Magikarp/Eyes_Mat.spha" };
+
+		// Vertex Shader.
 		{
-			// Import on load failed.
-			magikarpBodyTextureAsset = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Body.png");
-			magikarpBodyTextureAsset.Save("Bin/Magikarp/body_T.spha");
+			ShaderAsset vertexShaderAsset;
+
+			// Try load.
+			if (!vertexShaderAsset.Load(vertShaderAsset))
+			{
+				// Import on load failed.
+				vertexShaderAsset = ShaderAsset::Import("../../Bin/Shaders/default_vert.spv");
+				vertexShaderAsset.Save(vertShaderAsset);
+			}
+
+			magikarpVertShader = vertexShaderAsset.Create(_instance);
 		}
 
-		magikarpBodyTexture = magikarpBodyTextureAsset.Create(_instance);
-	}
-
-
-	// Magikarp Eyes Texture.
-	{
-		TextureAsset magikarpEyesAssetTexture;
-
-		// Try load.
-		if (!magikarpEyesAssetTexture.Load("Bin/Magikarp/eye_T.spha"))
+		// Fragment Shader.
 		{
-			// Import on load failed.
-			magikarpEyesAssetTexture = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Eyes.png");
-			magikarpEyesAssetTexture.Save("Bin/Magikarp/eye_T.spha");
+			ShaderAsset fragmentShaderAsset;
+
+			// Try load.
+			if (!fragmentShaderAsset.Load(fragShaderAsset))
+			{
+				// Import on load failed.
+				fragmentShaderAsset = ShaderAsset::Import("../../Bin/Shaders/default_frag.spv");
+				fragmentShaderAsset.Save(fragShaderAsset);
+			}
+
+			magikarpFragShader = fragmentShaderAsset.Create(_instance);
 		}
 
-		magikarpEyesTexture = magikarpEyesAssetTexture.Create(_instance);
-	}
+		// Body Texture.
+		{
+			TextureAsset magikarpBodyTextureAsset;
+
+			// Try load.
+			if (!magikarpBodyTextureAsset.Load(textureAssets[0]))
+			{
+				// Import on load failed.
+				magikarpBodyTextureAsset = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Body.png");
+				magikarpBodyTextureAsset.Save(textureAssets[0]);
+			}
+
+			magikarpBodyTexture = magikarpBodyTextureAsset.Create(_instance);
+		}
 
 
-	// Magikarp Mesh.
-	{
+		// Eyes Texture.
+		{
+			TextureAsset magikarpEyesAssetTexture;
+
+			// Try load.
+			if (!magikarpEyesAssetTexture.Load(textureAssets[1]))
+			{
+				// Import on load failed.
+				magikarpEyesAssetTexture = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Eyes.png");
+				magikarpEyesAssetTexture.Save(textureAssets[1]);
+			}
+
+			magikarpEyesTexture = magikarpEyesAssetTexture.Create(_instance);
+		}
+
+
+		// Meshes.
+		{
 		std::vector<MeshAsset> magikarpMeshAssets(2);
 
 		// Try load.
-		if (!magikarpMeshAssets[0].Load("Bin/Magikarp/body_M.spha") || !magikarpMeshAssets[1].Load("Bin/Magikarp/eyes_M.spha"))
+		if (!magikarpMeshAssets[0].Load(meshAssets[0]) || !magikarpMeshAssets[1].Load(meshAssets[1]))
 		{
 			// Import on load failed.
 			magikarpMeshAssets = MeshAsset::Import("../../Engine/Resources/Models/Magikarp/Magikarp.obj");
 
-
-			magikarpMeshAssets[0].Save("Bin/Magikarp/body_M.spha");
-			magikarpMeshAssets[1].Save("Bin/Magikarp/eyes_M.spha");
+			magikarpMeshAssets[0].Save(meshAssets[0]);
+			magikarpMeshAssets[1].Save(meshAssets[1]);
 		}
 
-		magikarpBody = magikarpMeshAssets[0].Create(_instance);
-		magikarpEyes = magikarpMeshAssets[1].Create(_instance);
+		magikarpBodyMesh = magikarpMeshAssets[0].Create(_instance);
+		magikarpEyesMesh = magikarpMeshAssets[1].Create(_instance);
+		}
+
+
+		// Materials.
+		{
+			std::vector<MaterialAsset> magikarpMaterialAssets(2);
+
+			// Try load.
+			if (!magikarpMaterialAssets[0].Load(materialAssets[0]) || !magikarpMaterialAssets[1].Load(materialAssets[1]))
+			{
+				// Import on load failed.
+				//magikarpMaterialAssets = MaterialAsset::Import("../../Engine/Resources/Models/Magikarp/Magikarp.mtl");
+
+				magikarpMaterialAssets[0].vertexShaderPath = vertShaderAsset;
+				magikarpMaterialAssets[1].vertexShaderPath = vertShaderAsset;
+
+				magikarpMaterialAssets[0].fragmentShaderPath = fragShaderAsset;
+				magikarpMaterialAssets[1].fragmentShaderPath = fragShaderAsset;
+
+				magikarpMaterialAssets[0].texturePaths = { textureAssets[0] };
+				magikarpMaterialAssets[1].texturePaths = { textureAssets[1] };
+
+				magikarpMaterialAssets[0].Save(materialAssets[0]);
+				magikarpMaterialAssets[1].Save(materialAssets[1]);
+			}
+
+			magikarpBodyMat = magikarpMaterialAssets[0].Create(_instance);
+			magikarpBodyMat = magikarpMaterialAssets[1].Create(_instance);
+
+			// TODO: REMOVE LATER.
+			{
+				PipelineCreateInfos bodyPipelineInfos
+				{
+					_surface,
+					_surface.GetViewport(),
+
+					magikarpVertShader,
+					magikarpFragShader,
+
+					MaterialConstants(),
+
+					{ magikarpBodyTexture },
+
+					sizeof(ObjectUniformBuffer),
+
+					AlphaModel::Opaque,
+					PolygonMode::Fill,
+					CullingMode::Back,
+					FrontFaceMode::Clockwise,
+					IlluminationModel::PBR
+				};
+
+				magikarpBodyMat = IRenderMaterial::CreateInstance();
+				magikarpBodyMat->CreatePipeline(_instance, bodyPipelineInfos);
+
+
+				PipelineCreateInfos eyesPipelineInfos
+				{
+					_surface,
+					_surface.GetViewport(),
+
+					magikarpVertShader,
+					magikarpFragShader,
+
+					MaterialConstants(),
+
+					{ magikarpEyesTexture },
+
+					sizeof(ObjectUniformBuffer),
+
+					AlphaModel::Opaque,
+					PolygonMode::Fill,
+					CullingMode::Back,
+					FrontFaceMode::Clockwise,
+					IlluminationModel::PBR
+				};
+
+				magikarpEyesMat = IRenderMaterial::CreateInstance();
+				magikarpEyesMat->CreatePipeline(_instance, eyesPipelineInfos);
+			}
+		}
+	}
+
+	// === Gizmo ===
+	{
+		constexpr const char* vertShaderAsset = "Bin/Gizmo/Gizmo_VS.spha";
+		constexpr const char* fragShaderAsset = "Bin/Gizmo/Gizmo_FS.spha";
+
+		constexpr const char* meshAsset = "Bin/Gizmos/Square_M.spha";
+		constexpr const char* materialAssets = "Bin/Gizmos/Square_Mat.spha";
+
+		// Vertex Shader.
+		{
+			ShaderAsset vertexShaderAsset;
+
+			// Try load.
+			if (!vertexShaderAsset.Load(vertShaderAsset))
+			{
+				// Import on load failed.
+				vertexShaderAsset = ShaderAsset::Import("../../Bin/Shaders/gizmo_vert.spv");
+				vertexShaderAsset.Save(vertShaderAsset);
+			}
+
+			gizmoVertShader = vertexShaderAsset.Create(_instance);
+		}
+
+		// Fragment Shader.
+		{
+			ShaderAsset fragmentShaderAsset;
+
+			// Try load.
+			if (!fragmentShaderAsset.Load(fragShaderAsset))
+			{
+				// Import on load failed.
+				fragmentShaderAsset = ShaderAsset::Import("../../Bin/Shaders/gizmo_frag.spv");
+				fragmentShaderAsset.Save(fragShaderAsset);
+			}
+
+			gizmoFragShader = fragmentShaderAsset.Create(_instance);
+		}
+
+		// Mesh.
+		{
+			MeshAsset gizmoMeshAsset;
+
+			// Try load.
+			if (!gizmoMeshAsset.Load(meshAsset))
+			{
+				// Import on load failed.
+				const std::vector<Vertex> vertices =
+				{
+					{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
+					{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f } },
+					{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f } },
+					{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f } },
+				};
+
+				const std::vector<uint32> indices =
+				{
+					0, 1, 2, 2, 3, 0
+				};
+
+				gizmoMeshAsset = MeshAsset(vertices, indices);
+				gizmoMeshAsset.Save(meshAsset);
+			}
+
+			gizmoMesh = gizmoMeshAsset.Create(_instance);
+		}
+
+		// Materials.
+		{
+			MaterialAsset gizmoMaterialAsset;
+
+			// Try load.
+			if (!gizmoMaterialAsset.Load(materialAssets))
+			{
+				// Import on load failed.
+				gizmoMaterialAsset.vertexShaderPath = vertShaderAsset;
+				gizmoMaterialAsset.fragmentShaderPath = fragShaderAsset;
+
+				gizmoMaterialAsset.Save(materialAssets);
+			}
+
+			gizmoMat = gizmoMaterialAsset.Create(_instance);
+
+			// TODO: REMOVE LATER.
+			{
+				PipelineCreateInfos gizmoPipelineInfos
+				{
+					_surface,
+					_surface.GetViewport(),
+
+					gizmoVertShader,
+					gizmoFragShader,
+
+					MaterialConstants(),
+
+					{ },
+
+					sizeof(ObjectUniformBuffer),
+
+					AlphaModel::Opaque,
+					PolygonMode::Fill,
+					CullingMode::None,
+					FrontFaceMode::Clockwise,
+					IlluminationModel::None
+				};
+
+				gizmoMat = IRenderMaterial::CreateInstance();
+				gizmoMat->CreatePipeline(_instance, gizmoPipelineInfos);
+			}
+		}
 	}
 }
 
 void DestroyResources(const IRenderInstance& _instance)
 {
-	magikarpEyes->Destroy(_instance);
-	magikarpBody->Destroy(_instance);
+	// === Gizmo ===
+	gizmoMat->DestroyPipeline(_instance);
+	gizmoMesh->Destroy(_instance);
+
+	gizmoFragShader->Destroy(_instance);
+	gizmoVertShader->Destroy(_instance);
+
+
+	// === Magikarp ===
+	magikarpBodyMat->DestroyPipeline(_instance);
+	magikarpEyesMat->DestroyPipeline(_instance);
+
+	magikarpEyesMesh->Destroy(_instance);
+	magikarpBodyMesh->Destroy(_instance);
 
 	magikarpEyesTexture->Destroy(_instance);
 	magikarpBodyTexture->Destroy(_instance);
 
-	defaultFragShader->Destroy(_instance);
-	defaultVertShader->Destroy(_instance);
+	magikarpFragShader->Destroy(_instance);
+	magikarpVertShader->Destroy(_instance);
 }
 
 int main()
@@ -152,7 +372,9 @@ int main()
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
-	CreateResources(instance);
+
+	CreateResources(instance, surface);
+
 
 	// Create Lights.
 	PLightInfos pLight1;
@@ -168,80 +390,6 @@ int main()
 
 	uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
 
-	/*
-	AssetManager assetMgr;
-
-	// Load assets.
-	const IShader* vertShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_vert.spv");
-	const IShader* fragShader = assetMgr.Shader(instance, "../../Bin/Shaders/default_frag.spv");
-
-	std::vector<ModelCreateInfos> modelInfos;
-	ObjLoader::Load("../../Engine/Resources/Models/Magikarp/Magikarp.obj", modelInfos);
-	std::vector<IMesh*> Magikarp;
-	for (auto it = modelInfos.begin(); it != modelInfos.end(); ++it)
-		Magikarp.push_back(IMesh::CreateInstance(instance, it->vertices, it->indices));
-
-	//Model Magikarp = assetMgr.Model(instance, "../../Engine/Resources/Models/Magikarp/Magikarp.obj");
-
-	// Create Materials.
-	IRenderMaterial* magikarpBodyMat = IRenderMaterial::CreateInstance();
-	{
-		const ITexture* magikarpBodyTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body.png");
-		const ITexture* magikarpBodyNormTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body_norm.png");
-		const ITexture* magikarpBodySpecTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body_spc.png");
-		const ITexture* magikarpBodyPowTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Body_pow.png");
-
-		PipelineCreateInfos bodyPipelineInfos
-		{
-			surface,
-			surface.GetViewport(),
-
-			vertShader,
-			fragShader,
-
-			modelInfos[0].matConstants,
-
-			{ magikarpBodyTexture, magikarpBodyNormTexture, magikarpBodySpecTexture, magikarpBodyPowTexture },
-
-			PolygonMode::Fill,
-			CullingMode::Back,
-			FrontFaceMode::Clockwise,
-			AlphaModel::Opaque,
-			IlluminationModel::PBR
-		};
-
-		magikarpBodyMat->CreatePipeline(instance, bodyPipelineInfos);
-	}
-
-	IRenderMaterial* magikarpEyesMat = IRenderMaterial::CreateInstance();
-	{
-		const ITexture* magikarpEyesTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes.png");
-		const ITexture* magikarpEyesNormTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes_norm.png");
-		const ITexture* magikarpEyesSpecTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes_spc.png");
-		const ITexture* magikarpEyesPowTexture = assetMgr.Texture(instance, "../../Engine/Resources/Models/Magikarp/Eyes_pow.png");
-
-		PipelineCreateInfos eyesPipelineInfos
-		{
-			surface,
-			surface.GetViewport(),
-
-			vertShader,
-			fragShader,
-
-			modelInfos[1].matConstants,
-
-			{ magikarpEyesTexture, magikarpEyesNormTexture, magikarpEyesSpecTexture, magikarpEyesPowTexture },
-
-			PolygonMode::Fill,
-			CullingMode::Back,
-			FrontFaceMode::Clockwise,
-			AlphaModel::Opaque,
-			IlluminationModel::PBR
-		};
-
-		magikarpEyesMat->CreatePipeline(instance, eyesPipelineInfos);
-	}
-
 	{
 		ObjectUniformBuffer oubo;
 		oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-1.0f, -1.0, -2.5f),
@@ -250,94 +398,11 @@ int main()
 		magikarpEyesMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
 
-
-	// Create Gizmo
-	IMesh* squareMesh = nullptr;
-	{
-		const std::vector<Vertex> vertices =
-		{
-			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
-			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f } },
-			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f } },
-			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f } },
-		};
-
-		const std::vector<uint32> indices =
-		{
-			0, 1, 2, 2, 3, 0
-		};
-
-		squareMesh = IMesh::CreateInstance(instance, vertices, indices);
-	}
-
-	IRenderMaterial* gizmoMat = IRenderMaterial::CreateInstance();
-	{
-		const IShader* gizmoVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/gizmo_vert.spv");
-		const IShader* gizmoFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/gizmo_frag.spv");
-
-		const ITexture* gizmoTexture = assetMgr.Texture(instance, "../../Engine/Resources/Textures/SampleCat.jpg");
-
-		PipelineCreateInfos bodyPipelineInfos
-		{
-			surface,
-			surface.GetViewport(),
-
-			gizmoVertShader,
-			gizmoFragShader,
-
-			MaterialConstants{},
-
-			{ gizmoTexture },
-
-			PolygonMode::Fill,
-			CullingMode::None,
-			FrontFaceMode::Clockwise,
-			AlphaModel::Opaque,
-			IlluminationModel::None
-		};
-
-		gizmoMat->CreatePipeline(instance, bodyPipelineInfos);
-	}
-
-	IRenderMaterial* gizmoBPMat = IRenderMaterial::CreateInstance();
-	{
-		const IShader* gizmoVertShader = assetMgr.Shader(instance, "../../Bin/Shaders/gizmo_vert.spv");
-		const IShader* gizmoFragShader = assetMgr.Shader(instance, "../../Bin/Shaders/gizmo_frag.spv");
-
-		const ITexture* gizmoTexture = assetMgr.Texture(instance, "../../Engine/Resources/Textures/SampleCat.jpg");
-
-		PipelineCreateInfos bodyPipelineInfos
-		{
-			surface,
-			{
-				Vec2<uint32>(800u, 0u), {800u, 800u},
-				ImageViewExtent{ Vec2<uint32>::Zero, surface.GetImageExtent() }
-			},
-
-			gizmoVertShader,
-			gizmoFragShader,
-
-			MaterialConstants{},
-
-			{ gizmoTexture },
-
-			PolygonMode::Fill,
-			CullingMode::None,
-			FrontFaceMode::Clockwise,
-			AlphaModel::Opaque,
-			IlluminationModel::None
-		};
-
-		gizmoBPMat->CreatePipeline(instance, bodyPipelineInfos);
-	}
-
 	{
 		ObjectUniformBuffer oubo;
 		oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
 		gizmoMat->InitVariable(instance, &oubo, sizeof(oubo));
-		gizmoBPMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
-	*/
 
 
 	const float r = 1.0f;
@@ -400,16 +465,15 @@ int main()
 
 		frame.uniformBuffer.UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
 		
-		//{
-		//	ObjectUniformBuffer oubo;
-		//	oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-		//	gizmoMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
-		//	gizmoBPMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
+		{
+			ObjectUniformBuffer oubo;
+			oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+			gizmoMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
 
-		//	vkDeviceWaitIdle(instance.GetDevice());
-		//	pLight1.position = API_ConvertCoordinateSystem(pL1Pos);
-		//	instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1, pLight1ID);
-		//}
+			vkDeviceWaitIdle(instance.GetDevice());
+			pLight1.position = API_ConvertCoordinateSystem(pL1Pos);
+			instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1, pLight1ID);
+		}
 
 
 		const VkCommandBufferBeginInfo commandBufferBeginInfo
@@ -441,20 +505,18 @@ int main()
 
 		vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		/*
+		// Draw Magikarp.
 		magikarpBodyMat->Bind(frame);
-		Magikarp[0]->Draw(frame);
+		magikarpBodyMesh->Draw(frame);
 
 		magikarpEyesMat->Bind(frame);
-		Magikarp[1]->Draw(frame);
-
+		magikarpEyesMesh->Draw(frame);
 
 
 		// Draw gizmos.
 		gizmoMat->Bind(frame);
-		squareMesh->Draw(frame);
-		//Magikarp.Draw(frame);
-		*/
+		gizmoMesh->Draw(frame);
+
 
 		vkCmdEndRenderPass(frame.graphicsCommandBuffer);
 
@@ -467,11 +529,7 @@ int main()
 	// === Destroy ===
 	vkDeviceWaitIdle(instance.GetDevice());
 
-	//Magikarp.GetMaterial(0)->DestroyPipeline(instance);
-	//Magikarp.GetMaterial(1)->DestroyPipeline(instance);
-	//magikarpBodyMat->DestroyPipeline(instance);
-	//magikarpEyesMat->DestroyPipeline(instance);
-	//assetMgr.Free(instance);
+	DestroyResources(instance);
 
 	instance.DestroyRenderSurface(window);
 	

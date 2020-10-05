@@ -17,9 +17,6 @@ namespace Sa
 		std::vector<Vertex> mVertices;
 		std::vector<uint32> mIndices;
 
-		MeshAsset(std::vector<Vertex>&& _vertices, std::vector<uint32>&& _indices);
-		MeshAsset(const std::vector<Vertex>& _vertices, const std::vector<uint32>& _indices);
-
 		void Save_Internal(std::fstream& _fStream) const override;
 
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
@@ -27,6 +24,8 @@ namespace Sa
 
 	public:
 		SA_ENGINE_API MeshAsset() noexcept;
+		SA_ENGINE_API MeshAsset(std::vector<Vertex>&& _vertices, std::vector<uint32>&& _indices);
+		SA_ENGINE_API MeshAsset(const std::vector<Vertex>& _vertices, const std::vector<uint32>& _indices);
 		SA_ENGINE_API ~MeshAsset();
 
 		SA_ENGINE_API IMesh* Create(const IRenderInstance& _instance);

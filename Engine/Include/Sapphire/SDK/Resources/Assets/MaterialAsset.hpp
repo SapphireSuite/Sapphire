@@ -7,11 +7,54 @@
 
 #include <SDK/Resources/Assets/IAsset.hpp>
 
+#include <Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
+
+#include <Rendering/Framework/Primitives/Pipeline/AlphaModel.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/PolygonMode.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/CullingMode.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/FrontFaceMode.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/IlluminationModel.hpp>
+
+#include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
+
 namespace Sa
 {
+	class IRenderSurface;
+
 	class MaterialAsset : public IAsset
 	{
+	protected:
+		void Save_Internal(std::fstream& _fStream) const override;
+
+		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
+		void UnLoad_Internal(bool _bFreeResources) override;
+
 	public:
+		std::string vertexShaderPath;
+		std::string fragmentShaderPath;
+
+		std::vector<std::string> texturePaths;
+
+		uint32 uniformBufferSize = sizeof(ObjectUniformBuffer);
+
+		AlphaModel alphaModel = AlphaModel::Opaque;
+		PolygonMode polygonMode = PolygonMode::Fill;
+		CullingMode cullingMode = CullingMode::Back;
+		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
+		IlluminationModel illumModel = IlluminationModel::PBR;
+
+
+		SA_ENGINE_API MaterialAsset() noexcept;
+		SA_ENGINE_API ~MaterialAsset();
+
+
+		SA_ENGINE_API IRenderMaterial* Create(const IRenderInstance& _instance);
+
+		SA_ENGINE_API static std::vector<MaterialAsset> Import(const std::string& _resourcePath);
+
+
+		SA_ENGINE_API MaterialAsset& operator=(MaterialAsset&& _rhs);
+		MaterialAsset& operator=(const MaterialAsset&) = delete;
 	};
 }
 

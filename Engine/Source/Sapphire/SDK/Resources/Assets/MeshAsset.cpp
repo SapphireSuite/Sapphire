@@ -125,7 +125,7 @@ namespace Sa
 		mVertices = Move(_rhs.mVertices);
 		mIndices = Move(_rhs.mIndices);
 
-		UnLoad(false);
+		_rhs.UnLoad(false);
 
 		return *this;
 	}
