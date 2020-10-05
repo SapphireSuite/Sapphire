@@ -16,10 +16,10 @@ namespace Sa
 	class IShader : public IInterface
 	{
 	protected:
-		virtual void Create(const IRenderInstance& _instance, const std::vector<char>& _code) = 0;
+		virtual void Create(const IRenderInstance& _instance, const char* _code, uint32 _size) = 0;
 
 	public:
-		static IShader* CreateInstance(const IRenderInstance& _instance, const std::vector<char>& _code);
+		static IShader* CreateInstance(const IRenderInstance& _instance, const char* _code, uint32 _size);
 
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 	};

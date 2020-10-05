@@ -10,7 +10,7 @@
 
 namespace Sa
 {
-	IShader* IShader::CreateInstance(const IRenderInstance& _instance, const std::vector<char>& _code)
+	IShader* IShader::CreateInstance(const IRenderInstance& _instance, const char* _code, uint32 _size)
 	{
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -18,7 +18,7 @@ namespace Sa
 
 #endif
 
-		result->Create(_instance, _code);
+		result->Create(_instance, _code, _size);
 
 		return result;
 	}

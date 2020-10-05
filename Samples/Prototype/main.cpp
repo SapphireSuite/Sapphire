@@ -16,14 +16,97 @@
 
 #include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
 
-#include <Sapphire/SDK/Asset/AssetManager.hpp>
-#include <Sapphire/SDK/Asset/Loaders/ObjLoader.hpp>
+//#include <Sapphire/SDK/Asset/AssetManager.hpp>
+//#include <Sapphire/SDK/Asset/Loaders/ObjLoader.hpp>
 #include <Sapphire/SDK/Model.hpp>
+
+#include <Sapphire/SDK/Resources/Assets/TextureAsset.hpp>
+#include <Sapphire/SDK/Resources/Assets/ShaderAsset.hpp>
 
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
 
+ITexture* magikarpBody = nullptr;
+ITexture* magikarpEyes = nullptr;
+
+IShader* defaultVertShader = nullptr;
+IShader* defaultFragShader = nullptr;
+
+void CreateResources(const IRenderInstance& _instance)
+{
+	// Magikarp Body.
+	{
+		TextureAsset magikarpBodyAsset;
+
+		// Try load.
+		if (!magikarpBodyAsset.Load("Bin/Magikarp/body_T.spha"))
+		{
+			// Import on load failed.
+			magikarpBodyAsset = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Body.png");
+			magikarpBodyAsset.Save("Bin/Magikarp/body_T.spha");
+		}
+
+		magikarpBody = magikarpBodyAsset.Create(_instance);
+	}
+
+
+	// Magikarp Eyes.
+	{
+		TextureAsset magikarpEyesAsset;
+
+		// Try load.
+		if (!magikarpEyesAsset.Load("Bin/Magikarp/eye_T.spha"))
+		{
+			// Import on load failed.
+			magikarpEyesAsset = TextureAsset::Import("../../Engine/Resources/Models/Magikarp/Eyes.png");
+			magikarpEyesAsset.Save("Bin/Magikarp/eye_T.spha");
+		}
+
+		magikarpEyes = magikarpEyesAsset.Create(_instance);
+	}
+
+
+	// Vertex Shader.
+	{
+		ShaderAsset defaultVertexShaderAsset;
+
+		// Try load.
+		if (!defaultVertexShaderAsset.Load("Bin/Shader/default_vert.spha"))
+		{
+			// Import on load failed.
+			defaultVertexShaderAsset = ShaderAsset::Import("../../Bin/Shaders/default_vert.spv");
+			defaultVertexShaderAsset.Save("Bin/Shader/default_vert.spha");
+		}
+
+		defaultVertShader = defaultVertexShaderAsset.Create(_instance);
+	}
+
+
+	// Fragment Shader.
+	{
+		ShaderAsset defaultFragmentShaderAsset;
+
+		// Try load.
+		if (!defaultFragmentShaderAsset.Load("Bin/Shader/default_frag.spha"))
+		{
+			// Import on load failed.
+			defaultFragmentShaderAsset = ShaderAsset::Import("../../Bin/Shaders/default_vert.spv");
+			defaultFragmentShaderAsset.Save("Bin/Shader/default_frag.spha");
+		}
+
+		defaultFragShader = defaultFragmentShaderAsset.Create(_instance);
+	}
+}
+
+void DestroyResources(const IRenderInstance& _instance)
+{
+	defaultFragShader->Destroy(_instance);
+	defaultVertShader->Destroy(_instance);
+
+	magikarpEyes->Destroy(_instance);
+	magikarpBody->Destroy(_instance);
+}
 
 int main()
 {
@@ -39,6 +122,7 @@ int main()
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
+	CreateResources(instance);
 
 	// Create Lights.
 	PLightInfos pLight1;
@@ -54,6 +138,7 @@ int main()
 
 	uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
 
+	/*
 	AssetManager assetMgr;
 
 	// Load assets.
@@ -222,6 +307,7 @@ int main()
 		gizmoMat->InitVariable(instance, &oubo, sizeof(oubo));
 		gizmoBPMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
+	*/
 
 
 	const float r = 1.0f;
@@ -284,16 +370,16 @@ int main()
 
 		frame.uniformBuffer.UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
 		
-		{
-			ObjectUniformBuffer oubo;
-			oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-			gizmoMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
-			gizmoBPMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
+		//{
+		//	ObjectUniformBuffer oubo;
+		//	oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+		//	gizmoMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
+		//	gizmoBPMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
 
-			vkDeviceWaitIdle(instance.GetDevice());
-			pLight1.position = API_ConvertCoordinateSystem(pL1Pos);
-			instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1, pLight1ID);
-		}
+		//	vkDeviceWaitIdle(instance.GetDevice());
+		//	pLight1.position = API_ConvertCoordinateSystem(pL1Pos);
+		//	instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1, pLight1ID);
+		//}
 
 
 		const VkCommandBufferBeginInfo commandBufferBeginInfo
@@ -325,6 +411,7 @@ int main()
 
 		vkCmdBeginRenderPass(frame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+		/*
 		magikarpBodyMat->Bind(frame);
 		Magikarp[0]->Draw(frame);
 
@@ -337,6 +424,7 @@ int main()
 		gizmoMat->Bind(frame);
 		squareMesh->Draw(frame);
 		//Magikarp.Draw(frame);
+		*/
 
 		vkCmdEndRenderPass(frame.graphicsCommandBuffer);
 
@@ -351,9 +439,9 @@ int main()
 
 	//Magikarp.GetMaterial(0)->DestroyPipeline(instance);
 	//Magikarp.GetMaterial(1)->DestroyPipeline(instance);
-	magikarpBodyMat->DestroyPipeline(instance);
-	magikarpEyesMat->DestroyPipeline(instance);
-	assetMgr.Free(instance);
+	//magikarpBodyMat->DestroyPipeline(instance);
+	//magikarpEyesMat->DestroyPipeline(instance);
+	//assetMgr.Free(instance);
 
 	instance.DestroyRenderSurface(window);
 	

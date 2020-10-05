@@ -34,21 +34,51 @@ namespace Sa
 
 
 	template <typename Enum, ThreadMode thMode>
-	constexpr Flags<Enum, thMode> Flags<Enum, thMode>::EnumAND(Enum _lhs, Enum _rhs) noexcept
+	template <typename... Args>
+	constexpr Flags<Enum, thMode> Flags<Enum, thMode>::EnumAND(Enum _lhs, Enum _rhs, Args... _args) noexcept
 	{
-		return Flags(static_cast<TypeBits>(_lhs) & static_cast<TypeBits>(_rhs));
+		Flags result(static_cast<TypeBits>(_lhs) & static_cast<TypeBits>(_rhs));
+
+		if constexpr (sizeof...(Args) == 0)
+			return result;
+		else if constexpr (sizeof...(Args) >= 2)
+		{
+			return result & EnumAND(_args...);
+		}
+		else
+			return result & Flags(_args...);
 	}
 
 	template <typename Enum, ThreadMode thMode>
-	constexpr Flags<Enum, thMode> Flags<Enum, thMode>::EnumOR(Enum _lhs, Enum _rhs) noexcept
+	template <typename... Args>
+	constexpr Flags<Enum, thMode> Flags<Enum, thMode>::EnumOR(Enum _lhs, Enum _rhs, Args... _args) noexcept
 	{
-		return Flags(static_cast<TypeBits>(_lhs) | static_cast<TypeBits>(_rhs));
+		Flags result(static_cast<TypeBits>(_lhs) | static_cast<TypeBits>(_rhs));
+
+		if constexpr (sizeof...(Args) == 0)
+			return result;
+		else if constexpr (sizeof...(Args) >= 2)
+		{
+			return result | EnumOR(_args...);
+		}
+		else
+			return result | Flags(_args...);
 	}
 
 	template <typename Enum, ThreadMode thMode>
-	constexpr Flags<Enum, thMode> Flags<Enum, thMode>::EnumXOR(Enum _lhs, Enum _rhs) noexcept
+	template <typename... Args>
+	constexpr Flags<Enum, thMode> Flags<Enum, thMode>::EnumXOR(Enum _lhs, Enum _rhs, Args... _args) noexcept
 	{
-		return Flags(static_cast<TypeBits>(_lhs) ^ static_cast<TypeBits>(_rhs));
+		Flags result(static_cast<TypeBits>(_lhs) ^ static_cast<TypeBits>(_rhs));
+
+		if constexpr (sizeof...(Args) == 0)
+			return result;
+		else if constexpr (sizeof...(Args) >= 2)
+		{
+			return result ^ EnumXOR(_args...);
+		}
+		else
+			return result ^ Flags(_args...);
 	}
 
 
@@ -209,21 +239,21 @@ namespace Sa
 	}
 
 
-	template <typename Enum, ThreadMode thMode>
-	constexpr Flags<Enum, thMode> operator|(Enum _lhs, Enum _rhs) noexcept
+	template <typename Enum>
+	constexpr Enum operator|(Enum _lhs, Enum _rhs) noexcept
 	{
-		return Flags<Enum, thMode>::EnumOR(_lhs, _rhs);
+		return static_cast<Enum>(static_cast<UIntOfSize<sizeof(Enum)>>(_lhs) | static_cast<UIntOfSize<sizeof(Enum)>>(_rhs));
 	}
 
-	template <typename Enum, ThreadMode thMode>
-	constexpr Flags<Enum, thMode> operator&(Enum _lhs, Enum _rhs) noexcept
+	template <typename Enum>
+	constexpr Enum operator&(Enum _lhs, Enum _rhs) noexcept
 	{
-		return Flags<Enum, thMode>::EnumAND(_lhs, _rhs);
+		return static_cast<Enum>(static_cast<UIntOfSize<sizeof(Enum)>>(_lhs) & static_cast<UIntOfSize<sizeof(Enum)>>(_rhs));
 	}
 
-	template <typename Enum, ThreadMode thMode>
-	constexpr Flags<Enum, thMode> operator^(Enum _lhs, Enum _rhs) noexcept
+	template <typename Enum>
+	constexpr Enum operator^(Enum _lhs, Enum _rhs) noexcept
 	{
-		return Flags<Enum, thMode>::EnumXOR(_lhs, _rhs);
+		return static_cast<Enum>(static_cast<UIntOfSize<sizeof(Enum)>>(_lhs) ^ static_cast<UIntOfSize<sizeof(Enum)>>(_rhs));
 	}
 }

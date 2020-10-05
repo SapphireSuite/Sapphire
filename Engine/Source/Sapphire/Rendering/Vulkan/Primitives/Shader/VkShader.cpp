@@ -10,7 +10,7 @@
 
 namespace Sa
 {
-	void VkShader::Create(const IRenderInstance& _instance, const std::vector<char>& _code)
+	void VkShader::Create(const IRenderInstance& _instance, const char* _code, uint32 _size)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
@@ -19,8 +19,8 @@ namespace Sa
 			VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,					// sType.
 			nullptr,														// pNext.
 			0,																// flags.
-			_code.size(),													// codeSize.
-			reinterpret_cast<const uint32*>(_code.data())					// pCode.
+			_size,															// codeSize.
+			reinterpret_cast<const uint32*>(_code)							// pCode.
 		};
 
 		SA_VK_ASSERT(vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &mHandle),

@@ -97,7 +97,8 @@ namespace Sa
 		*
 		*	\return Created Flags.
 		*/
-		static constexpr Flags EnumAND(Enum _lhs, Enum _rhs) noexcept;
+		template <typename... Args>
+		static constexpr Flags EnumAND(Enum _lhs, Enum _rhs, Args... _args) noexcept;
 
 		/**
 		*	\brief \e Create a Flags with value lhs \b or rhs.
@@ -107,7 +108,8 @@ namespace Sa
 		*
 		*	\return Created Flags.
 		*/
-		static constexpr Flags EnumOR(Enum _lhs, Enum _rhs) noexcept;
+		template <typename... Args>
+		static constexpr Flags EnumOR(Enum _lhs, Enum _rhs, Args... _args) noexcept;
 
 		/**
 		*	\brief \e Create a Flags with value lhs \b xor rhs.
@@ -117,7 +119,8 @@ namespace Sa
 		*
 		*	\return Created Flags.
 		*/
-		static constexpr Flags EnumXOR(Enum _lhs, Enum _rhs) noexcept;
+		template <typename... Args>
+		static constexpr Flags EnumXOR(Enum _lhs, Enum _rhs, Args... _args) noexcept;
 
 
 		/**
@@ -359,52 +362,49 @@ namespace Sa
 
 
 	/**
-	*	\brief Perform \b and operation between 2 Enum.
+	*	\brief Perform \b AND operation between 2 Enum.
 	*
-	*	Call Flags::EnumAND().
+	*	Helper to avoid static_cast verbosity.
 	*
 	*	\tparam Enum		Enum type.
-	*	\tparam thMode		Thread-mode.
 	*
 	*	\param[in] _lhs		Left operand.
 	*	\param[in] _rhs		Right operand.
 	*
-	*	\return result of and operation.
+	*	\return result of AND operation.
 	*/
-	template <typename Enum, ThreadMode thMode = ThreadMode::Unsafe>
-	constexpr Flags<Enum, thMode> operator&(Enum _lhs, Enum _rhs) noexcept;
+	template <typename Enum>
+	constexpr Enum operator&(Enum _lhs, Enum _rhs) noexcept;
 
 	/**
-	*	\brief Perform \b or operation between 2 Enum.
+	*	\brief Perform \b OR operation between 2 Enum.
 	*
-	*	Call Flags::EnumOR().
+	*	Helper to avoid static_cast verbosity.
 	*
 	*	\tparam Enum		Enum type.
-	*	\tparam thMode		Thread-mode.
 	*
 	*	\param[in] _lhs		Left operand.
 	*	\param[in] _rhs		Right operand.
 	*
-	*	\return result of or operation.
+	*	\return result of OR operation.
 	*/
-	template <typename Enum, ThreadMode thMode = ThreadMode::Unsafe>
-	constexpr Flags<Enum, thMode> operator|(Enum _lhs, Enum _rhs) noexcept;
+	template <typename Enum>
+	constexpr Enum operator|(Enum _lhs, Enum _rhs) noexcept;
 
 	/**
-	*	\brief Perform \b xor operation between 2 Enum.
+	*	\brief Perform \b XOR operation between 2 Enum.
 	*
-	*	Call Flags::EnumXOR().
+	*	Helper to avoid static_cast verbosity.
 	*
 	*	\tparam Enum		Enum type.
-	*	\tparam thMode		Thread-mode.
 	*
 	*	\param[in] _lhs		Left operand.
 	*	\param[in] _rhs		Right operand.
 	*
-	*	\return result of xor operation.
+	*	\return result of XOR operation.
 	*/
-	template <typename Enum, ThreadMode thMode = ThreadMode::Unsafe>
-	constexpr Flags<Enum, thMode> operator^(Enum _lhs, Enum _rhs) noexcept;
+	template <typename Enum>
+	constexpr Enum operator^(Enum _lhs, Enum _rhs) noexcept;
 
 
 	/** \} */

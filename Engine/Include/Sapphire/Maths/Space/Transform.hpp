@@ -20,6 +20,8 @@ namespace Sa
 
 	enum class TrComp : uint8
 	{
+		None = 0,
+
 		Position = 1 << 0,
 
 		Rotation = 1 << 1,
@@ -37,16 +39,16 @@ namespace Sa
 		*
 		*	\tparam Components	Components of the transform, defined by TrComp.
 		*/
-		template <typename T, uint8 TrComps>
+		template <typename T, TrComp TrComps>
 		struct TransfBase;
 
 		template <typename T>
-		struct TransfBase<T, 0>;
+		struct TransfBase<T, TrComp::None>;
 
 
 		// === Transf P ===
 		template <typename T>
-		struct TransfBase <T, static_cast<uint8>(TrComp::Position)>
+		struct TransfBase <T, TrComp::Position>
 		{
 			/// Position component of the transform.
 			Vec3<T> position;
@@ -77,7 +79,7 @@ namespace Sa
 
 		// === Transf R ===
 		template <typename T>
-		struct TransfBase <T, static_cast<uint8>(TrComp::Rotation)>
+		struct TransfBase <T, TrComp::Rotation>
 		{
 			/// Rotation component of the transform.
 			Quat<T> rotation = Quat<T>::Identity;
@@ -108,7 +110,7 @@ namespace Sa
 
 		// === Transf S ===
 		template <typename T>
-		struct TransfBase <T, static_cast<uint8>(TrComp::Scale)>
+		struct TransfBase <T, TrComp::Scale>
 		{
 			/// Scale component of the transform.
 			Vec3<T> scale = Vec3<T>::One;
@@ -289,7 +291,7 @@ namespace Sa
 	*
 	*	\tparam Components	Components of the transform, defined by TrComp.
 	*/
-	template <typename T, uint8 TrComps>
+	template <typename T, TrComp TrComps>
 	struct Transf : public Internal::TransfBase<T, TrComps>
 	{
 		/**
@@ -315,7 +317,7 @@ namespace Sa
 		*
 		*	\param[in] _other	Transf to construct from.
 		*/
-		template <typename TIn, uint8 CIn>
+		template <typename TIn, TrComp CIn>
 		constexpr explicit Transf(const Transf<TIn, CIn>& _other) noexcept;
 
 
@@ -431,7 +433,7 @@ namespace Sa
 		*
 		*	\param[in] _rhs	Transf to assign from.
 		*/
-		template <typename TIn, uint8 CIn>
+		template <typename TIn, TrComp CIn>
 		Transf& operator=(const Transf<TIn, CIn>& _rhs);
 
 
@@ -442,7 +444,7 @@ namespace Sa
 		*
 		*	\return new transform result.
 		*/
-		template <uint8 CIn>
+		template <TrComp CIn>
 		Transf operator*(const Transf<T, CIn>& _other) const;
 
 		/**
@@ -452,7 +454,7 @@ namespace Sa
 		*
 		*	\return new transform result.
 		*/
-		template <uint8 CIn>
+		template <TrComp CIn>
 		Transf operator/(const Transf<T, CIn>& _other) const;
 
 		/**
@@ -462,7 +464,7 @@ namespace Sa
 		*
 		*	\return self transform result.
 		*/
-		template <uint8 CIn>
+		template <TrComp CIn>
 		Transf& operator*=(const Transf<T, CIn> & _other);
 
 		/**
@@ -472,7 +474,7 @@ namespace Sa
 		*
 		*	\return self transform result.
 		*/
-		template <uint8 CIn>
+		template <TrComp CIn>
 		Transf& operator/=(const Transf<T, CIn> & _other);
 
 
@@ -502,22 +504,22 @@ namespace Sa
 		*
 		*	\return \e Casted result.
 		*/
-		template <typename TIn, uint8 CIn>
+		template <typename TIn, TrComp CIn>
 		constexpr operator Transf<TIn, CIn>() const noexcept;
 	};
 
 
 	/// Alias for Position Transf.
 	template <typename T>
-	using TransfP = Transf<T, static_cast<uint8>(TrComp::Position)>;
+	using TransfP = Transf<T, TrComp::Position>;
 
 	/// Alias for Rotation Transf.
 	template <typename T>
-	using TransfR = Transf<T, static_cast<uint8>(TrComp::Rotation)>;
+	using TransfR = Transf<T, TrComp::Rotation>;
 
 	/// Alias for Scale Transf.
 	template <typename T>
-	using TransfS = Transf<T, static_cast<uint8>(TrComp::Scale)>;
+	using TransfS = Transf<T, TrComp::Scale>;
 
 	/// Alias for Position Rotation Transf.
 	template <typename T>
@@ -537,17 +539,17 @@ namespace Sa
 
 
 	/// Alias for float Transf.
-	template <uint8 TrComps>
+	template <TrComp TrComps>
 	using Transff = Transf<float, TrComps>;
 
 	/// Alias for float Position Transf.
-	using TransffP = Transf<float, static_cast<uint8>(TrComp::Position)>;
+	using TransffP = Transf<float, TrComp::Position>;
 
 	/// Alias for float Rotation Transf.
-	using TransffR = Transf<float, static_cast<uint8>(TrComp::Rotation)>;
+	using TransffR = Transf<float, TrComp::Rotation>;
 
 	/// Alias for float Scale Transf.
-	using TransffS = Transf<float, static_cast<uint8>(TrComp::Scale)>;
+	using TransffS = Transf<float, TrComp::Scale>;
 
 	/// Alias for float Position Rotation Transf.
 	using TransffPR = Transf<float, TrComp::Position | TrComp::Rotation>;
@@ -563,20 +565,20 @@ namespace Sa
 
 
 	/// Template alias of Transform
-	template <typename T, uint8 TrComps>
+	template <typename T, TrComp TrComps>
 	using Transform = Transf<T, TrComps>;
 
 	/// Alias for Position Transform.
 	template <typename T>
-	using TransformP = Transform<T, static_cast<uint8>(TrComp::Position)>;
+	using TransformP = Transform<T, TrComp::Position>;
 
 	/// Alias for Rotation Transform.
 	template <typename T>
-	using TransformR = Transform<T, static_cast<uint8>(TrComp::Rotation)>;
+	using TransformR = Transform<T, TrComp::Rotation>;
 
 	/// Alias for Scale Transform.
 	template <typename T>
-	using TransformS = Transform<T, static_cast<uint8>(TrComp::Scale)>;
+	using TransformS = Transform<T, TrComp::Scale>;
 
 	/// Alias for Position Rotation Transform.
 	template <typename T>
