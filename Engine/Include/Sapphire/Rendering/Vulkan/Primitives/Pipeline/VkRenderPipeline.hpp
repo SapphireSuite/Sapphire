@@ -46,13 +46,13 @@ namespace Sa
 			std::vector<ShaderStageCreateInfos>& _stagesInfos, const PipelineCreateInfos& _pipelineInfos);
 		
 
-		virtual void CreateDescriptorSetLayoutBindings(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos,
+		virtual void CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
 			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept;
 
 		void CreateDescriptorSetLayout(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
 
 
-		virtual void CreateDescriptorPoolSize(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+		virtual void CreateDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
 			std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept;
 
 		void CreateDescriptorPool(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);

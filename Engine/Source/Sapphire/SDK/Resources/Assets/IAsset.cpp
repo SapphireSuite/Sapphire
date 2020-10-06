@@ -10,52 +10,24 @@
 
 namespace Sa
 {
-	IAsset::IAsset(AssetType _assetType) noexcept : assetType{ _assetType }
+	IAsset::IAsset(AssetManager& _manager, AssetType _assetType) noexcept :
+		mManager{ _manager },
+		assetType{ _assetType }
 	{
 	}
 
-	const std::string& IAsset::GetFilePath() const
+	const std::string& IAsset::GetFilePath() const noexcept
 	{
 		return mFilePath;
-	}
-
-	void IAsset::Save(const std::string& _filePath)
-	{
-		if (!_filePath.empty())
-			mFilePath = _filePath;
-
-		SA_ASSERT(!mFilePath.empty(), InvalidParam, SDK_Asset, L"Try to save asset at invalid path!");
-
-
-		// Create Directory.
-		std::string dirPath;
-		uint32 dirIndex = _filePath.find_last_of('/');
-
-		if (dirIndex != -1)
-			dirPath = _filePath.substr(0, dirIndex);
-
-		if(!dirPath.empty())
-			std::filesystem::create_directories(dirPath);
-
-
-		// Create file.
-		std::fstream fStream(_filePath, std::fstream::binary | std::fstream::out | std::fstream::trunc);
-		SA_ASSERT(fStream.is_open(), InvalidParam, SDK_Asset, L"failed to open file to save!");
-
-		// header.
-		fStream << static_cast<uint32>(assetType) << ' ';
-
-		Save_Internal(fStream);
-
-		fStream.close();
 	}
 
 	bool IAsset::Load(const std::string& _filePath)
 	{
 		// Other asset loaded.
-		if (!mFilePath.empty() && mFilePath != _filePath)
+		if (IsValid())
 			UnLoad();
 
+		mFilePath = _filePath;
 		std::fstream fStream(_filePath, std::ios::binary | std::ios_base::in);
 
 		if (!fStream.is_open())
@@ -91,15 +63,50 @@ namespace Sa
 	void IAsset::UnLoad(bool _bFreeResources)
 	{
 		mFilePath.clear();
-
 		UnLoad_Internal(_bFreeResources);
 	}
+
+
+	void IAsset::Save(std::string _outFilePath)
+	{
+		SA_ASSERT(IsValid(), InvalidParam, SDK_Asset, L"Try to save invalid asset!");
+	
+		if (_outFilePath.empty())
+			_outFilePath = mFilePath;
+
+		SA_ASSERT(!_outFilePath.empty(), InvalidParam, SDK_Asset, L"Try to save asset at invalid path!");
+
+
+		// Create Directory.
+		std::string dirPath;
+		uint32 dirIndex = _outFilePath.find_last_of('/');
+
+		if (dirIndex != uint32 (-1))
+			dirPath = _outFilePath.substr(0, dirIndex);
+
+		if(!dirPath.empty())
+			std::filesystem::create_directories(dirPath);
+
+
+		// Create file.
+		std::fstream fStream(_outFilePath, std::fstream::binary | std::fstream::out | std::fstream::trunc);
+		SA_ASSERT(fStream.is_open(), InvalidParam, SDK_Asset, L"failed to open file to save!");
+
+		// header.
+		fStream << static_cast<uint32>(assetType) << ' ';
+
+		Save_Internal(fStream, _outFilePath);
+		mFilePath = _outFilePath;
+
+		fStream.close();
+	}
+
 
 	std::string IAsset::GetResourceExtension(const std::string& _resourcePath)
 	{
 		uint32 extIndex = _resourcePath.find_last_of('.');
 
-		SA_ASSERT(extIndex != -1, InvalidParam, SDK_Import, L"File path invalid extension!");
+		SA_ASSERT(extIndex != uint32(-1), InvalidParam, SDK_Import, L"File path invalid extension!");
 		SA_ASSERT(extIndex + 1 < _resourcePath.size(), InvalidParam, SDK_Import, L"File path invalid extension!");
 
 		return _resourcePath.substr(extIndex + 1);
@@ -130,7 +137,7 @@ namespace Sa
 	{
 		SA_ASSERT(assetType == _rhs.assetType, InvalidParam, SDK_Asset, L"Invalid asset type!");
 
-		mFilePath = Move(_rhs.mFilePath);
+		mFilePath = _rhs.mFilePath;
 
 		return *this;
 	}

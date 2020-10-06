@@ -262,7 +262,7 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::CreateDescriptorSetLayoutBindings(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos,
+	void VkRenderPipeline::CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
 		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
 	{
 		// Static UBO binding.
@@ -337,7 +337,7 @@ namespace Sa
 
 
 		// Populate bindings.
-		CreateDescriptorSetLayoutBindings(_instance, _pipelineInfos, layoutBindings);
+		CreateDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
 
 
 		// Create DescriptorSetLayout.
@@ -355,7 +355,7 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::CreateDescriptorPoolSize(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+	void VkRenderPipeline::CreateDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
 		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
 	{
 		// Static UBO binding.
@@ -415,7 +415,7 @@ namespace Sa
 
 
 		// Populate poolSizes.
-		CreateDescriptorPoolSize(_instance, _pipelineInfos, _imageNum, poolSizes);
+		CreateDescriptorPoolSize(_pipelineInfos, _imageNum, poolSizes);
 
 
 		// Create DescriptorPool.

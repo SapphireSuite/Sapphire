@@ -9,39 +9,29 @@
 #include <fstream>
 #include <sstream>
 
-#include <Core/Types/IInterface.hpp>
-
 #include <SDK/Config.hpp>
+#include <SDK/Resources/Assets/AssetType.hpp>
+#include <SDK/Resources/Assets/IAssetImportInfos.hpp>
 
 namespace Sa
 {
-	enum class AssetType
-	{
-		Unknown = 0,
-
-		Texture,
-
-		Shader,
-
-		Material,
-
-		Mesh,
-
-		Model
-	};
+	class AssetManager;
 
 	class IAsset : public IInterface
 	{
 	protected:
+		AssetManager& mManager;
+
 		std::string mFilePath;
 
-		IAsset(AssetType _assetType) noexcept;
-
-		virtual void Save_Internal(std::fstream& _fStream) const = 0;
+		IAsset(AssetManager& _manager, AssetType _assetType) noexcept;
 
 		virtual bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) = 0;
 		virtual void UnLoad_Internal(bool _bFreeResources) = 0;
 
+		virtual void Save_Internal(std::fstream& _fStream, const std::string& _newPath) const = 0;
+		virtual void Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos) = 0;
+		
 		static std::string GetResourceExtension(const std::string& _resourcePath);
 
 #if SA_DEBUG
@@ -52,21 +42,20 @@ namespace Sa
 		const AssetType assetType = AssetType::Unknown;
 
 
-		IAsset(IAsset&&) = delete;
+		IAsset(IAsset&&) = default;
 		IAsset(const IAsset&) = delete;
 
 		virtual ~IAsset() = default;
 
+		const std::string& GetFilePath() const noexcept;
+		virtual bool IsValid() const noexcept = 0;
 
-		const std::string& GetFilePath() const;
+		bool Load(const std::string& _filePath);
+		void UnLoad(bool _bFreeResources = true);
 
-		SA_ENGINE_API void Save(const std::string& _filePath = "");
+		SA_ENGINE_API void Save(std::string _outFilePath = "");
 
-		SA_ENGINE_API bool Load(const std::string& _filePath);
-		SA_ENGINE_API void UnLoad(bool _bFreeResources = true);
-
-
-		SA_ENGINE_API IAsset& operator=(IAsset&& _rhs);
+		IAsset& operator=(IAsset&& _rhs);
 		IAsset& operator=(const IAsset&) = delete;
 	};
 }

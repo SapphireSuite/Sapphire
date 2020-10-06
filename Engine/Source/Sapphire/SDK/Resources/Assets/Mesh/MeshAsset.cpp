@@ -1,12 +1,14 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <SDK/Resources/Assets/MeshAsset.hpp>
+#include <SDK/Resources/Assets/Mesh/MeshAsset.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
 #include <Core/Algorithms/Move.hpp>
 #include <Core/Types/Variadics/SizeOf.hpp>
+
+#include <SDK/Resources/Assets/AssetManager.hpp>
 
 namespace Sa
 {
@@ -17,22 +19,30 @@ namespace Sa
 
 #endif
 
-	MeshAsset::MeshAsset() noexcept : IAsset(AssetType::Mesh)
+	MeshAsset::MeshAsset(AssetManager& _manager) noexcept : IAsset(_manager, AssetType::Mesh)
 	{
 	}
 
-	MeshAsset::MeshAsset(std::vector<Vertex>&& _vertices, std::vector<uint32>&& _indices) :
-		IAsset(AssetType::Mesh),
+	MeshAsset::MeshAsset(AssetManager& _manager, std::vector<Vertex>&& _vertices, std::vector<uint32>&& _indices) :
+		IAsset(_manager, AssetType::Mesh),
 		mVertices{ Move(_vertices) },
 		mIndices{ Move(_indices) }
 	{
 	}
 
-	MeshAsset::MeshAsset(const std::vector<Vertex>& _vertices, const std::vector<uint32>& _indices) :
-		IAsset(AssetType::Mesh),
+	MeshAsset::MeshAsset(AssetManager& _manager, const std::vector<Vertex>& _vertices, const std::vector<uint32>& _indices) :
+		IAsset(_manager, AssetType::Mesh),
 		mVertices{ _vertices },
 		mIndices{ _indices }
 	{
+	}
+
+	MeshAsset::MeshAsset(MeshAsset&& _other) noexcept : IAsset(Move(_other))
+	{
+		mVertices = Move(_other.mVertices);
+		mIndices = Move(_other.mIndices);
+
+		_other.UnLoad(false);
 	}
 
 	MeshAsset::~MeshAsset()
@@ -40,18 +50,14 @@ namespace Sa
 		UnLoad_Internal(true);
 	}
 
-	void MeshAsset::Save_Internal(std::fstream& _fStream) const
+	IMesh* MeshAsset::GetResource() const
 	{
-		SA_ASSERT(!mVertices.empty() && !mIndices.empty(), Nullptr, SDK_Asset, L"Save nullptr texture asset!");
+		return mManager.QueryMesh(mFilePath);
+	}
 
-		uint32 vSize = SizeOf(mVertices) * sizeof(Vertex);
-		uint32 iSize = SizeOf(mIndices) * sizeof(uint32);
-
-		// Header.
-		_fStream << vSize << ' ' << iSize << '\n';
-
-		_fStream.write(reinterpret_cast<const char*>(mVertices.data()), vSize);
-		_fStream.write(reinterpret_cast<const char*>(mIndices.data()), iSize);
+	bool MeshAsset::IsValid() const noexcept
+	{
+		return mVertices.size() && mIndices.size();
 	}
 
 	bool MeshAsset::Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream)
@@ -81,28 +87,57 @@ namespace Sa
 		mIndices.clear();
 	}
 
-	IMesh* MeshAsset::Create(const IRenderInstance& _instance)
+
+	void MeshAsset::Save_Internal(std::fstream& _fStream, const std::string& _newPath) const
+	{
+		SA_ASSERT(!mVertices.empty() && !mIndices.empty(), Nullptr, SDK_Asset, L"Save nullptr texture asset!");
+
+		uint32 vSize = SizeOf(mVertices) * sizeof(Vertex);
+		uint32 iSize = SizeOf(mIndices) * sizeof(uint32);
+
+		// Header.
+		_fStream << vSize << ' ' << iSize << '\n';
+
+		_fStream.write(reinterpret_cast<const char*>(mVertices.data()), vSize);
+		_fStream.write(reinterpret_cast<const char*>(mIndices.data()), iSize);
+
+		mManager.SaveMesh(*this, _newPath);
+	}
+
+	void MeshAsset::Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos)
+	{
+	}
+
+
+	IMesh* MeshAsset::Create(const IRenderInstance& _instance) const
 	{
 		return IMesh::CreateInstance(_instance, mVertices, mIndices);
 	}
 
-	std::vector<MeshAsset> MeshAsset::Import(const std::string& _resourcePath)
+	std::vector<MeshAsset> MeshAsset::Import(AssetManager& _manager, const std::string& _resourcePath, const MeshImportInfos& _importInfos)
 	{
 		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
 			WrongExtension, SDK_Import, L"Mesh file extension not supported yet!");
 
+		std::vector<MeshAsset> result;
 		std::string extension = GetResourceExtension(_resourcePath);
 
 		if (extension == "obj")
-			return ImportOBJ(_resourcePath);
+			result = ImportOBJ(_manager, _resourcePath);
+		else
+			SA_ASSERT(false, WrongExtension, SDK_Import, L"Mesh file extension not supported yet!");
 
 
-		SA_ASSERT(false, WrongExtension, SDK_Import, L"Mesh file extension not supported yet!");
+		for (uint32 i = 0u; i < SizeOf(result); ++i)
+		{
+			result[i].mFilePath = _importInfos.outFilePaths[i];
+			result[i].Import_Internal(_resourcePath, _importInfos);
+		}
 
-		return std::vector<MeshAsset>();
+		return result;
 	}
 
-	std::vector<MeshAsset> MeshAsset::ImportOBJ(const std::string& _resourcePath)
+	std::vector<MeshAsset> MeshAsset::ImportOBJ(AssetManager& _manager, const std::string& _resourcePath)
 	{
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
@@ -111,12 +146,14 @@ namespace Sa
 		SA_ASSERT(tinyobj::LoadObj(&attrib, &shapes, nullptr, &warn, &error, _resourcePath.c_str()),
 			InvalidParam, Rendering, L"Failed to load obj model!");
 
-		std::vector<MeshAsset> meshes(shapes.size());
+		std::vector<MeshAsset> meshes;
+		meshes.reserve(shapes.size());
 
 		for (uint32 i = 0u; i < shapes.size(); ++i)
 		{
-			std::vector<Vertex>& vertices = meshes[i].mVertices;
-			std::vector<uint32>& indices = meshes[i].mIndices;
+			MeshAsset& mesh = meshes.emplace_back(_manager);
+			std::vector<Vertex>& vertices = mesh.mVertices;
+			std::vector<uint32>& indices = mesh.mIndices;
 
 			for (auto indexIt = shapes[i].mesh.indices.begin(); indexIt != shapes[i].mesh.indices.end(); ++indexIt)
 			{

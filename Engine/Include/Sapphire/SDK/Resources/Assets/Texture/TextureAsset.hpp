@@ -10,22 +10,10 @@
 #include <Rendering/Framework/Primitives/Texture/ITexture.hpp>
 
 #include <SDK/Resources/Assets/IAsset.hpp>
+#include <SDK/Resources/Assets/Texture/TextureImportInfos.hpp>
 
 namespace Sa
 {
-	enum class TextureChannel
-	{
-		Unknown = 0,
-
-		Grey = 1,
-
-		GreyA,
-
-		RGB,
-
-		RGBA
-	};
-
 	class TextureAsset : public IAsset
 	{
 	protected:
@@ -36,26 +24,30 @@ namespace Sa
 
 		char* mData = nullptr;
 
-		TextureAsset(uint32 _width, uint32 _height, TextureChannel _channel, char* _data) noexcept;
-
 		uint32 GetDataSize() const noexcept;
-
-		void Save_Internal(std::fstream& _fStream) const override;
 
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
 		void UnLoad_Internal(bool _bFreeResources) override;
 
+		void Save_Internal(std::fstream& _fStream, const std::string& _newPath) const override;
+		void Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos) override;
+
 	public:
-		SA_ENGINE_API TextureAsset() noexcept;
+		using ImportInfoClass = TextureImportInfos;
+
+		TextureAsset(AssetManager& _manager) noexcept;
+		TextureAsset(TextureAsset&& _other) noexcept;
 		SA_ENGINE_API ~TextureAsset();
+
+		SA_ENGINE_API ITexture* GetResource() const;
+		SA_ENGINE_API bool IsValid() const noexcept override;
 
 		SA_ENGINE_API void FlipVertically();
 
-		SA_ENGINE_API ITexture* Create(const IRenderInstance& _instance);
+		ITexture* Create(const IRenderInstance& _instance) const;
+		static TextureAsset Import(AssetManager& _manager, const std::string& _resourcePath, const TextureImportInfos& _importInfos);
 
-		SA_ENGINE_API static TextureAsset Import(const std::string& _resourcePath, TextureChannel _channel = TextureChannel::RGBA);
-
-		SA_ENGINE_API TextureAsset& operator=(TextureAsset&& _rhs);
+		TextureAsset& operator=(TextureAsset&& _rhs);
 		TextureAsset& operator=(const TextureAsset&) = delete;
 	};
 }

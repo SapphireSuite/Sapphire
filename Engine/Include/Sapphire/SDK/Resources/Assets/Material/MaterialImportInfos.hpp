@@ -2,12 +2,10 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_SDK_MATERIAL_ASSET_GUARD
-#define SAPPHIRE_SDK_MATERIAL_ASSET_GUARD
+#ifndef SAPPHIRE_SDK_MATERIAL_IMPORT_INFOS_GUARD
+#define SAPPHIRE_SDK_MATERIAL_IMPORT_INFOS_GUARD
 
-#include <SDK/Resources/Assets/IAsset.hpp>
-
-#include <Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
+#include <SDK/Resources/Assets/IAssetImportInfos.hpp>
 
 #include <Rendering/Framework/Primitives/Pipeline/AlphaModel.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PolygonMode.hpp>
@@ -20,19 +18,17 @@
 
 namespace Sa
 {
-	class IRenderSurface;
-
-	class MaterialAsset : public IAsset
+	struct MaterialImportInfos : public IAssetImportInfos
 	{
-	protected:
-		void Save_Internal(std::fstream& _fStream) const override;
+		std::vector<std::string> outFilePaths;
 
-		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
-		void UnLoad_Internal(bool _bFreeResources) override;
+		SA_ENGINE_API MaterialImportInfos() = default;
+		SA_ENGINE_API MaterialImportInfos(std::vector<std::string> && _outFilePaths, bool _bKeepLoaded = true) noexcept;
+		SA_ENGINE_API MaterialImportInfos(const std::vector<std::string> & _outFilePaths, bool _bKeepLoaded = true) noexcept;
+	};
 
-		static std::vector<MaterialAsset> ImportMTL(const std::string& _resourcePath);
-
-	public:
+	struct MaterialCreateInfos : public IAssetCreateInfos
+	{
 		std::string vertexShaderPath;
 		std::string fragmentShaderPath;
 
@@ -47,19 +43,6 @@ namespace Sa
 		CullingMode cullingMode = CullingMode::Back;
 		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
 		IlluminationModel illumModel = IlluminationModel::PBR;
-
-
-		SA_ENGINE_API MaterialAsset() noexcept;
-		SA_ENGINE_API ~MaterialAsset();
-
-
-		SA_ENGINE_API IRenderMaterial* Create(const IRenderInstance& _instance, const IRenderSurface& _surface);
-
-		SA_ENGINE_API static std::vector<MaterialAsset> Import(const std::string& _resourcePath);
-
-
-		SA_ENGINE_API MaterialAsset& operator=(MaterialAsset&& _rhs);
-		MaterialAsset& operator=(const MaterialAsset&) = delete;
 	};
 }
 
