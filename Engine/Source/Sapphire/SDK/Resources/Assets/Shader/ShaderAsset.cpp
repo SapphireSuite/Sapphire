@@ -16,8 +16,17 @@ namespace Sa
 
 #endif
 
-	ShaderAsset::ShaderAsset(AssetManager& _manager) noexcept : IAsset(_manager, AssetType::Shader)
+	ShaderAsset::ShaderAsset(IResourceMgrBase& _manager) noexcept : IAsset(_manager, AssetType::Shader)
 	{
+	}
+
+	ShaderAsset::ShaderAsset(IResourceMgrBase& _manager, ShaderCreateInfos&& _createInfos) noexcept : IAsset(_manager, AssetType::Shader, Move(_createInfos))
+	{
+		mData = _createInfos.data;
+		mSize = _createInfos.size;
+
+		_createInfos.data = nullptr;
+		_createInfos.size = 0u;
 	}
 
 	ShaderAsset::ShaderAsset(ShaderAsset&& _other) noexcept : IAsset(Move(_other))
@@ -35,7 +44,7 @@ namespace Sa
 
 	IShader* ShaderAsset::GetResource() const
 	{
-		return mManager.QueryShader(mFilePath);
+		return mManager.As<ResourceMgr<IShader, ShaderAsset>>().Query(mFilePath);
 	}
 
 	bool ShaderAsset::IsValid() const noexcept
@@ -69,7 +78,7 @@ namespace Sa
 	}
 
 
-	void ShaderAsset::Save_Internal(std::fstream& _fStream, const std::string& _newPath) const
+	void ShaderAsset::Save_Internal(std::fstream& _fStream) const
 	{
 		SA_ASSERT(mData, Nullptr, SDK_Asset, L"Save nullptr texture asset!");
 
@@ -77,16 +86,18 @@ namespace Sa
 		_fStream << mSize << '\n';
 
 		_fStream.write(mData, mSize);
-
-		mManager.SaveShader(*this, _newPath);
 	}
 
 	void ShaderAsset::Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos)
 	{
+		IAsset::Import_Internal(_resourcePath, _importInfos);
+
 		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
 			WrongExtension, SDK_Import, L"Shader file extension not supported yet!");
 
 		// TODO: Compile shader.
+
+		mFilePath = _importInfos.As<ShaderImportInfos>().outFilePath;
 
 		std::ifstream file(_resourcePath, std::ios::binary | std::ios::ate);
 		SA_ASSERT(file.is_open(), InvalidParam, Rendering, L"failed to open shader file!");
@@ -100,7 +111,7 @@ namespace Sa
 		file.close();
 	}
 
-	ShaderAsset ShaderAsset::Import(AssetManager& _manager, const std::string& _resourcePath, const ShaderImportInfos& _importInfos)
+	ShaderAsset ShaderAsset::Import(IResourceMgrBase& _manager, const std::string& _resourcePath, const ShaderImportInfos& _importInfos)
 	{
 		ShaderAsset asset(_manager);
 

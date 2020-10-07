@@ -5,13 +5,13 @@
 #ifndef SAPPHIRE_RENDERING_ITEXTURE_GUARD
 #define SAPPHIRE_RENDERING_ITEXTURE_GUARD
 
-#include <Core/Types/IInterface.hpp>
+#include <Rendering/Framework/Primitives/IRenderPrimitive.hpp>
 
 namespace Sa
 {
 	class IRenderInstance;
 
-	class ITexture : public IInterface
+	class ITexture : public IRenderPrimitive
 	{
 	protected:
 		virtual void Create(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height) = 0;

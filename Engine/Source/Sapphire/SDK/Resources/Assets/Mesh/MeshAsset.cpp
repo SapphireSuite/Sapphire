@@ -19,21 +19,14 @@ namespace Sa
 
 #endif
 
-	MeshAsset::MeshAsset(AssetManager& _manager) noexcept : IAsset(_manager, AssetType::Mesh)
+	MeshAsset::MeshAsset(IResourceMgrBase& _manager) noexcept : IAsset(_manager, AssetType::Mesh)
 	{
 	}
 
-	MeshAsset::MeshAsset(AssetManager& _manager, std::vector<Vertex>&& _vertices, std::vector<uint32>&& _indices) :
-		IAsset(_manager, AssetType::Mesh),
-		mVertices{ Move(_vertices) },
-		mIndices{ Move(_indices) }
-	{
-	}
-
-	MeshAsset::MeshAsset(AssetManager& _manager, const std::vector<Vertex>& _vertices, const std::vector<uint32>& _indices) :
-		IAsset(_manager, AssetType::Mesh),
-		mVertices{ _vertices },
-		mIndices{ _indices }
+	MeshAsset::MeshAsset(IResourceMgrBase& _manager, MeshCreateInfos&& _createInfos) :
+		IAsset(_manager, AssetType::Mesh, Move(_createInfos)),
+		mVertices{ Move(_createInfos.vertices) },
+		mIndices{ Move(_createInfos.indices) }
 	{
 	}
 
@@ -52,7 +45,7 @@ namespace Sa
 
 	IMesh* MeshAsset::GetResource() const
 	{
-		return mManager.QueryMesh(mFilePath);
+		return mManager.As<ResourceMgr<IMesh, MeshAsset>>().Query(mFilePath);
 	}
 
 	bool MeshAsset::IsValid() const noexcept
@@ -88,7 +81,7 @@ namespace Sa
 	}
 
 
-	void MeshAsset::Save_Internal(std::fstream& _fStream, const std::string& _newPath) const
+	void MeshAsset::Save_Internal(std::fstream& _fStream) const
 	{
 		SA_ASSERT(!mVertices.empty() && !mIndices.empty(), Nullptr, SDK_Asset, L"Save nullptr texture asset!");
 
@@ -100,12 +93,11 @@ namespace Sa
 
 		_fStream.write(reinterpret_cast<const char*>(mVertices.data()), vSize);
 		_fStream.write(reinterpret_cast<const char*>(mIndices.data()), iSize);
-
-		mManager.SaveMesh(*this, _newPath);
 	}
 
 	void MeshAsset::Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos)
 	{
+		IAsset::Import_Internal(_resourcePath, _importInfos);
 	}
 
 
@@ -114,7 +106,7 @@ namespace Sa
 		return IMesh::CreateInstance(_instance, mVertices, mIndices);
 	}
 
-	std::vector<MeshAsset> MeshAsset::Import(AssetManager& _manager, const std::string& _resourcePath, const MeshImportInfos& _importInfos)
+	std::vector<MeshAsset> MeshAsset::Import(IResourceMgrBase& _manager, const std::string& _resourcePath, const MeshImportInfos& _importInfos)
 	{
 		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
 			WrongExtension, SDK_Import, L"Mesh file extension not supported yet!");
@@ -137,7 +129,7 @@ namespace Sa
 		return result;
 	}
 
-	std::vector<MeshAsset> MeshAsset::ImportOBJ(AssetManager& _manager, const std::string& _resourcePath)
+	std::vector<MeshAsset> MeshAsset::ImportOBJ(IResourceMgrBase& _manager, const std::string& _resourcePath)
 	{
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;

@@ -11,15 +11,17 @@ namespace Sa
 	{
 		Unknown = 0,
 
-		Texture,
+		Mesh,
 
 		Shader,
 
-		Material,
+		Texture,
 
-		Mesh,
+		RenderMaterial,
 
-		Model
+		Model,
+
+		Max
 	};
 }
 

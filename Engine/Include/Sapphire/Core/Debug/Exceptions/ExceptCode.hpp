@@ -29,6 +29,9 @@ namespace Sa
 		/// Feature is not supported by the hardware device.
 		NotSupported = 1,
 
+		/// Feature is not yet implemented.
+		NotImplemented,
+
 		/// Parameter of method is invalid.
 		InvalidParam,
 

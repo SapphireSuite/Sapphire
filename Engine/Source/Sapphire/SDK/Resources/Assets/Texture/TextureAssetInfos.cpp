@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <SDK/Resources/Assets/Texture/TextureImportInfos.hpp>
+#include <SDK/Resources/Assets/Texture/TextureAssetInfos.hpp>
 
 namespace Sa
 {

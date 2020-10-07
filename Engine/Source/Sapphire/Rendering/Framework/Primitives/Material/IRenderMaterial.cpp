@@ -10,7 +10,7 @@
 
 namespace Sa
 {
-	void IRenderMaterial::DestroyPipeline(const IRenderInstance& _instance)
+	void IRenderMaterial::Destroy(const IRenderInstance& _instance)
 	{
 		SA_ASSERT(mPipeline, Nullptr, Rendering, L"Destroy nullptr RenderPipeline!");
 

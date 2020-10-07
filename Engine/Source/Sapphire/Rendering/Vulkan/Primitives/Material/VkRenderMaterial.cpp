@@ -8,7 +8,7 @@
 
 namespace Sa
 {
-	void VkRenderMaterial::CreatePipeline(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderMaterial::Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
 	{
 		mPipeline = new VkRenderPipeline;
 

@@ -4,6 +4,10 @@
 
 namespace Sa
 {
+	// TODO: REMOVE LATER.
+	IRenderSurface* IRenderSurface::TEMP = nullptr;
+
+
 	void IRenderSurface::ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height)
 	{
 		(void)_width;

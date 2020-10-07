@@ -6,7 +6,7 @@
 #define SAPPHIRE_SDK_MATERIAL_ASSET_GUARD
 
 #include <SDK/Resources/Assets/IAsset.hpp>
-#include <SDK/Resources/Assets/Material/MaterialImportInfos.hpp>
+#include <SDK/Resources/Assets/Material/MaterialAssetInfos.hpp>
 
 #include <Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
 
@@ -20,28 +20,32 @@ namespace Sa
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
 		void UnLoad_Internal(bool _bFreeResources) override;
 
-		void Save_Internal(std::fstream& _fStream, const std::string& _newPath) const override;
+		void Save_Internal(std::fstream& _fStream) const override;
 		void Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos) override;
 
-		static std::vector<MaterialAsset> ImportMTL(AssetManager& _manager, const std::string& _resourcePath);
+		static std::vector<MaterialAsset> ImportMTL(IResourceMgrBase& _manager, const std::string& _resourcePath);
 
 	public:
-		using ImportInfoClass = MaterialImportInfos;
+		using ImportInfosT = MaterialImportInfos;
+		using ImportResultT = std::vector<MaterialAsset>;
+		using CreateInfosT = MaterialCreateInfos;
 
 		MaterialCreateInfos infos;
 
-		MaterialAsset(AssetManager& _manager) noexcept;
-		MaterialAsset(MaterialAsset&& _other) noexcept;
-		MaterialAsset(AssetManager& _manager, MaterialCreateInfos&& _infos) noexcept;
+		SA_ENGINE_API MaterialAsset(IResourceMgrBase& _manager) noexcept;
+		SA_ENGINE_API MaterialAsset(MaterialAsset&& _other) noexcept;
+		SA_ENGINE_API MaterialAsset(IResourceMgrBase& _manager, MaterialCreateInfos&& _infos) noexcept;
 		SA_ENGINE_API ~MaterialAsset();
 
 		SA_ENGINE_API IRenderMaterial* GetResource() const;
 		SA_ENGINE_API bool IsValid() const noexcept override;
+		SA_ENGINE_API std::vector<AssetPathDependency> GetPathDependencies() const noexcept override final;
 
 
-		IRenderMaterial* Create(const IRenderInstance& _instance, const IRenderSurface& _surface) const;
+		SA_ENGINE_API IRenderMaterial* Create(const IRenderInstance& _instance) const;
 
-		static std::vector<MaterialAsset> Import(AssetManager& _manager, const std::string& _resourcePath, const MaterialImportInfos& _importInfos);
+		SA_ENGINE_API static std::vector<MaterialAsset> Import(IResourceMgrBase& _manager,
+			const std::string& _resourcePath, const MaterialImportInfos& _importInfos);
 
 
 		MaterialAsset& operator=(MaterialAsset&& _rhs);

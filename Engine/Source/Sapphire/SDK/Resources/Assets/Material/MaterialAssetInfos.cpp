@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <SDK/Resources/Assets/Material/MaterialImportInfos.hpp>
+#include <SDK/Resources/Assets/Material/MaterialAssetInfos.hpp>
 
 #include <Core/Algorithms/Move.hpp>
 

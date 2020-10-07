@@ -18,6 +18,9 @@ namespace Sa
 	class IRenderSurface : public IInterface
 	{
 	public:
+		// TODO: REMOVE LATER.
+		static IRenderSurface* TEMP;
+
 		//mutable Event<void(const IRenderInstance&, const IRenderSurface&)> onResizeEvent;
 
 		// TODO: Remove SA_ENGINE_API.

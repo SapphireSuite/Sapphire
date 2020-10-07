@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <SDK/Resources/Assets/IAssetImportInfos.hpp>
+#include <SDK/Resources/Assets/IAssetInfos.hpp>
 
 namespace Sa
 {

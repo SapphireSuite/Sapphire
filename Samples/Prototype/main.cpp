@@ -34,7 +34,7 @@ IRenderMaterial* magikarpEyesMat = nullptr;
 IMesh* gizmoMesh = nullptr;
 IRenderMaterial* gizmoMat = nullptr;
 
-void CreateResources(AssetManager& assetMgr)
+void CreateResources(AssetManager& _assetMgr)
 {
 	// === Magikarp ===
 	{
@@ -46,44 +46,44 @@ void CreateResources(AssetManager& assetMgr)
 		constexpr const char* materialAssets[] = { "Bin/Magikarp/Body_Mat.spha", "Bin/Magikarp/Eyes_Mat.spha" };
 
 		// Vertex Shader.
-		if (!assetMgr.LoadShader(vertShaderAsset, true)) // Try load.
+		if (!_assetMgr.shaderMgr.Load(vertShaderAsset, true)) // Try load.
 		{
 			// Import on load failed.
-			assetMgr.ImportShader("../../Bin/Shaders/default_vert.spv", { vertShaderAsset });
+			_assetMgr.shaderMgr.Import("../../Bin/Shaders/default_vert.spv", { vertShaderAsset });
 		}
 
 		// Fragment Shader.
-		if (!assetMgr.LoadShader(fragShaderAsset, true)) // Try load.
+		if (!_assetMgr.shaderMgr.Load(fragShaderAsset, true)) // Try load.
 		{
 			// Import on load failed.
-			assetMgr.ImportShader("../../Bin/Shaders/default_frag.spv", { fragShaderAsset });
+			_assetMgr.shaderMgr.Import("../../Bin/Shaders/default_frag.spv", { fragShaderAsset });
 		}
 
 
 		// Body Texture.
-		if (!assetMgr.LoadTexture(textureAssets[0], true)) // Try load.
+		if (!_assetMgr.textureMgr.Load(textureAssets[0], true)) // Try load.
 		{
 			// Import on load failed.
-			assetMgr.ImportTexture("../../Engine/Resources/Models/Magikarp/Body.png", { textureAssets[0] });
+			_assetMgr.textureMgr.Import("../../Engine/Resources/Models/Magikarp/Body.png", { textureAssets[0] });
 		}
 
 
 		// Eyes Texture.
-		if (!assetMgr.LoadTexture(textureAssets[1], true)) // Try load.
+		if (!_assetMgr.textureMgr.Load(textureAssets[1], true)) // Try load.
 		{
 			// Import on load failed.
-			assetMgr.ImportTexture("../../Engine/Resources/Models/Magikarp/Eyes.png", { textureAssets[1] });
+			_assetMgr.textureMgr.Import("../../Engine/Resources/Models/Magikarp/Eyes.png", { textureAssets[1] });
 		}
 
 
 		// Meshes.
-		magikarpBodyMesh = assetMgr.LoadMesh(meshAssets[0]);
-		magikarpEyesMesh = assetMgr.LoadMesh(meshAssets[1]);
+		magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
+		magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssets[1]);
 
 		if (!magikarpBodyMesh || !magikarpEyesMesh) // Try load.
 		{
 			// Import on load failed.
-			auto meshes = assetMgr.ImportMeshes("../../Engine/Resources/Models/Magikarp/Magikarp.obj", { { meshAssets[0] , meshAssets[1] } });
+			auto meshes = _assetMgr.meshMgr.Import("../../Engine/Resources/Models/Magikarp/Magikarp.obj", { { meshAssets[0] , meshAssets[1] } });
 
 			magikarpBodyMesh = meshes[0].GetResource();
 			magikarpEyesMesh = meshes[1].GetResource();
@@ -91,13 +91,13 @@ void CreateResources(AssetManager& assetMgr)
 
 		// Materials.
 		{
-			magikarpBodyMat = assetMgr.LoadMaterial(materialAssets[0]);
-			magikarpEyesMat = assetMgr.LoadMaterial(materialAssets[1]);
+			magikarpBodyMat = _assetMgr.renderMaterialMgr.Load(materialAssets[0]);
+			magikarpEyesMat = _assetMgr.renderMaterialMgr.Load(materialAssets[1]);
 
 			if (!magikarpBodyMat || !magikarpEyesMat) // Try load.
 			{
 				// Import on load failed.
-				auto materials = assetMgr.ImportMaterials("../../Engine/Resources/Models/Magikarp/Magikarp.mtl",
+				auto materials = _assetMgr.renderMaterialMgr.Import("../../Engine/Resources/Models/Magikarp/Magikarp.mtl",
 					{ { materialAssets[0] , materialAssets[1] } });
 
 				materials[0].infos.vertexShaderPath = vertShaderAsset;
@@ -127,22 +127,22 @@ void CreateResources(AssetManager& assetMgr)
 		constexpr const char* materialAssets = "Bin/Gizmos/Square_Mat.spha";
 
 		// Vertex Shader.
-		if (!assetMgr.LoadShader(vertShaderAsset, true)) // Try load.
+		if (!_assetMgr.shaderMgr.Load(vertShaderAsset, true)) // Try load.
 		{
 			// Import on load failed.
-			assetMgr.ImportShader("../../Bin/Shaders/gizmo_vert.spv", { vertShaderAsset });
+			_assetMgr.shaderMgr.Import("../../Bin/Shaders/gizmo_vert.spv", { vertShaderAsset });
 		}
 
 		// Fragment Shader.
-		if (!assetMgr.LoadShader(fragShaderAsset, true)) // Try load.
+		if (!_assetMgr.shaderMgr.Load(fragShaderAsset, true)) // Try load.
 		{
 			// Import on load failed.
-			assetMgr.ImportShader("../../Bin/Shaders/gizmo_frag.spv", { fragShaderAsset });
+			_assetMgr.shaderMgr.Import("../../Bin/Shaders/gizmo_frag.spv", { fragShaderAsset });
 		}
 
 
 		// Mesh.
-		gizmoMesh = assetMgr.LoadMesh(meshAsset);
+		gizmoMesh = _assetMgr.meshMgr.Load(meshAsset);
 
 		if (!gizmoMesh) // Try load.
 		{
@@ -164,12 +164,12 @@ void CreateResources(AssetManager& assetMgr)
 			gizmoMeshInfos.outFilePaths = meshAsset;
 
 			// Create on load failed.
-			gizmoMesh = assetMgr.CreateMesh(Move(gizmoMeshInfos)).GetResource();
+			gizmoMesh = _assetMgr.meshMgr.Create(Move(gizmoMeshInfos)).GetResource();
 		}
 
 		// Materials.
 		{
-			gizmoMat = assetMgr.LoadMaterial(materialAssets);
+			gizmoMat = _assetMgr.renderMaterialMgr.Load(materialAssets);
 
 			if (!gizmoMat) // Try load.
 			{
@@ -185,27 +185,28 @@ void CreateResources(AssetManager& assetMgr)
 				matInfos.cullingMode = CullingMode::None;
 				matInfos.illumModel = IlluminationModel::None;
 
-				auto material = assetMgr.CreateMaterial(Move(matInfos));
-
-				gizmoMat = material.GetResource();
+				gizmoMat = _assetMgr.renderMaterialMgr.Create(Move(matInfos)).GetResource();
 			}
 		}
 	}
 }
 
-void DestroyResources(const IRenderInstance& _instance)
+void DestroyResources(AssetManager& _assetMgr)
 {
 	// === Gizmo ===
-	gizmoMat->DestroyPipeline(_instance);
-	gizmoMesh->Destroy(_instance);
+	_assetMgr.renderMaterialMgr.Unload(gizmoMat);
+	_assetMgr.meshMgr.Unload(gizmoMesh);
 
 
 	// === Magikarp ===
-	magikarpBodyMat->DestroyPipeline(_instance);
-	magikarpEyesMat->DestroyPipeline(_instance);
+	_assetMgr.renderMaterialMgr.Unload(magikarpEyesMat);
+	_assetMgr.renderMaterialMgr.Unload(magikarpBodyMat);
 
-	magikarpEyesMesh->Destroy(_instance);
-	magikarpBodyMesh->Destroy(_instance);
+	_assetMgr.meshMgr.Unload(magikarpEyesMesh);
+	_assetMgr.meshMgr.Unload(magikarpBodyMesh);
+
+
+	_assetMgr.Clear();
 }
 
 int main()
@@ -222,7 +223,7 @@ int main()
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
-	AssetManager assetMgr(instance, surface);
+	AssetManager assetMgr(instance);
 	CreateResources(assetMgr);
 
 
@@ -378,7 +379,7 @@ int main()
 	// === Destroy ===
 	vkDeviceWaitIdle(instance.GetDevice());
 
-	DestroyResources(instance);
+	DestroyResources(assetMgr);
 
 	instance.DestroyRenderSurface(window);
 	

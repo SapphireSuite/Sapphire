@@ -7,13 +7,13 @@
 
 #include <string>
 
-#include <Core/Types/IInterface.hpp>
+#include <Rendering/Framework/Primitives/IRenderPrimitive.hpp>
 
 namespace Sa
 {
 	class IRenderInstance;
 
-	class IShader : public IInterface
+	class IShader : public IRenderPrimitive
 	{
 	protected:
 		virtual void Create(const IRenderInstance& _instance, const char* _code, uint32 _size) = 0;

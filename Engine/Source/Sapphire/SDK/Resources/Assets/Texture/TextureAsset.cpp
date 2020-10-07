@@ -22,9 +22,19 @@ namespace Sa
 #endif
 
 
-	TextureAsset::TextureAsset(AssetManager& _manager) noexcept : IAsset(_manager, AssetType::Texture)
+	TextureAsset::TextureAsset(IResourceMgrBase& _manager) noexcept : IAsset(_manager, AssetType::Texture)
 	{
 	}
+
+	TextureAsset::TextureAsset(IResourceMgrBase& _manager, TextureCreateInfos&& _createInfos) noexcept :
+		IAsset(_manager, AssetType::Texture, Move(_createInfos))
+	{
+		mWidth = _createInfos.width;
+		mHeight = _createInfos.height;
+		mChannel = _createInfos.channel;
+		mData = _createInfos.data;
+	}
+
 
 	TextureAsset::TextureAsset(TextureAsset&& _other) noexcept : IAsset(Move(_other))
 	{
@@ -44,7 +54,7 @@ namespace Sa
 
 	ITexture* TextureAsset::GetResource() const
 	{
-		return mManager.QueryTexture(mFilePath);
+		return mManager.As<ResourceMgr<ITexture, TextureAsset>>().Query(mFilePath);
 	}
 
 	bool TextureAsset::IsValid() const noexcept
@@ -98,7 +108,7 @@ namespace Sa
 	}
 
 
-	void TextureAsset::Save_Internal(std::fstream& _fStream, const std::string& _newPath) const
+	void TextureAsset::Save_Internal(std::fstream& _fStream) const
 	{
 		SA_ASSERT(mData, Nullptr, SDK_Asset, L"Save nullptr texture asset!");
 
@@ -106,16 +116,18 @@ namespace Sa
 		_fStream << mWidth << ' ' << mHeight << ' ' << static_cast<uint32>(mChannel) << '\n';
 
 		_fStream.write(mData, GetDataSize());
-
-		mManager.SaveTexture(*this, _newPath);
 	}
 
 	void TextureAsset::Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos)
 	{
+		IAsset::Import_Internal(_resourcePath, _importInfos);
+
 		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
 			InvalidParam, SDK_Import, L"Texture file extension not supported yet!");
 
 		const TextureImportInfos& textImportInfos = _importInfos.As<TextureImportInfos>();
+
+		mFilePath = textImportInfos.outFilePath;
 
 		if(textImportInfos.bFlipVertically)
 			stbi_set_flip_vertically_on_load(true);
@@ -139,7 +151,7 @@ namespace Sa
 		return ITexture::CreateInstance(_instance, mData, mWidth, mHeight);
 	}
 
-	TextureAsset TextureAsset::Import(AssetManager& _manager, const std::string& _resourcePath, const TextureImportInfos& _importInfos)
+	TextureAsset TextureAsset::Import(IResourceMgrBase& _manager, const std::string& _resourcePath, const TextureImportInfos& _importInfos)
 	{
 		TextureAsset asset(_manager);
 

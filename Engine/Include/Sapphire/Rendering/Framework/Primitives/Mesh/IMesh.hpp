@@ -5,8 +5,7 @@
 #ifndef SAPPHIRE_RENDERING_IMESH_GUARD
 #define SAPPHIRE_RENDERING_IMESH_GUARD
 
-#include <Core/Types/IInterface.hpp>
-
+#include <Rendering/Framework/Primitives/IRenderPrimitive.hpp>
 #include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
 
 namespace Sa
@@ -14,7 +13,7 @@ namespace Sa
 	class IRenderInstance;
 	class IRenderFrame;
 
-	class IMesh : public IInterface
+	class IMesh : public IRenderPrimitive
 	{
 	protected:
 		virtual void Create(const IRenderInstance& _instance,

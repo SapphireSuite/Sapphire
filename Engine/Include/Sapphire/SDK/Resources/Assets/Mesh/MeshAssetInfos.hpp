@@ -2,10 +2,10 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_SDK_MESH_IMPORT_INFOS_GUARD
-#define SAPPHIRE_SDK_MESH_IMPORT_INFOS_GUARD
+#ifndef SAPPHIRE_SDK_MESH_ASSET_INFOS_GUARD
+#define SAPPHIRE_SDK_MESH_ASSET_INFOS_GUARD
 
-#include <SDK/Resources/Assets/IAssetImportInfos.hpp>
+#include <SDK/Resources/Assets/IAssetInfos.hpp>
 
 #include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
 

@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <SDK/Resources/Assets/Shader/ShaderImportInfos.hpp>
+#include <SDK/Resources/Assets/Shader/ShaderAssetInfos.hpp>
 
 namespace Sa
 {

@@ -17,6 +17,12 @@ namespace Sa
 
 		template <typename T>
 		const T& As() const;
+
+		template <typename T>
+		T* AsPtr();
+
+		template <typename T>
+		const T* AsPtr() const;
 	};
 }
 

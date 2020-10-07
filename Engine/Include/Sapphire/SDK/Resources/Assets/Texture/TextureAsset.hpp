@@ -10,7 +10,7 @@
 #include <Rendering/Framework/Primitives/Texture/ITexture.hpp>
 
 #include <SDK/Resources/Assets/IAsset.hpp>
-#include <SDK/Resources/Assets/Texture/TextureImportInfos.hpp>
+#include <SDK/Resources/Assets/Texture/TextureAssetInfos.hpp>
 
 namespace Sa
 {
@@ -26,26 +26,29 @@ namespace Sa
 
 		uint32 GetDataSize() const noexcept;
 
-		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
-		void UnLoad_Internal(bool _bFreeResources) override;
+		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override final;
+		void UnLoad_Internal(bool _bFreeResources) override final;
 
-		void Save_Internal(std::fstream& _fStream, const std::string& _newPath) const override;
-		void Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos) override;
+		void Save_Internal(std::fstream& _fStream) const override final;
+		void Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos) override final;
 
 	public:
-		using ImportInfoClass = TextureImportInfos;
+		using ImportInfosT = TextureImportInfos;
+		using ImportResultT = TextureAsset;
+		using CreateInfosT = TextureCreateInfos;
 
-		TextureAsset(AssetManager& _manager) noexcept;
-		TextureAsset(TextureAsset&& _other) noexcept;
+		SA_ENGINE_API TextureAsset(IResourceMgrBase& _manager) noexcept;
+		SA_ENGINE_API TextureAsset(IResourceMgrBase& _manager, TextureCreateInfos&& _createInfos) noexcept;
+		SA_ENGINE_API TextureAsset(TextureAsset&& _other) noexcept;
 		SA_ENGINE_API ~TextureAsset();
 
 		SA_ENGINE_API ITexture* GetResource() const;
-		SA_ENGINE_API bool IsValid() const noexcept override;
+		SA_ENGINE_API bool IsValid() const noexcept override final;
 
 		SA_ENGINE_API void FlipVertically();
 
-		ITexture* Create(const IRenderInstance& _instance) const;
-		static TextureAsset Import(AssetManager& _manager, const std::string& _resourcePath, const TextureImportInfos& _importInfos);
+		SA_ENGINE_API ITexture* Create(const IRenderInstance& _instance) const;
+		SA_ENGINE_API static TextureAsset Import(IResourceMgrBase& _manager, const std::string& _resourcePath, const TextureImportInfos& _importInfos);
 
 		TextureAsset& operator=(TextureAsset&& _rhs);
 		TextureAsset& operator=(const TextureAsset&) = delete;

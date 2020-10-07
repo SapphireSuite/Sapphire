@@ -17,7 +17,7 @@ namespace Sa
 	{
 	public:
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void CreatePipeline(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) override final;
+		SA_ENGINE_API void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) override final;
 	};
 }
 

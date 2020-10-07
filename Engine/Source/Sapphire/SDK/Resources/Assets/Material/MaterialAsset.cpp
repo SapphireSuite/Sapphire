@@ -22,7 +22,7 @@ namespace Sa
 
 #endif
 
-	MaterialAsset::MaterialAsset(AssetManager& _manager) noexcept : IAsset(_manager, AssetType::Material)
+	MaterialAsset::MaterialAsset(IResourceMgrBase& _manager) noexcept : IAsset(_manager, AssetType::RenderMaterial)
 	{
 	}
 
@@ -33,7 +33,8 @@ namespace Sa
 		_other.UnLoad(false);
 	}
 
-	MaterialAsset::MaterialAsset(AssetManager& _manager, MaterialCreateInfos&& _infos) noexcept : MaterialAsset(_manager)
+	MaterialAsset::MaterialAsset(IResourceMgrBase& _manager, MaterialCreateInfos&& _infos) noexcept :
+		IAsset(_manager, AssetType::RenderMaterial, Move(_infos))
 	{
 		infos = Move(_infos);
 	}
@@ -46,12 +47,27 @@ namespace Sa
 
 	IRenderMaterial* MaterialAsset::GetResource() const
 	{
-		return mManager.QueryMaterial(mFilePath);
+		return mManager.As<ResourceMgr<IRenderMaterial, MaterialAsset>>().Query(mFilePath);
 	}
 
 	bool MaterialAsset::IsValid() const noexcept
 	{
 		return !infos.vertexShaderPath.empty() && !infos.fragmentShaderPath.empty();
+	}
+
+	std::vector<AssetPathDependency> MaterialAsset::GetPathDependencies() const noexcept
+	{
+		std::vector<AssetPathDependency> result = IAsset::GetPathDependencies();
+
+		result.reserve(infos.texturePaths.size() + 2);
+
+		result.emplace_back(AssetPathDependency{ infos.vertexShaderPath, AssetType::Shader });
+		result.emplace_back(AssetPathDependency{ infos.fragmentShaderPath, AssetType::Shader });
+
+		for (auto it = infos.texturePaths.begin(); it != infos.texturePaths.end(); ++it)
+			result.emplace_back(AssetPathDependency{ *it, AssetType::Texture });
+
+		return result;
 	}
 
 	bool MaterialAsset::Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream)
@@ -123,7 +139,7 @@ namespace Sa
 	}
 
 
-	void MaterialAsset::Save_Internal(std::fstream& _fStream, const std::string& _newPath) const
+	void MaterialAsset::Save_Internal(std::fstream& _fStream) const
 	{
 		// Header.
 		_fStream << '\n';
@@ -143,23 +159,24 @@ namespace Sa
 		// Data.
 		uint32 size = sizeof(MaterialCreateInfos) - offsetof(MaterialCreateInfos, matConstants);
 		_fStream.write(reinterpret_cast<const char*>(&infos.matConstants), size);
-
-		mManager.SaveMaterial(*this, _newPath);
 	}
 
 	void MaterialAsset::Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos)
 	{
+		IAsset::Import_Internal(_resourcePath, _importInfos);
 	}
 
-	IRenderMaterial* MaterialAsset::Create(const IRenderInstance& _instance, const IRenderSurface& _surface) const
+	IRenderMaterial* MaterialAsset::Create(const IRenderInstance& _instance) const
 	{
 		IRenderMaterial* result = IRenderMaterial::CreateInstance();
 
+		AssetManager& assetMgr = mManager.As<ResourceMgr<IRenderMaterial, MaterialAsset>>().GetAssetMgr();
+
 		// Shaders.
-		const IShader* vertShader = mManager.LoadShader(infos.vertexShaderPath);
+		const IShader* vertShader = assetMgr.shaderMgr.Load(infos.vertexShaderPath);
 		SA_ASSERT(vertShader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
 
-		const IShader* fragShader = mManager.LoadShader(infos.fragmentShaderPath);
+		const IShader* fragShader = assetMgr.shaderMgr.Load(infos.fragmentShaderPath);
 		SA_ASSERT(fragShader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
 
 
@@ -168,7 +185,7 @@ namespace Sa
 
 		for (uint32 i = 0u; i < SizeOf(infos.texturePaths); ++i)
 		{
-			const ITexture* texture = mManager.LoadTexture(infos.texturePaths[i]);
+			const ITexture* texture = assetMgr.textureMgr.Load(infos.texturePaths[i]);
 			SA_ASSERT(texture, Nullptr, SDK_Asset, L"Texture asset nulltpr! Path invalid");
 
 			textures[i] = texture;
@@ -177,8 +194,8 @@ namespace Sa
 
 		PipelineCreateInfos pipelineInfos
 		{
-			_surface,
-			_surface.GetViewport(),
+			*IRenderSurface::TEMP,
+			IRenderSurface::TEMP->GetViewport(),
 
 			vertShader,
 			fragShader,
@@ -196,12 +213,12 @@ namespace Sa
 			infos.illumModel
 		};
 
-		result->CreatePipeline(_instance, pipelineInfos);
+		result->Create(_instance, pipelineInfos);
 
 		return result;
 	}
 
-	std::vector<MaterialAsset> MaterialAsset::Import(AssetManager& _manager, const std::string& _resourcePath, const MaterialImportInfos& _importInfos)
+	std::vector<MaterialAsset> MaterialAsset::Import(IResourceMgrBase& _manager, const std::string& _resourcePath, const MaterialImportInfos& _importInfos)
 	{
 		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
 			WrongExtension, SDK_Import, L"Material file extension not supported yet!");
@@ -224,7 +241,7 @@ namespace Sa
 		return result;
 	}
 
-	std::vector<MaterialAsset> MaterialAsset::ImportMTL(AssetManager& _manager, const std::string& _resourcePath)
+	std::vector<MaterialAsset> MaterialAsset::ImportMTL(IResourceMgrBase& _manager, const std::string& _resourcePath)
 	{
 		SA_ASSERT(!CheckExtensionSupport(_resourcePath, extensions, SizeOf(extensions)),
 			InvalidParam, SDK_Import, L"Shader file extension not supported yet!");
