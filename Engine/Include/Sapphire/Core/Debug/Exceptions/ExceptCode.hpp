@@ -82,6 +82,9 @@ namespace Sa
 
 		/// Wrong file extension.
 		WrongExtension,
+
+		/// External compilaiton failed.
+		CompilationFailed,
 	};
 
 

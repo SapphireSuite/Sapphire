@@ -33,13 +33,32 @@ namespace Sa
 		return std::vector<AssetPathDependency>();
 	}
 
+	bool IAsset::PreLoadOperation(const std::string& _filePath)
+	{
+		mFilePath = _filePath;
+
+		return true;
+	}
+
+	bool IAsset::PostLoadOperation(const std::string& _filePath)
+	{
+		(void)_filePath;
+
+		return true;
+	}
+
 	bool IAsset::Load(const std::string& _filePath)
 	{
 		// Other asset loaded.
 		if (IsValid())
 			UnLoad();
 
-		mFilePath = _filePath;
+		if (!PreLoadOperation(_filePath))
+		{
+			SA_LOG("Pre-load operation failed!", Warning, SDK_Asset);
+			return false;
+		}
+
 		std::fstream fStream(_filePath, std::ios::binary | std::ios_base::in);
 
 		if (!fStream.is_open())
@@ -68,6 +87,13 @@ namespace Sa
 		bool res = Load_Internal(Move(hStream), fStream);
 
 		fStream.close();
+
+
+		if (!PostLoadOperation(_filePath))
+		{
+			SA_LOG("Post-load operation failed!", Warning, SDK_Asset);
+			return false;
+		}
 
 		return res;
 	}

@@ -27,6 +27,9 @@ namespace Sa
 		IAsset(IResourceMgrBase& _manager, AssetType _assetType) noexcept;
 		IAsset(IResourceMgrBase& _manager, AssetType _assetType, IAssetCreateInfos&& _createInfos) noexcept;
 
+		virtual bool PreLoadOperation(const std::string& _filePath);
+		virtual bool PostLoadOperation(const std::string& _filePath);
+
 		virtual bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) = 0;
 		virtual void UnLoad_Internal(bool _bFreeResources) = 0;
 

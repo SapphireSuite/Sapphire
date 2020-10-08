@@ -49,14 +49,14 @@ void CreateResources(AssetManager& _assetMgr)
 		if (!_assetMgr.shaderMgr.Load(vertShaderAsset, true)) // Try load.
 		{
 			// Import on load failed.
-			_assetMgr.shaderMgr.Import("../../Bin/Shaders/default_vert.spv", { vertShaderAsset });
+			_assetMgr.shaderMgr.Import("../../Engine/Resources/Shaders/default.vert", { vertShaderAsset });
 		}
 
 		// Fragment Shader.
 		if (!_assetMgr.shaderMgr.Load(fragShaderAsset, true)) // Try load.
 		{
 			// Import on load failed.
-			_assetMgr.shaderMgr.Import("../../Bin/Shaders/default_frag.spv", { fragShaderAsset });
+			_assetMgr.shaderMgr.Import("../../Engine/Resources/Shaders/default.frag", { fragShaderAsset });
 		}
 
 
@@ -123,21 +123,21 @@ void CreateResources(AssetManager& _assetMgr)
 		constexpr const char* vertShaderAsset = "Bin/Gizmo/Gizmo_VS.spha";
 		constexpr const char* fragShaderAsset = "Bin/Gizmo/Gizmo_FS.spha";
 
-		constexpr const char* meshAsset = "Bin/Gizmos/Square_M.spha";
-		constexpr const char* materialAssets = "Bin/Gizmos/Square_Mat.spha";
+		constexpr const char* meshAsset = "Bin/Gizmo/Square_M.spha";
+		constexpr const char* materialAssets = "Bin/Gizmo/Square_Mat.spha";
 
 		// Vertex Shader.
 		if (!_assetMgr.shaderMgr.Load(vertShaderAsset, true)) // Try load.
 		{
 			// Import on load failed.
-			_assetMgr.shaderMgr.Import("../../Bin/Shaders/gizmo_vert.spv", { vertShaderAsset });
+			_assetMgr.shaderMgr.Import("../../Engine/Resources/Shaders/gizmo.vert", { vertShaderAsset });
 		}
 
 		// Fragment Shader.
 		if (!_assetMgr.shaderMgr.Load(fragShaderAsset, true)) // Try load.
 		{
 			// Import on load failed.
-			_assetMgr.shaderMgr.Import("../../Bin/Shaders/gizmo_frag.spv", { fragShaderAsset });
+			_assetMgr.shaderMgr.Import("../../Engine/Resources/Shaders/gizmo.frag", { fragShaderAsset });
 		}
 
 

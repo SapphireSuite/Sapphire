@@ -18,11 +18,19 @@ namespace Sa
 		char* mData = nullptr;
 		uint32 mSize = 0u;
 
+		std::string mResourcePath;
+
+		bool mHasRecompiled = false;
+
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override final;
 		void UnLoad_Internal(bool _bFreeResources) override final;
 
 		void Save_Internal(std::fstream& _fStream) const override final;
 		void Import_Internal(const std::string& _resourcePath, const IAssetImportInfos& _importInfos) override final;
+
+		std::string GenerateTempPath(const std::string& _resourcePath);
+		bool ShouldCompileShader(const std::string& _resourcePath, const std::string& _tempPath);
+		void CompileShader(const std::string& _resourcePath, const std::string& _tempPath);
 
 	public:
 		using ImportInfosT = ShaderImportInfos;
