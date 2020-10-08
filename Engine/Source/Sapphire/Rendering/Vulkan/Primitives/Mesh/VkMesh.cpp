@@ -2,7 +2,7 @@
 
 #include <Rendering/Vulkan/Primitives/Mesh/VkMesh.hpp>
 
-#include <Core/Types/Variadics/SizeOf.hpp>
+#include <Core/Algorithms/SizeOf.hpp>
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>

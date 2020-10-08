@@ -2,6 +2,8 @@
 
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
 
+#include <Core/Algorithms/SizeOf.hpp>
+
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
 #include <Rendering/Vulkan/System/VkSwapChain.hpp>
@@ -91,7 +93,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,				// sType.
 			nullptr,												// pNext.
 			VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM,				// flags.
-			sizeof(attachements) / sizeof(VkAttachmentDescription),	// attachmentCount.
+			SizeOf(attachements),									// attachmentCount.
 			attachements,											// pAttachments.
 			1,														// subpassCount.
 			&subpass,												// pSubpasses.

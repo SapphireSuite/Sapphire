@@ -6,7 +6,7 @@
 
 #include <Core/Algorithms/Move.hpp>
 
-#include <Core/Types/Variadics/SizeOf.hpp>
+#include <Core/Algorithms/SizeOf.hpp>
 
 #include <Rendering/Framework/System/IRenderSurface.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>

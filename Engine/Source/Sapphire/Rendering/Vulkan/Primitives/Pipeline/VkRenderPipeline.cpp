@@ -2,7 +2,7 @@
 
 #include <Rendering/Vulkan/Primitives/Pipeline/VkRenderPipeline.hpp>
 
-#include <Core/Types/Variadics/SizeOf.hpp>
+#include <Core/Algorithms/SizeOf.hpp>
 
 #include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
 #include <Rendering/Framework/Primitives/Shader/ShaderType.hpp>

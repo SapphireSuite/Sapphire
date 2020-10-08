@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Core/Types/Variadics/SizeOf.hpp>
+#include <Core/Algorithms/SizeOf.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 

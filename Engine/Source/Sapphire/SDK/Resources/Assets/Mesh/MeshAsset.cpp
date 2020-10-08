@@ -6,7 +6,7 @@
 #include <tiny_obj_loader.h>
 
 #include <Core/Algorithms/Move.hpp>
-#include <Core/Types/Variadics/SizeOf.hpp>
+#include <Core/Algorithms/SizeOf.hpp>
 
 #include <SDK/Resources/Assets/AssetManager.hpp>
 

@@ -2,7 +2,7 @@
 
 #include <Rendering/Vulkan/System/VkSwapChain.hpp>
 
-#include <Core/Types/Variadics/SizeOf.hpp>
+#include <Core/Algorithms/SizeOf.hpp>
 
 #include <Maths/Misc/Maths.hpp>
 

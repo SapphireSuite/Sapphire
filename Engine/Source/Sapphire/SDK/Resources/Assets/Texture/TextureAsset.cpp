@@ -7,7 +7,7 @@
 
 #include <Collections/Debug>
 
-#include <Core/Types/Variadics/SizeOf.hpp>
+#include <Core/Algorithms/SizeOf.hpp>
 #include <Core/Algorithms/Move.hpp>
 
 #include <SDK/Resources/Assets/AssetManager.hpp>
