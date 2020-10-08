@@ -74,12 +74,16 @@ namespace Sa
 		{
 			case Sa::AssetType::Texture:
 				textureMgr.Unload(&_primitive->As<ITexture>());
+				break;
 			case Sa::AssetType::Shader:
 				shaderMgr.Unload(&_primitive->As<IShader>());
+				break;
 			case Sa::AssetType::RenderMaterial:
 				renderMaterialMgr.Unload(&_primitive->As<IRenderMaterial>());
+				break;
 			case Sa::AssetType::Mesh:
 				meshMgr.Unload(&_primitive->As<IMesh>());
+				break;
 			default:
 				SA_LOG("Wrong asset type!", Warning, SDK_Asset);
 		}

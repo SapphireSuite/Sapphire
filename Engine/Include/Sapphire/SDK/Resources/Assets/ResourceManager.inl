@@ -32,7 +32,7 @@ namespace Sa
 			const std::vector<AssetPathDependency> pathDependencies = _asset.GetPathDependencies();
 
 			for (auto it = pathDependencies.begin(); it != pathDependencies.end(); ++it)
-				dependencies.emplace_back(AssetDependency{ mAssetMgr.Load(it->path, it->assetType, false), it->assetType });
+				dependencies.emplace_back(AssetDependency{ mAssetMgr.Load(it->path, it->assetType, true), it->assetType });
 
 
 			// Create resource.
@@ -71,7 +71,12 @@ namespace Sa
 
 		// Already loaded.
 		if (it != mPathToResource.end() && it->second.ptr)
+		{
+			if (!_bPreLoaded)
+				++it->second.count;
+
 			return it->second.ptr;
+		}
 
 		AssetT asset(*this);
 
@@ -91,7 +96,7 @@ namespace Sa
 		auto infosIt = mResourceToInfos.find(_resource);
 		
 		// Resource not foud.
-		if (infosIt != mResourceToInfos.end())
+		if (infosIt == mResourceToInfos.end())
 			return;
 
 		const ResourceInfos& infos = infosIt->second;
