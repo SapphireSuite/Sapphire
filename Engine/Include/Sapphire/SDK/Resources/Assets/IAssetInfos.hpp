@@ -12,9 +12,6 @@ namespace Sa
 	struct IAssetImportInfos : public IInterface
 	{
 		bool bKeepLoaded = true;
-
-		SA_ENGINE_API IAssetImportInfos() = default;
-		SA_ENGINE_API IAssetImportInfos(bool _bKeepLoaded) noexcept;
 	};
 
 	struct IAssetCreateInfos : public IInterface

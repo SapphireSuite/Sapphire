@@ -7,6 +7,8 @@
 
 #include <Rendering/Framework/Primitives/Texture/ITexture.hpp>
 
+#include <Rendering/Vulkan/Buffer/VkImageBuffer.hpp>
+
 #include <Rendering/Config.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -17,12 +19,9 @@ namespace Sa
 {
 	class VkTexture : public ITexture
 	{
-		VkImage mImage = VK_NULL_HANDLE;
-		VkImageView mImageView = VK_NULL_HANDLE;
+		VkImageBuffer mBuffer;
 
 		VkSampler mSampler = VK_NULL_HANDLE;
-
-		VkDeviceMemory mImageMemory = VK_NULL_HANDLE;
 
 	public:
 		void Create(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height) override final;

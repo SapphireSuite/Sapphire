@@ -6,24 +6,14 @@
 
 namespace Sa
 {
-	VkRenderFrame::VkRenderFrame(uint32 _frameIndex,
+	VkRenderFrame::VkRenderFrame(uint32 _index,
 		VkImage _image,
 		VkImageView _imageView,
-		VkFramebuffer _frameBuffer,
-		VkCommandBuffer _graphicsCommandBuffer,
-		VkSemaphore _acquireSemaphores,
-		VkSemaphore _presentSemaphores,
-		VkFence _mainFence,
-		VkUniformBuffer _uniformBuffer) noexcept :
-		frameIndex{ _frameIndex },
+		VkCommandBuffer _graphicsCommandBuffer) noexcept :
+		index{ _index },
 		image{ _image },
 		imageView{ _imageView },
-		frameBuffer{ _frameBuffer },
-		graphicsCommandBuffer{ _graphicsCommandBuffer },
-		acquireSemaphores{ _acquireSemaphores },
-		presentSemaphores{ _presentSemaphores },
-		mainFence{ _mainFence },
-		uniformBuffer{ _uniformBuffer }
+		graphicsCommandBuffer{ _graphicsCommandBuffer }
 	{
 	}
 }

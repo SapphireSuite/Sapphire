@@ -23,6 +23,12 @@ namespace Sa
 		mHandle = nullptr;
 	}
 
+	const ImageExtent& VkRenderSurface::GetImageExtent() const noexcept
+	{
+		return mSwapChain.GetImageExtent();
+	}
+
+
 	VkSwapChain& VkRenderSurface::GetSwapChain()
 	{
 		return mSwapChain;
@@ -33,24 +39,12 @@ namespace Sa
 		return mSwapChain;
 	}
 
-	const VkRenderPass& VkRenderSurface::GetRenderPass() const
-	{
-		return mRenderPass;
-	}
-
 	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
-		// TODO: REMOVE LATER.
-		TEMP = this;
-
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
 		mSwapChain.Create(_device, *this, _queueFamilyIndices);
-
-		mRenderPass.Create(_device, mSwapChain.GetImageFormat());
-
-		mSwapChain.CreateFrameBuffers(_device, mRenderPass);
 	}
 
 	void VkRenderSurface::Destroy(const VkDevice& _device)
@@ -60,32 +54,26 @@ namespace Sa
 
 		//onResizeEvent.Clear();
 
-		mSwapChain.DestroyFrameBuffers(_device);
-
-		mRenderPass.Destroy(_device);
-
 		mSwapChain.Destroy(_device);
 	}
 
-	VkFormat VkRenderSurface::GetImageFormat() const noexcept
+	IRenderPass& VkRenderSurface::CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos)
 	{
-		return mSwapChain.GetImageFormat();
+		VkRenderPass& renderPass = mRenderPasses.emplace_back(); // TODO THIS BREAK REFERENCES.
+		renderPass.Create(_instance, *this, _createInfos);
+
+		return renderPass;
 	}
 
-	const ImageExtent& VkRenderSurface::GetImageExtent() const noexcept
+	void VkRenderSurface::DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass)
 	{
-		return mSwapChain.GetImageExtent();
-	}
+		SA_ASSERT(&_renderPass >= mRenderPasses.data() && &_renderPass < mRenderPasses.data() + mRenderPasses.size(),
+			OutOfRange, reinterpret_cast<uint64>(&_renderPass), reinterpret_cast<uint64>(mRenderPasses.data()),
+			reinterpret_cast<uint64>(mRenderPasses.data() + mRenderPasses.size()));
 
-	Viewport VkRenderSurface::GetViewport() const noexcept
-	{
-		return Viewport
-		{
-			Vec2<uint32>::Zero, GetImageExtent(),
-			ImageViewExtent{ Vec2<uint32>::Zero, GetImageExtent() }
-		};
+		_renderPass.Destroy(_instance);
+		mRenderPasses.erase(mRenderPasses.begin() + (&_renderPass - static_cast<IRenderPass*>(mRenderPasses.data()))); // TODO THIS BREAK REFERENCES.
 	}
-
 
 	void VkRenderSurface::ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height)
 	{
@@ -99,13 +87,7 @@ namespace Sa
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
-		mSwapChain.DestroyFrameBuffers(device);
-
 		mSwapChain.ReCreate(device, *this, device.GetQueueFamilyIndices());
-
-		mRenderPass.ReCreate(device, mSwapChain.GetImageFormat());
-
-		mSwapChain.CreateFrameBuffers(device, mRenderPass);
 	}
 
 	VkRenderSurface::operator VkSurfaceKHR() const

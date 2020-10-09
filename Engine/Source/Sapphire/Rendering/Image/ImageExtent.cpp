@@ -10,6 +10,22 @@ namespace Sa
 	{
 	}
 
+	bool ImageExtent::IsValid() const noexcept
+	{
+		return width != 0u && height != 0u;
+	}
+
+
+	bool ImageExtent::operator==(const ImageExtent& _rhs) const noexcept
+	{
+		return width == _rhs.width && height == _rhs.height;
+	}
+
+	bool ImageExtent::operator!=(const ImageExtent& _rhs) const noexcept
+	{
+		return !(*this == _rhs);
+	}
+
 #if SA_RENDERING_API == SA_VULKAN
 
 	ImageExtent::ImageExtent(const VkExtent2D& _extent) :

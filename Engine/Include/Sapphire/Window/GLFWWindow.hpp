@@ -26,7 +26,7 @@ namespace Sa
 
 #if SA_RENDERING_API == SA_VULKAN
 
-		VkSurfaceKHR_T* CreateRenderSurface(const IRenderInstance& _instance) const override final;
+		SA_ENGINE_API VkSurfaceKHR_T* CreateRenderSurface(const IRenderInstance& _instance) const override final;
 
 #endif
 

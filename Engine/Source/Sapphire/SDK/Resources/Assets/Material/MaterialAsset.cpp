@@ -9,7 +9,7 @@
 #include <Core/Algorithms/SizeOf.hpp>
 
 #include <Rendering/Framework/System/IRenderSurface.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
+#include <Rendering/Framework/Primitives/Material/RenderMaterialCreateInfos.hpp>
 
 #include <SDK/Resources/Assets/AssetManager.hpp>
 
@@ -123,6 +123,8 @@ namespace Sa
 
 		// Data
 		{
+			_fStream.read(reinterpret_cast<char*>(&infos.bDynamicViewport), sizeof(bool));
+
 			uint32 size = sizeof(MaterialCreateInfos) - offsetof(MaterialCreateInfos, matConstants);
 			_fStream.read(reinterpret_cast<char*>(&infos.matConstants), size);
 		}
@@ -157,6 +159,8 @@ namespace Sa
 
 
 		// Data.
+		_fStream.write(reinterpret_cast<const char*>(&infos.bDynamicViewport), sizeof(bool));
+
 		uint32 size = sizeof(MaterialCreateInfos) - offsetof(MaterialCreateInfos, matConstants);
 		_fStream.write(reinterpret_cast<const char*>(&infos.matConstants), size);
 	}
@@ -191,29 +195,23 @@ namespace Sa
 			textures[i] = texture;
 		}
 
-
-		PipelineCreateInfos pipelineInfos
+		const RenderMaterialCreateInfos matCreateInfos
 		{
-			*IRenderSurface::TEMP,
-			IRenderSurface::TEMP->GetViewport(),
+			infos.renderPasses,
+
+			infos.cameras,
+			infos.bDynamicViewport,
 
 			vertShader,
 			fragShader,
 
-			infos.matConstants,
-
 			textures,
 
-			infos.uniformBufferSize,
-
-			infos.alphaModel,
-			infos.polygonMode,
-			infos.cullingMode,
-			infos.frontFaceMode,
-			infos.illumModel
+			infos.matConstants,
+			infos.renderInfos
 		};
 
-		result->Create(_instance, pipelineInfos);
+		result->Create(_instance, matCreateInfos);
 
 		return result;
 	}

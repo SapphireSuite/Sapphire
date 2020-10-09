@@ -44,8 +44,8 @@ namespace Sa
 		virtual bool ShouldClose() const = 0;
 
 
-		static void Init();
-		static void UnInit();
+		SA_ENGINE_API static void Init();
+		SA_ENGINE_API static void UnInit();
 
 		static void GetRequiredExtensions(std::vector<const char*>& _extensions) noexcept;
 	};

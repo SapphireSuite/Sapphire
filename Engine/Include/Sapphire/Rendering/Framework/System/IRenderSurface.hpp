@@ -9,25 +9,26 @@
 
 #include <Core/Types/Variadics/Event.hpp>
 
-#include <Rendering/Image/Viewport.hpp>
-
 namespace Sa
 {
+	class ImageExtent;
+
 	class IRenderInstance;
+	class IRenderPass;
+	struct RenderPassCreateInfos;
 
 	class IRenderSurface : public IInterface
 	{
 	public:
-		// TODO: REMOVE LATER.
-		static IRenderSurface* TEMP;
-
 		//mutable Event<void(const IRenderInstance&, const IRenderSurface&)> onResizeEvent;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API virtual void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height);
 
 		virtual const ImageExtent& GetImageExtent() const noexcept = 0;
-		virtual Viewport GetViewport() const noexcept  = 0;
+
+		virtual IRenderPass& CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) = 0;
+		virtual void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) = 0;
 	};
 }
 

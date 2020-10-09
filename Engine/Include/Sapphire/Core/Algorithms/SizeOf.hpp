@@ -12,14 +12,18 @@
 namespace Sa
 {
 	template <typename T>
-	uint32 SizeOf(const T& _elem)
+	constexpr uint32 SizeOf(const T& _elem)
 	{
+		(void)_elem;
+
 		return sizeof(T);
 	}
 
 	template <typename T, uint32 size>
-	uint32 SizeOf(const T(&_tab)[size])
+	constexpr uint32 SizeOf(const T(&_tab)[size])
 	{
+		(void)_tab;
+
 		return size;
 	}
 
@@ -31,21 +35,21 @@ namespace Sa
 
 
 	template <typename T>
-	uint32 BitSizeOf(const T& _elem)
+	constexpr uint32 BitSizeOf(const T& _elem)
 	{
-		return sizeof(T);
+		return SizeOf(_elem);
 	}
 
 	template <typename T, uint32 size>
-	uint32 BitSizeOf(const T(&_tab)[size])
+	constexpr uint32 BitSizeOf(const T(&_tab)[size])
 	{
-		return size * sizeof(T);
+		return SizeOf(_tab) * sizeof(T);
 	}
 
 	template <typename T>
 	uint32 BitSizeOf(const std::vector<T>& _vector)
 	{
-		return static_cast<uint32>(_vector.size()) * sizeof(T);
+		return SizeOf(_vector) * sizeof(T);
 	}
 }
 

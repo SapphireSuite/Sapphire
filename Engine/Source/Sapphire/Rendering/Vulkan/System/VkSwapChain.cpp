@@ -29,14 +29,16 @@ namespace Sa
 		return mImageFormat;
 	}
 
+	VkImageView VkSwapChain::GetImageView(uint32 _index) const noexcept
+	{
+		SA_ASSERT(_index < SizeOf(mImageViews), OutOfRange, Rendering, _index, 0, SizeOf(mImageViews));
+
+		return mImageViews[_index];
+	}
+
 	const ImageExtent& VkSwapChain::GetImageExtent() const noexcept
 	{
 		return mExtent;
-	}
-
-	const std::vector<VkUniformBuffer>& VkSwapChain::GetUniformBuffers() const noexcept
-	{
-		return mUniformBuffers;
 	}
 
 	VkRenderFrame VkSwapChain::GetRenderFrame() const noexcept
@@ -46,12 +48,7 @@ namespace Sa
 			mFrameIndex,
 			mImages[mImageIndex],
 			mImageViews[mImageIndex],
-			mFrameBuffers[mFrameIndex],
-			mGraphicsCommandBuffers[mFrameIndex],
-			mAcquireSemaphores[mFrameIndex],
-			mPresentSemaphores[mFrameIndex],
-			mMainFences[mFrameIndex],
-			mUniformBuffers[mFrameIndex]
+			mGraphicsCommandBuffers[mFrameIndex]
 		};
 	}
 
@@ -63,13 +60,9 @@ namespace Sa
 
 		CreateCommandBuffers(_device, imageNum);
 
-		CreateUniformBuffers(_device, imageNum);
-
 		CreateSemaphores(_device, imageNum);
 
 		CreateFences(_device, imageNum);
-
-		CreateDepthResources(_device);
 	}
 	void VkSwapChain::Destroy(const VkDevice& _device)
 	{
@@ -81,10 +74,6 @@ namespace Sa
 
 		DestroyFences(_device);
 
-		DestroyFrameBuffers(_device);
-
-		DestroyDepthResources(_device);
-
 		DestroySwapChainKHR(_device);
 	}
 
@@ -95,44 +84,47 @@ namespace Sa
 		Create(_device, _surface, _queueFamilyIndices);
 	}
 
-	void VkSwapChain::CreateFrameBuffers(const VkDevice& _device, const VkRenderPass& _renderPass)
+	VkRenderFrame VkSwapChain::Begin(const VkDevice& _device)
 	{
-		mFrameBuffers.resize(GetImageNum());
+		// Get new current frame components.
+		VkRenderFrame frame = GetRenderFrame();
 
-		for (uint32 i = 0u; i < mFrameBuffers.size(); ++i)
+
+		// Wait current Fence.
+		vkWaitForFences(_device, 1, &mMainFences[frame.index], true, UINT64_MAX);
+
+		// Reset current Fence.
+		vkResetFences(_device, 1, &mMainFences[frame.index]);
+
+		// Reset Command Buffer.
+		vkResetCommandBuffer(frame.graphicsCommandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+
+		SA_VK_ASSERT(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, mAcquireSemaphores[frame.index], VK_NULL_HANDLE, &mImageIndex),
+			LibCommandFailed, Rendering, L"Failed to aquire next image!");
+
+
+		const VkCommandBufferBeginInfo commandBufferBeginInfo
 		{
-			const VkImageView attachements[]{ mImageViews[i], mDepthImageView };
-		
-			const VkFramebufferCreateInfo framebufferCreateInfo
-			{
-				VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,			// sType.
-				nullptr,											// pNext.
-				0,													// flags.
-				_renderPass,							            // renderPass.
-				sizeof(attachements) / sizeof(VkImageView),			// attachmentCount.
-				attachements,										// pAttachments.
-				mExtent.width,										// width.
-				mExtent.height,										// height.
-				1													// layers.
+			VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,		// sType.
+			nullptr,											// pNext.
+			VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,		// flags.
+			nullptr,											// pInheritanceInfo.
+		};
 
-			};
+		SA_VK_ASSERT(vkBeginCommandBuffer(frame.graphicsCommandBuffer, &commandBufferBeginInfo),
+			LibCommandFailed, Rendering, L"Failed to begin command buffer!");
 
-			SA_VK_ASSERT(vkCreateFramebuffer(_device, &framebufferCreateInfo, nullptr, &mFrameBuffers[i]),
-				CreationFailed, Rendering, L"Failed to create framebuffer!");
-		}
+
+		return frame;
 	}
-	void VkSwapChain::DestroyFrameBuffers(const VkDevice& _device)
-	{
-		for (uint32 i = 0u; i < mFrameBuffers.size(); ++i)
-			vkDestroyFramebuffer(_device, mFrameBuffers[i], nullptr);
-
-		mFrameBuffers.clear();
-	}
-
-	VkRenderFrame VkSwapChain::Update(const VkDevice& _device)
+	
+	void VkSwapChain::End(const VkDevice& _device)
 	{
 		// Get current frame components.
 		VkRenderFrame frame = GetRenderFrame();
+
+		SA_VK_ASSERT(vkEndCommandBuffer(frame.graphicsCommandBuffer),
+			LibCommandFailed, Rendering, L"Failed to end command buffer!");
 
 
 		const VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -143,15 +135,15 @@ namespace Sa
 			VK_STRUCTURE_TYPE_SUBMIT_INFO,						// sType.
 			nullptr,											// pNext.
 			1,													// waitSemaphoreCount.
-			&frame.acquireSemaphores,							// pWaitSemaphores.
+			&mAcquireSemaphores[frame.index],				// pWaitSemaphores.
 			&waitStages,										// pWaitDstStageMask.
 			1,													// commandBufferCount.
 			&frame.graphicsCommandBuffer,						// pCommandBuffers.
 			1,													// signalSemaphoreCount.
-			&frame.presentSemaphores,							// pSignalSemaphores.
+			&mPresentSemaphores[frame.index],				// pSignalSemaphores.
 		};
 
-		SA_VK_ASSERT(vkQueueSubmit(_device.GetGraphicsQueue(), 1, &submitInfo, frame.mainFence),
+		SA_VK_ASSERT(vkQueueSubmit(_device.GetGraphicsQueue(), 1, &submitInfo, mMainFences[frame.index]),
 			LibCommandFailed, Rendering, L"Failed to submit graphics queue!");
 
 		// Submit previous present.
@@ -160,7 +152,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,					// sType.
 			nullptr,											// pNext.
 			1,													// waitSemaphoreCount.
-			&frame.presentSemaphores,							// pWaitSemaphores.
+			&mPresentSemaphores[frame.index],				// pWaitSemaphores.
 			1,													// swapchainCount.
 			&mHandle,											// pSwapchains
 			&mImageIndex,										// pImageIndices.
@@ -170,27 +162,8 @@ namespace Sa
 		SA_VK_ASSERT(vkQueuePresentKHR(_device.GetPresentQueue(), &presentInfo),
 			LibCommandFailed, Rendering, L"Failed to submit present queue!");
 
-
-		// Increment new frame.
+		// Increment next frame.
 		mFrameIndex = (mFrameIndex + 1) % GetImageNum();
-
-		// Get new current frame components.
-		frame = GetRenderFrame();
-
-
-		// Wait current Fence.
-		vkWaitForFences(_device, 1, &frame.mainFence, true, UINT64_MAX);
-
-		// Reset current Fence.
-		vkResetFences(_device, 1, &frame.mainFence);
-
-		// Reset Command Buffer.
-		vkResetCommandBuffer(frame.graphicsCommandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
-
-		SA_VK_ASSERT(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, frame.acquireSemaphores, VK_NULL_HANDLE, &mImageIndex),
-			LibCommandFailed, Rendering, L"Failed to aquire next image!");
-
-		return frame;
 	}
 
 	VkSurfaceFormatKHR VkSwapChain::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
@@ -405,152 +378,6 @@ namespace Sa
 		vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(), SizeOf(mGraphicsCommandBuffers), mGraphicsCommandBuffers.data());
 
 		mGraphicsCommandBuffers.clear();
-	}
-
-	void VkSwapChain::CreateUniformBuffers(const VkDevice& _device, uint32 _imageNum)
-	{
-		mUniformBuffers.resize(_imageNum);
-
-		for (uint32 i = 0; i < _imageNum; i++)
-		{
-			mUniformBuffers[i].Create(_device, sizeof(StaticUniformBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		}
-	}
-	void VkSwapChain::DestroyUniformBuffers(const VkDevice& _device)
-	{
-		for (uint32 i = 0; i < mUniformBuffers.size(); i++)
-			mUniformBuffers[i].Destroy(_device);
-
-		mUniformBuffers.clear();
-	}
-
-	void VkSwapChain::CreateDepthResources(const VkDevice& _device)
-	{
-		// TODO: Add flexibility. See https://vulkan-tutorial.com/Depth_buffering.
-
-		const VkImageCreateInfo imageCreateInfo
-		{
-			VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,					// sType.
-			nullptr,												// pNext.
-			0,														// flags.
-			VK_IMAGE_TYPE_2D,										// imageType.
-			VK_FORMAT_D32_SFLOAT,									// format.
-
-			mExtent,
-
-			1,														// mipLevels.
-			1,														// arrayLayers.
-			VK_SAMPLE_COUNT_1_BIT,									// samples.
-			VK_IMAGE_TILING_OPTIMAL,								// tiling.
-
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,			// usage.
-
-			VK_SHARING_MODE_EXCLUSIVE,								// sharingMode.
-			VkQueueFamilyIndices::familyNum,						// queueFamilyIndexCount.
-			_device.GetQueueFamilyIndices().GetFamilies(),			// pQueueFamilyIndices.
-			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
-		};
-
-		SA_VK_ASSERT(vkCreateImage(_device, &imageCreateInfo, nullptr, &mDepthImage),
-			CreationFailed, Rendering, L"Failed to create death image!")
-
-
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(_device, mDepthImage, &memRequirements);
-
-		uint32 memoryTypeIndex = VkBuffer::FindMemoryType(_device, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		const VkMemoryAllocateInfo memoryAllocInfo
-		{
-			VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,					// sType.
-			nullptr,												// pNext.
-			memRequirements.size,									// allocationSize.
-			memoryTypeIndex,										// memoryTypeIndex.
-		};
-
-		SA_VK_ASSERT(vkAllocateMemory(_device, &memoryAllocInfo, nullptr, &mDepthImageMemory),
-			MemoryAllocationFailed, Rendering, L"Failed to allocate image memory!");
-
-		vkBindImageMemory(_device, mDepthImage, mDepthImageMemory, 0);
-
-
-		// Create image view.
-		const VkImageViewCreateInfo imageViewCreateInfo
-		{
-			VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,									// sType.
-			nullptr,																	// pNext.
-			VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT,					// flags.
-			mDepthImage,																// image.
-			VK_IMAGE_VIEW_TYPE_2D,														// viewType.
-			VK_FORMAT_D32_SFLOAT,														// format.
-
-			VkComponentMapping															// components.
-			{
-				VK_COMPONENT_SWIZZLE_IDENTITY,										// r.
-				VK_COMPONENT_SWIZZLE_IDENTITY,										// g.
-				VK_COMPONENT_SWIZZLE_IDENTITY,										// b.
-				VK_COMPONENT_SWIZZLE_IDENTITY										// a.
-			},
-			VkImageSubresourceRange														// subresourceRange.
-			{
-				VK_IMAGE_ASPECT_DEPTH_BIT,											// aspectMask.
-				0,																	// baseMipLevel.
-				1,																	// levelCount.
-				0,																	// baseArrayLayer.
-				1																	// layerCount.
-			}
-		};
-
-		SA_VK_ASSERT(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &mDepthImageView),
-			CreationFailed, Rendering, L"Failed to create image views!");
-
-
-		// Transition.
-		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
-
-
-		VkImageMemoryBarrier barrier
-		{
-			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,							// sType.
-			nullptr,														// pNext.
-			0,																// srcAccessMask.
-			
-			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |					// dstAccessMask.
-			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-			
-			VK_IMAGE_LAYOUT_UNDEFINED,										// oldLayout.
-			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,				// newLayout.
-			VK_QUEUE_FAMILY_IGNORED,										// srcQueueFamilyIndex.
-			VK_QUEUE_FAMILY_IGNORED,										// dstQueueFamilyIndex.
-			mDepthImage,													// image.
-
-			VkImageSubresourceRange											// subresourceRange.
-			{
-				VK_IMAGE_ASPECT_DEPTH_BIT,						// aspectMask.
-				0,												// baseMipLevel.
-				1,												// levelCount.
-				0,												// baseArrayLayer.
-				1,												// layerCount.
-			}
-		};
-
-		vkCmdPipelineBarrier(commandBuffer,
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-			VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-			0, 0, nullptr, 0, nullptr, 1, &barrier
-		);
-
-
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
-	}
-	void VkSwapChain::DestroyDepthResources(const VkDevice& _device)
-	{
-		vkDestroyImageView(_device, mDepthImageView, nullptr);
-
-		vkDestroyImage(_device, mDepthImage, nullptr);
-
-		vkFreeMemory(_device, mDepthImageMemory, nullptr);
 	}
 
 	void VkSwapChain::CreateSemaphores(const VkDevice& _device, uint32 _imageNum)

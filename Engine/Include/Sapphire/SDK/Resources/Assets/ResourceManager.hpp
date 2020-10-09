@@ -64,6 +64,8 @@ namespace Sa
 		void Unload(const std::vector<T*>& _resources);
 
 		typename AssetT::ImportResultT Import(const std::string& _resourcePath, const typename AssetT::ImportInfosT& _importInfos);
+		
+		AssetT Create(const std::string& _assetPath, bool _bKeepLoaded = true);
 		AssetT Create(typename AssetT::CreateInfosT&& _createInfos);
 
 		void Save(const AssetT& _asset, const std::string& _newPath);

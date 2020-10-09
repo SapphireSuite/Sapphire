@@ -7,43 +7,32 @@
 
 #include <Rendering/Config.hpp>
 
-#include <Rendering/Image/Viewport.hpp>
-
-#include <Rendering/Framework/Primitives/Pipeline/AlphaModel.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/PolygonMode.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/CullingMode.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/FrontFaceMode.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/IlluminationModel.hpp>
-
-#include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Material/MaterialConstants.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/PipelineRenderInfos.hpp>
 
 namespace Sa
 {
 	class IShader;
 	class ITexture;
-	class IRenderSurface;
+	class IRenderPass;
 
-	class PipelineCreateInfos
+	class Camera;
+
+	struct PipelineCreateInfos
 	{
-	public:
-		const IRenderSurface& surface;
-		const Viewport& viewport;
+		const IRenderPass& renderPass;
+		
+		const std::vector<const Camera*>& cameras;
+		bool bDynamicViewport = true;
 
 		const IShader* vertexShader = nullptr;
 		const IShader* fragementShader = nullptr;
 
-		MaterialConstants matConstants;
+		const std::vector<const ITexture*>& textures;
 
-		std::vector<const ITexture*> textures;
+		const MaterialConstants& matConstants;
 
-		uint32 uniformBufferSize = sizeof(ObjectUniformBuffer);
-
-		AlphaModel alphaModel = AlphaModel::Opaque;
-		PolygonMode polygonMode = PolygonMode::Fill;
-		CullingMode cullingMode = CullingMode::Back;
-		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
-		IlluminationModel illumModel = IlluminationModel::PBR;
+		const PipelineRenderInfos& renderInfos;
 	};
 }
 

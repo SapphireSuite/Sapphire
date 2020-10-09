@@ -7,17 +7,14 @@
 
 #include <SDK/Resources/Assets/IAssetInfos.hpp>
 
-#include <Rendering/Framework/Primitives/Pipeline/AlphaModel.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/PolygonMode.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/CullingMode.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/FrontFaceMode.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/IlluminationModel.hpp>
-
-#include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Material/MaterialConstants.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/PipelineRenderInfos.hpp>
 
 namespace Sa
 {
+	class IRenderPass;
+	class Camera;
+
 	struct MaterialImportInfos : public IAssetImportInfos
 	{
 		std::vector<std::string> outFilePaths;
@@ -29,20 +26,18 @@ namespace Sa
 
 	struct MaterialCreateInfos : public IAssetCreateInfos
 	{
+		std::vector<const IRenderPass*> renderPasses;
+
+		std::vector<const Camera*> cameras;
+		bool bDynamicViewport = true;
+
 		std::string vertexShaderPath;
 		std::string fragmentShaderPath;
 
 		std::vector<std::string> texturePaths;
 
 		MaterialConstants matConstants;
-
-		uint32 uniformBufferSize = sizeof(ObjectUniformBuffer);
-
-		AlphaModel alphaModel = AlphaModel::Opaque;
-		PolygonMode polygonMode = PolygonMode::Fill;
-		CullingMode cullingMode = CullingMode::Back;
-		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
-		IlluminationModel illumModel = IlluminationModel::PBR;
+		PipelineRenderInfos renderInfos;
 	};
 }
 

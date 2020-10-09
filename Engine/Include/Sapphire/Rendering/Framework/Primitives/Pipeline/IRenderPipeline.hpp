@@ -11,7 +11,7 @@ namespace Sa
 {
 	class IRenderFrame;
 	class IRenderInstance;
-	class PipelineCreateInfos;
+	struct PipelineCreateInfos;
 
 	class IRenderPipeline : public IInterface
 	{
@@ -19,7 +19,7 @@ namespace Sa
 		virtual void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 
-		virtual void Bind(const IRenderFrame& _frame) = 0;
+		virtual void Bind(const IRenderFrame& _frame) const = 0;
 
 		virtual void InitData(const IRenderInstance& _instance, const void* _data, uint32 _dataSize, uint32 _offset) = 0;
 		virtual void UpdateData(const IRenderInstance& _instance, const IRenderFrame& _frame, const void* _data, uint32 _dataSize, uint32 _offset) = 0;

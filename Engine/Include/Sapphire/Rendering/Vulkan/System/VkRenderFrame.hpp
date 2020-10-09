@@ -20,30 +20,17 @@ namespace Sa
 	class VkRenderFrame : public IRenderFrame
 	{
 	public:
-		uint32 frameIndex = 0u;
+		uint32 index = 0u;
 
 		VkImage image;
 		VkImageView imageView;
 
-		VkFramebuffer frameBuffer;
 		VkCommandBuffer graphicsCommandBuffer;
 
-		VkSemaphore acquireSemaphores;
-		VkSemaphore presentSemaphores;
-
-		VkFence mainFence;
-
-		VkUniformBuffer uniformBuffer;
-
-		VkRenderFrame(uint32 _frameIndex,
+		VkRenderFrame(uint32 _index,
 			VkImage _image,
 			VkImageView _imageView,
-			VkFramebuffer _frameBuffer,
-			VkCommandBuffer _graphicsCommandBuffer,
-			VkSemaphore _acquireSemaphores,
-			VkSemaphore _presentSemaphores,
-			VkFence _mainFence,
-			VkUniformBuffer _uniformBuffer) noexcept;
+			VkCommandBuffer _graphicsCommandBuffer) noexcept;
 	};
 }
 

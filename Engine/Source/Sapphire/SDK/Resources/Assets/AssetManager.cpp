@@ -25,25 +25,25 @@ namespace Sa
 		return mInstance;
 	}
 
-	IRenderPrimitive* AssetManager::Load(const std::string& _filePath, bool _bPreLoaded)
+	IRenderPrimitive* AssetManager::Load(const std::string& _filePath, bool _bKeepLoaded)
 	{
 		AssetType assetType = IAsset::GetAssetType(_filePath);
 
-		return Load(_filePath, assetType, _bPreLoaded);
+		return Load(_filePath, assetType, _bKeepLoaded);
 	}
 
-	IRenderPrimitive* AssetManager::Load(const std::string& _filePath, AssetType _assetType, bool _bPreLoaded)
+	IRenderPrimitive* AssetManager::Load(const std::string& _filePath, AssetType _assetType, bool _bKeepLoaded)
 	{
 		switch (_assetType)
 		{
 			case Sa::AssetType::Mesh:
-				return meshMgr.Load(_filePath, _bPreLoaded);
+				return meshMgr.Create(_filePath, _bKeepLoaded).GetResource();
 			case Sa::AssetType::Shader:
-				return shaderMgr.Load(_filePath, _bPreLoaded);
+				return shaderMgr.Create(_filePath, _bKeepLoaded).GetResource();
 			case Sa::AssetType::Texture:
-				return textureMgr.Load(_filePath, _bPreLoaded);
+				return textureMgr.Create(_filePath, _bKeepLoaded).GetResource();
 			case Sa::AssetType::RenderMaterial:
-				return renderMaterialMgr.Load(_filePath, _bPreLoaded);
+				return renderMaterialMgr.Create(_filePath, _bKeepLoaded).GetResource();
 			default:
 			{
 				SA_LOG("Wrong asset type!", Error, SDK_Asset);

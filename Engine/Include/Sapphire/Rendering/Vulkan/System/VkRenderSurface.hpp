@@ -21,31 +21,25 @@ namespace Sa
 		VkSurfaceKHR mHandle = VK_NULL_HANDLE;
 
 		VkSwapChain mSwapChain;
-		VkRenderPass mRenderPass;
+		std::vector<VkRenderPass> mRenderPasses;
 
 	public:
 		void InitHandle(VkSurfaceKHR _newHandle);
 		void UnInitHandle();
+
+		SA_ENGINE_API const ImageExtent& GetImageExtent() const noexcept override final;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API VkSwapChain& GetSwapChain();
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API const VkSwapChain& GetSwapChain() const;
 
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API const VkRenderPass& GetRenderPass() const;
-
 		void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices);
 		void Destroy(const VkDevice& _device);
 
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API VkFormat GetImageFormat() const noexcept;
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API const ImageExtent& GetImageExtent() const noexcept override final;
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API Viewport GetViewport() const noexcept override final;
+		SA_ENGINE_API IRenderPass& CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) override final;
+		SA_ENGINE_API void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) override final;
 
-		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height) override final;
 
 		operator VkSurfaceKHR() const;

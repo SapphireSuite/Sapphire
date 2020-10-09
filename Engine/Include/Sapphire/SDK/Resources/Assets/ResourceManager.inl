@@ -144,6 +144,21 @@ namespace Sa
 	}
 
 	template<typename T, typename AssetT>
+	AssetT ResourceMgr<T, AssetT>::Create(const std::string& _assetPath, bool _bKeepLoaded)
+	{
+		SA_ASSERT(!_assetPath.empty(), InvalidParam, SDK_Asset, L"Create from empty path!");
+
+		AssetT asset(*this);
+
+		asset.Load(_assetPath);
+
+		if (_bKeepLoaded && asset.IsValid())
+			Load(asset, true);
+
+		return asset;
+	}
+
+	template<typename T, typename AssetT>
 	AssetT ResourceMgr<T, AssetT>::Create(typename AssetT::CreateInfosT&& _createInfos)
 	{
 		AssetT asset(*this, Move(_createInfos));

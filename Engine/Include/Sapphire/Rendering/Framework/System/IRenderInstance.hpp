@@ -40,8 +40,8 @@ namespace Sa
 
 		virtual void Update() = 0;
 
-		static void Init();
-		static void UnInit();
+		SA_ENGINE_API static void Init();
+		SA_ENGINE_API static void UnInit();
 	};
 }
 

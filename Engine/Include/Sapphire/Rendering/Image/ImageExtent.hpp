@@ -20,12 +20,17 @@ namespace Sa
 	class ImageExtent
 	{
 	public:
-		uint32 width = 100u;
-		uint32 height = 100u;
+		uint32 width = 0u;
+		uint32 height = 0u;
 
 		ImageExtent() = default;
 
 		SA_ENGINE_API ImageExtent(uint32 _width, uint32 _height);
+
+		bool IsValid() const noexcept;
+
+		bool operator==(const ImageExtent& _rhs) const noexcept;
+		bool operator!=(const ImageExtent& _rhs) const noexcept;
 
 #if SA_RENDERING_API == SA_VULKAN
 

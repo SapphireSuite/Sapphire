@@ -10,28 +10,20 @@
 
 namespace Sa
 {
-	void IRenderMaterial::Destroy(const IRenderInstance& _instance)
+	void IRenderMaterial::Bind(const IRenderFrame& _frame, uint32 _renderPassIndex) const
 	{
-		SA_ASSERT(mPipeline, Nullptr, Rendering, L"Destroy nullptr RenderPipeline!");
-
-		mPipeline->Destroy(_instance);
+		GetPipeline(_renderPassIndex).Bind(_frame);
 	}
 
-	void IRenderMaterial::Bind(const IRenderFrame& _frame) const
+	void IRenderMaterial::InitVariable(const IRenderInstance& _instance, uint32 _renderPassIndex, const void* _data, uint32 _dataSize, uint32 _offset)
 	{
-		SA_ASSERT(mPipeline, Nullptr, Rendering, L"Bind nullptr RenderPipeline!");
-
-		mPipeline->Bind(_frame);
+		GetPipeline(_renderPassIndex).InitData(_instance, _data, _dataSize, _offset);
 	}
 
-	void IRenderMaterial::InitVariable(const IRenderInstance& _instance, const void* _data, uint32 _dataSize, uint32 _offset)
+	void IRenderMaterial::UpdateVariable(const IRenderInstance& _instance, const IRenderFrame& _frame,
+		uint32 _renderPassIndex, const void* _data, uint32 _dataSize, uint32 _offset)
 	{
-		mPipeline->InitData(_instance, _data, _dataSize, _offset);
-	}
-
-	void IRenderMaterial::UpdateVariable(const IRenderInstance& _instance, const IRenderFrame& _frame, const void* _data, uint32 _dataSize, uint32 _offset)
-	{
-		mPipeline->UpdateData(_instance, _frame, _data, _dataSize, _offset);
+		GetPipeline(_renderPassIndex).UpdateData(_instance, _frame, _data, _dataSize, _offset);
 	}
 
 	IRenderMaterial* IRenderMaterial::CreateInstance()

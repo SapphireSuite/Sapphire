@@ -57,6 +57,8 @@ namespace Sa
 
 		void CreateDescriptorPool(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
 
+		VkPipelineViewportStateCreateInfo CreateViewportStateCreateInfo(const PipelineCreateInfos& _pipelineInfos,
+			std::vector<VkViewport>& _viewports, std::vector<VkRect2D>& _scissors);
 
 		struct DescriptorInfo
 		{
@@ -88,7 +90,7 @@ namespace Sa
 		void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
-		void Bind(const IRenderFrame& _frame) override final;
+		void Bind(const IRenderFrame& _frame) const override final;
 
 		void InitData(const IRenderInstance& _instance, const void* _data, uint32 _dataSize, uint32 _offset) override final;
 		void UpdateData(const IRenderInstance& _instance, const IRenderFrame& _frame, const void* _data, uint32 _dataSize, uint32 _offset) override final;

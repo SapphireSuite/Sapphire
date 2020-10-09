@@ -306,6 +306,7 @@ namespace Sa
 		*/
 		static const Transf Identity;
 
+		using Base = Internal::TransfBase<T, TrComps>;
 		using Internal::TransfBase<T, TrComps>::TransfBase;
 
 

@@ -29,8 +29,8 @@ namespace Sa
 		
 		SA_ENGINE_API const IRenderInstance& GetRenderInstance() const;
 
-		SA_ENGINE_API IRenderPrimitive* Load(const std::string& _filePath, bool _bPreLoaded = false);
-		SA_ENGINE_API IRenderPrimitive* Load(const std::string& _filePath, AssetType _assetType, bool _bPreLoaded = false);
+		SA_ENGINE_API IRenderPrimitive* Load(const std::string& _filePath, bool _bKeepLoaded = true);
+		SA_ENGINE_API IRenderPrimitive* Load(const std::string& _filePath, AssetType _assetType, bool _bKeepLoaded = true);
 
 		SA_ENGINE_API void UnLoad(IRenderPrimitive* _primitive);
 		SA_ENGINE_API void UnLoad(IRenderPrimitive* _primitive, AssetType _assetType);

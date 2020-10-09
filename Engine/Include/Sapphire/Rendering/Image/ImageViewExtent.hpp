@@ -14,9 +14,15 @@ namespace Sa
 	class ImageViewExtent
 	{
 	public:
+		ImageExtent extent;
+
 		Vec2<uint32> offset;
 
-		ImageExtent extent;
+		ImageViewExtent() = default;
+		SA_ENGINE_API ImageViewExtent(const ImageExtent& _extent, const Vec2<uint32>& _offset = Vec2<uint32>::Zero) noexcept;
+
+		bool operator==(const ImageViewExtent& _rhs) const noexcept;
+		bool operator!=(const ImageViewExtent& _rhs) const noexcept;
 	};
 }
 
