@@ -7,6 +7,8 @@
 
 #include <Rendering/Framework/System/IRenderInstance.hpp>
 
+#include <Core/Types/Variadics/Pair.hpp>
+
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
 #include <Rendering/Vulkan/System/VkRenderSurface.hpp>
@@ -21,17 +23,11 @@ namespace Sa
 {
 	class VkRenderInstance : public IRenderInstance
 	{
-		struct RenderSurfaceInfos
-		{
-			const IWindow* window = nullptr;
-			VkRenderSurface renderSurface;
-		};
-
 		VkDevice mDevice;
 
 		VkInstance mHandle = VK_NULL_HANDLE;
 
-		std::vector<RenderSurfaceInfos> mRenderSurfaceInfos;
+		std::vector<Pair<const IWindow*, VkRenderSurface>> mSurfacePairs;
 
 
 	public: // TODO: REMOVE LATER.
@@ -49,14 +45,11 @@ namespace Sa
 
 		static uint32 sInitCount;
 
-		void Init();
-		void UnInit();
-
 		void SelectDevice(const VkRenderSurface& _surface);
 
 		void OnDeviceCreated();
 
-		static const std::vector<const char*>& GetRequiredExtensions() noexcept;
+		static std::vector<const char*> GetRequiredExtensions() noexcept;
 
 	public:
 		// TODO: Remove SA_ENGINE_API.
@@ -97,6 +90,9 @@ namespace Sa
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Update() override final;
+
+		static void Init();
+		static void UnInit();
 
 		operator VkInstance() const;
 	};

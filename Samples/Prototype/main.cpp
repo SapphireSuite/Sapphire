@@ -214,6 +214,11 @@ int main()
 	LOG("=== Start ===");
 
 
+	// === Init ===
+	IRenderInstance::Init();
+	IWindow::Init();
+
+
 	// === Create ===
 	VkRenderInstance instance;
 	instance.Create();
@@ -386,6 +391,11 @@ int main()
 	window.Destroy();
 
 	instance.Destroy();
+
+
+	// === UnInit ===
+	IWindow::UnInit();
+	IRenderInstance::UnInit();
 
 
 	LOG("\n=== End ===");

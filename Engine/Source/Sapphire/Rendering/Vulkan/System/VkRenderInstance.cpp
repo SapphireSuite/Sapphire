@@ -3,16 +3,7 @@
 #include <Collections/Debug>
 #include <Core/Support/Version.hpp>
 
-#include <Window/Config.hpp>
-
-#if SA_WINDOW_API == SA_GLFW
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
-#include <Window/GLFWWindow.hpp>
-
-#endif
+#include <Window/IWindow.hpp>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/System/VkValidationLayers.hpp>
@@ -21,8 +12,6 @@
 
 namespace Sa
 {
-	uint32 VkRenderInstance::sInitCount = 0u;
-
 	void VkRenderInstance::Init()
 	{
 		SA_ASSERT(VkValidationLayers::CheckValidationSupport(), NotSupported, Rendering, L"Validation Layer not supported!")
@@ -67,32 +56,17 @@ namespace Sa
 		mSpotLightBuffer.Create(mDevice);
 	}
 
-	const std::vector<const char*>& VkRenderInstance::GetRequiredExtensions() noexcept
+	std::vector<const char*> VkRenderInstance::GetRequiredExtensions() noexcept
 	{
-		static std::vector<const char*> extensions;
+		std::vector<const char*> extensions;
 
-		if (extensions.size() == 0)
-		{
-
-#if SA_WINDOW_API == SA_GLFW
-
-			// TODO: FIX
-			glfwInit();
-
-			// Query extensions.
-			uint32_t glfwExtensionCount = 0;
-			const char** glfwExtensions;
-
-			glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-			extensions.assign(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-#endif
+		// Query window API required extensions.
+		IWindow::GetRequiredExtensions(extensions);
 
 #if SA_VK_VALIDATION_LAYERS
 
-			extensions.push_back("VK_EXT_debug_utils");
+		extensions.push_back("VK_EXT_debug_utils");
 #endif
-		}
 
 		return extensions;
 	}
@@ -104,15 +78,15 @@ namespace Sa
 
 	const VkRenderSurface& VkRenderInstance::GetRenderSurface(const IWindow& _window) const
 	{
-		for (uint32 i = 0u; i < mRenderSurfaceInfos.size(); ++i)
+		for (uint32 i = 0u; i < mSurfacePairs.size(); ++i)
 		{
-			if (mRenderSurfaceInfos[i].window == &_window)
-				return mRenderSurfaceInfos[i].renderSurface;
+			if (mSurfacePairs[i].first == &_window)
+				return mSurfacePairs[i].second;
 		}
 
 		SA_ASSERT(false, InvalidParam, Rendering, L"Window not registered as render surface!")
 
-		return mRenderSurfaceInfos[0].renderSurface;
+		return mSurfacePairs[0].second;
 	}
 
 	const VkStorageBuffer<PLightInfos>& VkRenderInstance::GetPointLightBuffer() const noexcept
@@ -133,11 +107,6 @@ namespace Sa
 
 	void VkRenderInstance::Create()
 	{
-		// Init Vulkan.
-		if (sInitCount++ == 0u)
-			Init();
-
-
 		const VkApplicationInfo appInfo
 		{
 			VK_STRUCTURE_TYPE_APPLICATION_INFO,											// sType.
@@ -148,6 +117,8 @@ namespace Sa
 			VK_MAKE_VERSION(SA_VERSION_MAJOR, SA_VERSION_MINOR, SA_VERSION_PATCH),		// engineVersion.
 			VK_API_VERSION_1_0,															// apiVersion.
 		};
+
+		std::vector<const char*> extensions = GetRequiredExtensions();
 
 #if SA_VK_VALIDATION_LAYERS
 
@@ -162,8 +133,8 @@ namespace Sa
 			&appInfo,															// pApplicationInfo.
 			VkValidationLayers::GetLayerNum(),									// enabledLayerCount.
 			VkValidationLayers::GetLayerNames(),								// ppEnabledLayerNames.
-			static_cast<uint32>(GetRequiredExtensions().size()),				// enabledExtensionCount
-			GetRequiredExtensions().data(),										// ppEnabledExtensionNames.
+			SizeOf(extensions),													// enabledExtensionCount
+			extensions.data(),													// ppEnabledExtensionNames.
 		};
 
 #else
@@ -176,8 +147,8 @@ namespace Sa
 			&appInfo,															// pApplicationInfo.
 			0,																	// enabledLayerCount.
 			nullptr,															// ppEnabledLayerNames.
-			static_cast<uint32>(GetRequiredExtensions().size()),				// enabledExtensionCount
-			GetRequiredExtensions().data(),										// ppEnabledExtensionNames.
+			SizeOf(extensions),													// enabledExtensionCount
+			extensions.data(),													// ppEnabledExtensionNames.
 		};
 
 
@@ -214,10 +185,6 @@ namespace Sa
 #endif
 
 		vkDestroyInstance(mHandle, nullptr);
-
-		// UnInit Vulkan.
-		if (--sInitCount == 0u)
-			UnInit();
 	}
 
 	const IRenderSurface& VkRenderInstance::CreateRenderSurface(const IWindow& _window)
@@ -225,31 +192,20 @@ namespace Sa
 #if SA_DEBUG
 
 		// Check already registered.
-		for (auto it = mRenderSurfaceInfos.begin(); it != mRenderSurfaceInfos.end(); ++it)
-			SA_ASSERT(it->window != &_window, InvalidParam, Rendering, L"Window already registered as render surface!");
+		for (auto it = mSurfacePairs.begin(); it != mSurfacePairs.end(); ++it)
+			SA_ASSERT(it->first != &_window, InvalidParam, Rendering, L"Window already registered as render surface!");
 
 #endif
 
 		// Create and register into mRenderSurfaceInfos.
-#if SA_WINDOW_API == SA_GLFW
+		Pair<const IWindow*, VkRenderSurface>& surfacePair = mSurfacePairs.emplace_back(Pair<const IWindow*, VkRenderSurface>{ &_window });
 
-		const GLFWWindow& glfwWindow = _window.As<GLFWWindow>();
+		VkSurfaceKHR vkSurface = _window.CreateRenderSurface(*this);
 
-		RenderSurfaceInfos& renderSurfaceInfo = mRenderSurfaceInfos.emplace_back(RenderSurfaceInfos{ &_window });
+		surfacePair.second.InitHandle(vkSurface);
 
-		VkSurfaceKHR vkSurface;
-		VkResult res = glfwCreateWindowSurface(
-			mHandle,
-			glfwWindow,
-			nullptr,
-			&vkSurface
-		);
 
-		SA_ASSERT(res == VK_SUCCESS, CreationFailed, Window, L"Failed to create window surface!");
-
-		renderSurfaceInfo.renderSurface.InitHandle(vkSurface);
-#else
-#endif
+		// TODO: FIX.
 		//// Init resize event.
 		//_window.onResizeEvent.Add(std::function<void(const IWindow&, uint32, uint32)>(
 		//	[this, &renderSurfaceInfo] (const IWindow& _win, uint32 _width, uint32 _height)
@@ -265,30 +221,30 @@ namespace Sa
 
 		// 1st surface: Device not selected yet.
 		if (!mDevice.IsValid())
-			SelectDevice(renderSurfaceInfo.renderSurface);
+			SelectDevice(surfacePair.second);
 
-		renderSurfaceInfo.renderSurface.Create(mDevice, mDevice.GetQueueFamilyIndices());
+		surfacePair.second.Create(mDevice, mDevice.GetQueueFamilyIndices());
 
-		return renderSurfaceInfo.renderSurface;
+		return surfacePair.second;
 	}
 
 	void VkRenderInstance::DestroyRenderSurface(const IWindow& _window)
 	{
 		bool bFound = false;
 
-		for (auto it = mRenderSurfaceInfos.begin(); it != mRenderSurfaceInfos.end(); ++it)
+		for (auto it = mSurfacePairs.begin(); it != mSurfacePairs.end(); ++it)
 		{
-			if (it->window == &_window)
+			if (it->first == &_window)
 			{
 				bFound = true;
 
-				it->renderSurface.Destroy(mDevice);
+				it->second.Destroy(mDevice);
 
-				vkDestroySurfaceKHR(mHandle, it->renderSurface, nullptr);
+				vkDestroySurfaceKHR(mHandle, it->second, nullptr);
 
-				it->renderSurface.UnInitHandle();
+				it->second.UnInitHandle();
 
-				mRenderSurfaceInfos.erase(it);
+				mSurfacePairs.erase(it);
 
 				break;
 			}

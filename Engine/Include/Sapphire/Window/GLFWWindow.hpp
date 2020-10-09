@@ -22,10 +22,13 @@ namespace Sa
 
 		struct GLFWwindow* mHandle = nullptr;
 
-		void Init();
-		void UnInit();
-
 		static void ResizeCallback(GLFWwindow* _handle, int32 _width, int32 _height);
+
+#if SA_RENDERING_API == SA_VULKAN
+
+		VkSurfaceKHR_T* CreateRenderSurface(const IRenderInstance& _instance) const override final;
+
+#endif
 
 	public:
 		// TODO: Remove SA_ENGINE_API.
@@ -43,6 +46,11 @@ namespace Sa
 
 		// TODO: REMOVE LATER.
 		SA_ENGINE_API void TEST(TransffPRS& _camTr, Vec3f& _lightPos, float _deltaTime);
+
+		static void GetRequiredExtensions(std::vector<const char*>& _extensions) noexcept;
+
+		static void Init();
+		static void UnInit();
 	};
 }
 

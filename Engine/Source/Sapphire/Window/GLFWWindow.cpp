@@ -1,6 +1,5 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-// TODO: Clean later.
 #include <Rendering/Config.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -8,10 +7,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include <vulkan/vulkan.h>
-
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
-#include <Rendering/Vulkan/System/VkRenderSurface.hpp>
 
 #else
 
@@ -19,7 +15,7 @@
 
 #endif
 
-
+// include window after GLFW lib.
 #include <Window/GLFWWindow.hpp>
 
 #include <Core/Debug/Debug.hpp>
@@ -127,6 +123,38 @@ namespace Sa
 	{
 		return mHandle;
 	}
+
+
+	void GLFWWindow::GetRequiredExtensions(std::vector<const char*>& _extensions) noexcept
+	{
+		// Query extensions.
+		uint32_t glfwExtensionCount = 0;
+		const char** glfwExtensions = nullptr;
+
+		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+		_extensions.reserve(glfwExtensionCount);
+		_extensions.insert(_extensions.end(), glfwExtensions, glfwExtensions + glfwExtensionCount);
+	}
+
+#if SA_RENDERING_API == SA_VULKAN
+
+	VkSurfaceKHR_T* GLFWWindow::CreateRenderSurface(const IRenderInstance& _instance) const
+	{
+		VkSurfaceKHR vkSurface;
+		VkResult res = glfwCreateWindowSurface(
+			_instance.As<VkRenderInstance>(),
+			mHandle,
+			nullptr,
+			&vkSurface
+		);
+
+		SA_VK_ASSERT(res, CreationFailed, Window, L"Failed to create window surface!");
+
+		return vkSurface;
+	}
+
+#endif
 
 
 	void GLFWWindow::TEST(TransffPRS& _camTr, Vec3f& _lightPos, float _deltaTime)
