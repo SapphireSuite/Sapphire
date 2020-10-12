@@ -14,8 +14,11 @@ namespace Sa
 
 	class TinyGLTFWrapper
 	{
+		static bool Import_Internal(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result, bool _bIsBinary);
+
 	public:
-		static bool Import(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result);
+		static bool ImportGLTF(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result);
+		static bool ImportGLB(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result);
 	};
 }
 

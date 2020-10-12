@@ -39,9 +39,9 @@ IRenderMaterial* magikarpEyesMat = nullptr;
 IMesh* gizmoMesh = nullptr;
 IRenderMaterial* gizmoMat = nullptr;
 
-// Drone
-IMesh* droneMesh = nullptr;
-IRenderMaterial* droneMat = nullptr;
+// Helmet
+IMesh* helmetMesh = nullptr;
+IRenderMaterial* helmetMat = nullptr;
 
 
 void CreateDefaultResources(AssetManager& _assetMgr)
@@ -206,101 +206,48 @@ void CreateGizmo(AssetManager& _assetMgr)
 	}
 }
 
-void CreateDrone(AssetManager& _assetMgr)
+void CreateHelmet(AssetManager& _assetMgr)
 {
-	//constexpr const char* textureAssets[] = { "Bin/Drone/BodyBaseColor_T.spha", "Bin/Drone/MaterialBaseColor_T.spha" };
-	//constexpr const char* meshAssets[] = { "Bin/Drone/Drone_M.spha" };
-	//constexpr const char* materialAssets[] = { "Bin/Drone/Drone_Mat.spha" };
+	constexpr const char* textureAssets[] = { "Bin/Helmet/Albedo_T.spha" };
+	constexpr const char* meshAssets[] = { "Bin/Helmet/Helmet_M.spha" };
+	constexpr const char* materialAssets[] = { "Bin/Helmet/Helmet_Mat.spha" };
 
 
-	//constexpr const char* textureResources[] = { "../../Samples/Prototype/Resources/BusterDrone/GLTF/textures/body_baseColor.png",
-	//												"../../Samples/Prototype/Resources/BusterDrone/GLTF/textures/material_baseColor.png" };
+	constexpr const char* textureResources[] = { "../../Samples/Prototype/Resources/DamagedHelmet/Default_albedo.png" };
 
-	//for (uint32 i = 0u; i < SizeOf(textureAssets); ++i)
-	//{
-	//	if (!_assetMgr.textureMgr.Create(textureAssets[i]).IsValid()) // Try load.
-	//	{
-	//		// Import on load failed.
-	//		TextureImportInfos importInfos;
-	//		importInfos.outFilePath = textureAssets[i];
-
-	//		_assetMgr.textureMgr.Import(textureResources[i], importInfos);
-	//	}
-	//}
+	if (!_assetMgr.textureMgr.Load(textureAssets[0], true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.Import(textureResources[0]);
+		result[0]->Save(textureAssets[0]);
+	}
 
 
-	//// Meshes.
-	//{
-	//	{
-	//		// Try load.
+	// Model.
+	{
+		// Try load.
+		helmetMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
 
-	//		MeshAsset droneMeshAsset = _assetMgr.meshMgr.Create(meshAssets[0]);
+		helmetMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
 
-	//		if (droneMeshAsset.IsValid())
-	//			droneMesh = droneMeshAsset.GetResource();
-	//	}
+		if (!helmetMesh || !helmetMesh)
+		{
+			// Import on load failed.
+			IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/DamagedHelmet/DamagedHelmet.gltf");
 
-	//	if (!droneMesh)
-	//	{
-	//		// Import on load failed.
-	//		MeshImportInfos importInfos;
-	//		importInfos.outFilePaths = { meshAssets[0] };
+			// meshes
+			result[0]->Save(meshAssets[0]);
+			helmetMesh = result[0]->As<MeshAsset>().GetResource();
 
-	//		auto meshes = _assetMgr.meshMgr.Import("../../Samples/Prototype/Resources/BusterDrone/GLTF/BusterDrone.gltf", importInfos);
 
-	//		droneMesh = meshes[0].GetResource();
-	//	}
-	//}
-
-	//// Materials.
-	//{
-	//	{
-	//		// Try load.
-
-	//		MaterialAsset droneMatAsset = _assetMgr.renderMaterialMgr.Create(materialAssets[0], false);
-
-	//		if (droneMatAsset.IsValid())
-	//		{
-	//			droneMatAsset.infos.renderPasses = { &_mainRenderPass };
-	//			droneMatAsset.infos.cameras = { &_camera };
-
-	//			droneMat = _assetMgr.renderMaterialMgr.Load(droneMatAsset);
-	//		}
-	//	}
-
-	//	//if (!droneMat)
-	//	//{
-	//	//	// Import on load failed.
-	//	//	MaterialImportInfos importInfos;
-	//	//	importInfos.outFilePaths = { meshAssets[0] , meshAssets[1] };
-
-	//	//	auto materials = _assetMgr.renderMaterialMgr.Import("../../Engine/Resources/Models/Magikarp/Magikarp.mtl", importInfos);
-
-	//	//	materials[0].infos.vertexShaderPath = defaultVertShaderAsset;
-	//	//	materials[1].infos.vertexShaderPath = defaultVertShaderAsset;
-
-	//	//	materials[0].infos.fragmentShaderPath = defaultFragShaderAsset;
-	//	//	materials[1].infos.fragmentShaderPath = defaultFragShaderAsset;
-
-	//	//	materials[0].infos.texturePaths = { textureAssets[0] };
-	//	//	materials[1].infos.texturePaths = { textureAssets[1] };
-
-	//	//	materials[0].infos.renderPasses = { &_mainRenderPass };
-	//	//	materials[1].infos.renderPasses = { &_mainRenderPass };
-
-	//	//	materials[0].infos.cameras = { &_camera };
-	//	//	materials[1].infos.cameras = { &_camera };
-
-	//	//	materials[0].infos.bDynamicViewport = false; // TODO: FIX LATER.
-	//	//	materials[1].infos.bDynamicViewport = false; // TODO: FIX LATER.
-
-	//	//	materials[0].Save(materialAssets[0]);
-	//	//	materials[1].Save(materialAssets[1]);
-
-	//	//	magikarpBodyMat = materials[0].GetResource();
-	//	//	magikarpEyesMat = materials[1].GetResource();
-	//	//}
-	//}
+			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
+			bodyRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
+			bodyRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
+			bodyRenderMat.infos.texturePaths = { textureAssets[0] };
+			bodyRenderMat.Save(materialAssets[0]);
+			helmetMat = bodyRenderMat.GetResource();
+		}
+	}
 }
 
 void CreateResources(AssetManager& _assetMgr)
@@ -308,7 +255,7 @@ void CreateResources(AssetManager& _assetMgr)
 	CreateDefaultResources(_assetMgr);
 	CreateMagikarp(_assetMgr);
 	CreateGizmo(_assetMgr);
-	//CreateDrone(_assetMgr);
+	//CreateHelmet(_assetMgr);
 }
 
 void DestroyResources(AssetManager& _assetMgr)

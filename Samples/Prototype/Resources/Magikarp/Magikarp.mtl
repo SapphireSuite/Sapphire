@@ -1,4 +1,4 @@
-newmtl Body
+newmtl BodyMat
 Kd 1 1 1
 Ka 0.588 0.588 0.588
 Ks 0.78 0.78 0.78
@@ -11,7 +11,7 @@ illum 2
 map_Kd Body.png
 map_d Body.png
 
-newmtl Eyes
+newmtl EyesMat
 Kd 1 1 1
 Ka 0.588 0.588 0.588
 Ks 1 1 1

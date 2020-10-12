@@ -2,6 +2,8 @@
 
 #include <SDK/Wrappers/TinyGLTFWrapper.hpp>
 
+#include <iostream>
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #define TINYGLTF_IMPLEMENTATION
@@ -11,19 +13,33 @@
 #include <Collections/Debug>
 
 #include <Core/Algorithms/Move.hpp>
+#include <Core/Algorithms/SizeOf.hpp>
 
 #include <SDK/Assets/AssetManager.hpp>
 
 namespace Sa
 {
-	bool TinyGLTFWrapper::Import(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result)
+	bool TinyGLTFWrapper::Import_Internal(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result, bool _bIsBinary)
 	{
 		tinygltf::Model model;
 		tinygltf::TinyGLTF loader;
-		std::string err;
+		std::string error;
 		std::string warn;
 
-		bool bRes = loader.LoadBinaryFromFile(&model, &err, &warn, _resourcePath.c_str());
+		bool bRes = false;
+
+		if(_bIsBinary)
+			bRes = loader.LoadBinaryFromFile(&model, &error, &warn, _resourcePath.c_str());
+		else
+			bRes = loader.LoadASCIIFromFile(&model, &error, &warn, _resourcePath.c_str());
+
+		// TODO: CLEAN LATER.
+		if (!warn.empty())
+			std::cout << warn << std::endl;
+
+		// TODO: CLEAN LATER.
+		if (!error.empty())
+			std::cout << error << std::endl;
 
 		if (!bRes)
 		{
@@ -31,6 +47,21 @@ namespace Sa
 			return false;
 		}
 
+		//for (uint32 i = 0u; i < SizeOf(model.bufferViews); ++i)
+		//{
+
+		//}
+
 		return true;
+	}
+
+	bool TinyGLTFWrapper::ImportGLTF(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result)
+	{
+		return Import_Internal(_resourcePath, _assetMgr, _result, false);
+	}
+
+	bool TinyGLTFWrapper::ImportGLB(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result)
+	{
+		return Import_Internal(_resourcePath, _assetMgr, _result, true);
 	}
 }

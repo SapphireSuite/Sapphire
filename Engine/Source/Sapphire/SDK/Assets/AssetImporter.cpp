@@ -69,7 +69,9 @@ namespace Sa
 		if (_extension == "obj")
 			return TinyOBJWrapper::ImportOBJ(_resourcePath, mManager, _result);
 		else if (_extension == "gltf")
-			return TinyGLTFWrapper::Import(_resourcePath, mManager, _result);
+			return TinyGLTFWrapper::ImportGLTF(_resourcePath, mManager, _result);
+		else if (_extension == "glb")
+			return TinyGLTFWrapper::ImportGLB(_resourcePath, mManager, _result);
 
 		return false;
 	}
