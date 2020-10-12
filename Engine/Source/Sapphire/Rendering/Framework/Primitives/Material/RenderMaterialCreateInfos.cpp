@@ -4,11 +4,11 @@
 
 namespace Sa
 {
-	PipelineCreateInfos RenderMaterialCreateInfos::GeneratePipelineCreateInfos(uint32 _renderPassIndex) const
+	PipelineCreateInfos RenderMaterialCreateInfos::GeneratePipelineCreateInfos(/*uint32 _renderPassIndex*/) const
 	{
 		return PipelineCreateInfos
 		{
-			*renderPasses[_renderPassIndex],
+			renderPass/*[_renderPassIndex]*/,
 			cameras, bDynamicViewport,
 			vertexShader, fragementShader,
 			textures, matConstants, renderInfos

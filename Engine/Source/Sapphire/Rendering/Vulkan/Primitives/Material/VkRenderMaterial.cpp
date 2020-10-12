@@ -12,38 +12,42 @@ namespace Sa
 {
 	void VkRenderMaterial::Create(const IRenderInstance& _instance, const RenderMaterialCreateInfos& _matCreateInfos)
 	{
-		mPipelines.reserve(_matCreateInfos.renderPasses.size());
+		mPipeline = new VkRenderPipeline;
+		mPipeline->Create(_instance, _matCreateInfos.GeneratePipelineCreateInfos());
 
-		for (uint32 i = 0u; i < SizeOf(_matCreateInfos.renderPasses); ++i)
-		{
-			VkRenderPipeline& pipeline = mPipelines.emplace_back();
 
-			pipeline.Create(_instance, _matCreateInfos.GeneratePipelineCreateInfos(i));
-		}
+		//mPipelines.reserve(_matCreateInfos.renderPasses.size());
+
+		//for (uint32 i = 0u; i < SizeOf(_matCreateInfos.renderPasses); ++i)
+		//{
+		//	VkRenderPipeline& pipeline = mPipelines.emplace_back();
+
+		//	pipeline.Create(_instance, _matCreateInfos.GeneratePipelineCreateInfos(i));
+		//}
 	}
 
-	void VkRenderMaterial::Destroy(const IRenderInstance& _instance)
-	{
-		for (auto it = mPipelines.begin(); it != mPipelines.end(); ++it)
-			it->Destroy(_instance);
+	//void VkRenderMaterial::Destroy(const IRenderInstance& _instance)
+	//{
+	//	for (auto it = mPipelines.begin(); it != mPipelines.end(); ++it)
+	//		it->Destroy(_instance);
 
-		mPipelines.clear();
-	}
+	//	mPipelines.clear();
+	//}
 
 
-	IRenderPipeline& VkRenderMaterial::GetPipeline(uint32 _index)
-	{
-		SA_ASSERT(_index < SizeOf(mPipelines), OutOfRange, Rendering, _index, 0u, SizeOf(mPipelines));
+	//IRenderPipeline& VkRenderMaterial::GetPipeline(uint32 _index)
+	//{
+	//	SA_ASSERT(_index < SizeOf(mPipelines), OutOfRange, Rendering, _index, 0u, SizeOf(mPipelines));
 
-		return mPipelines[_index];
-	}
+	//	return mPipelines[_index];
+	//}
 
-	const IRenderPipeline& VkRenderMaterial::GetPipeline(uint32 _index) const
-	{
-		SA_ASSERT(_index < SizeOf(mPipelines), OutOfRange, Rendering, _index, 0u, SizeOf(mPipelines));
+	//const IRenderPipeline& VkRenderMaterial::GetPipeline(uint32 _index) const
+	//{
+	//	SA_ASSERT(_index < SizeOf(mPipelines), OutOfRange, Rendering, _index, 0u, SizeOf(mPipelines));
 
-		return mPipelines[_index];
-	}
+	//	return mPipelines[_index];
+	//}
 }
 
 #endif

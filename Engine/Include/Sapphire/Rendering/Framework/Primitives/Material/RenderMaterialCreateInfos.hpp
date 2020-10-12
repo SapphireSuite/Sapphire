@@ -16,7 +16,7 @@ namespace Sa
 
 	struct RenderMaterialCreateInfos
 	{
-		std::vector<const IRenderPass*> renderPasses;
+		IRenderPass& renderPass;
 
 		std::vector<const Camera*> cameras;
 		bool bDynamicViewport = true;
@@ -29,7 +29,7 @@ namespace Sa
 		MaterialConstants matConstants;
 		PipelineRenderInfos renderInfos;
 
-		SA_ENGINE_API PipelineCreateInfos GeneratePipelineCreateInfos(uint32 _renderPassIndex) const;
+		SA_ENGINE_API PipelineCreateInfos GeneratePipelineCreateInfos(/*uint32 _renderPassIndex*/) const;
 	};
 }
 

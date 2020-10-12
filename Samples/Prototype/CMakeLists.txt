@@ -9,7 +9,7 @@ project(Prototype)
 # === Inputs ===
 
 # Parse cpp files.
-file(GLOB_RECURSE SOURCES "*")
+file(GLOB_RECURSE SOURCES "*.cpp" "*.hpp")
 
 # Add executable target.
 add_executable(Prototype ${SOURCES})

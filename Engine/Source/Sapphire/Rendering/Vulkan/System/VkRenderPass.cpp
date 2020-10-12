@@ -13,6 +13,10 @@
 
 namespace Sa
 {
+	// TODO: CLEAN LATER.
+	IRenderPass* IRenderPass::mainRenderPass = nullptr;
+
+
 	uint32 VkRenderPass::GetImageNum() const noexcept
 	{
 		return SizeOf(mFrameBuffers);

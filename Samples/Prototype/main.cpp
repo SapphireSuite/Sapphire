@@ -18,12 +18,15 @@
 #include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Sapphire/Rendering/Vulkan/System/VkRenderPass.hpp>
 
-#include <Sapphire/SDK/Resources/Assets/AssetManager.hpp>
+#include <Sapphire/SDK/Assets/AssetManager.hpp>
 
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
 
+// Default
+constexpr const char* defaultVertShaderAsset = "Bin/Shaders/default_VS.spha";
+constexpr const char* defaultFragShaderAsset = "Bin/Shaders/default_FS.spha";
 
 // Magikarp
 IMesh* magikarpBodyMesh = nullptr;
@@ -36,263 +39,288 @@ IRenderMaterial* magikarpEyesMat = nullptr;
 IMesh* gizmoMesh = nullptr;
 IRenderMaterial* gizmoMat = nullptr;
 
-void CreateResources(AssetManager& _assetMgr, const Sa::IRenderPass& _mainRenderPass, const Camera& _camera)
+// Drone
+IMesh* droneMesh = nullptr;
+IRenderMaterial* droneMat = nullptr;
+
+
+void CreateDefaultResources(AssetManager& _assetMgr)
 {
-	// === Magikarp ===
+	// Vertex Shader.
+	if (!_assetMgr.shaderMgr.Load(defaultVertShaderAsset, true)) // Try load.
 	{
-		constexpr const char* vertShaderAsset = "Bin/Magikarp/Magikarp_VS.spha";
-		constexpr const char* fragShaderAsset = "Bin/Magikarp/Magikarp_FS.spha";
-
-		constexpr const char* textureAssets[] = { "Bin/Magikarp/Body_T.spha", "Bin/Magikarp/Eyes_T.spha" };
-		constexpr const char* meshAssets[] = { "Bin/Magikarp/Body_M.spha", "Bin/Magikarp/Eyes_M.spha" };
-		constexpr const char* materialAssets[] = { "Bin/Magikarp/Body_Mat.spha", "Bin/Magikarp/Eyes_Mat.spha" };
-
-		// Vertex Shader.
-		if (!_assetMgr.shaderMgr.Create(vertShaderAsset).IsValid()) // Try load.
-		{
-			// Import on load failed.
-			ShaderImportInfos importInfos;
-			importInfos.outFilePath = vertShaderAsset;
-
-			_assetMgr.shaderMgr.Import("../../Engine/Resources/Shaders/default.vert", importInfos);
-		}
-
-		// Fragment Shader.
-		if (!_assetMgr.shaderMgr.Create(fragShaderAsset).IsValid()) // Try load.
-		{
-			// Import on load failed.
-			ShaderImportInfos importInfos;
-			importInfos.outFilePath = fragShaderAsset;
-
-			_assetMgr.shaderMgr.Import("../../Engine/Resources/Shaders/default.frag", importInfos);
-		}
-
-
-		// Body Texture.
-		if (!_assetMgr.textureMgr.Create(textureAssets[0]).IsValid()) // Try load.
-		{
-			// Import on load failed.
-			TextureImportInfos importInfos;
-			importInfos.outFilePath = textureAssets[0];
-
-			_assetMgr.textureMgr.Import("../../Engine/Resources/Models/Magikarp/Body.png", importInfos);
-		}
-
-
-		// Eyes Texture.
-		if (!_assetMgr.textureMgr.Create(textureAssets[1]).IsValid()) // Try load.
-		{
-			// Import on load failed.
-			TextureImportInfos importInfos;
-			importInfos.outFilePath = textureAssets[1];
-
-			_assetMgr.textureMgr.Import("../../Engine/Resources/Models/Magikarp/Eyes.png", importInfos);
-		}
-
-
-		// Meshes.
-		{
-			{
-				// Try load.
-
-				MeshAsset bodyMeshAsset = _assetMgr.meshMgr.Create(meshAssets[0]);
-
-				if (bodyMeshAsset.IsValid())
-					magikarpBodyMesh = bodyMeshAsset.GetResource();
-
-				MeshAsset eyesMeshAsset = _assetMgr.meshMgr.Create(meshAssets[1]);
-
-				if (eyesMeshAsset.IsValid())
-					magikarpEyesMesh = eyesMeshAsset.GetResource();
-			}
-
-			if (!magikarpBodyMesh || !magikarpEyesMesh)
-			{
-				// Import on load failed.
-				MeshImportInfos importInfos;
-				importInfos.outFilePaths = { meshAssets[0] , meshAssets[1] };
-
-				auto meshes = _assetMgr.meshMgr.Import("../../Engine/Resources/Models/Magikarp/Magikarp.obj", importInfos);
-
-				magikarpBodyMesh = meshes[0].GetResource();
-				magikarpEyesMesh = meshes[1].GetResource();
-			}
-		}
-
-		// Materials.
-		{
-			{
-				// Try load.
-
-				MaterialAsset bodyMatAsset = _assetMgr.renderMaterialMgr.Create(materialAssets[0], false);
-				
-				if (bodyMatAsset.IsValid())
-				{
-					bodyMatAsset.infos.renderPasses = { &_mainRenderPass };
-					bodyMatAsset.infos.cameras = { &_camera };
-
-					magikarpBodyMat = _assetMgr.renderMaterialMgr.Load(bodyMatAsset);
-				}
-
-
-				MaterialAsset eyesMatAsset = _assetMgr.renderMaterialMgr.Create(materialAssets[1], false);
-				
-				if (eyesMatAsset.IsValid())
-				{
-					eyesMatAsset.infos.renderPasses = { &_mainRenderPass };
-					eyesMatAsset.infos.cameras = { &_camera };
-					magikarpEyesMat = _assetMgr.renderMaterialMgr.Load(eyesMatAsset);
-				}
-			}
-
-			if (!magikarpBodyMat || !magikarpEyesMat)
-			{
-				// Import on load failed.
-				MaterialImportInfos importInfos;
-				importInfos.outFilePaths = { meshAssets[0] , meshAssets[1] };
-
-				auto materials = _assetMgr.renderMaterialMgr.Import("../../Engine/Resources/Models/Magikarp/Magikarp.mtl", importInfos);
-
-				materials[0].infos.vertexShaderPath = vertShaderAsset;
-				materials[1].infos.vertexShaderPath = vertShaderAsset;
-
-				materials[0].infos.fragmentShaderPath = fragShaderAsset;
-				materials[1].infos.fragmentShaderPath = fragShaderAsset;
-
-				materials[0].infos.texturePaths = { textureAssets[0] };
-				materials[1].infos.texturePaths = { textureAssets[1] };
-
-				materials[0].infos.renderPasses = { &_mainRenderPass };
-				materials[1].infos.renderPasses = { &_mainRenderPass };
-				
-				materials[0].infos.cameras = { &_camera };
-				materials[1].infos.cameras = { &_camera };
-				
-				materials[0].infos.bDynamicViewport = false; // TODO: FIX LATER.
-				materials[1].infos.bDynamicViewport = false; // TODO: FIX LATER.
-
-				materials[0].Save(materialAssets[0]);
-				materials[1].Save(materialAssets[1]);
-
-				magikarpBodyMat = materials[0].GetResource();
-				magikarpEyesMat = materials[1].GetResource();
-			}
-		}
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/default.vert");
+		result[0]->Save(defaultVertShaderAsset);
 	}
 
-	// === Gizmo ===
+
+	// Fragment Shader.
+	if (!_assetMgr.shaderMgr.Load(defaultFragShaderAsset, true)) // Try load.
 	{
-		constexpr const char* vertShaderAsset = "Bin/Gizmo/Gizmo_VS.spha";
-		constexpr const char* fragShaderAsset = "Bin/Gizmo/Gizmo_FS.spha";
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/default.frag");
+		result[0]->Save(defaultFragShaderAsset);
+	}
+}
 
-		constexpr const char* meshAsset = "Bin/Gizmo/Square_M.spha";
-		constexpr const char* materialAssets = "Bin/Gizmo/Square_Mat.spha";
+void CreateMagikarp(AssetManager& _assetMgr)
+{
+	constexpr const char* textureAssets[] = { "Bin/Magikarp/Body_T.spha", "Bin/Magikarp/Eyes_T.spha" };
+	constexpr const char* meshAssets[] = { "Bin/Magikarp/Body_M.spha", "Bin/Magikarp/Eyes_M.spha" };
+	constexpr const char* materialAssets[] = { "Bin/Magikarp/Body_Mat.spha", "Bin/Magikarp/Eyes_Mat.spha" };
 
-		// Vertex Shader.
-		if (!_assetMgr.shaderMgr.Create(vertShaderAsset).IsValid()) // Try load.
+
+	// Body Texture.
+	if (!_assetMgr.textureMgr.Load(textureAssets[0], true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/Magikarp/Body.png");
+		result[0]->Save(textureAssets[0]);
+	}
+
+
+	// Eyes Texture.
+	if (!_assetMgr.textureMgr.Load(textureAssets[1], true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/Magikarp/Eyes.png");
+		result[0]->Save(textureAssets[1]);
+	}
+
+
+	// Model.
+	{
+		// Try load.
+		magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
+		magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssets[1]);
+
+		magikarpBodyMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
+		magikarpEyesMat = _assetMgr.renderMatMgr.Load(materialAssets[1]);
+
+		if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
 		{
 			// Import on load failed.
-			ShaderImportInfos importInfos;
-			importInfos.outFilePath = vertShaderAsset;
+			IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/Magikarp/Magikarp.obj");
+			
+			// meshes
+			result[0]->Save(meshAssets[0]);
+			magikarpBodyMesh = result[0]->As<MeshAsset>().GetResource();
 
-			_assetMgr.shaderMgr.Import("../../Engine/Resources/Shaders/gizmo.vert", importInfos);
-		}
-
-		// Fragment Shader.
-		if (!_assetMgr.shaderMgr.Create(fragShaderAsset).IsValid()) // Try load.
-		{
-			// Import on load failed.
-			ShaderImportInfos importInfos;
-			importInfos.outFilePath = fragShaderAsset;
-
-			_assetMgr.shaderMgr.Import("../../Engine/Resources/Shaders/gizmo.frag", importInfos);
-		}
+			result[1]->Save(meshAssets[1]);
+			magikarpEyesMesh = result[1]->As<MeshAsset>().GetResource();
 
 
-		// Mesh.
-		{
-			MeshAsset gizmoMeshAsset = _assetMgr.meshMgr.Create(meshAsset);
+			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
+			bodyRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
+			bodyRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
+			bodyRenderMat.infos.texturePaths = { textureAssets[0] };
+			bodyRenderMat.Save(materialAssets[0]);
+			magikarpBodyMat = bodyRenderMat.GetResource();
 
-			if(gizmoMeshAsset.IsValid())
-				gizmoMesh = gizmoMeshAsset.GetResource();
-		}
 
-		if (!gizmoMesh) // Try load.
-		{
-			MeshCreateInfos gizmoMeshInfos;
-
-			gizmoMeshInfos.vertices =
-			{
-				{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
-				{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f } },
-				{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f } },
-				{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f } },
-			};
-
-			gizmoMeshInfos.indices =
-			{
-				0, 1, 2, 2, 3, 0
-			};
-
-			gizmoMeshInfos.outFilePaths = meshAsset;
-
-			// Create on load failed.
-			gizmoMesh = _assetMgr.meshMgr.Create(Move(gizmoMeshInfos)).GetResource();
-		}
-
-		// Materials.
-		{
-			{
-				// Try load.
-				MaterialAsset gizmoMatAsset = _assetMgr.renderMaterialMgr.Create(materialAssets, false);
-
-				if (gizmoMatAsset.IsValid())
-				{
-					gizmoMatAsset.infos.renderPasses = { &_mainRenderPass };
-					gizmoMatAsset.infos.cameras = { &_camera };
-
-					gizmoMat = _assetMgr.renderMaterialMgr.Load(gizmoMatAsset);
-				}
-			}
-
-			if (!gizmoMat)
-			{
-				// Import on load failed.
-				MaterialCreateInfos matInfos;
-				matInfos.renderPasses = { &_mainRenderPass };
-				matInfos.cameras = { &_camera };
-				matInfos.bDynamicViewport = false; // TODO: FIX LATER.
-				matInfos.outFilePaths = materialAssets;
-
-				matInfos.vertexShaderPath = vertShaderAsset;
-				matInfos.fragmentShaderPath = fragShaderAsset;
-
-				matInfos.renderInfos = PipelineRenderInfos
-				{
-					sizeof(Mat4f),
-					AlphaModel::Opaque,
-					PolygonMode::Fill,
-					CullingMode::None,
-					FrontFaceMode::Clockwise,
-					IlluminationModel::None
-				};
-
-				gizmoMat = _assetMgr.renderMaterialMgr.Create(Move(matInfos)).GetResource();
-			}
+			RenderMaterialAsset& eyesRenderMat = result[3]->As<RenderMaterialAsset>();
+			eyesRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
+			eyesRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
+			eyesRenderMat.infos.texturePaths = { textureAssets[1] };
+			eyesRenderMat.Save(materialAssets[1]);
+			magikarpEyesMat = eyesRenderMat.GetResource();
 		}
 	}
+}
+
+void CreateGizmo(AssetManager& _assetMgr)
+{
+	constexpr const char* vertShaderAsset = "Bin/Gizmo/Gizmo_VS.spha";
+	constexpr const char* fragShaderAsset = "Bin/Gizmo/Gizmo_FS.spha";
+
+	constexpr const char* meshAsset = "Bin/Gizmo/Square_M.spha";
+	constexpr const char* materialAssets = "Bin/Gizmo/Square_Mat.spha";
+
+	// Vertex Shader.
+	if (!_assetMgr.shaderMgr.Load(vertShaderAsset, true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/gizmo.vert");
+		result[0]->Save(vertShaderAsset);
+	}
+
+	// Fragment Shader.
+	if (!_assetMgr.shaderMgr.Load(fragShaderAsset, true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/gizmo.frag");
+		result[0]->Save(fragShaderAsset);
+	}
+
+
+	// Mesh.
+	gizmoMesh = _assetMgr.meshMgr.Load(meshAsset);
+
+	if (!gizmoMesh) // Try load.
+	{
+		MeshRawData gizmoRawMesh;
+
+		gizmoRawMesh.vertices =
+		{
+			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 0.0f } },
+			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 0.0f } },
+			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 0.0f, 1.0f } },
+			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, { 1.0f, 1.0f } },
+		};
+
+		gizmoRawMesh.indices =
+		{
+			0, 1, 2, 2, 3, 0
+		};
+
+		// Create on load failed.
+		MeshAsset gizmoMeshAsset = _assetMgr.meshMgr.Create(Move(gizmoRawMesh));
+		gizmoMeshAsset.Save(meshAsset);
+		gizmoMesh = gizmoMeshAsset.GetResource();
+	}
+
+	// Materials.
+	gizmoMat = _assetMgr.renderMatMgr.Load(materialAssets);
+	
+	if (!gizmoMat) // Try load.
+	{
+		// Import on load failed.
+		RenderMaterialRawData gizmoRawMat;
+		gizmoRawMat.vertexShaderPath = vertShaderAsset;
+		gizmoRawMat.fragmentShaderPath = fragShaderAsset;
+
+		gizmoRawMat.renderInfos = PipelineRenderInfos
+		{
+			sizeof(Mat4f),
+			AlphaModel::Opaque,
+			PolygonMode::Fill,
+			CullingMode::None,
+			FrontFaceMode::Clockwise,
+			IlluminationModel::None
+		};
+
+		RenderMaterialAsset gizmoMatAsset = _assetMgr.renderMatMgr.Create(Move(gizmoRawMat));
+		gizmoMatAsset.Save(materialAssets);
+		gizmoMat = gizmoMatAsset.GetResource();
+	}
+}
+
+void CreateDrone(AssetManager& _assetMgr)
+{
+	//constexpr const char* textureAssets[] = { "Bin/Drone/BodyBaseColor_T.spha", "Bin/Drone/MaterialBaseColor_T.spha" };
+	//constexpr const char* meshAssets[] = { "Bin/Drone/Drone_M.spha" };
+	//constexpr const char* materialAssets[] = { "Bin/Drone/Drone_Mat.spha" };
+
+
+	//constexpr const char* textureResources[] = { "../../Samples/Prototype/Resources/BusterDrone/GLTF/textures/body_baseColor.png",
+	//												"../../Samples/Prototype/Resources/BusterDrone/GLTF/textures/material_baseColor.png" };
+
+	//for (uint32 i = 0u; i < SizeOf(textureAssets); ++i)
+	//{
+	//	if (!_assetMgr.textureMgr.Create(textureAssets[i]).IsValid()) // Try load.
+	//	{
+	//		// Import on load failed.
+	//		TextureImportInfos importInfos;
+	//		importInfos.outFilePath = textureAssets[i];
+
+	//		_assetMgr.textureMgr.Import(textureResources[i], importInfos);
+	//	}
+	//}
+
+
+	//// Meshes.
+	//{
+	//	{
+	//		// Try load.
+
+	//		MeshAsset droneMeshAsset = _assetMgr.meshMgr.Create(meshAssets[0]);
+
+	//		if (droneMeshAsset.IsValid())
+	//			droneMesh = droneMeshAsset.GetResource();
+	//	}
+
+	//	if (!droneMesh)
+	//	{
+	//		// Import on load failed.
+	//		MeshImportInfos importInfos;
+	//		importInfos.outFilePaths = { meshAssets[0] };
+
+	//		auto meshes = _assetMgr.meshMgr.Import("../../Samples/Prototype/Resources/BusterDrone/GLTF/BusterDrone.gltf", importInfos);
+
+	//		droneMesh = meshes[0].GetResource();
+	//	}
+	//}
+
+	//// Materials.
+	//{
+	//	{
+	//		// Try load.
+
+	//		MaterialAsset droneMatAsset = _assetMgr.renderMaterialMgr.Create(materialAssets[0], false);
+
+	//		if (droneMatAsset.IsValid())
+	//		{
+	//			droneMatAsset.infos.renderPasses = { &_mainRenderPass };
+	//			droneMatAsset.infos.cameras = { &_camera };
+
+	//			droneMat = _assetMgr.renderMaterialMgr.Load(droneMatAsset);
+	//		}
+	//	}
+
+	//	//if (!droneMat)
+	//	//{
+	//	//	// Import on load failed.
+	//	//	MaterialImportInfos importInfos;
+	//	//	importInfos.outFilePaths = { meshAssets[0] , meshAssets[1] };
+
+	//	//	auto materials = _assetMgr.renderMaterialMgr.Import("../../Engine/Resources/Models/Magikarp/Magikarp.mtl", importInfos);
+
+	//	//	materials[0].infos.vertexShaderPath = defaultVertShaderAsset;
+	//	//	materials[1].infos.vertexShaderPath = defaultVertShaderAsset;
+
+	//	//	materials[0].infos.fragmentShaderPath = defaultFragShaderAsset;
+	//	//	materials[1].infos.fragmentShaderPath = defaultFragShaderAsset;
+
+	//	//	materials[0].infos.texturePaths = { textureAssets[0] };
+	//	//	materials[1].infos.texturePaths = { textureAssets[1] };
+
+	//	//	materials[0].infos.renderPasses = { &_mainRenderPass };
+	//	//	materials[1].infos.renderPasses = { &_mainRenderPass };
+
+	//	//	materials[0].infos.cameras = { &_camera };
+	//	//	materials[1].infos.cameras = { &_camera };
+
+	//	//	materials[0].infos.bDynamicViewport = false; // TODO: FIX LATER.
+	//	//	materials[1].infos.bDynamicViewport = false; // TODO: FIX LATER.
+
+	//	//	materials[0].Save(materialAssets[0]);
+	//	//	materials[1].Save(materialAssets[1]);
+
+	//	//	magikarpBodyMat = materials[0].GetResource();
+	//	//	magikarpEyesMat = materials[1].GetResource();
+	//	//}
+	//}
+}
+
+void CreateResources(AssetManager& _assetMgr)
+{
+	CreateDefaultResources(_assetMgr);
+	CreateMagikarp(_assetMgr);
+	CreateGizmo(_assetMgr);
+	//CreateDrone(_assetMgr);
 }
 
 void DestroyResources(AssetManager& _assetMgr)
 {
 	// === Gizmo ===
-	_assetMgr.renderMaterialMgr.Unload(gizmoMat);
+	_assetMgr.renderMatMgr.Unload(gizmoMat);
 	_assetMgr.meshMgr.Unload(gizmoMesh);
 
 
 	// === Magikarp ===
-	_assetMgr.renderMaterialMgr.Unload(magikarpEyesMat);
-	_assetMgr.renderMaterialMgr.Unload(magikarpBodyMat);
+	_assetMgr.renderMatMgr.Unload(magikarpEyesMat);
+	_assetMgr.renderMatMgr.Unload(magikarpBodyMat);
 
 	_assetMgr.meshMgr.Unload(magikarpEyesMesh);
 	_assetMgr.meshMgr.Unload(magikarpBodyMesh);
@@ -321,11 +349,13 @@ int main()
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
 	Sa::VkRenderPass& mainRenderPass = surface.CreateRenderPass(instance, RenderPassCreateInfos{}).As<Sa::VkRenderPass>();
+	IRenderPass::mainRenderPass = &mainRenderPass;
 
 	Camera mainCamera(surface.GetImageExtent());
+	Camera::mainCamera = &mainCamera;
 
 	AssetManager assetMgr(instance);
-	CreateResources(assetMgr, mainRenderPass, mainCamera);
+	CreateResources(assetMgr);
 
 
 	// Create Lights.
@@ -346,13 +376,13 @@ int main()
 		ObjectUniformBuffer oubo;
 		oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-1.0f, -1.0, -2.5f),
 			Quatf(180, Vec3f::Up) * Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix());
-		magikarpBodyMat->InitVariable(instance, 0u, &oubo, sizeof(oubo));
-		magikarpEyesMat->InitVariable(instance, 0u, &oubo, sizeof(oubo));
+		magikarpBodyMat->InitVariable(instance, &oubo, sizeof(oubo));
+		magikarpEyesMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
 
 	{
 		Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-		gizmoMat->InitVariable(instance, 0u, &modelMat, sizeof(Mat4f));
+		gizmoMat->InitVariable(instance, &modelMat, sizeof(Mat4f));
 	}
 
 
@@ -419,7 +449,7 @@ int main()
 		{
 			ObjectUniformBuffer oubo;
 			oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-			gizmoMat->UpdateVariable(instance, frame, 0u, &oubo, sizeof(oubo));
+			gizmoMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
 
 			vkDeviceWaitIdle(instance.GetDevice());
 			pLight1.position = API_ConvertCoordinateSystem(pL1Pos);
@@ -431,15 +461,15 @@ int main()
 
 
 		// Draw Magikarp.
-		magikarpBodyMat->Bind(frame, 0u);
+		magikarpBodyMat->Bind(frame);
 		magikarpBodyMesh->Draw(frame);
 
-		magikarpEyesMat->Bind(frame, 0u);
+		magikarpEyesMat->Bind(frame);
 		magikarpEyesMesh->Draw(frame);
 
 
 		// Draw gizmos.
-		gizmoMat->Bind(frame, 0u);
+		gizmoMat->Bind(frame);
 		gizmoMesh->Draw(frame);
 
 

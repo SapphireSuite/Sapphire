@@ -4,6 +4,9 @@
 
 namespace Sa
 {
+	// TODO: CLEAN LATER.
+	Camera* Camera::mainCamera = nullptr;
+
 	Camera::Camera(const ImageViewExtent& _viewport, const ImageViewExtent& _scissor) noexcept :
 		mViewport{ _viewport },
 		mScissor{ _scissor }
