@@ -24,7 +24,7 @@ namespace Sa
 		VkSampler mSampler = VK_NULL_HANDLE;
 
 	public:
-		void Create(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height) override final;
+		void Create(const IRenderInstance& _instance, const RawTexture& _rawTexture) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
 		VkDescriptorImageInfo CreateDescriptorImageInfo() const noexcept;

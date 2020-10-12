@@ -6,6 +6,7 @@
 #define SAPPHIRE_RENDERING_ITEXTURE_GUARD
 
 #include <Rendering/Framework/Primitives/IRenderPrimitive.hpp>
+#include <Rendering/Framework/Primitives/Texture/RawTexture.hpp>
 
 namespace Sa
 {
@@ -14,10 +15,10 @@ namespace Sa
 	class ITexture : public IRenderPrimitive
 	{
 	protected:
-		virtual void Create(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height) = 0;
+		virtual void Create(const IRenderInstance& _instance, const RawTexture& _rawTexture) = 0;
 
 	public:
-		static ITexture* CreateInstance(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height);
+		static ITexture* CreateInstance(const IRenderInstance& _instance, const RawTexture& _rawTexture);
 
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 	};

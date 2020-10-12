@@ -12,26 +12,24 @@
 
 namespace Sa
 {
-	void VkMesh::Create(const IRenderInstance& _instance,
-		const std::vector<Vertex>& _vertices,
-		const std::vector<uint32>& _indices)
+	void VkMesh::Create(const IRenderInstance& _instance, const RawMesh& _rawMesh)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 
 		// Create Vertex buffer.
-		mVertexBuffer.Create(device, sizeof(Vertex) * SizeOf(_vertices),
+		mVertexBuffer.Create(device, sizeof(Vertex) * SizeOf(_rawMesh.vertices),
 			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			_vertices.data());
+			_rawMesh.vertices.data());
 
 
 		// Create Index buffer.
-		mIndicesSize = SizeOf(_indices);
+		mIndicesSize = SizeOf(_rawMesh.indices);
 		mIndexBuffer.Create(device, sizeof(uint32) * mIndicesSize,
 			VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			_indices.data());
+			_rawMesh.indices.data());
 	}
 
 	void VkMesh::Destroy(const IRenderInstance& _instance)

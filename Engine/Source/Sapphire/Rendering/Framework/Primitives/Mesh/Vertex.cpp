@@ -55,6 +55,14 @@ namespace Sa
 			{
 				2,									// location.
 				0,									// binding.
+				VK_FORMAT_R32G32B32_SFLOAT,			// format.
+				offsetof(Vertex, tangent)			// offset
+			},
+
+			VkVertexInputAttributeDescription
+			{
+				3,									// location.
+				0,									// binding.
 				VK_FORMAT_R32G32_SFLOAT,			// format.
 				offsetof(Vertex, texture)			// offset
 			},

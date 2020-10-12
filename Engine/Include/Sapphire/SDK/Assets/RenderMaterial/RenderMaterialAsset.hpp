@@ -26,13 +26,13 @@ namespace Sa
 
 	public:
 		using ResT = IRenderMaterial;
-		using RawDataT = RenderMaterialRawData;
+		using RawT = RenderMaterialRawData;
 
 		RenderMaterialRawData infos;
 
 		SA_ENGINE_API RenderMaterialAsset(IResourceMgrBase& _manager) noexcept;
 		SA_ENGINE_API RenderMaterialAsset(RenderMaterialAsset&& _other) noexcept;
-		SA_ENGINE_API RenderMaterialAsset(IResourceMgrBase& _manager, RawDataT&& _rawData) noexcept;
+		SA_ENGINE_API RenderMaterialAsset(IResourceMgrBase& _manager, RawT&& _raw) noexcept;
 		SA_ENGINE_API ~RenderMaterialAsset();
 
 		SA_ENGINE_API ResT* GetResource() const;

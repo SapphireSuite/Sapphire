@@ -16,12 +16,9 @@ namespace Sa
 	class TextureAsset : public IAsset
 	{
 	protected:
-		uint32 mWidth = 0;
-		uint32 mHeight = 0;
+		RawTexture mRawData;
 
 		TextureChannel mChannel = TextureChannel::RGBA;
-
-		char* mData = nullptr;
 
 		uint32 GetDataSize() const noexcept;
 
@@ -32,10 +29,10 @@ namespace Sa
 
 	public:
 		using ResT = ITexture;
-		using RawDataT = TextureRawData;
+		using RawT = RawTexture;
 
 		SA_ENGINE_API TextureAsset(IResourceMgrBase& _manager) noexcept;
-		SA_ENGINE_API TextureAsset(IResourceMgrBase& _manager, RawDataT&& _rawData) noexcept;
+		SA_ENGINE_API TextureAsset(IResourceMgrBase& _manager, RawT&& _rawData) noexcept;
 		SA_ENGINE_API TextureAsset(TextureAsset&& _other) noexcept;
 		SA_ENGINE_API ~TextureAsset();
 

@@ -8,9 +8,7 @@
 
 namespace Sa
 {
-	IMesh* IMesh::CreateInstance(const IRenderInstance& _instance,
-		const std::vector<Vertex>& _vertices,
-		const std::vector<uint32>& _indices)
+	IMesh* IMesh::CreateInstance(const IRenderInstance& _instance, const RawMesh& _rawMesh)
 	{
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -18,7 +16,7 @@ namespace Sa
 
 #endif
 
-		result->Create(_instance, _vertices, _indices);
+		result->Create(_instance, _rawMesh);
 
 		return result;
 	}

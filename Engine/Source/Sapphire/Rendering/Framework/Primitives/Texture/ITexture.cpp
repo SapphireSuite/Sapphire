@@ -8,7 +8,7 @@
 
 namespace Sa
 {
-	ITexture* ITexture::CreateInstance(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height)
+	ITexture* ITexture::CreateInstance(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -16,7 +16,7 @@ namespace Sa
 
 #endif
 
-		result->Create(_instance, _data, _width, _height);
+		result->Create(_instance, _rawTexture);
 
 		return result;
 	}

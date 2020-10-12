@@ -6,7 +6,6 @@
 #define SAPPHIRE_SDK_SHADER_ASSET_GUARD
 
 #include <SDK/Assets/IAsset.hpp>
-#include <SDK/Assets/Shader/ShaderAssetInfos.hpp>
 
 #include <Rendering/Framework/Primitives/Shader/IShader.hpp>
 
@@ -15,8 +14,7 @@ namespace Sa
 	class ShaderAsset : public IAsset
 	{
 	protected:
-		char* mData = nullptr;
-		uint32 mSize = 0u;
+		RawShader mRawData;
 
 		std::string mResourcePath;
 
@@ -35,10 +33,10 @@ namespace Sa
 
 	public:
 		using ResT = IShader;
-		using RawDataT = ShaderRawData;
+		using RawT = RawShader;
 
 		SA_ENGINE_API ShaderAsset(IResourceMgrBase& _manager) noexcept;
-		SA_ENGINE_API ShaderAsset(IResourceMgrBase& _manager, RawDataT&& _rawData) noexcept;
+		SA_ENGINE_API ShaderAsset(IResourceMgrBase& _manager, RawT&& _raw) noexcept;
 		SA_ENGINE_API ShaderAsset(ShaderAsset&& _other) noexcept;
 		SA_ENGINE_API ~ShaderAsset();
 

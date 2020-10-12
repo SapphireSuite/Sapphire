@@ -36,7 +36,7 @@ namespace Sa
 	{
 	public:
 		using ResT = typename AssetT::ResT;
-		using RawDataT = typename AssetT::RawDataT;
+		using RawT = typename AssetT::RawT;
 
 	private:
 		struct SmartPtr
@@ -68,7 +68,7 @@ namespace Sa
 		void Unload(ResT* _resource);
 		void Unload(const std::vector<ResT*>& _resources);
 
-		AssetT Create(RawDataT&& _createInfos);
+		AssetT Create(RawT&& _createInfos);
 
 		void Save(const AssetT& _asset, const std::string& _newPath);
 		void Save(const void* _asset, const std::string& _newPath) override final;

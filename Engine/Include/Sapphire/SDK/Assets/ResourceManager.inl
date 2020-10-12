@@ -130,7 +130,7 @@ namespace Sa
 
 
 	template<typename AssetT>
-	AssetT ResourceMgr<AssetT>::Create(typename AssetT::RawDataT&& _rawData)
+	AssetT ResourceMgr<AssetT>::Create(RawT&& _rawData)
 	{
 		AssetT asset(*this, Move(_rawData));
 

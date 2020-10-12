@@ -42,14 +42,16 @@ namespace Sa
 		// TODO: REMOVE LATER.
 		stbi_set_flip_vertically_on_load(true);
 
-		TextureRawData rawData;
+		// TODO: CLEAN LATER.
+		int32 channel = 4;
+		RawTexture rawData;
 
 		// Load texture.
 		rawData.data = reinterpret_cast<char*>(stbi_load(_resourcePath.c_str(),
 			reinterpret_cast<int32*>(&rawData.width),
 			reinterpret_cast<int32*>(&rawData.height),
-			reinterpret_cast<int32*>(&rawData.channel),
-			static_cast<int32>(rawData.channel)
+			&channel,
+			channel
 		));
 
 		if (!rawData.data)

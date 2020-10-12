@@ -25,20 +25,16 @@ namespace Sa
 	{
 	}
 
-	ShaderAsset::ShaderAsset(IResourceMgrBase& _manager, RawDataT&& _rawData) noexcept :
+	ShaderAsset::ShaderAsset(IResourceMgrBase& _manager, RawT&& _raw) noexcept :
 		IAsset(_manager, AssetType::Shader),
-		mData{ _rawData.data },
-		mSize{ _rawData.size }
+		mRawData{ _raw }
 	{
-		_rawData.data = nullptr;
-		_rawData.size = 0u;
 	}
 
-	ShaderAsset::ShaderAsset(ShaderAsset&& _other) noexcept : IAsset(Move(_other))
+	ShaderAsset::ShaderAsset(ShaderAsset&& _other) noexcept :
+		IAsset(Move(_other)),
+		mRawData{ Move(_other.mRawData) }
 	{
-		mData = _other.mData;
-		mSize = _other.mSize;
-
 		_other.UnLoad(false);
 	}
 
@@ -62,7 +58,7 @@ namespace Sa
 
 	bool ShaderAsset::IsValid() const noexcept
 	{
-		return mSize && mData;
+		return mRawData.size && mRawData.data;
 	}
 
 	bool ShaderAsset::PostLoadOperation(const std::string& _filePath)
@@ -79,7 +75,7 @@ namespace Sa
 	bool ShaderAsset::Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream)
 	{
 		// Header.
-		if (!(_hStream >> mResourcePath >> mSize))
+		if (!(_hStream >> mResourcePath >> mRawData.size))
 		{
 			SA_LOG("Can't parse header!", Warning, SDK_Asset);
 			return false;
@@ -92,8 +88,8 @@ namespace Sa
 		}
 		else
 		{
-			mData = new char[mSize] {};
-			_fStream.read(mData, mSize);
+			mRawData.data = new char[mRawData.size] {};
+			_fStream.read(mRawData.data, mRawData.size);
 		}
 
 		return true;
@@ -101,22 +97,22 @@ namespace Sa
 
 	void ShaderAsset::UnLoad_Internal(bool _bFreeResources)
 	{
-		if (mData && _bFreeResources)
-			delete mData;
+		if (mRawData.data && _bFreeResources)
+			delete mRawData.data;
 
-		mData = nullptr;
-		mSize = 0u;
+		mRawData.data = nullptr;
+		mRawData.size = 0u;
 	}
 
 
 	void ShaderAsset::Save_Internal(std::fstream& _fStream) const
 	{
-		SA_ASSERT(mData, Nullptr, SDK_Asset, L"Save nullptr texture asset!");
+		SA_ASSERT(mRawData.data, Nullptr, SDK_Asset, L"Save nullptr texture asset!");
 
 		// Header.
-		_fStream << mResourcePath.c_str() << ' ' << mSize << '\n';
+		_fStream << mResourcePath.c_str() << ' ' << mRawData.size << '\n';
 
-		_fStream.write(mData, mSize);
+		_fStream.write(mRawData.data, mRawData.size);
 	}
 
 	void ShaderAsset::Import(const std::string& _resourcePath)
@@ -129,11 +125,11 @@ namespace Sa
 		std::ifstream file(tempPath, std::ios::binary | std::ios::ate);
 		SA_ASSERT(file.is_open(), InvalidParam, Rendering, L"failed to open shader file!");
 
-		mSize = static_cast<uint32>(file.tellg());
-		mData = new char[mSize] {};
+		mRawData.size = static_cast<uint32>(file.tellg());
+		mRawData.data = new char[mRawData.size] {};
 
 		file.seekg(0);
-		file.read(mData, mSize);
+		file.read(mRawData.data, mRawData.size);
 
 		file.close();
 		
@@ -145,7 +141,7 @@ namespace Sa
 
 	IShader* ShaderAsset::Create(const IRenderInstance& _instance) const
 	{
-		return IShader::CreateInstance(_instance, mData, mSize);
+		return IShader::CreateInstance(_instance, mRawData);
 	}
 
 	std::string ShaderAsset::GenerateTempPath(const std::string& _resourcePath)
@@ -196,8 +192,7 @@ namespace Sa
 
 	ShaderAsset& ShaderAsset::operator=(ShaderAsset&& _rhs)
 	{
-		mData = _rhs.mData;
-		mSize = _rhs.mSize;
+		mRawData = Move(_rhs.mRawData);
 
 		_rhs.UnLoad(false);
 

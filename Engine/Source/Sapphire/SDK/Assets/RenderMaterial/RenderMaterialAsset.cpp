@@ -30,9 +30,9 @@ namespace Sa
 		_other.UnLoad(false);
 	}
 
-	RenderMaterialAsset::RenderMaterialAsset(IResourceMgrBase& _manager, RawDataT&& _rawData) noexcept :
+	RenderMaterialAsset::RenderMaterialAsset(IResourceMgrBase& _manager, RawT&& _raw) noexcept :
 		IAsset(_manager, AssetType::RenderMaterial),
-		infos{ Move(_rawData) }
+		infos{ Move(_raw) }
 	{
 	}
 

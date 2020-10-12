@@ -10,9 +10,9 @@
 
 namespace Sa
 {
-	void VkTexture::Create(const IRenderInstance& _instance, const void* _data, uint32 _width, uint32 _height)
+	void VkTexture::Create(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
-		uint32 imageSize = _width * _height * 4;
+		uint32 imageSize = _rawTexture.width * _rawTexture.height * 4;
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
@@ -22,10 +22,10 @@ namespace Sa
 
 		void* data;
 		vkMapMemory(device, stagingBuffer, 0, imageSize, 0, &data);
-		memcpy(data, _data, imageSize);
+		memcpy(data, _rawTexture.data, imageSize);
 		vkUnmapMemory(device, stagingBuffer);
 
-		VkExtent3D textureExtent{ _width, _height, 1 };
+		VkExtent3D textureExtent{ _rawTexture.width, _rawTexture.height, 1 };
 
 		const VkImageBufferCreateInfos imageBufferCreateInfos
 		{

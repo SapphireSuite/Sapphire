@@ -20,7 +20,7 @@ namespace Sa
 		VkShaderModule mHandle = VK_NULL_HANDLE;
 
 	public:
-		void Create(const IRenderInstance& _instance, const char* _code, uint32 _size) override final;
+		void Create(const IRenderInstance& _instance, const RawShader& _rawShader) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
 		operator VkShaderModule() const;

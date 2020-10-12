@@ -6,7 +6,7 @@
 #define SAPPHIRE_RENDERING_IMESH_GUARD
 
 #include <Rendering/Framework/Primitives/IRenderPrimitive.hpp>
-#include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
+#include <Rendering/Framework/Primitives/Mesh/RawMesh.hpp>
 
 namespace Sa
 {
@@ -16,14 +16,10 @@ namespace Sa
 	class IMesh : public IRenderPrimitive
 	{
 	protected:
-		virtual void Create(const IRenderInstance& _instance,
-			const std::vector<Vertex>& _vertices,
-			const std::vector<uint32>& _indices) = 0;
+		virtual void Create(const IRenderInstance& _instance, const RawMesh& _rawMesh) = 0;
 	public:
 		// TODO: REMOVE SA_ENGINE_API
-		SA_ENGINE_API static IMesh* CreateInstance(const IRenderInstance& _instance,
-			const std::vector<Vertex>& _vertices,
-			const std::vector<uint32>& _indices);
+		SA_ENGINE_API static IMesh* CreateInstance(const IRenderInstance& _instance, const RawMesh& _rawMesh);
 		
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 

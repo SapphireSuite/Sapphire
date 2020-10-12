@@ -13,18 +13,16 @@ namespace Sa
 	{
 	}
 
-	MeshAsset::MeshAsset(IResourceMgrBase& _manager, RawDataT&& _rawData) :
+	MeshAsset::MeshAsset(IResourceMgrBase& _manager, RawT&& _raw) :
 		IAsset(_manager, AssetType::Mesh),
-		mVertices{ Move(_rawData.vertices) },
-		mIndices{ Move(_rawData.indices) }
+		mRawData{ Move(_raw) }
 	{
 	}
 
-	MeshAsset::MeshAsset(MeshAsset&& _other) noexcept : IAsset(Move(_other))
+	MeshAsset::MeshAsset(MeshAsset&& _other) noexcept :
+		IAsset(Move(_other)),
+		mRawData{ Move(_other.mRawData) }
 	{
-		mVertices = Move(_other.mVertices);
-		mIndices = Move(_other.mIndices);
-
 		_other.UnLoad(false);
 	}
 
@@ -48,7 +46,7 @@ namespace Sa
 
 	bool MeshAsset::IsValid() const noexcept
 	{
-		return mVertices.size() && mIndices.size();
+		return mRawData.vertices.size() && mRawData.indices.size();
 	}
 
 	bool MeshAsset::Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream)
@@ -63,46 +61,45 @@ namespace Sa
 			return false;
 		}
 
-		mVertices.resize(vSize / sizeof(Vertex));
-		mIndices.resize(iSize / sizeof(uint32));
+		mRawData.vertices.resize(vSize / sizeof(Vertex));
+		mRawData.indices.resize(iSize / sizeof(uint32));
 
-		_fStream.read(reinterpret_cast<char*>(mVertices.data()), vSize);
-		_fStream.read(reinterpret_cast<char*>(mIndices.data()), iSize);
+		_fStream.read(reinterpret_cast<char*>(mRawData.vertices.data()), vSize);
+		_fStream.read(reinterpret_cast<char*>(mRawData.indices.data()), iSize);
 
 		return true;
 	}
 
 	void MeshAsset::UnLoad_Internal(bool _bFreeResources)
 	{
-		mVertices.clear();
-		mIndices.clear();
+		mRawData.vertices.clear();
+		mRawData.indices.clear();
 	}
 
 
 	void MeshAsset::Save_Internal(std::fstream& _fStream) const
 	{
-		SA_ASSERT(!mVertices.empty() && !mIndices.empty(), Nullptr, SDK_Asset, L"Save nullptr texture asset!");
+		SA_ASSERT(IsValid(), Nullptr, SDK_Asset, L"Save nullptr mesh asset!");
 
-		uint32 vSize = SizeOf(mVertices) * sizeof(Vertex);
-		uint32 iSize = SizeOf(mIndices) * sizeof(uint32);
+		uint32 vSize = BitSizeOf(mRawData.vertices);
+		uint32 iSize = BitSizeOf(mRawData.indices);
 
 		// Header.
 		_fStream << vSize << ' ' << iSize << '\n';
 
-		_fStream.write(reinterpret_cast<const char*>(mVertices.data()), vSize);
-		_fStream.write(reinterpret_cast<const char*>(mIndices.data()), iSize);
+		_fStream.write(reinterpret_cast<const char*>(mRawData.vertices.data()), vSize);
+		_fStream.write(reinterpret_cast<const char*>(mRawData.indices.data()), iSize);
 	}
 
 	IMesh* MeshAsset::Create(const IRenderInstance& _instance) const
 	{
-		return IMesh::CreateInstance(_instance, mVertices, mIndices);
+		return IMesh::CreateInstance(_instance, Move(mRawData));
 	}
 
 
 	MeshAsset& MeshAsset::operator=(MeshAsset&& _rhs)
 	{
-		mVertices = Move(_rhs.mVertices);
-		mIndices = Move(_rhs.mIndices);
+		mRawData = Move(_rhs.mRawData);
 
 		_rhs.UnLoad(false);
 

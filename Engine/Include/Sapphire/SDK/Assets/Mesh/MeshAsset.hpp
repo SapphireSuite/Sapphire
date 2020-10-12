@@ -6,7 +6,6 @@
 #define SAPPHIRE_SDK_MESH_ASSET_GUARD
 
 #include <SDK/Assets/IAsset.hpp>
-#include <SDK/Assets/Mesh/MeshAssetInfos.hpp>
 
 #include <Rendering/Framework/Primitives/Mesh/IMesh.hpp>
 
@@ -15,8 +14,7 @@ namespace Sa
 	class MeshAsset : public IAsset
 	{
 	protected:
-		std::vector<Vertex> mVertices;
-		std::vector<uint32> mIndices;
+		RawMesh mRawData;
 
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override final;
 		void UnLoad_Internal(bool _bFreeResources) override final;
@@ -28,10 +26,10 @@ namespace Sa
 
 	public:
 		using ResT = IMesh;
-		using RawDataT = MeshRawData;
+		using RawT = RawMesh;
 
 		SA_ENGINE_API MeshAsset(IResourceMgrBase& _manager) noexcept;
-		SA_ENGINE_API MeshAsset(IResourceMgrBase& _manager, RawDataT&& _rawData);
+		SA_ENGINE_API MeshAsset(IResourceMgrBase& _manager, RawT&& _rawData);
 		SA_ENGINE_API MeshAsset(MeshAsset&& _other) noexcept;
 		SA_ENGINE_API ~MeshAsset();
 

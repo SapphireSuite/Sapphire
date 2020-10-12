@@ -2,14 +2,16 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_SDK_MESH_ASSET_INFOS_GUARD
-#define SAPPHIRE_SDK_MESH_ASSET_INFOS_GUARD
+#ifndef SAPPHIRE_RENDERING_RAW_MESH_GUARD
+#define SAPPHIRE_RENDERING_RAW_MESH_GUARD
+
+#include <vector>
 
 #include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
 
 namespace Sa
 {
-	struct MeshRawData
+	struct RawMesh
 	{
 		std::vector<Vertex> vertices;
 		std::vector<uint32> indices;

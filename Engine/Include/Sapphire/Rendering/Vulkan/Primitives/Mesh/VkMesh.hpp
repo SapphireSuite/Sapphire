@@ -20,11 +20,9 @@ namespace Sa
 		VkBuffer mVertexBuffer;
 		VkBuffer mIndexBuffer;
 
-		uint32 mIndicesSize = uint32 (-1);
+		uint32 mIndicesSize = uint32(-1);
 
-		void Create(const IRenderInstance& _instance,
-			const std::vector<Vertex>& _vertices,
-			const std::vector<uint32>& _indices) override final;
+		void Create(const IRenderInstance& _instance, const RawMesh& _rawMesh) override final;
 
 	public:
 		void Destroy(const IRenderInstance& _instance) override final;

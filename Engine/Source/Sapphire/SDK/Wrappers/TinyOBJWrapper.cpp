@@ -19,7 +19,7 @@ namespace Sa
 {
 	struct Callback
 	{
-		std::vector<MeshRawData> rawMeshes;
+		std::vector<RawMesh> rawMeshes;
 		uint32 meshIndex = uint32(-1);
 
 		std::vector<RenderMaterialRawData> rawMats;
@@ -65,7 +65,7 @@ namespace Sa
 		{
 			Callback* cb = reinterpret_cast<Callback*>(_userData);
 
-			MeshRawData& rawMesh = cb->rawMeshes[cb->meshIndex];
+			RawMesh& rawMesh = cb->rawMeshes[cb->meshIndex];
 
 
 			for (int i = 0; i < _size; ++i)
