@@ -66,47 +66,58 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 
 void CreateMagikarp(AssetManager& _assetMgr)
 {
-	constexpr const char* textureAssets[] = { "Bin/Magikarp/Body_T.spha", "Bin/Magikarp/Eyes_T.spha" };
+	constexpr const char* textureAssets[] = {
+		"Bin/Magikarp/Body_T.spha",
+		"Bin/Magikarp/BodyNorm_T.spha",
+		"Bin/Magikarp/BodyPow_T.spha",
+		"Bin/Magikarp/Eyes_T.spha",
+		"Bin/Magikarp/EyesNorm_T.spha",
+		"Bin/Magikarp/EyesPow_T.spha"
+	};
+	constexpr const char* textureResources[] = {
+		"../../Samples/Prototype/Resources/Magikarp/Body.png",
+		"../../Samples/Prototype/Resources/Magikarp/Body_norm.png",
+		"../../Samples/Prototype/Resources/Magikarp/Body_pow.png",
+		"../../Samples/Prototype/Resources/Magikarp/Eyes.png",
+		"../../Samples/Prototype/Resources/Magikarp/Eyes_norm.png",
+		"../../Samples/Prototype/Resources/Magikarp/Eyes_pow.png"
+	};
+
 	constexpr const char* meshAssets[] = { "Bin/Magikarp/Body_M.spha", "Bin/Magikarp/Eyes_M.spha" };
 	constexpr const char* materialAssets[] = { "Bin/Magikarp/Body_Mat.spha", "Bin/Magikarp/Eyes_Mat.spha" };
 
 
-	// Body Texture.
-	if (!_assetMgr.textureMgr.Load(textureAssets[0], true)) // Try load.
+	for (uint32 i = 0u; i < SizeOf(textureAssets); ++i)
 	{
-		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/Magikarp/Body.png");
-		result[0]->Save(textureAssets[0]);
-	}
-
-
-	// Eyes Texture.
-	if (!_assetMgr.textureMgr.Load(textureAssets[1], true)) // Try load.
-	{
-		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/Magikarp/Eyes.png");
-		result[0]->Save(textureAssets[1]);
+		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
+		{
+			// Import on load failed.
+			IAssetImportResult result = _assetMgr.Import(textureResources[i]);
+			result[0]->Save(textureAssets[i]);
+		}
 	}
 
 
 	// Model.
 	{
 		// Try load.
-		magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
-		magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssets[1]);
+		//magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
+		//magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssets[1]);
 
-		magikarpBodyMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
-		magikarpEyesMat = _assetMgr.renderMatMgr.Load(materialAssets[1]);
+		//magikarpBodyMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
+		//magikarpEyesMat = _assetMgr.renderMatMgr.Load(materialAssets[1]);
 
-		if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
+		//if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
 		{
 			// Import on load failed.
 			IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/Magikarp/Magikarp.obj");
 			
 			// meshes
+			result[0]->As<MeshAsset>().ComputeTangent();
 			result[0]->Save(meshAssets[0]);
 			magikarpBodyMesh = result[0]->As<MeshAsset>().GetResource();
 
+			result[1]->As<MeshAsset>().ComputeTangent();
 			result[1]->Save(meshAssets[1]);
 			magikarpEyesMesh = result[1]->As<MeshAsset>().GetResource();
 
@@ -114,7 +125,7 @@ void CreateMagikarp(AssetManager& _assetMgr)
 			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
 			bodyRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
 			bodyRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
-			bodyRenderMat.infos.texturePaths = { textureAssets[0] };
+			bodyRenderMat.infos.texturePaths = { textureAssets[0], textureAssets[1], textureAssets[2] };
 			bodyRenderMat.Save(materialAssets[0]);
 			magikarpBodyMat = bodyRenderMat.GetResource();
 
@@ -122,7 +133,7 @@ void CreateMagikarp(AssetManager& _assetMgr)
 			RenderMaterialAsset& eyesRenderMat = result[3]->As<RenderMaterialAsset>();
 			eyesRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
 			eyesRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
-			eyesRenderMat.infos.texturePaths = { textureAssets[1] };
+			eyesRenderMat.infos.texturePaths = { textureAssets[3], textureAssets[4], textureAssets[5] };
 			eyesRenderMat.Save(materialAssets[1]);
 			magikarpEyesMat = eyesRenderMat.GetResource();
 		}

@@ -121,6 +121,7 @@ layout(location = 0) in DataBlock
 {
     vec3 position;
 	vec3 normal;
+	vec3 tangent;
 	vec2 texture;
 
 	vec3 camPosition;
@@ -225,8 +226,18 @@ void ComputeIllumination()
 	// Albedo from texture.
 	data.albedo = texture(texSamplers[0], fsIn.texture).xyz;
 
+
 	// Normal vector.
-	data.vNorm = normalize(fsIn.normal);
+	vec3 N = normalize(fsIn.normal);
+	vec3 T = normalize(fsIn.tangent);
+	vec3 B = /*handedness*/ -1.0 * cross (N, T);
+	mat3 TBN = mat3(T, B, N);
+	//data.vNorm = normalize(fsIn.normal);
+	data.vNorm = normalize(TBN * (texture(texSamplers[1], fsIn.texture).rgb * 2.0 - 1.0));
+
+	outColor.xyz = texture(texSamplers[1], fsIn.texture).rgb * 2.0 - 1.0;
+	return;
+
 
 	// Object to camera direction.
 	data.vCam = normalize(fsIn.position - fsIn.camPosition);

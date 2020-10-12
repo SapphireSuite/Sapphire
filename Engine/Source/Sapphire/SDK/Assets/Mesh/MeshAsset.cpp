@@ -5,6 +5,8 @@
 #include <Core/Algorithms/Move.hpp>
 #include <Core/Algorithms/SizeOf.hpp>
 
+#include <Maths/Misc/Maths.hpp>
+
 #include <SDK/Assets/AssetManager.hpp>
 
 namespace Sa
@@ -94,6 +96,37 @@ namespace Sa
 	IMesh* MeshAsset::Create(const IRenderInstance& _instance) const
 	{
 		return IMesh::CreateInstance(_instance, Move(mRawData));
+	}
+
+
+	void MeshAsset::ComputeTangent()
+	{
+		for (uint32 i = 0; i + 3 < SizeOf(mRawData.indices); i += 3)
+		{
+			Vec3f edge1 = mRawData.vertices[mRawData.indices[i + 1]].position - mRawData.vertices[mRawData.indices[i]].position;
+			Vec3f edge2 = mRawData.vertices[mRawData.indices[i + 2]].position - mRawData.vertices[mRawData.indices[i]].position;
+
+			Vec2f deltaUV1 = mRawData.vertices[mRawData.indices[i + 1]].texture - mRawData.vertices[mRawData.indices[i]].texture;
+			Vec2f deltaUV2 = mRawData.vertices[mRawData.indices[i + 2]].texture - mRawData.vertices[mRawData.indices[i]].texture;
+
+			Vec3f tangent;
+			float ratio = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
+
+			if (Maths::Equals0(ratio))
+				tangent = Vec3f::Zero;
+			else
+			{
+				float f = 1.0f / ratio ;
+
+				tangent = (f * Vec3f(deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
+					deltaUV2.y * edge1.y - deltaUV1.y * edge2.y,
+					deltaUV2.y * edge1.z - deltaUV1.y * edge2.z)).Normalize();
+			}
+
+			mRawData.vertices[mRawData.indices[i]].tangent =
+				mRawData.vertices[mRawData.indices[i + 1]].tangent =
+				mRawData.vertices[mRawData.indices[i + 2]].tangent = tangent;
+		}
 	}
 
 

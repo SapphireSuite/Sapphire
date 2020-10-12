@@ -32,7 +32,8 @@ layout(binding = 1) uniform ObjectUniformBuffer
 // In.
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
-layout(location = 2) in vec2 inTexture;
+layout(location = 2) in vec3 inTangent;
+layout(location = 3) in vec2 inTexture;
 
 
 // Out.
@@ -40,6 +41,7 @@ layout(location = 0) out DataBlock
 {
     vec3 position;
 	vec3 normal;
+	vec3 tangent;
 	vec2 texture;
 
 	vec3 camPosition;
@@ -56,6 +58,10 @@ void main()
 
     // Normal
     vsOut.normal = mat3(oUBO.model) * inNormal;
+
+
+    // Tangent
+    vsOut.tangent = mat3(oUBO.model) * inTangent;
 
 
     // Texture
