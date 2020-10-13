@@ -99,7 +99,7 @@ namespace Sa
 	}
 
 
-	void MeshAsset::ComputeTangent()
+	void MeshAsset::ComputeTangents()
 	{
 		for (uint32 i = 0; i + 3 < SizeOf(mRawData.indices); i += 3)
 		{
@@ -110,22 +110,29 @@ namespace Sa
 			Vec2f deltaUV2 = mRawData.vertices[mRawData.indices[i + 2]].texture - mRawData.vertices[mRawData.indices[i]].texture;
 
 			Vec3f tangent;
+			Vec3f bitangent;
 			float ratio = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
 
-			if (Maths::Equals0(ratio))
-				tangent = Vec3f::Zero;
-			else
+			if (!Maths::Equals0(ratio))
 			{
 				float f = 1.0f / ratio ;
 
 				tangent = (f * Vec3f(deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
 					deltaUV2.y * edge1.y - deltaUV1.y * edge2.y,
 					deltaUV2.y * edge1.z - deltaUV1.y * edge2.z)).Normalize();
+
+				bitangent = (f * Vec3f(deltaUV1.x * edge2.x - deltaUV2.x * edge1.x,
+					deltaUV1.x * edge2.y - deltaUV2.x * edge1.y,
+					deltaUV1.x * edge2.z - deltaUV2.x * edge1.z)).Normalize();
 			}
 
 			mRawData.vertices[mRawData.indices[i]].tangent =
 				mRawData.vertices[mRawData.indices[i + 1]].tangent =
 				mRawData.vertices[mRawData.indices[i + 2]].tangent = tangent;
+
+			mRawData.vertices[mRawData.indices[i]].bitangent =
+				mRawData.vertices[mRawData.indices[i + 1]].bitangent =
+				mRawData.vertices[mRawData.indices[i + 2]].bitangent = bitangent;
 		}
 	}
 

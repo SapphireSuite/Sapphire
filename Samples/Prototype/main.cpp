@@ -43,6 +43,10 @@ IRenderMaterial* gizmoMat = nullptr;
 IMesh* helmetMesh = nullptr;
 IRenderMaterial* helmetMat = nullptr;
 
+// Bricks
+IMesh* bricksMesh = nullptr;
+IRenderMaterial* bricksMat = nullptr;
+
 
 void CreateDefaultResources(AssetManager& _assetMgr)
 {
@@ -68,19 +72,19 @@ void CreateMagikarp(AssetManager& _assetMgr)
 {
 	constexpr const char* textureAssets[] = {
 		"Bin/Magikarp/Body_T.spha",
-		"Bin/Magikarp/BodyNorm_T.spha",
-		"Bin/Magikarp/BodyPow_T.spha",
+		//"Bin/Magikarp/BodyNorm_T.spha",
+		//"Bin/Magikarp/BodyPow_T.spha",
 		"Bin/Magikarp/Eyes_T.spha",
-		"Bin/Magikarp/EyesNorm_T.spha",
-		"Bin/Magikarp/EyesPow_T.spha"
+		//"Bin/Magikarp/EyesNorm_T.spha",
+		//"Bin/Magikarp/EyesPow_T.spha"
 	};
 	constexpr const char* textureResources[] = {
 		"../../Samples/Prototype/Resources/Magikarp/Body.png",
-		"../../Samples/Prototype/Resources/Magikarp/Body_norm.png",
-		"../../Samples/Prototype/Resources/Magikarp/Body_pow.png",
+		//"../../Samples/Prototype/Resources/Magikarp/Body_norm.png",
+		//"../../Samples/Prototype/Resources/Magikarp/Body_pow.png",
 		"../../Samples/Prototype/Resources/Magikarp/Eyes.png",
-		"../../Samples/Prototype/Resources/Magikarp/Eyes_norm.png",
-		"../../Samples/Prototype/Resources/Magikarp/Eyes_pow.png"
+		//"../../Samples/Prototype/Resources/Magikarp/Eyes_norm.png",
+		//"../../Samples/Prototype/Resources/Magikarp/Eyes_pow.png"
 	};
 
 	constexpr const char* meshAssets[] = { "Bin/Magikarp/Body_M.spha", "Bin/Magikarp/Eyes_M.spha" };
@@ -101,23 +105,23 @@ void CreateMagikarp(AssetManager& _assetMgr)
 	// Model.
 	{
 		// Try load.
-		//magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
-		//magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssets[1]);
+		magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
+		magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssets[1]);
 
-		//magikarpBodyMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
-		//magikarpEyesMat = _assetMgr.renderMatMgr.Load(materialAssets[1]);
+		magikarpBodyMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
+		magikarpEyesMat = _assetMgr.renderMatMgr.Load(materialAssets[1]);
 
-		//if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
+		if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
 		{
 			// Import on load failed.
 			IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/Magikarp/Magikarp.obj");
 			
 			// meshes
-			result[0]->As<MeshAsset>().ComputeTangent();
+			result[0]->As<MeshAsset>().ComputeTangents();
 			result[0]->Save(meshAssets[0]);
 			magikarpBodyMesh = result[0]->As<MeshAsset>().GetResource();
 
-			result[1]->As<MeshAsset>().ComputeTangent();
+			result[1]->As<MeshAsset>().ComputeTangents();
 			result[1]->Save(meshAssets[1]);
 			magikarpEyesMesh = result[1]->As<MeshAsset>().GetResource();
 
@@ -125,7 +129,7 @@ void CreateMagikarp(AssetManager& _assetMgr)
 			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
 			bodyRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
 			bodyRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
-			bodyRenderMat.infos.texturePaths = { textureAssets[0], textureAssets[1], textureAssets[2] };
+			bodyRenderMat.infos.texturePaths = { textureAssets[0]/*, textureAssets[1], textureAssets[2]*/ };
 			bodyRenderMat.Save(materialAssets[0]);
 			magikarpBodyMat = bodyRenderMat.GetResource();
 
@@ -133,7 +137,7 @@ void CreateMagikarp(AssetManager& _assetMgr)
 			RenderMaterialAsset& eyesRenderMat = result[3]->As<RenderMaterialAsset>();
 			eyesRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
 			eyesRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
-			eyesRenderMat.infos.texturePaths = { textureAssets[3], textureAssets[4], textureAssets[5] };
+			eyesRenderMat.infos.texturePaths = { textureAssets[1]/*textureAssets[3], textureAssets[4], textureAssets[5]*/ };
 			eyesRenderMat.Save(materialAssets[1]);
 			magikarpEyesMat = eyesRenderMat.GetResource();
 		}
@@ -174,10 +178,10 @@ void CreateGizmo(AssetManager& _assetMgr)
 
 		gizmoRawMesh.vertices =
 		{
-			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 0.0f } },
-			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 0.0f } },
-			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 1.0f } },
-			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 1.0f } },
+			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero,  Vec3f::Zero, { 1.0f, 0.0f } },
+			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero,  Vec3f::Zero, { 0.0f, 0.0f } },
+			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero,  Vec3f::Zero, { 0.0f, 1.0f } },
+			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero,  Vec3f::Zero, { 1.0f, 1.0f } },
 		};
 
 		gizmoRawMesh.indices =
@@ -187,6 +191,7 @@ void CreateGizmo(AssetManager& _assetMgr)
 
 		// Create on load failed.
 		MeshAsset gizmoMeshAsset = _assetMgr.meshMgr.Create(Move(gizmoRawMesh));
+		gizmoMeshAsset.ComputeTangents();
 		gizmoMeshAsset.Save(meshAsset);
 		gizmoMesh = gizmoMeshAsset.GetResource();
 	}
@@ -261,11 +266,70 @@ void CreateHelmet(AssetManager& _assetMgr)
 	}
 }
 
+void CreateBricks(AssetManager& _assetMgr)
+{
+	constexpr const char* textureAssets[] = {
+	"Bin/Bricks/albedo_T.spha",
+	"Bin/Bricks/normal_T.spha",
+	};
+	constexpr const char* textureResources[] = {
+		"../../Samples/Prototype/Resources/Bricks/bricks.jpg",
+		"../../Samples/Prototype/Resources/Bricks/bricks_normal.jpg"
+	};
+
+	constexpr const char* meshAsset = "Bin/Gizmo/Square_M.spha";
+	constexpr const char* matAsset = "Bin/Bricks/brick_Mat.spha";
+
+
+	// Textures
+
+	for (uint32 i = 0u; i < SizeOf(textureAssets); ++i)
+	{
+		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
+		{
+			// Import on load failed.
+			IAssetImportResult result = _assetMgr.Import(textureResources[i]);
+			result[0]->As<TextureAsset>().FlipVertically();
+			result[0]->Save(textureAssets[i]);
+		}
+	}
+
+
+	// Mesh.
+	bricksMesh = _assetMgr.meshMgr.Load(meshAsset);
+
+
+	// Material
+	bricksMat = _assetMgr.renderMatMgr.Load(matAsset);
+
+	if (!bricksMat)
+	{
+		RenderMaterialRawData infos
+		{
+			IRenderPass::mainRenderPass,
+			
+			{ Camera::mainCamera },
+			false,
+
+			defaultVertShaderAsset,
+			defaultFragShaderAsset,
+
+			{textureAssets[0], textureAssets[1]},
+		};
+
+		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
+		renderMatAsset.Save(matAsset);
+
+		bricksMat = renderMatAsset.GetResource();
+	}
+}
+
 void CreateResources(AssetManager& _assetMgr)
 {
 	CreateDefaultResources(_assetMgr);
 	CreateMagikarp(_assetMgr);
 	CreateGizmo(_assetMgr);
+	CreateBricks(_assetMgr);
 	//CreateHelmet(_assetMgr);
 }
 
@@ -328,7 +392,7 @@ int main()
 	pLight2.color = Vec3f(0.9f, 0.7f, 0.3f);
 	pLight2.intensity = 5.0f;
 
-	uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
+	//uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
 
 	{
 		ObjectUniformBuffer oubo;
@@ -336,6 +400,13 @@ int main()
 			Quatf(180, Vec3f::Up) * Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix());
 		magikarpBodyMat->InitVariable(instance, &oubo, sizeof(oubo));
 		magikarpEyesMat->InitVariable(instance, &oubo, sizeof(oubo));
+	}
+
+	{
+		ObjectUniformBuffer oubo;
+		oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(6.0f, 0.0, 2.0f),
+			Quatf(-90.0f, Vec3f::Up), Vec3f(5.0f)).Matrix());
+		bricksMat->InitVariable(instance, &oubo, sizeof(oubo));
 	}
 
 	{
@@ -424,6 +495,11 @@ int main()
 
 		magikarpEyesMat->Bind(frame);
 		magikarpEyesMesh->Draw(frame);
+
+
+		// Draw bricks.
+		bricksMat->Bind(frame);
+		bricksMesh->Draw(frame);
 
 
 		// Draw gizmos.

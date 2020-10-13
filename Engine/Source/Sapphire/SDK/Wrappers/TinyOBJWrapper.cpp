@@ -74,6 +74,7 @@ namespace Sa
 					cb->vertexPos[_indices[i].vertex_index - 1],
 					cb->vertexNorm[_indices[i].normal_index - 1],
 					Vec3f::Zero,
+					Vec3f::Zero,
 					cb->vertexText[_indices[i].texcoord_index - 1]
 				});
 

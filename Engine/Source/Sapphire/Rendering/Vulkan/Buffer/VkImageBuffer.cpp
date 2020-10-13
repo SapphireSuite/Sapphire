@@ -84,7 +84,7 @@ namespace Sa
 			},
 			VkImageSubresourceRange														// subresourceRange.
 			{
-				VK_IMAGE_ASPECT_DEPTH_BIT,											// aspectMask.
+				_createInfos.aspectFlags,											// aspectMask.
 				0,																	// baseMipLevel.
 				1,																	// levelCount.
 				0,																	// baseArrayLayer.

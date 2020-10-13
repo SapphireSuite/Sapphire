@@ -38,7 +38,7 @@ namespace Sa
 
 		SA_ENGINE_API IMesh* Create(const IRenderInstance& _instance) const;
 
-		SA_ENGINE_API void ComputeTangent();
+		SA_ENGINE_API void ComputeTangents();
 
 		MeshAsset& operator=(MeshAsset&& _rhs);
 		MeshAsset& operator=(const MeshAsset&) = delete;

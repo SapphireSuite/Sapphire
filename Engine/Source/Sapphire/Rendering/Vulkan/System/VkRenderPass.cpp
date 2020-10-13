@@ -187,6 +187,7 @@ namespace Sa
 			VK_FORMAT_D32_SFLOAT,								// format.
 			mExtent,											// extent.
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,		// usage.
+			VK_IMAGE_ASPECT_DEPTH_BIT,							// aspectFlags
 		};
 
 		mDepthBuffer.Create(_device, imageBufferCreateInfos);

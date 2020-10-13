@@ -122,6 +122,7 @@ layout(location = 0) in DataBlock
     vec3 position;
 	vec3 normal;
 	vec3 tangent;
+	vec3 bitangent;
 	vec2 texture;
 
 	vec3 camPosition;
@@ -228,15 +229,17 @@ void ComputeIllumination()
 
 
 	// Normal vector.
-	vec3 N = normalize(fsIn.normal);
-	vec3 T = normalize(fsIn.tangent);
-	vec3 B = /*handedness*/ -1.0 * cross (N, T);
-	mat3 TBN = mat3(T, B, N);
-	//data.vNorm = normalize(fsIn.normal);
-	data.vNorm = normalize(TBN * (texture(texSamplers[1], fsIn.texture).rgb * 2.0 - 1.0));
-
-	outColor.xyz = texture(texSamplers[1], fsIn.texture).rgb * 2.0 - 1.0;
-	return;
+	if(texture(texSamplers[1], fsIn.texture).rgb != vec3(0))
+	{
+		vec3 N = normalize(fsIn.normal);
+		vec3 T = normalize(fsIn.tangent);
+		//vec3 B = /*handness */ -1.0 * cross (N, T);
+		vec3 B = normalize(fsIn.bitangent);
+		mat3 TBN = mat3(T, B, N);
+		data.vNorm = normalize(TBN * (texture(texSamplers[1], fsIn.texture).rgb * 2.0 - 1.0));
+	}
+	else
+		data.vNorm = normalize(fsIn.normal);
 
 
 	// Object to camera direction.

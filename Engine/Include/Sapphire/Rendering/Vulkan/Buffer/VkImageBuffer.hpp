@@ -23,6 +23,8 @@ namespace Sa
 		VkExtent3D extent;
 		
 		uint32 usage = 0u;
+
+		VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
 	};
 
 	class VkImageBuffer
