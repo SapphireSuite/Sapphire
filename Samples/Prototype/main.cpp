@@ -13,10 +13,11 @@
 #include <Sapphire/Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
-#include <Sapphire/Rendering/Framework/Primitives/Camera/Camera.hpp>
+#include <Sapphire/Rendering/Framework/Primitives/Camera/CameraUniformBuffer.hpp>
 
 #include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Sapphire/Rendering/Vulkan/System/VkRenderPass.hpp>
+#include <Sapphire/Rendering/Vulkan/Primitives/Camera/VkCamera.hpp>
 
 #include <Sapphire/SDK/Assets/AssetManager.hpp>
 
@@ -308,7 +309,7 @@ void CreateBricks(AssetManager& _assetMgr)
 		{
 			IRenderPass::mainRenderPass,
 			
-			{ Camera::mainCamera },
+			{ ICamera::mainCamera },
 			false,
 
 			defaultVertShaderAsset,
@@ -373,8 +374,9 @@ int main()
 	Sa::VkRenderPass& mainRenderPass = surface.CreateRenderPass(instance, RenderPassCreateInfos{}).As<Sa::VkRenderPass>();
 	IRenderPass::mainRenderPass = &mainRenderPass;
 
-	Camera mainCamera(surface.GetImageExtent());
-	Camera::mainCamera = &mainCamera;
+	VkCamera mainCamera(surface.GetImageExtent());
+	mainCamera.Create(instance, surface);
+	VkCamera::mainCamera = &mainCamera;
 
 	AssetManager assetMgr(instance);
 	CreateResources(assetMgr);
@@ -468,12 +470,12 @@ int main()
 		window.TEST(camTr, pL1Pos, speed * deltaTime);
 
 		// Update Uniform Buffer.
-		StaticUniformBuffer ubo;
+		CameraUniformBuffer ubo;
 		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
 		ubo.viewInvMat = API_ConvertCoordinateSystem(camTr.Matrix()).Inverse();
 		ubo.projMat = perspMat;
 
-		mainRenderPass.GetUniformBuffer(frame.index).UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
+		mainCamera.GetUniformBuffer(frame.index).UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
 		
 		{
 			ObjectUniformBuffer oubo;
@@ -519,6 +521,8 @@ int main()
 	vkDeviceWaitIdle(instance.GetDevice());
 
 	DestroyResources(assetMgr);
+
+	mainCamera.Destroy(instance);
 
 	instance.DestroyRenderSurface(window);
 	

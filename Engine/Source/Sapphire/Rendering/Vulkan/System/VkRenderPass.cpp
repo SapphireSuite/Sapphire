@@ -22,18 +22,6 @@ namespace Sa
 		return SizeOf(mFrameBuffers);
 	}
 
-	VkUniformBuffer& VkRenderPass::GetUniformBuffer(uint32 _index)
-	{
-		SA_ASSERT(_index < SizeOf(mStaticUniformBuffers), OutOfRange, _index, 0u, SizeOf(mStaticUniformBuffers))
-
-		return mStaticUniformBuffers[_index];
-	}
-
-	const std::vector<VkUniformBuffer>& VkRenderPass::GetStaticUniformBuffers() const
-	{
-		return mStaticUniformBuffers;
-	}
-
 	void VkRenderPass::Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const RenderPassCreateInfos& _createInfos)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
@@ -133,8 +121,6 @@ namespace Sa
 
 		mExtent = _createInfos.extent.IsValid() ? _createInfos.extent : swapChain.GetImageExtent();
 
-		CreateUniformBuffers(device, swapChain, _createInfos);
-
 		CreateDepthBuffer(device, swapChain, _createInfos);
 		CreateFrameBuffers(device, swapChain);
 	}
@@ -145,7 +131,6 @@ namespace Sa
 
 		DestroyFrameBuffers(device);
 		DestroyDepthBuffer(device);
-		DestroyUniformBuffers(device);
 
 		vkDestroyRenderPass(device, mHandle, nullptr);
 	}
@@ -156,26 +141,6 @@ namespace Sa
 
 	//	Create(_instance, _surface);
 	//}
-
-	void VkRenderPass::CreateUniformBuffers(const VkDevice& _device, const VkSwapChain& _swapChain, const RenderPassCreateInfos& _createInfos)
-	{
-		uint32 imageNum = _swapChain.GetImageNum();
-
-		mStaticUniformBuffers.resize(imageNum);
-
-		for (uint32 i = 0; i < imageNum; ++i)
-		{
-			mStaticUniformBuffers[i].Create(_device, _createInfos.staticUniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		}
-	}
-	void VkRenderPass::DestroyUniformBuffers(const VkDevice& _device)
-	{
-		for (uint32 i = 0; i < mStaticUniformBuffers.size(); ++i)
-			mStaticUniformBuffers[i].Destroy(_device);
-
-		mStaticUniformBuffers.clear();
-	}
 
 	void VkRenderPass::CreateDepthBuffer(const VkDevice& _device, const VkSwapChain& _swapChain, const RenderPassCreateInfos& _createInfos)
 	{

@@ -16,13 +16,13 @@ namespace Sa
 	class ITexture;
 	class IRenderPass;
 
-	class Camera;
+	class ICamera;
 
 	struct PipelineCreateInfos
 	{
 		const IRenderPass& renderPass;
 		
-		const std::vector<const Camera*>& cameras;
+		const std::vector<const ICamera*>& cameras;
 		bool bDynamicViewport = true;
 
 		const IShader* vertexShader = nullptr;

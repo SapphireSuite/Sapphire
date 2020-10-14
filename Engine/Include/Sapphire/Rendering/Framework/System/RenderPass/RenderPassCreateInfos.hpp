@@ -28,8 +28,6 @@ namespace Sa
 		ImageExtent extent;
 
 		SubPassCreateInfos subPassCreateInfos;
-
-		uint32 staticUniformBufferSize = sizeof(StaticUniformBuffer);
 	};
 }
 

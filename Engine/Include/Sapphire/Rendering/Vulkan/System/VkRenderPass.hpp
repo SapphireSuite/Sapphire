@@ -30,12 +30,6 @@ namespace Sa
 		VkImageBuffer mDepthBuffer;
 		std::vector<VkFramebuffer> mFrameBuffers;
 
-		// Uniform buffer common to all pipeline bind to this renderpass.
-		std::vector<VkUniformBuffer> mStaticUniformBuffers;
-
-		void CreateUniformBuffers(const VkDevice& _device, const VkSwapChain& _swapChain, const RenderPassCreateInfos& _createInfos);
-		void DestroyUniformBuffers(const VkDevice& _device);
-
 		void CreateDepthBuffer(const VkDevice& _device, const VkSwapChain& _swapChain, const RenderPassCreateInfos& _createInfos);
 		void DestroyDepthBuffer(const VkDevice& _device);
 

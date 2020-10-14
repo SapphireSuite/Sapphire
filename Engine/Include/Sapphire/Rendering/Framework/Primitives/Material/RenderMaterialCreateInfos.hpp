@@ -12,13 +12,13 @@
 namespace Sa
 {
 	class IRenderPass;
-	class Camera;
+	class ICamera;
 
 	struct RenderMaterialCreateInfos
 	{
 		IRenderPass& renderPass;
 
-		std::vector<const Camera*> cameras;
+		std::vector<const ICamera*> cameras;
 		bool bDynamicViewport = true;
 
 		const IShader* vertexShader = nullptr;

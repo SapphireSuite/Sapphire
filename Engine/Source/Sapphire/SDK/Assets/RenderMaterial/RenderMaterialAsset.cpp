@@ -13,7 +13,7 @@
 
 // TODO: REMOVE LATER.
 #include <Rendering/Framework/System/RenderPass/IRenderPass.hpp>
-#include <Rendering/Framework/Primitives/Camera/Camera.hpp>
+#include <Rendering/Framework/Primitives/Camera/ICamera.hpp>
 
 #include <SDK/Assets/AssetManager.hpp>
 
@@ -199,7 +199,7 @@ namespace Sa
 		{
 			*IRenderPass::mainRenderPass, // TODO: CLEAN LATER.
 
-			{ Camera::mainCamera }, // TODO: CLEAN LATER.
+			{ ICamera::mainCamera }, // TODO: CLEAN LATER.
 			false, // TODO: CLEAN LATER.
 
 			vertShader,

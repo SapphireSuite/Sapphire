@@ -9,15 +9,6 @@
 
 namespace Sa
 {
-	struct StaticUniformBuffer
-	{
-		// Camera inverse transformation matrix.
-		Mat4f viewInvMat = Mat4f::Identity;
-
-		// Camera projection matrix.
-		Mat4f projMat = Mat4f::Identity;
-	};
-
 	struct ObjectUniformBuffer
 	{
 		// Model transformation matrix.

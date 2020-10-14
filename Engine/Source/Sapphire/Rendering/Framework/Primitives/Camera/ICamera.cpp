@@ -1,35 +1,35 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Framework/Primitives/Camera/Camera.hpp>
+#include <Rendering/Framework/Primitives/Camera/ICamera.hpp>
 
 namespace Sa
 {
 	// TODO: CLEAN LATER.
-	Camera* Camera::mainCamera = nullptr;
+	ICamera* ICamera::mainCamera = nullptr;
 
-	Camera::Camera(const ImageViewExtent& _viewport, const ImageViewExtent& _scissor) noexcept :
+	ICamera::ICamera(const ImageViewExtent& _viewport, const ImageViewExtent& _scissor) noexcept :
 		mViewport{ _viewport },
 		mScissor{ _scissor }
 	{
 	}
 
-	Camera::Camera(const ImageViewExtent& _viewportScissor) noexcept :
+	ICamera::ICamera(const ImageViewExtent& _viewportScissor) noexcept :
 		mViewport{ _viewportScissor },
 		mScissor{ _viewportScissor }
 	{
 	}
 
-	const ImageViewExtent& Camera::GetViewport() const
+	const ImageViewExtent& ICamera::GetViewport() const
 	{
 		return mViewport;
 	}
 
-	const ImageViewExtent& Camera::GetScissor() const
+	const ImageViewExtent& ICamera::GetScissor() const
 	{
 		return mScissor;
 	}
 
-	void Camera::SetViewport(ImageViewExtent _viewport)
+	void ICamera::SetViewport(ImageViewExtent _viewport)
 	{
 		if (mViewport == _viewport)
 			return;
@@ -39,7 +39,7 @@ namespace Sa
 		onViewportChange(*this, mViewport);
 	}
 
-	void Camera::SetScissor(ImageViewExtent _scissor)
+	void ICamera::SetScissor(ImageViewExtent _scissor)
 	{
 		if (mScissor == _scissor)
 			return;
@@ -52,7 +52,7 @@ namespace Sa
 
 #if SA_RENDERING_API == SA_VULKAN
 
-	VkViewport Camera::GetVkViewport() const
+	VkViewport ICamera::GetVkViewport() const
 	{
 		return VkViewport
 		{
@@ -65,7 +65,7 @@ namespace Sa
 		};
 	}
 
-	VkRect2D Camera::GetVkScissor() const
+	VkRect2D ICamera::GetVkScissor() const
 	{
 		return VkRect2D
 		{

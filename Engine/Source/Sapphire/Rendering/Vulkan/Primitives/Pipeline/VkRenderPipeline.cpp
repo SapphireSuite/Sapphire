@@ -8,7 +8,6 @@
 #include <Rendering/Framework/Primitives/Shader/ShaderType.hpp>
 #include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
-#include <Rendering/Framework/Primitives/Camera/Camera.hpp>
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/Buffer/VkCommandBuffer.hpp>
@@ -16,6 +15,7 @@
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
 #include <Rendering/Vulkan/Primitives/Shader/VkShader.hpp>
 #include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
+#include <Rendering/Vulkan/Primitives/Camera/VkCamera.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -152,6 +152,17 @@ namespace Sa
 		};
 
 
+		VkPushConstantRange pushConstants[]
+		{
+			// camIndex.
+			{
+				VK_SHADER_STAGE_VERTEX_BIT,				// stageFlags.
+				0,										// offset.
+				sizeof(int)								// size.
+			}
+		};
+
+
 		const VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo
 		{
 			VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,							// sType.
@@ -159,8 +170,8 @@ namespace Sa
 			0,																		// flags.
 			1,																		// setLayoutCount.
 			&mDescriptorSetLayout,													// pSetLayouts.
-			0,																		// pushConstantRangeCount.
-			nullptr																	// pPushConstantRanges.
+			SizeOf(pushConstants),													// pushConstantRangeCount.
+			pushConstants															// pPushConstantRanges.
 		};
 
 		SA_VK_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &mPipelineLayout),
@@ -270,7 +281,7 @@ namespace Sa
 		{
 			0,																	// binding.
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
-			1,																	// descriptorCount.
+			SizeOf(_pipelineInfos.cameras),										// descriptorCount.
 			VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
 			nullptr																// pImmutableSamplers.
 		});
@@ -438,11 +449,16 @@ namespace Sa
 		std::vector<DescriptorInfo>& _descriptorInfos,
 		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
 	{
-		const std::vector<VkUniformBuffer>& uniformBuffers = _pipelineInfos.renderPass.As<VkRenderPass>().GetStaticUniformBuffers();
+		// Camera UBO binding.
+		for (uint32 i = 0u; i < SizeOf(_pipelineInfos.cameras); ++i)
+		{
+			SA_ASSERT(_pipelineInfos.cameras[i], Nullptr, Rendering, L"Pipeline bind nullptr camera!");
 
-		// Static UBO binding.
-		_descriptorInfos.push_back(uniformBuffers[_index].CreateDescriptorBufferInfo(sizeof(StaticUniformBuffer)));
-		_descriptorWrites.push_back(VkUniformBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 0));
+			const VkCamera& camera = _pipelineInfos.cameras[i]->As<VkCamera>();
+
+			_descriptorInfos.push_back(camera.CreateDescriptorBufferInfo(_index));
+			_descriptorWrites.push_back(VkUniformBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 0, i));
+		}
 
 
 		// Object UBO binding.
