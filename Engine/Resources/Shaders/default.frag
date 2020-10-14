@@ -112,8 +112,8 @@ layout (binding = 6) buffer SpotLightBuffer
 // Constants.
 const float PI = 3.14159265359;
 
-layout(constant_id = 1) const int alphaModel = 0;
-layout(constant_id = 2) const int illumModel = 1;
+layout(constant_id = 0) const int alphaModel = 0;
+layout(constant_id = 1) const int illumModel = 0;
 
 
 // In.

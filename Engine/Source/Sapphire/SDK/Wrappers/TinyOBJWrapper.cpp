@@ -22,7 +22,7 @@ namespace Sa
 		std::vector<RawMesh> rawMeshes;
 		uint32 meshIndex = uint32(-1);
 
-		std::vector<RenderMaterialRawData> rawMats;
+		std::vector<RawMaterial> rawMats;
 
 		std::vector<Vec3f> vertexPos;
 		std::vector<Vec3f> vertexNorm;
@@ -94,7 +94,7 @@ namespace Sa
 
 			for (auto it = _mats; it != _mats + _size; ++it)
 			{
-				RenderMaterialRawData& mat = cb->rawMats.emplace_back();
+				RawMaterial& mat = cb->rawMats.emplace_back();
 
 				mat.matConstants.ambient = Vec3f(it->ambient[0], it->ambient[1], it->ambient[2]);
 				mat.matConstants.diffuse = Vec3f(it->diffuse[0], it->diffuse[1], it->diffuse[2]);
@@ -176,7 +176,7 @@ namespace Sa
 
 		for (auto it = materials.begin(); it != materials.end(); ++it)
 		{
-			RenderMaterialRawData infos;
+			RawMaterial infos;
 
 			infos.matConstants.ambient = Vec3f(it->ambient[0], it->ambient[1], it->ambient[2]);
 			infos.matConstants.diffuse = Vec3f(it->diffuse[0], it->diffuse[1], it->diffuse[2]);

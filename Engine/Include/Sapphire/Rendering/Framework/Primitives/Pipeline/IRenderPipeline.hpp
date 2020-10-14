@@ -11,12 +11,13 @@ namespace Sa
 {
 	class IRenderFrame;
 	class IRenderInstance;
-	struct PipelineCreateInfos;
+
+	using PipelineCreateInfos = struct RawMaterial;
 
 	class IRenderPipeline : public IInterface
 	{
 	public:
-		virtual void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) = 0;
+		virtual void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _infos) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 
 		virtual void Bind(const IRenderFrame& _frame) const = 0;

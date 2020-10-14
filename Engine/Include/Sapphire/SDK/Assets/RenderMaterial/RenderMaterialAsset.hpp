@@ -6,9 +6,9 @@
 #define SAPPHIRE_SDK_RENDER_MATERIAL_ASSET_GUARD
 
 #include <SDK/Assets/IAsset.hpp>
-#include <SDK/Assets/RenderMaterial/RenderMaterialAssetInfos.hpp>
 
 #include <Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
+#include <Rendering/Framework/Primitives/Material/RawMaterial.hpp>
 
 namespace Sa
 {
@@ -17,6 +17,8 @@ namespace Sa
 	class RenderMaterialAsset : public IAsset
 	{
 	protected:
+		mutable RawMaterial mRawData;
+
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
 		void UnLoad_Internal(bool _bFreeResources) override;
 
@@ -26,9 +28,12 @@ namespace Sa
 
 	public:
 		using ResT = IRenderMaterial;
-		using RawT = RenderMaterialRawData;
+		using RawT = RawMaterial;
 
-		RenderMaterialRawData infos;
+		std::string vertexShaderPath;
+		std::string fragmentShaderPath;
+
+		std::vector<std::string> texturePaths;
 
 		SA_ENGINE_API RenderMaterialAsset(IResourceMgrBase& _manager) noexcept;
 		SA_ENGINE_API RenderMaterialAsset(RenderMaterialAsset&& _other) noexcept;

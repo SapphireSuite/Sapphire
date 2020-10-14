@@ -27,5 +27,24 @@ namespace Sa
 		}
 	}
 
+	VkShaderStageFlags API_GetShaderFlags(uint8 _flags) noexcept
+	{
+		VkShaderStageFlags result = 0;
+
+		if (_flags & static_cast<uint8>(ShaderType::Vertex))
+			result |= VK_SHADER_STAGE_VERTEX_BIT;
+
+		if (_flags & static_cast<uint8>(ShaderType::Fragment))
+			result |= VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		if (_flags & static_cast<uint8>(ShaderType::Geometry))
+			result |= VK_SHADER_STAGE_GEOMETRY_BIT;
+
+		if (_flags & static_cast<uint8>(ShaderType::Compute))
+			result |= VK_SHADER_STAGE_COMPUTE_BIT;
+
+		return result;
+	}
+
 #endif
 }

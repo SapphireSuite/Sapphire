@@ -9,13 +9,14 @@
 #include <Core/Algorithms/SizeOf.hpp>
 
 #include <Rendering/Framework/System/IRenderSurface.hpp>
-#include <Rendering/Framework/Primitives/Material/RenderMaterialCreateInfos.hpp>
+
+#include <SDK/Assets/AssetManager.hpp>
+
 
 // TODO: REMOVE LATER.
 #include <Rendering/Framework/System/RenderPass/IRenderPass.hpp>
 #include <Rendering/Framework/Primitives/Camera/ICamera.hpp>
 
-#include <SDK/Assets/AssetManager.hpp>
 
 namespace Sa
 {
@@ -25,14 +26,17 @@ namespace Sa
 
 	RenderMaterialAsset::RenderMaterialAsset(RenderMaterialAsset&& _other) noexcept :
 		IAsset(Move(_other)),
-		infos{ Move(_other.infos) }
+		mRawData{ Move(_other.mRawData) },
+		vertexShaderPath{ Move(_other.vertexShaderPath) },
+		fragmentShaderPath{ Move(_other.fragmentShaderPath) },
+		texturePaths{ Move(_other.texturePaths) }
 	{
 		_other.UnLoad(false);
 	}
 
 	RenderMaterialAsset::RenderMaterialAsset(IResourceMgrBase& _manager, RawT&& _raw) noexcept :
 		IAsset(_manager, AssetType::RenderMaterial),
-		infos{ Move(_raw) }
+		mRawData{ Move(_raw) }
 	{
 	}
 
@@ -57,19 +61,19 @@ namespace Sa
 
 	bool RenderMaterialAsset::IsValid() const noexcept
 	{
-		return !infos.vertexShaderPath.empty() && !infos.fragmentShaderPath.empty();
+		return !vertexShaderPath.empty() && !fragmentShaderPath.empty();
 	}
 
 	std::vector<AssetPathDependency> RenderMaterialAsset::GetPathDependencies() const noexcept
 	{
 		std::vector<AssetPathDependency> result = IAsset::GetPathDependencies();
 
-		result.reserve(infos.texturePaths.size() + 2);
+		result.reserve(texturePaths.size() + 2);
 
-		result.emplace_back(AssetPathDependency{ infos.vertexShaderPath, AssetType::Shader });
-		result.emplace_back(AssetPathDependency{ infos.fragmentShaderPath, AssetType::Shader });
+		result.emplace_back(AssetPathDependency{ vertexShaderPath, AssetType::Shader });
+		result.emplace_back(AssetPathDependency{ fragmentShaderPath, AssetType::Shader });
 
-		for (auto it = infos.texturePaths.begin(); it != infos.texturePaths.end(); ++it)
+		for (auto it = texturePaths.begin(); it != texturePaths.end(); ++it)
 			result.emplace_back(AssetPathDependency{ *it, AssetType::Texture });
 
 		return result;
@@ -89,7 +93,7 @@ namespace Sa
 
 			std::istringstream stream(line);
 
-			if (!(stream >> infos.vertexShaderPath >> infos.fragmentShaderPath))
+			if (!(stream >> vertexShaderPath >> fragmentShaderPath))
 			{
 				SA_LOG("Can't parse shader paths!", Warning, SDK_Asset);
 				return false;
@@ -114,9 +118,9 @@ namespace Sa
 				return false;
 			}
 
-			infos.texturePaths.resize(size);
+			texturePaths.resize(size);
 
-			for (auto it = infos.texturePaths.begin(); it != infos.texturePaths.end(); ++it)
+			for (auto it = texturePaths.begin(); it != texturePaths.end(); ++it)
 			{
 				if (!(stream >> *it))
 				{
@@ -128,10 +132,39 @@ namespace Sa
 
 		// Data
 		{
-			_fStream.read(reinterpret_cast<char*>(&infos.bDynamicViewport), sizeof(bool));
+			_fStream.read(reinterpret_cast<char*>(&mRawData.bDynamicViewport), sizeof(bool));
 
-			uint32 size = sizeof(RenderMaterialCreateInfos) - offsetof(RenderMaterialCreateInfos, matConstants);
-			_fStream.read(reinterpret_cast<char*>(&infos.matConstants), size);
+
+			uint32 shaderSize = 0u;
+			_fStream.read(reinterpret_cast<char*>(&shaderSize), sizeof(uint32));
+
+			mRawData.shaders.resize(shaderSize);
+
+			for (auto it = mRawData.shaders.begin(); it != mRawData.shaders.end(); ++it)
+			{
+				_fStream.read(const_cast<char*>(reinterpret_cast<const char*>(&it->type)), sizeof(uint8));
+
+				uint32 size = 0u;
+				_fStream.read(reinterpret_cast<char*>(&size), sizeof(uint32));
+
+				it->specConstants.resize(size);
+
+				_fStream.read(reinterpret_cast<char*>(it->specConstants.data()), BitSizeOf(it->specConstants));
+			}
+
+
+			uint32 size = offsetof(RawMaterial, pushConstInfos) - offsetof(RawMaterial, matConstants);
+			_fStream.read(reinterpret_cast<char*>(&mRawData.matConstants), size);
+
+			uint32 pushConstSize = 0u;
+			_fStream.read(reinterpret_cast<char*>(&pushConstSize), sizeof(uint32));
+
+			if (pushConstSize > 0)
+			{
+				mRawData.pushConstInfos.resize(pushConstSize);
+
+				_fStream.read(reinterpret_cast<char*>(mRawData.pushConstInfos.data()), BitSizeOf(mRawData.pushConstInfos));
+			}
 		}
 
 		return true;
@@ -139,10 +172,10 @@ namespace Sa
 
 	void RenderMaterialAsset::UnLoad_Internal(bool _bFreeResources)
 	{
-		infos.vertexShaderPath.clear();
-		infos.fragmentShaderPath.clear();
+		vertexShaderPath.clear();
+		fragmentShaderPath.clear();
 
-		infos.texturePaths.clear();
+		texturePaths.clear();
 	}
 
 
@@ -152,22 +185,45 @@ namespace Sa
 		_fStream << '\n';
 
 		// Shaders.
-		_fStream << infos.vertexShaderPath << ' ' << infos.fragmentShaderPath << '\n';
+		_fStream << vertexShaderPath << ' ' << fragmentShaderPath << '\n';
+
 
 		// Textures.
-		_fStream << infos.texturePaths.size() << ' ';
+		_fStream << texturePaths.size() << ' ';
 
-		for (auto it = infos.texturePaths.begin(); it != infos.texturePaths.end(); ++it)
+		for (auto it = texturePaths.begin(); it != texturePaths.end(); ++it)
 			_fStream << *it << ' ';
 
 		_fStream << '\n';
 
 
 		// Data.
-		_fStream.write(reinterpret_cast<const char*>(&infos.bDynamicViewport), sizeof(bool));
+		_fStream.write(reinterpret_cast<const char*>(&mRawData.bDynamicViewport), sizeof(bool));
 
-		uint32 size = sizeof(RenderMaterialCreateInfos) - offsetof(RenderMaterialCreateInfos, matConstants);
-		_fStream.write(reinterpret_cast<const char*>(&infos.matConstants), size);
+
+		uint32 shaderSize = SizeOf(mRawData.shaders);
+		_fStream.write(reinterpret_cast<const char*>(&shaderSize), sizeof(uint32));
+
+
+		for (auto it = mRawData.shaders.begin(); it != mRawData.shaders.end(); ++it)
+		{
+			_fStream.write(reinterpret_cast<const char*>(&it->type), sizeof(uint8));
+
+			uint32 size = SizeOf(it->specConstants);
+			_fStream.write(reinterpret_cast<const char*>(&size), sizeof(uint32));
+
+			_fStream.write(reinterpret_cast<const char*>(it->specConstants.data()), BitSizeOf(it->specConstants));
+		}
+
+
+		uint32 size = offsetof(RawMaterial, pushConstInfos) - offsetof(RawMaterial, matConstants);
+		_fStream.write(reinterpret_cast<const char*>(&mRawData.matConstants), size);
+
+		uint32 pushConstSize = SizeOf(mRawData.pushConstInfos);
+		_fStream.write(reinterpret_cast<const char*>(&pushConstSize), sizeof(uint32));
+
+		if(pushConstSize > 0)
+			_fStream.write(reinterpret_cast<const char*>(mRawData.pushConstInfos.data()), BitSizeOf(mRawData.pushConstInfos));
 	}
 
 	IRenderMaterial* RenderMaterialAsset::Create(const IRenderInstance& _instance) const
@@ -176,42 +232,31 @@ namespace Sa
 
 		AssetManager& assetMgr = mManager.As<ResourceMgr<RenderMaterialAsset>>().GetAssetMgr();
 
-		// Shaders.
-		const IShader* vertShader = assetMgr.shaderMgr.Load(infos.vertexShaderPath);
-		SA_ASSERT(vertShader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
+		// TODO: Remove later.
+		mRawData.renderPass = IRenderPass::mainRenderPass;
+		mRawData.cameras = { ICamera::mainCamera };
+		mRawData.bDynamicViewport = false;
 
-		const IShader* fragShader = assetMgr.shaderMgr.Load(infos.fragmentShaderPath);
-		SA_ASSERT(fragShader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
+
+		// Shaders.
+		mRawData.shaders[0].shader = assetMgr.shaderMgr.Load(vertexShaderPath);
+		SA_ASSERT(mRawData.shaders[0].shader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
+
+		mRawData.shaders[1].shader = assetMgr.shaderMgr.Load(fragmentShaderPath);
+		SA_ASSERT(mRawData.shaders[1].shader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
 
 
 		// Textures
-		std::vector<const ITexture*> textures(infos.texturePaths.size());
-
-		for (uint32 i = 0u; i < SizeOf(infos.texturePaths); ++i)
+		for (uint32 i = 0u; i < SizeOf(texturePaths); ++i)
 		{
-			const ITexture* texture = assetMgr.textureMgr.Load(infos.texturePaths[i]);
-			SA_ASSERT(texture, Nullptr, SDK_Asset, L"Texture asset nulltpr! Path invalid");
+			if (texturePaths[i].empty())
+				continue;
 
-			textures[i] = texture;
+			mRawData.textures.data[i] = assetMgr.textureMgr.Load(texturePaths[i]);
+			SA_ASSERT(mRawData.textures.data[i], Nullptr, SDK_Asset, L"Texture asset nulltpr! Path invalid");
 		}
 
-		const RenderMaterialCreateInfos matCreateInfos
-		{
-			*IRenderPass::mainRenderPass, // TODO: CLEAN LATER.
-
-			{ ICamera::mainCamera }, // TODO: CLEAN LATER.
-			false, // TODO: CLEAN LATER.
-
-			vertShader,
-			fragShader,
-
-			textures,
-
-			infos.matConstants,
-			infos.renderInfos
-		};
-
-		result->Create(_instance, matCreateInfos);
+		result->Create(_instance, mRawData);
 
 		return result;
 	}
@@ -219,7 +264,7 @@ namespace Sa
 
 	RenderMaterialAsset& RenderMaterialAsset::operator=(RenderMaterialAsset&& _rhs)
 	{
-		infos = Move(_rhs.infos);
+		mRawData = Move(_rhs.mRawData);
 
 		_rhs.UnLoad(false);
 

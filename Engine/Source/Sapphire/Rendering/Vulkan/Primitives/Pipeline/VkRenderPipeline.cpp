@@ -5,9 +5,7 @@
 #include <Core/Algorithms/SizeOf.hpp>
 
 #include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
-#include <Rendering/Framework/Primitives/Shader/ShaderType.hpp>
-#include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
+#include <Rendering/Framework/Primitives/Material/RawMaterial.hpp>
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/Buffer/VkCommandBuffer.hpp>
@@ -21,21 +19,21 @@
 
 namespace Sa
 {
-	void VkRenderPipeline::Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _infos)
 	{
 		const VkRenderInstance& vkInstance = _instance.As<VkRenderInstance>();
 		const VkDevice& device = vkInstance.GetDevice();
-		const VkRenderPass& vkRenderPass = _pipelineInfos.renderPass.As<VkRenderPass>();
+		const VkRenderPass& vkRenderPass = _infos.renderPass->As<VkRenderPass>();
 
-		if(_pipelineInfos.renderInfos.uniformBufferSize > 0u)
-			CreateUniformBuffers(device, _pipelineInfos, vkRenderPass.GetImageNum());
+		if(_infos.uniformBufferSize > 0u)
+			CreateUniformBuffers(device, _infos, vkRenderPass.GetImageNum());
 
-		CreateDescriptors(vkInstance, _pipelineInfos);
+		CreateDescriptors(vkInstance, _infos);
 
 
-		std::vector<ShaderStageCreateInfos> stagesInfos;
+		std::vector<VkSpecConstantRange> specConstRanges;
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-		CreateShaderStages(shaderStages, stagesInfos, _pipelineInfos);
+		CreateShaderStages(shaderStages, specConstRanges, _infos);
 
 
 		const VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo
@@ -61,7 +59,7 @@ namespace Sa
 
 		// === Create Viewport ===
 		std::vector<VkViewport> viewports; std::vector<VkRect2D> scissors;
-		const VkPipelineViewportStateCreateInfo viewportStateCreateInfo = CreateViewportStateCreateInfo(_pipelineInfos, viewports, scissors);
+		const VkPipelineViewportStateCreateInfo viewportStateCreateInfo = CreateViewportStateCreateInfo(_infos, viewports, scissors);
 
 		VkDynamicState dynamicState[]{ VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 
@@ -83,9 +81,9 @@ namespace Sa
 			0,																		// flags.
 			VK_FALSE,																// depthClampEnable.
 			VK_FALSE,																// rasterizerDiscardEnable.
-			API_GetPolygonMode(_pipelineInfos.renderInfos.polygonMode),				// polygonMode.
-			API_GetCullingMode(_pipelineInfos.renderInfos.cullingMode),				// cullMode.
-			API_GetFrontFaceMode(_pipelineInfos.renderInfos.frontFaceMode),			// frontFace.
+			API_GetPolygonMode(_infos.polygonMode),				// polygonMode.
+			API_GetCullingMode(_infos.cullingMode),				// cullMode.
+			API_GetFrontFaceMode(_infos.frontFaceMode),			// frontFace.
 			VK_FALSE,																// depthBiasEnable.
 			0.0f,																	// depthBiasConstantFactor.
 			0.0f,																	// depthBiasClamp.
@@ -152,16 +150,8 @@ namespace Sa
 		};
 
 
-		VkPushConstantRange pushConstants[]
-		{
-			// camIndex.
-			{
-				VK_SHADER_STAGE_VERTEX_BIT,				// stageFlags.
-				0,										// offset.
-				sizeof(int)								// size.
-			}
-		};
-
+		std::vector<VkPushConstantRange> pushConstants;
+		_infos.pushConstInfos.API_GetPushConstantRanges(pushConstants);
 
 		const VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo
 		{
@@ -171,7 +161,7 @@ namespace Sa
 			1,																		// setLayoutCount.
 			&mDescriptorSetLayout,													// pSetLayouts.
 			SizeOf(pushConstants),													// pushConstantRangeCount.
-			pushConstants															// pPushConstantRanges.
+			pushConstants.data()													// pPushConstantRanges.
 		};
 
 		SA_VK_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &mPipelineLayout),
@@ -194,7 +184,7 @@ namespace Sa
 			&multisamplingCreateInfo,											// pMultisampleState.
 			&depthStencilCreateInfo,											// pDepthStencilState.
 			&colorBlendingCreateInfo,											// pColorBlendState.
-			_pipelineInfos.bDynamicViewport ? &DynamiCreateInfo : nullptr,		// pDynamicState.
+			_infos.bDynamicViewport ? &DynamiCreateInfo : nullptr,				// pDynamicState.
 			mPipelineLayout,													// layout.
 			vkRenderPass,														// renderPass.
 			0,																	// subpass.
@@ -207,73 +197,36 @@ namespace Sa
 	}
 
 	void VkRenderPipeline::CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages,
-		std::vector<ShaderStageCreateInfos>& _stagesInfos, const PipelineCreateInfos& _pipelineInfos)
+		std::vector<VkSpecConstantRange>& _specConstRanges, const PipelineCreateInfos& _infos)
 	{
-		_stagesInfos.reserve(5u);
-		_shaderStages.reserve(5u);
+		_shaderStages.reserve(_infos.shaders.size());
+		_specConstRanges.reserve(_infos.shaders.size());
 
-		// Create vertex shader stage.
-		if (_pipelineInfos.vertexShader)
+		// TODO: REMOVE LATER.
+		static int specs[2] = {0, 2};
+
+		for (auto it = _infos.shaders.begin(); it != _infos.shaders.end(); ++it)
 		{
-			_shaderStages.push_back(VkPipelineShaderStageCreateInfo
+			VkSpecConstantRange* specConstRange = nullptr;
+
+			if (SizeOf(it->specConstants) > 0)
+				specConstRange = &it->specConstants.API_GetSpecConstantRanges(_specConstRanges, specs);
+
+			_shaderStages.emplace_back(VkPipelineShaderStageCreateInfo
 			{
 				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
 				nullptr,															// pNext.
 				0,																	// flags.
-				API_GetShaderType(ShaderType::Vertex),								// stage.
-				_pipelineInfos.vertexShader->As<VkShader>(),						// module.
+				API_GetShaderType(it->type),										// stage.
+				it->shader->As<VkShader>(),											// module.
 				"main",																// pName.
-				nullptr,															// pSpecializationInfo.
-			});
-		}
-
-		// Create fragment shader stage.
-		if (_pipelineInfos.fragementShader)
-		{
-			ShaderStageCreateInfos& stageInfos = _stagesInfos.emplace_back();
-
-			stageInfos.specEntries =
-			{
-				VkSpecializationMapEntry
-
-				// Alpha model.
-				{
-					1,									// constantID.
-					0,									// offset.
-					sizeof(int)							// size.
-				},
-				
-				// Illumination Model.
-				{
-					2,									// constantID.
-					sizeof(int),						// offset.
-					sizeof(int)							// size.
-				}
-			};
-
-			stageInfos.specInfos = VkSpecializationInfo
-			{
-				SizeOf(stageInfos.specEntries),			// mapEntryCount.
-				stageInfos.specEntries.data(),			// pMapEntries.
-				2 * sizeof(int),						// dataSize.
-				&_pipelineInfos.renderInfos.alphaModel	// pData.
-			};
-
-			_shaderStages.push_back(VkPipelineShaderStageCreateInfo
-			{
-				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,				// sType.
-				nullptr,															// pNext.
-				0,																	// flags.
-				API_GetShaderType(ShaderType::Fragment),							// stage.
-				_pipelineInfos.fragementShader->As<VkShader>(),						// module.
-				"main",																// pName.
-				&stageInfos.specInfos,												// pSpecializationInfo.
+				specConstRange ? &specConstRange->infos : nullptr,					// pSpecializationInfo.
 			});
 		}
 	}
 
 
-	void VkRenderPipeline::CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+	void VkRenderPipeline::CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _infos,
 		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept
 	{
 		// Static UBO binding.
@@ -281,14 +234,14 @@ namespace Sa
 		{
 			0,																	// binding.
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
-			SizeOf(_pipelineInfos.cameras),										// descriptorCount.
+			SizeOf(_infos.cameras),										// descriptorCount.
 			VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
 			nullptr																// pImmutableSamplers.
 		});
 
 
 		// Object UBO binding.
-		if (_pipelineInfos.renderInfos.uniformBufferSize > 0u)
+		if (_infos.uniformBufferSize > 0u)
 		{
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 			{
@@ -306,14 +259,14 @@ namespace Sa
 		{
 			2,																		// binding.
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// descriptorType.
-			SizeOf(_pipelineInfos.textures),										// descriptorCount.
+			_infos.textures.GetTextureNum(),										// descriptorCount.
 			VK_SHADER_STAGE_FRAGMENT_BIT,											// stageFlags.
 			nullptr																	// pImmutableSamplers.
 		});
 
 
 		// Light bindings.
-		if (_pipelineInfos.renderInfos.illumModel != IlluminationModel::None)
+		if (_infos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindings.
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
@@ -341,14 +294,14 @@ namespace Sa
 		}
 	}
 
-	void VkRenderPipeline::CreateDescriptorSetLayout(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::CreateDescriptorSetLayout(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos)
 	{
 		std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
 		layoutBindings.reserve(5);
 
 
 		// Populate bindings.
-		CreateDescriptorSetLayoutBindings(_pipelineInfos, layoutBindings);
+		CreateDescriptorSetLayoutBindings(_infos, layoutBindings);
 
 
 		// Create DescriptorSetLayout.
@@ -366,7 +319,7 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::CreateDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+	void VkRenderPipeline::CreateDescriptorPoolSize(const PipelineCreateInfos& _infos, uint32 _imageNum,
 		std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept
 	{
 		// Static UBO binding.
@@ -378,7 +331,7 @@ namespace Sa
 
 
 		// Object UBO binding.
-		if (_pipelineInfos.renderInfos.uniformBufferSize > 0u)
+		if (_infos.uniformBufferSize > 0u)
 		{
 			_poolSizes.push_back(VkDescriptorPoolSize
 			{
@@ -397,7 +350,7 @@ namespace Sa
 
 
 		// Light bindings.
-		if (_pipelineInfos.renderInfos.illumModel != IlluminationModel::None)
+		if (_infos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindigs.
 			_poolSizes.push_back(VkDescriptorPoolSize
@@ -419,14 +372,14 @@ namespace Sa
 		}
 	}
 
-	void VkRenderPipeline::CreateDescriptorPool(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
+	void VkRenderPipeline::CreateDescriptorPool(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos, uint32 _imageNum)
 	{
 		std::vector<VkDescriptorPoolSize> poolSizes;
 		poolSizes.reserve(5);
 
 
 		// Populate poolSizes.
-		CreateDescriptorPoolSize(_pipelineInfos, _imageNum, poolSizes);
+		CreateDescriptorPoolSize(_infos, _imageNum, poolSizes);
 
 
 		// Create DescriptorPool.
@@ -445,16 +398,16 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::CreateWriteDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+	void VkRenderPipeline::CreateWriteDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos, uint32 _index,
 		std::vector<DescriptorInfo>& _descriptorInfos,
 		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
 	{
 		// Camera UBO binding.
-		for (uint32 i = 0u; i < SizeOf(_pipelineInfos.cameras); ++i)
+		for (uint32 i = 0u; i < SizeOf(_infos.cameras); ++i)
 		{
-			SA_ASSERT(_pipelineInfos.cameras[i], Nullptr, Rendering, L"Pipeline bind nullptr camera!");
+			SA_ASSERT(_infos.cameras[i], Nullptr, Rendering, L"Pipeline bind nullptr camera!");
 
-			const VkCamera& camera = _pipelineInfos.cameras[i]->As<VkCamera>();
+			const VkCamera& camera = _infos.cameras[i]->As<VkCamera>();
 
 			_descriptorInfos.push_back(camera.CreateDescriptorBufferInfo(_index));
 			_descriptorWrites.push_back(VkUniformBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 0, i));
@@ -462,19 +415,20 @@ namespace Sa
 
 
 		// Object UBO binding.
-		if (_pipelineInfos.renderInfos.uniformBufferSize > 0u)
+		if (_infos.uniformBufferSize > 0u)
 		{
-			_descriptorInfos.push_back(mObjectUniformBuffers[_index].CreateDescriptorBufferInfo(_pipelineInfos.renderInfos.uniformBufferSize));
+			_descriptorInfos.push_back(mObjectUniformBuffers[_index].CreateDescriptorBufferInfo(_infos.uniformBufferSize));
 			_descriptorWrites.push_back(VkUniformBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 1));
 		}
 
 
 		// Texture bindings.
-		for (uint32 i = 0u; i < SizeOf(_pipelineInfos.textures); ++i)
+		for (uint32 i = 0u; i < MaterialTextures::size; ++i)
 		{
-			SA_ASSERT(_pipelineInfos.textures[i], Nullptr, Rendering, L"Pipeline bind nullptr texture!");
+			if (!_infos.textures.data[i])
+				continue;
 
-			const VkTexture& vkTexture = _pipelineInfos.textures[i]->As<VkTexture>();
+			const VkTexture& vkTexture = _infos.textures.data[i]->As<VkTexture>();
 
 			_descriptorInfos.push_back(vkTexture.CreateDescriptorImageInfo());
 			_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], 2, i));
@@ -482,7 +436,7 @@ namespace Sa
 
 
 		// Light bindings.
-		if (_pipelineInfos.renderInfos.illumModel != IlluminationModel::None)
+		if (_infos.illumModel != IlluminationModel::None)
 		{
 			// Material UBO bindigs.
 			_descriptorInfos.push_back(mMatConstantUniformBuffer.CreateDescriptorBufferInfo(sizeof(MaterialConstants)));
@@ -511,7 +465,7 @@ namespace Sa
 		}
 	}
 
-	void VkRenderPipeline::CreateDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
+	void VkRenderPipeline::CreateDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos, uint32 _imageNum)
 	{
 		SA_ASSERT(mDescriptorSetLayout != VK_NULL_HANDLE, Nullptr, Rendering, L"Create descriptor sets with null descriptor layout!");
 		SA_ASSERT(mDescriptorPool != VK_NULL_HANDLE, Nullptr, Rendering, L"Create descriptor sets with null descriptor pool!");
@@ -546,7 +500,7 @@ namespace Sa
 			descriptorInfos.clear();
 			descriptorWrites.clear();
 
-			CreateWriteDescriptorSets(_instance, _pipelineInfos, i, descriptorInfos, descriptorWrites);
+			CreateWriteDescriptorSets(_instance, _infos, i, descriptorInfos, descriptorWrites);
 
 			// Init info ptr after any vector resize.
 			for (uint32 j = 0u; j < descriptorWrites.size(); ++j)
@@ -562,12 +516,12 @@ namespace Sa
 	}
 
 
-	VkPipelineViewportStateCreateInfo VkRenderPipeline::CreateViewportStateCreateInfo(const PipelineCreateInfos& _pipelineInfos,
+	VkPipelineViewportStateCreateInfo VkRenderPipeline::CreateViewportStateCreateInfo(const PipelineCreateInfos& _infos,
 		std::vector<VkViewport>& _viewports, std::vector<VkRect2D>& _scissors)
 	{
-		uint32 num = _pipelineInfos.cameras.size();
+		uint32 num = _infos.cameras.size();
 
-		if (_pipelineInfos.bDynamicViewport)
+		if (_infos.bDynamicViewport)
 		{
 			return VkPipelineViewportStateCreateInfo
 			{
@@ -586,7 +540,7 @@ namespace Sa
 		_viewports.reserve(num);
 		_scissors.reserve(num);
 
-		for (auto it = _pipelineInfos.cameras.begin(); it != _pipelineInfos.cameras.end(); ++it)
+		for (auto it = _infos.cameras.begin(); it != _infos.cameras.end(); ++it)
 		{
 			_viewports.push_back((*it)->GetVkViewport());
 			_scissors.push_back((*it)->GetVkScissor());
@@ -605,14 +559,14 @@ namespace Sa
 	}
 
 
-	void VkRenderPipeline::CreateDescriptors(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::CreateDescriptors(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos)
 	{
-		CreateDescriptorSetLayout(_instance, _pipelineInfos);
+		CreateDescriptorSetLayout(_instance, _infos);
 
-		const uint32 imageNum = _pipelineInfos.renderPass.As<VkRenderPass>().GetImageNum();
+		const uint32 imageNum = _infos.renderPass->As<VkRenderPass>().GetImageNum();
 
-		CreateDescriptorPool(_instance, _pipelineInfos, imageNum);
-		CreateDescriptorSets(_instance, _pipelineInfos, imageNum);
+		CreateDescriptorPool(_instance, _infos, imageNum);
+		CreateDescriptorSets(_instance, _infos, imageNum);
 	}
 	void VkRenderPipeline::DestroyDescriptors(const VkDevice& _device)
 	{
@@ -627,19 +581,19 @@ namespace Sa
 		mDescriptorPool = VK_NULL_HANDLE;
 	}
 
-	void VkRenderPipeline::CreateUniformBuffers(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum)
+	void VkRenderPipeline::CreateUniformBuffers(const VkDevice& _device, const PipelineCreateInfos& _infos, uint32 _imageNum)
 	{
 		mObjectUniformBuffers.resize(_imageNum);
 
 		for (uint32 i = 0; i < _imageNum; i++)
 		{
-			mObjectUniformBuffers[i].Create(_device, _pipelineInfos.renderInfos.uniformBufferSize,
+			mObjectUniformBuffers[i].Create(_device, _infos.uniformBufferSize,
 				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		}
 
 		mMatConstantUniformBuffer.Create(_device, sizeof(MaterialConstants),
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_pipelineInfos.matConstants);
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_infos.matConstants);
 	}
 	void VkRenderPipeline::DestroyUniformBuffers(const VkDevice& _device)
 	{
@@ -651,20 +605,20 @@ namespace Sa
 		mMatConstantUniformBuffer.Destroy(_device);
 	}
 
-	void VkRenderPipeline::Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::Create(const IRenderInstance& _instance, const PipelineCreateInfos& _infos)
 	{
-		Create_Internal(_instance, _pipelineInfos);
+		Create_Internal(_instance, _infos);
 
 		// TODO: CLEAN.
-		//_pipelineInfos.surface.onResizeEvent.Add(std::function<void(const IRenderInstance&, const IRenderSurface&)>(
-		//	[this, &_pipelineInfos](const IRenderInstance& _instance, const IRenderSurface& _surface)
+		//_infos.surface.onResizeEvent.Add(std::function<void(const IRenderInstance&, const IRenderSurface&)>(
+		//	[this, &_infos](const IRenderInstance& _instance, const IRenderSurface& _surface)
 		//	{
 		//		(void)_surface;
-		//		ReCreate(_instance, _pipelineInfos);
+		//		ReCreate(_instance, _infos);
 		//	}
 		//));
 
-		if (_pipelineInfos.renderInfos.illumModel != IlluminationModel::None)
+		if (_infos.illumModel != IlluminationModel::None)
 		{
 			// TODO: ADD Pipeline recreation event.
 		}
@@ -695,11 +649,11 @@ namespace Sa
 			0, 1, &mDescriptorSets[vkFrame.index], 0, nullptr);
 	}
 
-	void VkRenderPipeline::ReCreate(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos)
+	void VkRenderPipeline::ReCreate(const IRenderInstance& _instance, const PipelineCreateInfos& _infos)
 	{
 		Destroy(_instance);
 
-		Create_Internal(_instance, _pipelineInfos);
+		Create_Internal(_instance, _infos);
 	}
 
 	void VkRenderPipeline::InitData(const IRenderInstance& _instance, const void* _data, uint32 _dataSize, uint32 _offset)
@@ -714,7 +668,7 @@ namespace Sa
 		uint32 frameIndex = _frame.As<VkRenderFrame>().index;
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
-		SA_ASSERT(frameIndex >= 0u && frameIndex < mObjectUniformBuffers.size(), OutOfRange, Rendering, frameIndex, 0u, mObjectUniformBuffers.size());
+		SA_ASSERT(frameIndex >= 0u && frameIndex < SizeOf(mObjectUniformBuffers), OutOfRange, Rendering, frameIndex, 0u, SizeOf(mObjectUniformBuffers));
 
 		mObjectUniformBuffers[frameIndex].UpdateData(device, _data, _dataSize, _offset);
 	}

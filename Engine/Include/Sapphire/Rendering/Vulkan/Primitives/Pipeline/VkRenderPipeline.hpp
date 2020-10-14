@@ -20,6 +20,8 @@ namespace Sa
 	class VkDevice;
 	class VkRenderInstance;
 
+	struct VkSpecConstantRange;
+
 	class VkRenderPipeline : public IRenderPipeline
 	{
 		VkPipeline mHandle = VK_NULL_HANDLE;
@@ -33,31 +35,25 @@ namespace Sa
 		std::vector<VkUniformBuffer> mObjectUniformBuffers;
 
 
-		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
+		void Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _infos);
 
-
-		struct ShaderStageCreateInfos
-		{
-			std::vector<VkSpecializationMapEntry> specEntries;
-			VkSpecializationInfo specInfos;
-		};
 
 		void CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages,
-			std::vector<ShaderStageCreateInfos>& _stagesInfos, const PipelineCreateInfos& _pipelineInfos);
+			std::vector<VkSpecConstantRange>& _specConstRanges, const PipelineCreateInfos& _infos);
 		
 
-		virtual void CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _pipelineInfos,
+		virtual void CreateDescriptorSetLayoutBindings(const PipelineCreateInfos& _infos,
 			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings) const noexcept;
 
-		void CreateDescriptorSetLayout(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
+		void CreateDescriptorSetLayout(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos);
 
 
-		virtual void CreateDescriptorPoolSize(const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum,
+		virtual void CreateDescriptorPoolSize(const PipelineCreateInfos& _infos, uint32 _imageNum,
 			std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept;
 
-		void CreateDescriptorPool(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
+		void CreateDescriptorPool(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos, uint32 _imageNum);
 
-		VkPipelineViewportStateCreateInfo CreateViewportStateCreateInfo(const PipelineCreateInfos& _pipelineInfos,
+		VkPipelineViewportStateCreateInfo CreateViewportStateCreateInfo(const PipelineCreateInfos& _infos,
 			std::vector<VkViewport>& _viewports, std::vector<VkRect2D>& _scissors);
 
 		struct DescriptorInfo
@@ -74,20 +70,20 @@ namespace Sa
 			DescriptorInfo(VkDescriptorImageInfo _image) noexcept : image{ _image }, bIsImage{ true } {}
 		};
 
-		virtual void CreateWriteDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _index,
+		virtual void CreateWriteDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos, uint32 _index,
 			std::vector<DescriptorInfo>& _descriptorInfos,
 			std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept;
 
-		void CreateDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
+		void CreateDescriptorSets(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos, uint32 _imageNum);
 
-		void CreateDescriptors(const VkRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
+		void CreateDescriptors(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos);
 		void DestroyDescriptors(const VkDevice& _device);
 
-		void CreateUniformBuffers(const VkDevice& _device, const PipelineCreateInfos& _pipelineInfos, uint32 _imageNum);
+		void CreateUniformBuffers(const VkDevice& _device, const PipelineCreateInfos& _infos, uint32 _imageNum);
 		void DestroyUniformBuffers(const VkDevice& _device);
 
 	public:
-		void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos) override final;
+		void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _infos) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
 		void Bind(const IRenderFrame& _frame) const override final;
@@ -96,7 +92,7 @@ namespace Sa
 		void UpdateData(const IRenderInstance& _instance, const IRenderFrame& _frame, const void* _data, uint32 _dataSize, uint32 _offset) override final;
 
 		// Optimized re-creation.
-		void ReCreate(const IRenderInstance& _instance, const PipelineCreateInfos& _pipelineInfos);
+		void ReCreate(const IRenderInstance& _instance, const PipelineCreateInfos& _infos);
 
 		operator VkPipeline() const;
 		operator VkPipelineLayout() const;

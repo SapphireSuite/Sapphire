@@ -12,7 +12,6 @@
 #include <Sapphire/Rendering/Framework/Primitives/Mesh/IMesh.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
-#include <Sapphire/Rendering/Framework/Primitives/Pipeline/PipelineCreateInfos.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Camera/CameraUniformBuffer.hpp>
 
 #include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
@@ -128,17 +127,17 @@ void CreateMagikarp(AssetManager& _assetMgr)
 
 
 			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
-			bodyRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
-			bodyRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
-			bodyRenderMat.infos.texturePaths = { textureAssets[0]/*, textureAssets[1], textureAssets[2]*/ };
+			bodyRenderMat.vertexShaderPath = defaultVertShaderAsset;
+			bodyRenderMat.fragmentShaderPath = defaultFragShaderAsset;
+			bodyRenderMat.texturePaths = { textureAssets[0]/*, textureAssets[1], textureAssets[2]*/ };
 			bodyRenderMat.Save(materialAssets[0]);
 			magikarpBodyMat = bodyRenderMat.GetResource();
 
 
 			RenderMaterialAsset& eyesRenderMat = result[3]->As<RenderMaterialAsset>();
-			eyesRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
-			eyesRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
-			eyesRenderMat.infos.texturePaths = { textureAssets[1]/*textureAssets[3], textureAssets[4], textureAssets[5]*/ };
+			eyesRenderMat.vertexShaderPath = defaultVertShaderAsset;
+			eyesRenderMat.fragmentShaderPath = defaultFragShaderAsset;
+			eyesRenderMat.texturePaths = { textureAssets[1]/*textureAssets[3], textureAssets[4], textureAssets[5]*/ };
 			eyesRenderMat.Save(materialAssets[1]);
 			magikarpEyesMat = eyesRenderMat.GetResource();
 		}
@@ -203,22 +202,19 @@ void CreateGizmo(AssetManager& _assetMgr)
 	if (!gizmoMat) // Try load.
 	{
 		// Import on load failed.
-		RenderMaterialRawData gizmoRawMat;
-		gizmoRawMat.vertexShaderPath = vertShaderAsset;
-		gizmoRawMat.fragmentShaderPath = fragShaderAsset;
+		RawMaterial gizmoRawMat;
 
-		gizmoRawMat.renderInfos = PipelineRenderInfos
-		{
-			sizeof(Mat4f),
-			AlphaModel::Opaque,
-			PolygonMode::Fill,
-			CullingMode::None,
-			FrontFaceMode::Clockwise,
-			IlluminationModel::None
-		};
+		gizmoRawMat.uniformBufferSize = sizeof(Mat4f);
+		gizmoRawMat.alphaModel = AlphaModel::Opaque;
+		gizmoRawMat.cullingMode = CullingMode::None;
+		gizmoRawMat.illumModel = IlluminationModel::None;
 
 		RenderMaterialAsset gizmoMatAsset = _assetMgr.renderMatMgr.Create(Move(gizmoRawMat));
+		
+		gizmoMatAsset.vertexShaderPath = vertShaderAsset;
+		gizmoMatAsset.fragmentShaderPath = fragShaderAsset;
 		gizmoMatAsset.Save(materialAssets);
+
 		gizmoMat = gizmoMatAsset.GetResource();
 	}
 }
@@ -258,9 +254,9 @@ void CreateHelmet(AssetManager& _assetMgr)
 
 
 			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
-			bodyRenderMat.infos.vertexShaderPath = defaultVertShaderAsset;
-			bodyRenderMat.infos.fragmentShaderPath = defaultFragShaderAsset;
-			bodyRenderMat.infos.texturePaths = { textureAssets[0] };
+			bodyRenderMat.vertexShaderPath = defaultVertShaderAsset;
+			bodyRenderMat.fragmentShaderPath = defaultFragShaderAsset;
+			bodyRenderMat.texturePaths = { textureAssets[0] };
 			bodyRenderMat.Save(materialAssets[0]);
 			helmetMat = bodyRenderMat.GetResource();
 		}
@@ -305,20 +301,14 @@ void CreateBricks(AssetManager& _assetMgr)
 
 	if (!bricksMat)
 	{
-		RenderMaterialRawData infos
-		{
-			IRenderPass::mainRenderPass,
-			
-			{ ICamera::mainCamera },
-			false,
-
-			defaultVertShaderAsset,
-			defaultFragShaderAsset,
-
-			{textureAssets[0], textureAssets[1]},
-		};
+		RawMaterial infos;
 
 		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
+
+		renderMatAsset.vertexShaderPath = defaultVertShaderAsset;
+		renderMatAsset.fragmentShaderPath = defaultFragShaderAsset;
+		renderMatAsset.texturePaths = { textureAssets[0], textureAssets[1] };
+
 		renderMatAsset.Save(matAsset);
 
 		bricksMat = renderMatAsset.GetResource();
@@ -397,18 +387,18 @@ int main()
 	//uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
 
 	{
-		ObjectUniformBuffer oubo;
-		oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-1.0f, -1.0, -2.5f),
+		DefaultUniformBuffer ubo;
+		ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-1.0f, -1.0, -2.5f),
 			Quatf(180, Vec3f::Up) * Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix());
-		magikarpBodyMat->InitVariable(instance, &oubo, sizeof(oubo));
-		magikarpEyesMat->InitVariable(instance, &oubo, sizeof(oubo));
+		magikarpBodyMat->InitVariable(instance, &ubo, sizeof(ubo));
+		magikarpEyesMat->InitVariable(instance, &ubo, sizeof(ubo));
 	}
 
 	{
-		ObjectUniformBuffer oubo;
-		oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(6.0f, 0.0, 2.0f),
+		DefaultUniformBuffer ubo;
+		ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(6.0f, 0.0, 2.0f),
 			Quatf(-90.0f, Vec3f::Up), Vec3f(5.0f)).Matrix());
-		bricksMat->InitVariable(instance, &oubo, sizeof(oubo));
+		bricksMat->InitVariable(instance, &ubo, sizeof(ubo));
 	}
 
 	{
@@ -478,9 +468,8 @@ int main()
 		mainCamera.GetUniformBuffer(frame.index).UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
 		
 		{
-			ObjectUniformBuffer oubo;
-			oubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-			gizmoMat->UpdateVariable(instance, frame, &oubo, sizeof(oubo));
+			Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+			gizmoMat->UpdateVariable(instance, frame, &modelMat, sizeof(Mat4f));
 
 			vkDeviceWaitIdle(instance.GetDevice());
 			pLight1.position = API_ConvertCoordinateSystem(pL1Pos);

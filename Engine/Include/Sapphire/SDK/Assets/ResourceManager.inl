@@ -109,8 +109,8 @@ namespace Sa
 		if (--smartPtr.count <= 0)
 		{
 			// Unload dependencies.
-			for (auto it = infos.dependencies.begin(); it != infos.dependencies.end(); ++it)
-				mAssetMgr.UnLoad(it->primitive, it->assetType);
+			for (auto itDep = infos.dependencies.begin(); itDep != infos.dependencies.end(); ++itDep)
+				mAssetMgr.UnLoad(itDep->primitive, itDep->assetType);
 
 			// Destroy resource.
 			smartPtr.ptr->Destroy(mAssetMgr.GetRenderInstance());

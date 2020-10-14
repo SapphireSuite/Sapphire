@@ -94,6 +94,14 @@ namespace Sa
 
 
 /**
+*	\defgroup Reflection Reflection
+*	Sapphire Reflection classes.
+*
+*	\ingroup Core
+*/
+
+
+/**
 *	\defgroup Misc Misc
 *	Sapphire Misc Core classes.
 *

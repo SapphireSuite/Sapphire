@@ -16,15 +16,9 @@ namespace Sa
 {
 	class VkRenderMaterial : public IRenderMaterial
 	{
-		//std::vector<VkRenderPipeline> mPipelines;
-
-		//IRenderPipeline& GetPipeline(uint32 _index) override final;
-		//const IRenderPipeline& GetPipeline(uint32 _index) const override final;
-
 	public:
 		// TODO: REMOVE LATER.
-		SA_ENGINE_API void Create(const IRenderInstance& _instance, const RenderMaterialCreateInfos& _matCreateInfos) override final;
-		//void Destroy(const IRenderInstance& _instance) override final;
+		SA_ENGINE_API void Create(const IRenderInstance& _instance, const RawMaterial& _matCreateInfos) override final;
 	};
 }
 

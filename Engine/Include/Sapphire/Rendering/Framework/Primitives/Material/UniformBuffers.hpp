@@ -9,7 +9,7 @@
 
 namespace Sa
 {
-	struct ObjectUniformBuffer
+	struct DefaultUniformBuffer
 	{
 		// Model transformation matrix.
 		Mat4f modelMat = Mat4f::Identity;

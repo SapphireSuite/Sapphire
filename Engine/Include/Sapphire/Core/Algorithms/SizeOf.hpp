@@ -9,14 +9,23 @@
 
 #include <Core/Types/Int.hpp>
 
+#include <Core/Reflection/HasMember.hpp>
+
 namespace Sa
 {
+	SA_DEFINE_HAS_MEMBER(size);
+	SA_DEFINE_HAS_MEMBER(Size);
+
+
 	template <typename T>
 	constexpr uint32 SizeOf(const T& _elem)
 	{
-		(void)_elem;
-
-		return sizeof(T);
+		if constexpr (HM_size<T>::value)
+			return static_cast<uint32>(_elem.size());
+		else if constexpr (HM_Size<T>::value)
+			return static_cast<uint32>(_elem.Size());
+		else
+			return sizeof(T);
 	}
 
 	template <typename T, uint32 size>
@@ -27,29 +36,22 @@ namespace Sa
 		return size;
 	}
 
-	template <typename T>
-	uint32 SizeOf(const std::vector<T>& _vector)
-	{
-		return static_cast<uint32>(_vector.size());
-	}
-
 
 	template <typename T>
 	constexpr uint32 BitSizeOf(const T& _elem)
 	{
-		return SizeOf(_elem);
+		if constexpr (HM_size<T>::value)
+			return static_cast<uint32>(_elem.size()) * sizeof(T::value_type);
+		else if constexpr (HM_Size<T>::value)
+			return static_cast<uint32>(_elem.Size()) * sizeof(T::T);
+		else
+			return sizeof(T);
 	}
 
 	template <typename T, uint32 size>
 	constexpr uint32 BitSizeOf(const T(&_tab)[size])
 	{
 		return SizeOf(_tab) * sizeof(T);
-	}
-
-	template <typename T>
-	uint32 BitSizeOf(const std::vector<T>& _vector)
-	{
-		return SizeOf(_vector) * sizeof(T);
 	}
 }
 
