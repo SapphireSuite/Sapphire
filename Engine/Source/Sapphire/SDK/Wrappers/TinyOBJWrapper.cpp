@@ -15,6 +15,53 @@
 
 #include <SDK/Assets/AssetManager.hpp>
 
+
+template <class T>
+inline void hash_combine(std::size_t& seed, const T& v)
+{
+	std::hash<T> hasher;
+	seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+	//seed ^= hasher(v) + 0x11111111 + (seed << 6) + (seed >> 2);
+}
+namespace std
+{
+	template <>
+	struct hash<Sa::Vec2f>
+	{
+		size_t operator()(const Sa::Vec2f& v) const
+		{
+			size_t h = std::hash<float>()(v.x);
+			hash_combine(h, v.y);
+			return h;
+		}
+	};
+	template <>
+	struct hash<Sa::Vec3f>
+	{
+		size_t operator()(const Sa::Vec3f& v) const
+		{
+			size_t h = std::hash<float>()(v.x);
+			hash_combine(h, v.y);
+			hash_combine(h, v.z);
+			return h;
+		}
+	};
+	template <>
+	struct hash<Sa::Vertex>
+	{
+		size_t operator()(const Sa::Vertex& v) const
+		{
+			size_t h = std::hash<Sa::Vec3f>()(v.position);
+			hash_combine(h, v.normal);
+			hash_combine(h, v.tangent);
+			hash_combine(h, v.bitangent);
+			hash_combine(h, v.texture);
+			return h;
+		}
+	};
+}
+
+
 namespace Sa
 {
 	struct Callback
@@ -27,6 +74,10 @@ namespace Sa
 		std::vector<Vec3f> vertexPos;
 		std::vector<Vec3f> vertexNorm;
 		std::vector<Vec2f> vertexText;
+
+		uint32 indexCount = 0u;
+		std::unordered_map<Vertex, uint32> vertexIndexMap;
+
 
 		static tinyobj::callback_t Tiny()
 		{
@@ -45,6 +96,8 @@ namespace Sa
 
 		static void Vertex(void* _userData, float _x, float _y, float _z, float _w)
 		{
+			(void)_w;
+
 			Callback* cb = reinterpret_cast<Callback*>(_userData);
 			cb->vertexPos.push_back(Vec3f(_x, _y, _z));
 		};
@@ -57,6 +110,8 @@ namespace Sa
 
 		static void Texture(void* _userData, float _x, float _y, float _z)
 		{
+			(void)_z;
+
 			Callback* cb = reinterpret_cast<Callback*>(_userData);
 			cb->vertexText.push_back(Vec2f(_x, _y));
 		};
@@ -67,23 +122,44 @@ namespace Sa
 
 			RawMesh& rawMesh = cb->rawMeshes[cb->meshIndex];
 
-
 			for (int i = 0; i < _size; ++i)
 			{
-				rawMesh.vertices.push_back(Sa::Vertex{
+				Sa::Vertex vertex{
 					cb->vertexPos[_indices[i].vertex_index - 1],
 					cb->vertexNorm[_indices[i].normal_index - 1],
 					Vec3f::Zero,
 					Vec3f::Zero,
 					cb->vertexText[_indices[i].texcoord_index - 1]
-				});
+				};
 
-				rawMesh.indices.push_back(SizeOf(rawMesh.indices));
+				auto find = cb->vertexIndexMap.find(vertex);
+
+				// Vertex found.
+				if (find != cb->vertexIndexMap.end())
+					rawMesh.indices.push_back(find->second); // Only add vertex index.
+				else
+				{
+					// Insert new vertex.
+
+					// insert index.
+					rawMesh.indices.push_back(cb->indexCount);
+					
+					// insert vertex.
+					rawMesh.vertices.push_back(vertex);
+					
+					// Save vertex index.
+					cb->vertexIndexMap.insert({ vertex, cb->indexCount });
+
+					++cb->indexCount;
+				}
 			}
 		}
 
 		static void Usemtl(void* _userData, const char* _name, int _matIndex)
 		{
+			(void)_userData;
+			(void)_name;
+			(void)_matIndex;
 		}
 
 		static void Mtllib(void* _userData, const tinyobj::material_t* _mats, int _size)
@@ -109,15 +185,24 @@ namespace Sa
 			}
 		}
 
-		static void Group(void* _userData, const char** names, int num_names)
+		static void Group(void* _userData, const char** _names, int _size)
 		{
+			(void)_names;
+			(void)_size;
+
 			Callback* cb = reinterpret_cast<Callback*>(_userData);
+
 			cb->rawMeshes.emplace_back();
 			++cb->meshIndex;
+
+			cb->vertexIndexMap.clear();
+			cb->indexCount = 0u;
 		}
 
 		static void Object(void* _userData, const char* _name)
 		{
+			(void)_name;
+			(void)_userData;
 		}
 	};
 
