@@ -21,6 +21,8 @@ namespace Sa
 		// TODO: CLEAN LATER
 		SA_ENGINE_API static IRenderPass* mainRenderPass;
 
+		virtual void SetClearColor(const Color& _color) = 0;
+
 		virtual void Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const RenderPassCreateInfos& _createInfos) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 

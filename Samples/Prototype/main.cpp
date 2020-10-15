@@ -368,7 +368,10 @@ int main()
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
-	Sa::VkRenderPass& mainRenderPass = surface.CreateRenderPass(instance, RenderPassCreateInfos{}).As<Sa::VkRenderPass>();
+	RenderPassCreateInfos mainRenderPassInfos;
+	mainRenderPassInfos.sampling = SampleBits::Sample8Bits;
+
+	Sa::VkRenderPass& mainRenderPass = surface.CreateRenderPass(instance, mainRenderPassInfos).As<Sa::VkRenderPass>();
 	IRenderPass::mainRenderPass = &mainRenderPass;
 
 	VkCamera mainCamera(surface.GetImageExtent());

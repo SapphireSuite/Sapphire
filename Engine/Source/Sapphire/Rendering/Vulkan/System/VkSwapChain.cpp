@@ -135,12 +135,12 @@ namespace Sa
 			VK_STRUCTURE_TYPE_SUBMIT_INFO,						// sType.
 			nullptr,											// pNext.
 			1,													// waitSemaphoreCount.
-			&mAcquireSemaphores[frame.index],				// pWaitSemaphores.
+			&mAcquireSemaphores[frame.index],					// pWaitSemaphores.
 			&waitStages,										// pWaitDstStageMask.
 			1,													// commandBufferCount.
 			&frame.graphicsCommandBuffer,						// pCommandBuffers.
 			1,													// signalSemaphoreCount.
-			&mPresentSemaphores[frame.index],				// pSignalSemaphores.
+			&mPresentSemaphores[frame.index],					// pSignalSemaphores.
 		};
 
 		SA_VK_ASSERT(vkQueueSubmit(_device.GetGraphicsQueue(), 1, &submitInfo, mMainFences[frame.index]),
@@ -152,7 +152,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,					// sType.
 			nullptr,											// pNext.
 			1,													// waitSemaphoreCount.
-			&mPresentSemaphores[frame.index],				// pWaitSemaphores.
+			&mPresentSemaphores[frame.index],					// pWaitSemaphores.
 			1,													// swapchainCount.
 			&mHandle,											// pSwapchains
 			&mImageIndex,										// pImageIndices.

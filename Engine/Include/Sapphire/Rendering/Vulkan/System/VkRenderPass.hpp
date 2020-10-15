@@ -30,25 +30,34 @@ namespace Sa
 		VkImageBuffer mDepthBuffer;
 		std::vector<VkFramebuffer> mFrameBuffers;
 
-		void CreateDepthBuffer(const VkDevice& _device, const VkSwapChain& _swapChain, const RenderPassCreateInfos& _createInfos);
+		VkImageBuffer mColorMultisamplingBuffer;
+
+		SampleBits mSampleBits = SampleBits::Sample1Bit;
+
+		std::vector<VkClearValue> mClearValues;
+
+		void SetSampleCount(const VkDevice& _device, SampleBits _desiredSampling);
+
+		void CreateDepthBuffer(const VkDevice& _device, const VkSwapChain& _swapChain);
 		void DestroyDepthBuffer(const VkDevice& _device);
+
+		void CreateColorMultisamplingBuffer(const VkDevice& _device, const VkSwapChain& _swapChain);
+		void DestroyColorMultisamplingBuffer(const VkDevice& _device);
 
 		void CreateFrameBuffers(const VkDevice& _device, const VkSwapChain& _swapChain);
 		void DestroyFrameBuffers(const VkDevice& _device);
 
 	public:
-		VkClearValue clearValue[2]{
-			VkClearValue{ 0.0f, 0.0f, 0.07f, 1.0f },	// VkClearColorValue.
-			VkClearValue{ 1.0f, 0 }						// VkClearDepthStencilValue.
-		};
-
-
 		// Same as SwapChain image num.
 		uint32 GetImageNum() const noexcept;
+
+		SampleBits GetSampleBits() const noexcept;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API VkUniformBuffer& GetUniformBuffer(uint32 _index);
 		const std::vector<VkUniformBuffer>& GetStaticUniformBuffers() const;
+
+		void SetClearColor(const Color& _color) override final;
 
 		void Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const RenderPassCreateInfos& _createInfos) override final;
 		void Destroy(const IRenderInstance& _instance) override final;

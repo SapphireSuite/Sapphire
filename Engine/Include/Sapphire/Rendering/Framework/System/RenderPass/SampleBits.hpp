@@ -2,12 +2,12 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_SAMPLING_BITS_GUARD
-#define SAPPHIRE_RENDERING_SAMPLING_BITS_GUARD
+#ifndef SAPPHIRE_RENDERING_SAMPLE_BITS_GUARD
+#define SAPPHIRE_RENDERING_SAMPLE_BITS_GUARD
 
 namespace Sa
 {
-	enum class SamplingBits
+	enum class SampleBits
 	{
 		/// no multisampling.
 		Sample1Bit = 1 << 0,
@@ -28,7 +28,10 @@ namespace Sa
 		Sample32Bits = 1 << 5,
 
 		/// 64 bits multisampling.
-		Sample64Bits = 1 << 6
+		Sample64Bits = 1 << 6,
+
+		/// Use maximum multisampling allowed by hardware.
+		Max,
 	};
 }
 

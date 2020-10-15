@@ -123,6 +123,7 @@ namespace Sa
 		VkPhysicalDeviceFeatures physicalDeviceFeatures
 		{
 		};
+		physicalDeviceFeatures.sampleRateShading = VK_TRUE;
 		physicalDeviceFeatures.samplerAnisotropy = VK_TRUE;
 
 #if SA_VK_VALIDATION_LAYERS

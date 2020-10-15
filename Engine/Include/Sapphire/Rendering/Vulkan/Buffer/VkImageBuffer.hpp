@@ -26,6 +26,18 @@ namespace Sa
 
 		uint32 mipMapLevels = 1u;
 
+		VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT;
+
+		VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+	};
+
+	struct VkTransitionImageInfos
+	{
+		VkImageLayout oldLayout;
+		VkImageLayout newLayout;
+
+		uint32 mipLevels = 1u;
+
 		VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
 	};
 
@@ -41,7 +53,7 @@ namespace Sa
 		void Create(const VkDevice& _device, const VkImageBufferCreateInfos& _createInfos);
 		void Destroy(const VkDevice& _device);
 
-		void TransitionImageLayout(const VkDevice& _device, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _mipLevels = 1u);
+		void TransitionImageLayout(const VkDevice& _device, const VkTransitionImageInfos& _infos);
 		void CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const VkExtent3D& _extent);
 
 		void GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels);

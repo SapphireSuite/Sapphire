@@ -45,14 +45,36 @@ namespace Sa
 
 
 		// Copy image to shader.
-		mBuffer.TransitionImageLayout(device, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+		const VkTransitionImageInfos undefToDstTransitionInfos
+		{
+			VK_IMAGE_LAYOUT_UNDEFINED,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			mipLevels,
+		};
+
+		mBuffer.TransitionImageLayout(device, undefToDstTransitionInfos);
 
 		mBuffer.CopyBufferToImage(device, stagingBuffer, textureExtent);
 		stagingBuffer.Destroy(device);
 
-		// Will transition image layout as read only at the end.
-		mBuffer.GenerateMipmaps(device, format, _rawTexture.width, _rawTexture.height, mipLevels);
-		// TODO: Compute mipmap only once and save mipmap levels in TextureAsset.
+		if (mipLevels > 1)
+		{
+			// Will transition image layout as read only at the end.
+			mBuffer.GenerateMipmaps(device, format, _rawTexture.width, _rawTexture.height, mipLevels);
+			// TODO: Compute mipmap only once and save mipmap levels in TextureAsset.
+		}
+		else
+		{
+			const VkTransitionImageInfos dstToReadTransitionInfos
+			{
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				mipLevels,
+			};
+
+			mBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
+		}
+
 
 
 		// CreateTextureSampler. // TODO: Sampler is not link to 1 image: Use 1 for multiple image!

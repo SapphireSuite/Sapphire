@@ -7,7 +7,9 @@
 
 #include <vector>
 
-#include <Rendering/Framework/System/RenderPass/SamplingBits.hpp>
+#include <Core/Types/Color.hpp>
+
+#include <Rendering/Framework/System/RenderPass/SampleBits.hpp>
 #include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 
 #include <Rendering/Image/ImageExtent.hpp>
@@ -18,16 +20,19 @@ namespace Sa
 
 	struct SubPassCreateInfos
 	{
-		SamplingBits sampling = SamplingBits::Sample1Bit;
-
-		//bool bDepthBuffer = true;
 	};
 
 	struct RenderPassCreateInfos
 	{
 		ImageExtent extent;
 
-		SubPassCreateInfos subPassCreateInfos;
+		Color clearColor = Color::defaultClearColor;
+
+		SampleBits sampling = SampleBits::Sample1Bit;
+
+		//bool bDepthBuffer = true;
+
+		std::vector<SubPassCreateInfos> subPassCreateInfos;
 	};
 }
 

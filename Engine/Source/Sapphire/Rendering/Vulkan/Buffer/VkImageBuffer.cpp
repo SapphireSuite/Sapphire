@@ -29,7 +29,7 @@ namespace Sa
 
 			_createInfos.mipMapLevels,								// mipLevels.
 			1,														// arrayLayers.
-			VK_SAMPLE_COUNT_1_BIT,									// samples.
+			_createInfos.sampleCount,								// samples.
 			VK_IMAGE_TILING_OPTIMAL,								// tiling.
 
 			_createInfos.usage,										// usage.
@@ -108,7 +108,7 @@ namespace Sa
 		mImageMemory = VK_NULL_HANDLE;
 	}
 
-	void VkImageBuffer::TransitionImageLayout(const Sa::VkDevice& _device, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _mipLevels)
+	void VkImageBuffer::TransitionImageLayout(const Sa::VkDevice& _device, const VkTransitionImageInfos& _infos)
 	{
 		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
 
@@ -119,17 +119,17 @@ namespace Sa
 			nullptr,														// pNext.
 			0 /* Set later. */,												// srcAccessMask.
 			0 /* Set later. */,												// dstAccessMask.
-			_oldLayout,														// oldLayout.
-			_newLayout,														// newLayout.
+			_infos.oldLayout,												// oldLayout.
+			_infos.newLayout,												// newLayout.
 			VK_QUEUE_FAMILY_IGNORED,										// srcQueueFamilyIndex.
 			VK_QUEUE_FAMILY_IGNORED,										// dstQueueFamilyIndex.
 			mImage,															// image.
 
 			VkImageSubresourceRange											// subresourceRange.
 			{
-				VK_IMAGE_ASPECT_COLOR_BIT,						// aspectMask.
+				_infos.aspectFlags,								// aspectMask.
 				0,												// baseMipLevel.
-				_mipLevels,										// levelCount.
+				_infos.mipLevels,								// levelCount.
 				0,												// baseArrayLayer.
 				1,												// layerCount.
 			}
@@ -139,27 +139,27 @@ namespace Sa
 		VkPipelineStageFlags dstStage = 0;
 
 		// Set stages and access mask.
-		if (_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED)
+		if (_infos.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED)
 		{
 			barrier.srcAccessMask = 0;
 			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
-			if (_newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+			if (_infos.newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 			{
 				barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
 				dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			}
-			else if (_newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+			else if (_infos.newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 			{
 				barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 				dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 			}
 		}
-		else if (_oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		else if (_infos.oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 		{
-			if (_newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			if (_infos.newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			{
 				barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 				barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;

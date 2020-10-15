@@ -96,9 +96,9 @@ namespace Sa
 			VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,				// sType.
 			nullptr,																// pNext.
 			0,																		// flags.
-			VK_SAMPLE_COUNT_1_BIT,													// rasterizationSamples.
-			VK_FALSE,																// sampleShadingEnable.
-			1.0,																	// minSampleShading.
+			static_cast<VkSampleCountFlagBits>(vkRenderPass.GetSampleBits()),		// rasterizationSamples.
+			VK_TRUE,																// sampleShadingEnable.
+			0.2f,																	// minSampleShading.
 			nullptr,																// pSampleMask.
 			VK_FALSE,																// alphaToCoverageEnable.
 			VK_FALSE																// alphaToOneEnable.
