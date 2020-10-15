@@ -27,7 +27,7 @@ namespace Sa
 			_createInfos.format,									// format.
 			_createInfos.extent,									// extent.
 
-			1,														// mipLevels.
+			_createInfos.mipMapLevels,								// mipLevels.
 			1,														// arrayLayers.
 			VK_SAMPLE_COUNT_1_BIT,									// samples.
 			VK_IMAGE_TILING_OPTIMAL,								// tiling.
@@ -86,7 +86,7 @@ namespace Sa
 			{
 				_createInfos.aspectFlags,											// aspectMask.
 				0,																	// baseMipLevel.
-				1,																	// levelCount.
+				_createInfos.mipMapLevels,											// levelCount.
 				0,																	// baseArrayLayer.
 				1																	// layerCount.
 			}
@@ -108,7 +108,7 @@ namespace Sa
 		mImageMemory = VK_NULL_HANDLE;
 	}
 
-	void VkImageBuffer::TransitionImageLayout(const Sa::VkDevice& _device, VkImageLayout _oldLayout, VkImageLayout _newLayout)
+	void VkImageBuffer::TransitionImageLayout(const Sa::VkDevice& _device, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _mipLevels)
 	{
 		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
 
@@ -129,7 +129,7 @@ namespace Sa
 			{
 				VK_IMAGE_ASPECT_COLOR_BIT,						// aspectMask.
 				0,												// baseMipLevel.
-				1,												// levelCount.
+				_mipLevels,										// levelCount.
 				0,												// baseArrayLayer.
 				1,												// layerCount.
 			}
@@ -206,6 +206,140 @@ namespace Sa
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
+	void VkImageBuffer::GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels)
+	{
+#if SA_DEBUG
+		VkFormatProperties formatProperties;
+		vkGetPhysicalDeviceFormatProperties(_device, format, &formatProperties);
+
+		// Image format supports linear blitting.
+		SA_ASSERT(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT,
+			NotSupported, Rendering, L"Texture image format does not support linear blitting!");
+
+		/**
+		* TODO: Implement mip map generation using stb_image_resize.
+		*
+		* https://vulkan-tutorial.com/Generating_Mipmaps
+		* https://github.com/nothings/stb/blob/master/stb_image_resize.h
+		*/
+#endif
+
+		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
+
+
+		VkImageMemoryBarrier barrier
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,							// sType.
+			nullptr,														// pNext.
+			0 /* Set later. */,												// srcAccessMask.
+			0 /* Set later. */,												// dstAccessMask.
+			VK_IMAGE_LAYOUT_UNDEFINED /* Set later. */,						// oldLayout.
+			VK_IMAGE_LAYOUT_UNDEFINED /* Set later. */,						// newLayout.
+			VK_QUEUE_FAMILY_IGNORED,										// srcQueueFamilyIndex.
+			VK_QUEUE_FAMILY_IGNORED,										// dstQueueFamilyIndex.
+			mImage,															// image.
+
+			VkImageSubresourceRange											// subresourceRange.
+			{
+				VK_IMAGE_ASPECT_COLOR_BIT,						// aspectMask.
+				0,												// baseMipLevel.
+				1,												// levelCount.
+				0,												// baseArrayLayer.
+				1,												// layerCount.
+			}
+		};
+
+		int32 mipWidth = _width;
+		int32 mipHeight = _height;
+
+		for (uint32 i = 1u; i < _mipLevels; i++)
+		{
+			barrier.subresourceRange.baseMipLevel = i - 1;
+
+			// Transfer prev mip level to source.
+			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 
+				0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+
+			// Handles non-squared images.
+			int32 dstMipWidth = mipWidth > 1 ? mipWidth / 2 : 1;
+			int32 dstMipHeight = mipHeight > 1 ? mipHeight / 2 : 1;
+
+			const VkImageBlit blit
+			{
+				VkImageSubresourceLayers								// srcSubresource.
+				{
+					VK_IMAGE_ASPECT_COLOR_BIT,					// aspectMask.
+					i - 1,										// mipLevel.
+					0,											// baseArrayLayer.
+					1,											// layerCount.
+				},
+
+				{														// srcOffsets[2].
+					VkOffset3D { 0, 0, 0 },
+					VkOffset3D { mipWidth, mipHeight, 1 }
+				},
+
+
+				VkImageSubresourceLayers								// dstSubresource.
+				{
+					VK_IMAGE_ASPECT_COLOR_BIT,					// aspectMask.
+					i,											// mipLevel.
+					0,											// baseArrayLayer.
+					1,											// layerCount.
+				},
+
+				{														// dstOffsets[2].
+					VkOffset3D { 0, 0, 0 },
+					VkOffset3D { dstMipWidth, dstMipHeight, 1 }
+				},
+			};
+
+			vkCmdBlitImage(commandBuffer,
+				mImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1, &blit, VK_FILTER_LINEAR);
+
+
+			// Transfer pev mip level to read only.
+			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			vkCmdPipelineBarrier(commandBuffer,
+				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+				0, nullptr,
+				0, nullptr,
+				1, &barrier);
+
+
+			mipWidth = dstMipWidth;
+			mipHeight = dstMipHeight;
+		}
+
+
+		// Transfer last mip level to read only.
+		barrier.subresourceRange.baseMipLevel = _mipLevels - 1;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		vkCmdPipelineBarrier(commandBuffer,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier);
+
+
+		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
+	}
 
 	VkImageBuffer::operator VkImage() const
 	{

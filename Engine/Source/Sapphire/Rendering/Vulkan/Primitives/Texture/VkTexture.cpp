@@ -12,7 +12,8 @@ namespace Sa
 {
 	void VkTexture::Create(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
-		uint32 imageSize = _rawTexture.width * _rawTexture.height * 4;
+		VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;// TODO: use texture channel!
+		uint32 imageSize = _rawTexture.width * _rawTexture.height * 4; // TODO: use texture channel!
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
@@ -25,29 +26,33 @@ namespace Sa
 		memcpy(data, _rawTexture.data, imageSize);
 		vkUnmapMemory(device, stagingBuffer);
 
+		uint32 mipLevels = ComputeMipMapLevels(_rawTexture.width, _rawTexture.height);
 		VkExtent3D textureExtent{ _rawTexture.width, _rawTexture.height, 1 };
 
 		const VkImageBufferCreateInfos imageBufferCreateInfos
 		{
-			VK_FORMAT_R8G8B8A8_SRGB,								// format.
-			textureExtent,											// extent.
-			VK_IMAGE_USAGE_TRANSFER_DST_BIT |						// usage.
+			format,														// format.
+			textureExtent,												// extent.
+			
+			VK_IMAGE_USAGE_TRANSFER_SRC_BIT |							// usage.
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT |
 			VK_IMAGE_USAGE_SAMPLED_BIT,
+
+			mipLevels,													// mipMapLevels.
 		};
 
 		mBuffer.Create(device, imageBufferCreateInfos);
 
 
 		// Copy image to shader.
-		mBuffer.TransitionImageLayout(device, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		mBuffer.TransitionImageLayout(device, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
 
 		mBuffer.CopyBufferToImage(device, stagingBuffer, textureExtent);
-
-		mBuffer.TransitionImageLayout(device, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-
-		// Destroy buffers.
 		stagingBuffer.Destroy(device);
+
+		// Will transition image layout as read only at the end.
+		mBuffer.GenerateMipmaps(device, format, _rawTexture.width, _rawTexture.height, mipLevels);
+		// TODO: Compute mipmap only once and save mipmap levels in TextureAsset.
 
 
 		// CreateTextureSampler. // TODO: Sampler is not link to 1 image: Use 1 for multiple image!
@@ -68,7 +73,7 @@ namespace Sa
 			VK_FALSE,													// compareEnable.
 			VK_COMPARE_OP_ALWAYS,										// compareOp.
 			0.0f,														// minLod.
-			0.0f,														// maxLod.
+			static_cast<float>(mipLevels),								// maxLod.
 			VK_BORDER_COLOR_INT_OPAQUE_BLACK,							// borderColor
 			VK_FALSE,													// unnormalizedCoordinates.
 		};
