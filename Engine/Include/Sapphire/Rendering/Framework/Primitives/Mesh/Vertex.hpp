@@ -22,7 +22,6 @@ namespace Sa
 		Vec3f position;
 		Vec3f normal;
 		Vec3f tangent;
-		Vec3f bitangent;
 		Vec2f texture;
 
 		bool operator==(const Vertex& _rhs) const noexcept;
@@ -32,7 +31,7 @@ namespace Sa
 
 		static constexpr uint32 bindingDescriptionNum = 1u;
 
-		static constexpr uint32 attributeDescriptionNum = 5u;
+		static constexpr uint32 attributeDescriptionNum = 4u;
 
 		static const VkVertexInputBindingDescription* GetBindingDescription() noexcept;
 

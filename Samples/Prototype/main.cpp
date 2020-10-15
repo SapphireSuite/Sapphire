@@ -105,11 +105,13 @@ void CreateMagikarp(AssetManager& _assetMgr)
 	// Model.
 	{
 		// Try load.
+#if !__SA_ALWAYS_REIMPORT
 		magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
 		magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssets[1]);
 
 		magikarpBodyMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
 		magikarpEyesMat = _assetMgr.renderMatMgr.Load(materialAssets[1]);
+#endif
 
 		if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
 		{
@@ -129,7 +131,7 @@ void CreateMagikarp(AssetManager& _assetMgr)
 			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
 			bodyRenderMat.vertexShaderPath = defaultVertShaderAsset;
 			bodyRenderMat.fragmentShaderPath = defaultFragShaderAsset;
-			bodyRenderMat.texturePaths = { textureAssets[0]/*, textureAssets[1], textureAssets[2]*/ };
+			bodyRenderMat.texturePaths = { textureAssets[0] };
 			bodyRenderMat.Save(materialAssets[0]);
 			magikarpBodyMat = bodyRenderMat.GetResource();
 
@@ -137,7 +139,7 @@ void CreateMagikarp(AssetManager& _assetMgr)
 			RenderMaterialAsset& eyesRenderMat = result[3]->As<RenderMaterialAsset>();
 			eyesRenderMat.vertexShaderPath = defaultVertShaderAsset;
 			eyesRenderMat.fragmentShaderPath = defaultFragShaderAsset;
-			eyesRenderMat.texturePaths = { textureAssets[1]/*textureAssets[3], textureAssets[4], textureAssets[5]*/ };
+			eyesRenderMat.texturePaths = { textureAssets[1] };
 			eyesRenderMat.Save(materialAssets[1]);
 			magikarpEyesMat = eyesRenderMat.GetResource();
 		}
@@ -170,7 +172,9 @@ void CreateGizmo(AssetManager& _assetMgr)
 
 
 	// Mesh.
+#if !__SA_ALWAYS_REIMPORT
 	gizmoMesh = _assetMgr.meshMgr.Load(meshAsset);
+#endif
 
 	if (!gizmoMesh) // Try load.
 	{
@@ -178,10 +182,10 @@ void CreateGizmo(AssetManager& _assetMgr)
 
 		gizmoRawMesh.vertices =
 		{
-			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero,  Vec3f::Zero, { 1.0f, 0.0f } },
-			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero,  Vec3f::Zero, { 0.0f, 0.0f } },
-			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero,  Vec3f::Zero, { 0.0f, 1.0f } },
-			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero,  Vec3f::Zero, { 1.0f, 1.0f } },
+			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 0.0f } },
+			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 0.0f } },
+			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 1.0f } },
+			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 1.0f } },
 		};
 
 		gizmoRawMesh.indices =
@@ -197,8 +201,10 @@ void CreateGizmo(AssetManager& _assetMgr)
 	}
 
 	// Materials.
+#if !__SA_ALWAYS_REIMPORT
 	gizmoMat = _assetMgr.renderMatMgr.Load(materialAssets);
-	
+#endif
+
 	if (!gizmoMat) // Try load.
 	{
 		// Import on load failed.
@@ -239,9 +245,10 @@ void CreateHelmet(AssetManager& _assetMgr)
 	// Model.
 	{
 		// Try load.
+#if !__SA_ALWAYS_REIMPORT
 		helmetMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
-
 		helmetMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
+#endif
 
 		if (!helmetMesh || !helmetMesh)
 		{

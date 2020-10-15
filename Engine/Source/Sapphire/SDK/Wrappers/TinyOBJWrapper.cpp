@@ -54,7 +54,6 @@ namespace std
 			size_t h = std::hash<Sa::Vec3f>()(v.position);
 			hash_combine(h, v.normal);
 			hash_combine(h, v.tangent);
-			hash_combine(h, v.bitangent);
 			hash_combine(h, v.texture);
 			return h;
 		}
@@ -75,7 +74,6 @@ namespace Sa
 		std::vector<Vec3f> vertexNorm;
 		std::vector<Vec2f> vertexText;
 
-		uint32 indexCount = 0u;
 		std::unordered_map<Vertex, uint32> vertexIndexMap;
 
 
@@ -118,39 +116,35 @@ namespace Sa
 
 		static void Index(void* _userData, tinyobj::index_t* _indices, int _size)
 		{
-			Callback* cb = reinterpret_cast<Callback*>(_userData);
+			Callback& cb = *reinterpret_cast<Callback*>(_userData);
 
-			RawMesh& rawMesh = cb->rawMeshes[cb->meshIndex];
+			RawMesh& rawMesh = cb.rawMeshes[cb.meshIndex];
 
 			for (int i = 0; i < _size; ++i)
 			{
+				// Apply -1 since OBJ index start at 1 and not 0.
 				Sa::Vertex vertex{
-					cb->vertexPos[_indices[i].vertex_index - 1],
-					cb->vertexNorm[_indices[i].normal_index - 1],
+					cb.vertexPos[_indices[i].vertex_index - 1],
+					cb.vertexNorm[_indices[i].normal_index - 1],
 					Vec3f::Zero,
-					Vec3f::Zero,
-					cb->vertexText[_indices[i].texcoord_index - 1]
+					cb.vertexText[_indices[i].texcoord_index - 1]
 				};
 
-				auto find = cb->vertexIndexMap.find(vertex);
+				auto find = cb.vertexIndexMap.find(vertex);
 
 				// Vertex found.
-				if (find != cb->vertexIndexMap.end())
+				if (find != cb.vertexIndexMap.end())
 					rawMesh.indices.push_back(find->second); // Only add vertex index.
 				else
 				{
-					// Insert new vertex.
+					// Insert new vertex and index.
+					uint32 index = SizeOf(cb.vertexIndexMap); // index start at 0: query before insert.
 
-					// insert index.
-					rawMesh.indices.push_back(cb->indexCount);
-					
-					// insert vertex.
+					rawMesh.indices.push_back(index);
 					rawMesh.vertices.push_back(vertex);
 					
 					// Save vertex index.
-					cb->vertexIndexMap.insert({ vertex, cb->indexCount });
-
-					++cb->indexCount;
+					cb.vertexIndexMap.insert({ vertex, index });
 				}
 			}
 		}
@@ -196,7 +190,6 @@ namespace Sa
 			++cb->meshIndex;
 
 			cb->vertexIndexMap.clear();
-			cb->indexCount = 0u;
 		}
 
 		static void Object(void* _userData, const char* _name)

@@ -99,9 +99,26 @@ namespace Sa
 	}
 
 
+	//void MeshAsset::AddTangent(const Vec3f& _tangent, uint32 _indiceIndex) noexcept
+	//{
+	//	uint32& vertIndex = mRawData.indices[_indiceIndex];
+	//	Vertex& vertex = mRawData.vertices[vertIndex];
+
+	//	if (vertex.tangent == Vec3f::Zero)
+	//		vertex.tangent = _tangent;
+	//	else if (vertex.tangent != _tangent)
+	//	{
+	//		// Index start at 0: update before insert.
+	//		vertIndex = SizeOf(mRawData.vertices);
+
+	//		Vertex& newVertex = mRawData.vertices.emplace_back(vertex);
+	//		newVertex.tangent = _tangent;
+	//	}
+	//}
+
 	void MeshAsset::ComputeTangents()
 	{
-		for (uint32 i = 0; i + 3 < SizeOf(mRawData.indices); i += 3)
+		for (uint32 i = 0; i + 2 < SizeOf(mRawData.indices); i += 3)
 		{
 			Vec3f edge1 = mRawData.vertices[mRawData.indices[i + 1]].position - mRawData.vertices[mRawData.indices[i]].position;
 			Vec3f edge2 = mRawData.vertices[mRawData.indices[i + 2]].position - mRawData.vertices[mRawData.indices[i]].position;
@@ -109,31 +126,30 @@ namespace Sa
 			Vec2f deltaUV1 = mRawData.vertices[mRawData.indices[i + 1]].texture - mRawData.vertices[mRawData.indices[i]].texture;
 			Vec2f deltaUV2 = mRawData.vertices[mRawData.indices[i + 2]].texture - mRawData.vertices[mRawData.indices[i]].texture;
 
-			Vec3f tangent;
-			Vec3f bitangent;
 			float ratio = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
 
-			if (!Maths::Equals0(ratio))
-			{
-				float f = 1.0f / ratio ;
+			if (Maths::Equals0(ratio))
+				continue;
 
-				tangent = (f * Vec3f(deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
-					deltaUV2.y * edge1.y - deltaUV1.y * edge2.y,
-					deltaUV2.y * edge1.z - deltaUV1.y * edge2.z)).Normalize();
+			float f = 1.0f / ratio ;
 
-				bitangent = (f * Vec3f(deltaUV1.x * edge2.x - deltaUV2.x * edge1.x,
-					deltaUV1.x * edge2.y - deltaUV2.x * edge1.y,
-					deltaUV1.x * edge2.z - deltaUV2.x * edge1.z)).Normalize();
-			}
+			Vec3f tangent = (f * Vec3f(deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
+				deltaUV2.y * edge1.y - deltaUV1.y * edge2.y,
+				deltaUV2.y * edge1.z - deltaUV1.y * edge2.z)).Normalize();
 
-			mRawData.vertices[mRawData.indices[i]].tangent =
-				mRawData.vertices[mRawData.indices[i + 1]].tangent =
-				mRawData.vertices[mRawData.indices[i + 2]].tangent = tangent;
+			// Previous implementation with vertex duplication.
+			//AddTangent(tangent, i);
+			//AddTangent(tangent, i + 1);
+			//AddTangent(tangent, i + 2);
 
-			mRawData.vertices[mRawData.indices[i]].bitangent =
-				mRawData.vertices[mRawData.indices[i + 1]].bitangent =
-				mRawData.vertices[mRawData.indices[i + 2]].bitangent = bitangent;
+			// Average tangent.
+			mRawData.vertices[mRawData.indices[i]].tangent += tangent;
+			mRawData.vertices[mRawData.indices[i + 1]].tangent += tangent;
+			mRawData.vertices[mRawData.indices[i + 2]].tangent += tangent;
 		}
+
+		for (auto it = mRawData.vertices.begin(); it != mRawData.vertices.end(); ++it)
+			it->tangent.Normalize();
 	}
 
 

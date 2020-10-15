@@ -6,6 +6,7 @@ namespace Sa
 {
 	bool Vertex::operator == (const Vertex & _rhs) const noexcept
 	{
+		// Do not compare tangent (fast compare during mesh loading).
 		return position == _rhs.position && normal == _rhs.normal && texture == _rhs.texture;
 	}
 
@@ -62,14 +63,6 @@ namespace Sa
 			VkVertexInputAttributeDescription
 			{
 				3,									// location.
-				0,									// binding.
-				VK_FORMAT_R32G32B32_SFLOAT,			// format.
-				offsetof(Vertex, bitangent)			// offset
-			},
-
-			VkVertexInputAttributeDescription
-			{
-				4,									// location.
 				0,									// binding.
 				VK_FORMAT_R32G32_SFLOAT,			// format.
 				offsetof(Vertex, texture)			// offset

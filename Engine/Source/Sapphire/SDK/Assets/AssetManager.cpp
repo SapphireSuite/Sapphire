@@ -71,6 +71,8 @@ namespace Sa
 
 	void AssetManager::UnLoad(IRenderPrimitive* _primitive, AssetType _assetType)
 	{
+		SA_ASSERT(_primitive, Nullptr, SDK_Asset, L"Try to unload nullptr primitive!");
+
 		switch (_assetType)
 		{
 			case Sa::AssetType::Texture:

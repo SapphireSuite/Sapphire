@@ -11,6 +11,7 @@
 
 #include <Core/Types/IInterface.hpp>
 
+#include <SDK/Config.hpp>
 #include <SDK/Assets/AssetDependency.hpp>
 
 namespace Sa
