@@ -16,6 +16,9 @@ namespace Sa
 
 		// Camera projection matrix.
 		Mat4f projMat = Mat4f::Identity;
+
+		// Camera position.
+		Vec3f viewPosition;
 	};
 }
 

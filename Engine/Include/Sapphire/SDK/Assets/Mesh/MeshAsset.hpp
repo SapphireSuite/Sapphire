@@ -21,9 +21,6 @@ namespace Sa
 
 		void Save_Internal(std::fstream& _fStream) const override final;
 
-		static std::vector<MeshAsset> ImportOBJ(IResourceMgrBase& _manager, const std::string& _resourcePath);
-		static std::vector<MeshAsset> ImportGLTF(IResourceMgrBase& _manager, const std::string& _resourcePath);
-
 	public:
 		using ResT = IMesh;
 		using RawT = RawMesh;

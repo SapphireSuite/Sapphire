@@ -12,13 +12,19 @@ layout(binding = 0) uniform CameraUniformBuffer
 	// Camera projection matrix.
     mat4 proj;
 
+    // Camera position.
+    vec3 viewPosition;
+
 } camUBO[5];
 
 // Object UBO: specific to this shader instance.
 layout(binding = 1) uniform ObjectUniformBuffer
 {
 	// Model transformation matrix.
-    mat4 model;
+    mat4 modelMat;
+
+    // Normal transformation matrix.
+    mat4 normalMat; // TODO: use mat3.
 
 	// Material UV tilling.
     float uvTilling;
@@ -44,7 +50,7 @@ layout(location = 0) out DataBlock
 	vec3 tangent;
 	vec2 texture;
 
-	vec3 camPosition;
+	vec3 viewPosition;
 } vsOut;
 
 
@@ -59,16 +65,21 @@ layout(push_constant) uniform PushConstant
 void main()
 {
     // Position.
-    vsOut.position = mat3(oUBO.model) * inPosition;
-    gl_Position = camUBO[pConst.camIndex].proj * camUBO[pConst.camIndex].viewInv * oUBO.model * vec4(inPosition, 1.0);
+    vec4 modelPosition = oUBO.modelMat * vec4(inPosition, 1.0);
 
+    vsOut.position = modelPosition.xyz / modelPosition.w;
+    //vsOut.position = mat3(oUBO.modelMat) * inPosition;
+    gl_Position = camUBO[pConst.camIndex].proj * camUBO[pConst.camIndex].viewInv * modelPosition;
 
-    // Normal
-    vsOut.normal = mat3(oUBO.model) * inNormal;
-
-
-    // Tangent
-    vsOut.tangent = mat3(oUBO.model) * inTangent;
+    
+    // Normal & Tangent
+    // if uniform scale.
+    mat3 modelMat3 = mat3(oUBO.modelMat);
+    vsOut.normal = modelMat3 * inNormal;
+    vsOut.tangent = modelMat3 * inTangent;
+    // else if non-uniform scale.
+    //vsOut.normal = mat3(oUBO.normalMat) * inNormal; // TODO: remove mat3() (default is mat3).
+    //vsOut.tangent = mat3(oUBO.normalMat) * inTangent; // TODO: remove mat3() (default is mat3).
 
 
     // Texture
@@ -76,5 +87,5 @@ void main()
 
 
     // Camera's vectors.
-	vsOut.camPosition = camUBO[pConst.camIndex].viewInv[3].xyz;
+	vsOut.viewPosition = camUBO[pConst.camIndex].viewPosition;
 }

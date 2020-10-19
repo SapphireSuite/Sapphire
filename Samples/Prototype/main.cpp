@@ -25,8 +25,15 @@ using namespace Sa;
 #define LOG(_str) std::cout << _str << std::endl;
 
 // Default
-constexpr const char* defaultVertShaderAsset = "Bin/Shaders/default_VS.spha";
-constexpr const char* defaultFragShaderAsset = "Bin/Shaders/default_FS.spha";
+constexpr const char* litVertShaderAsset = "Bin/Shaders/lit_VS.spha";
+constexpr const char* litFragShaderAsset = "Bin/Shaders/lit_FS.spha";
+
+constexpr const char* unlitVertShaderAsset = "Bin/Shaders/lit_VS.spha";
+constexpr const char* unlitFragShaderAsset = "Bin/Shaders/lit_FS.spha";
+
+IMesh* squareMesh = nullptr;
+constexpr const char* squareMeshAsset = "Bin/Meshes/Square_M.spha";
+
 
 // Magikarp
 IMesh* magikarpBodyMesh = nullptr;
@@ -36,7 +43,6 @@ IRenderMaterial* magikarpBodyMat = nullptr;
 IRenderMaterial* magikarpEyesMat = nullptr;
 
 // Gizmo
-IMesh* gizmoMesh = nullptr;
 IRenderMaterial* gizmoMat = nullptr;
 
 // Helmet
@@ -44,27 +50,77 @@ IMesh* helmetMesh = nullptr;
 IRenderMaterial* helmetMat = nullptr;
 
 // Bricks
-IMesh* bricksMesh = nullptr;
 IRenderMaterial* bricksMat = nullptr;
+
+// Window.
+IRenderMaterial* windowMat = nullptr;
 
 
 void CreateDefaultResources(AssetManager& _assetMgr)
 {
-	// Vertex Shader.
-	if (!_assetMgr.shaderMgr.Load(defaultVertShaderAsset, true)) // Try load.
+	// Lit Vertex Shader.
+	if (!_assetMgr.shaderMgr.Load(litVertShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/default.vert");
-		result[0]->Save(defaultVertShaderAsset);
+		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/lit.vert");
+		result[0]->Save(litVertShaderAsset);
 	}
 
 
-	// Fragment Shader.
-	if (!_assetMgr.shaderMgr.Load(defaultFragShaderAsset, true)) // Try load.
+	// Lit Fragment Shader.
+	if (!_assetMgr.shaderMgr.Load(litFragShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/default.frag");
-		result[0]->Save(defaultFragShaderAsset);
+		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/lit.frag");
+		result[0]->Save(litFragShaderAsset);
+	}
+
+
+	// Unlit Vertex Shader.
+	if (!_assetMgr.shaderMgr.Load(unlitVertShaderAsset, true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/unlit.vert");
+		result[0]->Save(unlitVertShaderAsset);
+	}
+
+
+	// Unlit fragment Shader.
+	if (!_assetMgr.shaderMgr.Load(unlitFragShaderAsset, true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/unlit.frag");
+		result[0]->Save(unlitFragShaderAsset);
+	}
+
+
+	// Mesh.
+#if !__SA_ALWAYS_REIMPORT
+	squareMesh = _assetMgr.meshMgr.Load(squareMeshAsset);
+#endif
+
+	if (!squareMesh) // Try load.
+	{
+		RawMesh rawMesh;
+
+		rawMesh.vertices =
+		{
+			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 0.0f } },
+			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 0.0f } },
+			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 1.0f } },
+			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 1.0f } },
+		};
+
+		rawMesh.indices =
+		{
+			0, 1, 2, 2, 3, 0
+		};
+
+		// Create on load failed.
+		MeshAsset gizmoMeshAsset = _assetMgr.meshMgr.Create(Move(rawMesh));
+		gizmoMeshAsset.ComputeTangents();
+		gizmoMeshAsset.Save(squareMeshAsset);
+		squareMesh = gizmoMeshAsset.GetResource();
 	}
 }
 
@@ -129,16 +185,16 @@ void CreateMagikarp(AssetManager& _assetMgr)
 
 
 			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
-			bodyRenderMat.vertexShaderPath = defaultVertShaderAsset;
-			bodyRenderMat.fragmentShaderPath = defaultFragShaderAsset;
+			bodyRenderMat.vertexShaderPath = litVertShaderAsset;
+			bodyRenderMat.fragmentShaderPath = litFragShaderAsset;
 			bodyRenderMat.texturePaths = { textureAssets[0] };
 			bodyRenderMat.Save(materialAssets[0]);
 			magikarpBodyMat = bodyRenderMat.GetResource();
 
 
 			RenderMaterialAsset& eyesRenderMat = result[3]->As<RenderMaterialAsset>();
-			eyesRenderMat.vertexShaderPath = defaultVertShaderAsset;
-			eyesRenderMat.fragmentShaderPath = defaultFragShaderAsset;
+			eyesRenderMat.vertexShaderPath = litVertShaderAsset;
+			eyesRenderMat.fragmentShaderPath = litFragShaderAsset;
 			eyesRenderMat.texturePaths = { textureAssets[1] };
 			eyesRenderMat.Save(materialAssets[1]);
 			magikarpEyesMat = eyesRenderMat.GetResource();
@@ -151,7 +207,6 @@ void CreateGizmo(AssetManager& _assetMgr)
 	constexpr const char* vertShaderAsset = "Bin/Gizmo/Gizmo_VS.spha";
 	constexpr const char* fragShaderAsset = "Bin/Gizmo/Gizmo_FS.spha";
 
-	constexpr const char* meshAsset = "Bin/Gizmo/Square_M.spha";
 	constexpr const char* materialAssets = "Bin/Gizmo/Square_Mat.spha";
 
 	// Vertex Shader.
@@ -170,35 +225,6 @@ void CreateGizmo(AssetManager& _assetMgr)
 		result[0]->Save(fragShaderAsset);
 	}
 
-
-	// Mesh.
-#if !__SA_ALWAYS_REIMPORT
-	gizmoMesh = _assetMgr.meshMgr.Load(meshAsset);
-#endif
-
-	if (!gizmoMesh) // Try load.
-	{
-		RawMesh gizmoRawMesh;
-
-		gizmoRawMesh.vertices =
-		{
-			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 0.0f } },
-			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 0.0f } },
-			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 1.0f } },
-			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 1.0f } },
-		};
-
-		gizmoRawMesh.indices =
-		{
-			0, 1, 2, 2, 3, 0
-		};
-
-		// Create on load failed.
-		MeshAsset gizmoMeshAsset = _assetMgr.meshMgr.Create(Move(gizmoRawMesh));
-		gizmoMeshAsset.ComputeTangents();
-		gizmoMeshAsset.Save(meshAsset);
-		gizmoMesh = gizmoMeshAsset.GetResource();
-	}
 
 	// Materials.
 #if !__SA_ALWAYS_REIMPORT
@@ -261,8 +287,8 @@ void CreateHelmet(AssetManager& _assetMgr)
 
 
 			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
-			bodyRenderMat.vertexShaderPath = defaultVertShaderAsset;
-			bodyRenderMat.fragmentShaderPath = defaultFragShaderAsset;
+			bodyRenderMat.vertexShaderPath = litVertShaderAsset;
+			bodyRenderMat.fragmentShaderPath = litFragShaderAsset;
 			bodyRenderMat.texturePaths = { textureAssets[0] };
 			bodyRenderMat.Save(materialAssets[0]);
 			helmetMat = bodyRenderMat.GetResource();
@@ -281,7 +307,6 @@ void CreateBricks(AssetManager& _assetMgr)
 		"../../Samples/Prototype/Resources/Bricks/bricks_normal.jpg"
 	};
 
-	constexpr const char* meshAsset = "Bin/Gizmo/Square_M.spha";
 	constexpr const char* matAsset = "Bin/Bricks/brick_Mat.spha";
 
 
@@ -299,9 +324,6 @@ void CreateBricks(AssetManager& _assetMgr)
 	}
 
 
-	// Mesh.
-	bricksMesh = _assetMgr.meshMgr.Load(meshAsset);
-
 
 	// Material
 	bricksMat = _assetMgr.renderMatMgr.Load(matAsset);
@@ -312,13 +334,60 @@ void CreateBricks(AssetManager& _assetMgr)
 
 		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
 
-		renderMatAsset.vertexShaderPath = defaultVertShaderAsset;
-		renderMatAsset.fragmentShaderPath = defaultFragShaderAsset;
+		renderMatAsset.vertexShaderPath = litVertShaderAsset;
+		renderMatAsset.fragmentShaderPath = litFragShaderAsset;
 		renderMatAsset.texturePaths = { textureAssets[0], textureAssets[1] };
 
 		renderMatAsset.Save(matAsset);
 
 		bricksMat = renderMatAsset.GetResource();
+	}
+}
+
+void CreateWindow(AssetManager& _assetMgr)
+{
+	constexpr const char* textureAssets[] = {
+		"Bin/Window/albedo_T.spha",
+	};
+	constexpr const char* textureResources[] = {
+		"../../Samples/Prototype/Resources/Window/RedWindow.png",
+	};
+
+	constexpr const char* matAsset = "Bin/Window/RedWindow_Mat.spha";
+
+
+	// Textures
+	for (uint32 i = 0u; i < SizeOf(textureAssets); ++i)
+	{
+		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
+		{
+			// Import on load failed.
+			IAssetImportResult result = _assetMgr.Import(textureResources[i]);
+			result[0]->As<TextureAsset>().FlipVertically();
+			result[0]->Save(textureAssets[i]);
+		}
+	}
+
+
+	// Material
+	//windowMat = _assetMgr.renderMatMgr.Load(matAsset);
+
+	if (!windowMat)
+	{
+		RawMaterial infos;
+
+		infos.cullingMode = CullingMode::None;
+		infos.alphaModel == AlphaModel::Transparent;
+
+		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
+
+		renderMatAsset.vertexShaderPath = litVertShaderAsset;
+		renderMatAsset.fragmentShaderPath = litFragShaderAsset;
+		renderMatAsset.texturePaths = { textureAssets[0] };
+
+		renderMatAsset.Save(matAsset);
+
+		windowMat = renderMatAsset.GetResource();
 	}
 }
 
@@ -328,6 +397,8 @@ void CreateResources(AssetManager& _assetMgr)
 	CreateMagikarp(_assetMgr);
 	CreateGizmo(_assetMgr);
 	CreateBricks(_assetMgr);
+	CreateWindow(_assetMgr);
+
 	//CreateHelmet(_assetMgr);
 }
 
@@ -335,7 +406,6 @@ void DestroyResources(AssetManager& _assetMgr)
 {
 	// === Gizmo ===
 	_assetMgr.renderMatMgr.Unload(gizmoMat);
-	_assetMgr.meshMgr.Unload(gizmoMesh);
 
 
 	// === Magikarp ===
@@ -396,19 +466,38 @@ int main()
 
 	//uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
 
+
+	// Magikarp
 	{
 		DefaultUniformBuffer ubo;
 		ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-1.0f, -1.0, -2.5f),
 			Quatf(180, Vec3f::Up) * Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix());
+		ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ?  ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
+
 		magikarpBodyMat->InitVariable(instance, &ubo, sizeof(ubo));
 		magikarpEyesMat->InitVariable(instance, &ubo, sizeof(ubo));
 	}
 
+
+	// Bricks
 	{
 		DefaultUniformBuffer ubo;
 		ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(6.0f, 0.0, 2.0f),
 			Quatf(-90.0f, Vec3f::Up), Vec3f(5.0f)).Matrix());
+		ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
+		
 		bricksMat->InitVariable(instance, &ubo, sizeof(ubo));
+	}
+
+
+	// Window.
+	{
+		DefaultUniformBuffer ubo;
+		ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-6.0f, 0.0, 2.0f),
+			Quatf(90.0f, Vec3f::Up), Vec3f(5.0f)).Matrix());
+		ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
+		
+		windowMat->InitVariable(instance, &ubo, sizeof(ubo));
 	}
 
 	{
@@ -422,7 +511,7 @@ int main()
 	const float t = 1.0f;
 	const float b = -1.0f;
 	const float n = 0.5f;
-	const float f = 10.0f;
+	const float f = 20.0f;
 
 	Mat4f orthoMat
 	(
@@ -470,12 +559,15 @@ int main()
 		window.TEST(camTr, pL1Pos, speed * deltaTime);
 
 		// Update Uniform Buffer.
-		CameraUniformBuffer ubo;
-		//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
-		ubo.viewInvMat = API_ConvertCoordinateSystem(camTr.Matrix()).Inverse();
-		ubo.projMat = perspMat;
+		{
+			CameraUniformBuffer ubo;
+			//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
+			ubo.viewInvMat = API_ConvertCoordinateSystem(camTr.Matrix()).Inverse();
+			ubo.projMat = perspMat;
+			ubo.viewPosition = API_ConvertCoordinateSystem(camTr.position);
 
-		mainCamera.GetUniformBuffer(frame.index).UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
+			mainCamera.GetUniformBuffer(frame.index).UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
+		}
 		
 		{
 			Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
@@ -500,12 +592,17 @@ int main()
 
 		// Draw bricks.
 		bricksMat->Bind(frame);
-		bricksMesh->Draw(frame);
+		squareMesh->Draw(frame);
+
+		
+		// Draw window.
+		windowMat->Bind(frame);
+		squareMesh->Draw(frame);
 
 
 		// Draw gizmos.
 		gizmoMat->Bind(frame);
-		gizmoMesh->Draw(frame);
+		squareMesh->Draw(frame);
 
 
 		mainRenderPass.End(frame);

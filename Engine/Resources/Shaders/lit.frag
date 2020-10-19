@@ -124,7 +124,7 @@ layout(location = 0) in DataBlock
 	vec3 tangent;
 	vec2 texture;
 
-	vec3 camPosition;
+	vec3 viewPosition;
 } fsIn;
 
 
@@ -241,7 +241,7 @@ void ComputeIllumination()
 
 
 	// Object to camera direction.
-	data.vCam = normalize(fsIn.position - fsIn.camPosition);
+	data.vCam = normalize(fsIn.viewPosition - fsIn.position);
 	
 
 	ComputeLights(data);

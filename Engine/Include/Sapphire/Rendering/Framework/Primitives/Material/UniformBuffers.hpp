@@ -14,6 +14,9 @@ namespace Sa
 		// Model transformation matrix.
 		Mat4f modelMat = Mat4f::Identity;
 
+		// Normal transformation matrix.
+		Mat4f normalMat = Mat4f::Identity; // TODO: use mat3.
+
 		// Material UV tilling.
 		float uvTilling = 1.0f;
 
