@@ -322,7 +322,7 @@ namespace Sa
 			{
 				VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,									// sType.
 				nullptr,																	// pNext.
-				VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT,					// flags.
+				0,																			// flags.
 				mImages[i],																	// image.
 				VK_IMAGE_VIEW_TYPE_2D,														// viewType.
 				mImageFormat,																// format.

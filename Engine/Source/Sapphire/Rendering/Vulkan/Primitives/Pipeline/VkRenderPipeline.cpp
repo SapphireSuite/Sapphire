@@ -142,7 +142,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,				// sType.
 			nullptr,																// pNext.
 			0,																		// flags.
-			VK_TRUE,																// logicOpEnable.
+			VK_FALSE,																// logicOpEnable.
 			VK_LOGIC_OP_COPY,														// logicOp.
 			1,																		// attachmentCount.
 			&colorBlendAttachment,													// pAttachments.
