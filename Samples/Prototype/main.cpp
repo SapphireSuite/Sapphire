@@ -370,14 +370,19 @@ void CreateWindow(AssetManager& _assetMgr)
 
 
 	// Material
-	//windowMat = _assetMgr.renderMatMgr.Load(matAsset);
+	windowMat = _assetMgr.renderMatMgr.Load(matAsset);
 
 	if (!windowMat)
 	{
 		RawMaterial infos;
 
+		infos.matConstants.shininess = 100.0f;
+		infos.matConstants.ambient = Vec3f(1.0f, 0.5f, 0.5f);
+		infos.matConstants.diffuse = Vec3f(1.0f, 0.5f, 0.5f);
+		infos.matConstants.specular = Vec3f(1.0f, 0.5f, 0.5f);
+
 		infos.cullingMode = CullingMode::None;
-		infos.alphaModel == AlphaModel::Transparent;
+		infos.alphaModel = AlphaModel::Transparent;
 
 		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
 
@@ -594,14 +599,14 @@ int main()
 		bricksMat->Bind(frame);
 		squareMesh->Draw(frame);
 
-		
-		// Draw window.
-		windowMat->Bind(frame);
-		squareMesh->Draw(frame);
-
 
 		// Draw gizmos.
 		gizmoMat->Bind(frame);
+		squareMesh->Draw(frame);
+
+		
+		// Draw window.
+		windowMat->Bind(frame);
 		squareMesh->Draw(frame);
 
 

@@ -203,7 +203,10 @@ namespace Sa
 		_specConstRanges.reserve(_infos.shaders.size());
 
 		// TODO: REMOVE LATER.
-		static int specs[2] = {0, 2};
+		static int specs[2];
+		specs[0] = static_cast<int>(_infos.alphaModel);
+		specs[1] = static_cast<int>(_infos.illumModel);
+
 
 		for (auto it = _infos.shaders.begin(); it != _infos.shaders.end(); ++it)
 		{
