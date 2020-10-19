@@ -6,7 +6,7 @@
 
 namespace Sa
 {
-	const PushConstantInfos PushConstantInfos::default
+	const PushConstantInfos PushConstantInfos::defaultT
 	{
 		// Camera index.
 		PushConstantInfo{ static_cast<uint8>(ShaderType::Vertex), sizeof(int) }

@@ -32,7 +32,7 @@ namespace Sa
 		std::vector<const ICamera*> cameras;
 		bool bDynamicViewport = true;
 
-		MaterialShaders shaders = MaterialShaders::default;
+		MaterialShaders shaders = MaterialShaders::defaultT;
 		MaterialTextures textures;
 		MaterialConstants matConstants;
 
@@ -44,7 +44,7 @@ namespace Sa
 		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
 		IlluminationModel illumModel = IlluminationModel::PBR;
 
-		PushConstantInfos pushConstInfos = PushConstantInfos::default;
+		PushConstantInfos pushConstInfos = PushConstantInfos::defaultT;
 	};
 }
 

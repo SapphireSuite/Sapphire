@@ -112,7 +112,7 @@ namespace Sa
 
 		const VkAttachmentReference depthAttachmentRef
 		{
-			mSampleBits > SampleBits::Sample1Bit ? 2 : 1,			// attachment.
+			mSampleBits > SampleBits::Sample1Bit ? 2u : 1u,			// attachment.
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,		// layout.
 		};
 
