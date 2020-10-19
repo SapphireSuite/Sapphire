@@ -6,6 +6,9 @@
 
 #include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
 
+// TODO move it somewhere appropriate (include for std::max)
+#include <algorithm>
+
 namespace Sa
 {
 	ITexture* ITexture::CreateInstance(const IRenderInstance& _instance, const RawTexture& _rawTexture)

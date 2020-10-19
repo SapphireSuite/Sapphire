@@ -17,7 +17,7 @@ namespace Sa
 		{ 1u, sizeof(int) },
 	};
 
-	const MaterialShaders MaterialShaders::default
+	const MaterialShaders MaterialShaders::defaultT
 	{
 		{ nullptr, SpecConstantInfos::defaultVertex, ShaderType::Vertex },
 		{ nullptr, SpecConstantInfos::defaultFragment, ShaderType::Fragment },

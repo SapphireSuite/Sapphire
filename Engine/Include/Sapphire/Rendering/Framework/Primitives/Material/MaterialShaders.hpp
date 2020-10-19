@@ -25,7 +25,8 @@ namespace Sa
 	{
 		using vector::vector;
 
-		SA_ENGINE_API static const MaterialShaders default;
+		// TODO find appropriate name
+		SA_ENGINE_API static const MaterialShaders defaultT;
 	};
 }
 

@@ -22,7 +22,8 @@ namespace Sa
 	{
 		using vector::vector;
 
-		SA_ENGINE_API static const PushConstantInfos default;
+		// TODO find appropriate name
+		SA_ENGINE_API static const PushConstantInfos defaultT;
 
 #if SA_RENDERING_API == SA_VULKAN
 
