@@ -10,11 +10,13 @@
 
 namespace Sa
 {
-	void VkRenderSurface::InitHandle(VkSurfaceKHR _newHandle)
+	void VkRenderSurface::InitHandle(VkSurfaceKHR _newHandle, VkDevice _device)
 	{
-		SA_ASSERT(mHandle == VK_NULL_HANDLE, AlreadyCreated, Rendering, L"VkSurfaceKHR Handle already created.");
+		//SA_ASSERT(mHandle == VK_NULL_HANDLE, AlreadyCreated, Rendering, L"VkSurfaceKHR Handle already created.");
 
 		mHandle = _newHandle;
+		if(_device.IsValid())
+			mSupportDetails = QuerySupportDetails(_device);
 	}
 
 	void VkRenderSurface::UnInitHandle()
@@ -23,11 +25,93 @@ namespace Sa
 		mHandle = nullptr;
 	}
 
-	const ImageExtent& VkRenderSurface::GetImageExtent() const noexcept
+	VkSurfaceFormatKHR VkRenderSurface::ChooseSwapSurfaceFormat() const
 	{
-		return mSwapChain.GetImageExtent();
+		// Prefered
+		for (uint32 i = 0; i < mSupportDetails.formats.size(); ++i)
+		{
+			if (mSupportDetails.formats[i].format == VK_FORMAT_B8G8R8A8_SRGB
+				&& mSupportDetails.formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+				return mSupportDetails.formats[i];
+		}
+
+		// Default.
+		return mSupportDetails.formats[0];
 	}
 
+	VkPresentModeKHR VkRenderSurface::ChooseSwapPresentMode() const
+	{
+		// Prefered.
+		for (uint32 i = 0; i < mSupportDetails.presentModes.size(); ++i)
+		{
+			if (mSupportDetails.presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+				return mSupportDetails.presentModes[i];
+		}
+
+		// Default FIFO always supported.
+		return VK_PRESENT_MODE_FIFO_KHR;
+	}
+
+	ImageExtent VkRenderSurface::ChooseSwapExtent() const
+	{
+		if (mSupportDetails.capabilities.currentExtent.width != UINT32_MAX)
+			return mSupportDetails.capabilities.currentExtent;
+		else
+		{
+			// TODO: Clean.
+			VkExtent2D actualExtent = { 1920, 1080 };
+
+			actualExtent.width = Maths::Max(mSupportDetails.capabilities.minImageExtent.width,
+										Maths::Min(mSupportDetails.capabilities.maxImageExtent.width, actualExtent.width));
+			actualExtent.height = Maths::Max(mSupportDetails.capabilities.minImageExtent.height,
+										Maths::Min(mSupportDetails.capabilities.maxImageExtent.height, actualExtent.height));
+
+			return actualExtent;
+		}
+	}
+
+	VkRenderSurface::SupportDetails VkRenderSurface::QuerySupportDetails(VkPhysicalDevice _device) const
+	{
+		SupportDetails details{};
+
+		// KHR Capabilities.
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_device, mHandle, &details.capabilities);
+
+
+		// KHR Formats.
+		uint32 formatCount = 0u;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(_device, mHandle, &formatCount, nullptr);
+
+		if (formatCount != 0)
+		{
+			details.formats.resize(formatCount);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(_device, mHandle, &formatCount, details.formats.data());
+		}
+
+
+		// KHR Present Modes.
+		uint32 presentModeCount = 0u;
+		vkGetPhysicalDeviceSurfacePresentModesKHR(_device, mHandle, &presentModeCount, nullptr);
+
+		if (presentModeCount != 0)
+		{
+			details.presentModes.resize(presentModeCount);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(_device, mHandle, &presentModeCount, details.presentModes.data());
+		}
+
+		return details;
+	}
+
+	bool VkRenderSurface::CheckSupport(VkPhysicalDevice _device) const
+	{
+		SupportDetails details = QuerySupportDetails(_device);
+		return !details.formats.empty() && !details.presentModes.empty();
+	}
+
+	const VkRenderSurface::SupportDetails& VkRenderSurface::GetSupportDetails() const noexcept
+	{
+		return mSupportDetails;
+	}
 
 	VkSwapChain& VkRenderSurface::GetSwapChain()
 	{
@@ -39,12 +123,12 @@ namespace Sa
 		return mSwapChain;
 	}
 
-	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices)
+	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices, const VkRenderPass& _renderPass)
 	{
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
-		mSwapChain.Create(_device, *this, _queueFamilyIndices);
+		mSwapChain.Create(_device, *this, _queueFamilyIndices, _renderPass);
 	}
 
 	void VkRenderSurface::Destroy(const VkDevice& _device)
@@ -60,7 +144,7 @@ namespace Sa
 	IRenderPass& VkRenderSurface::CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos)
 	{
 		VkRenderPass& renderPass = mRenderPasses.emplace_back(); // TODO THIS BREAK REFERENCES.
-		renderPass.Create(_instance, *this, _createInfos);
+		renderPass.Create(_instance, _createInfos);
 
 		return renderPass;
 	}

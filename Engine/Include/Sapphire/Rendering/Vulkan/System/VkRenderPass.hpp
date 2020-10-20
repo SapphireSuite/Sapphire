@@ -19,38 +19,30 @@ namespace Sa
 {
 	class IRenderSurface;
 
-	class VkSwapChain;
-
 	class VkRenderPass : public IRenderPass
 	{
 		::VkRenderPass mHandle = VK_NULL_HANDLE;
 
 		ImageExtent mExtent;
-
+	//TODO Aurel: make it private and handle any number of buffer
+	public:
 		VkImageBuffer mDepthBuffer;
-		std::vector<VkFramebuffer> mFrameBuffers;
-
 		VkImageBuffer mColorMultisamplingBuffer;
 
+	private:
 		SampleBits mSampleBits = SampleBits::Sample1Bit;
 
 		std::vector<VkClearValue> mClearValues;
 
 		void SetSampleCount(const VkDevice& _device, SampleBits _desiredSampling);
 
-		void CreateDepthBuffer(const VkDevice& _device, const VkSwapChain& _swapChain);
+		void CreateDepthBuffer(const VkDevice& _device);
 		void DestroyDepthBuffer(const VkDevice& _device);
 
-		void CreateColorMultisamplingBuffer(const VkDevice& _device, const VkSwapChain& _swapChain);
+		void CreateColorMultisamplingBuffer(const VkDevice& _device, const VkFormat _imageFormat);
 		void DestroyColorMultisamplingBuffer(const VkDevice& _device);
 
-		void CreateFrameBuffers(const VkDevice& _device, const VkSwapChain& _swapChain);
-		void DestroyFrameBuffers(const VkDevice& _device);
-
 	public:
-		// Same as SwapChain image num.
-		uint32 GetImageNum() const noexcept;
-
 		SampleBits GetSampleBits() const noexcept;
 
 		// TODO: Remove SA_ENGINE_API.
@@ -59,7 +51,7 @@ namespace Sa
 
 		void SetClearColor(const Color& _color) override final;
 
-		void Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const RenderPassCreateInfos& _createInfos) override final;
+		void Create(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
 		// TODO: Remove SA_ENGINE_API.

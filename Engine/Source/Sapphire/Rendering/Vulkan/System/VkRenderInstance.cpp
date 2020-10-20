@@ -211,7 +211,7 @@ namespace Sa
 
 		VkSurfaceKHR vkSurface = _window.CreateRenderSurface(*this);
 
-		surfacePair.second.InitHandle(vkSurface);
+		surfacePair.second.InitHandle(vkSurface, mDevice);
 
 
 		// TODO: FIX.
@@ -230,9 +230,13 @@ namespace Sa
 
 		// 1st surface: Device not selected yet.
 		if (!mDevice.IsValid())
+		{
 			SelectDevice(surfacePair.second);
+			surfacePair.second.InitHandle(vkSurface, mDevice);
+		}
 
-		surfacePair.second.Create(mDevice, mDevice.GetQueueFamilyIndices());
+		// Create swapchain after the creation of the first pass
+		//surfacePair.second.Create(mDevice, mDevice.GetQueueFamilyIndices());
 
 		return surfacePair.second;
 	}

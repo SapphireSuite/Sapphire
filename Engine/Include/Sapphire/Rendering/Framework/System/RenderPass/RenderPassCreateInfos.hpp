@@ -25,6 +25,8 @@ namespace Sa
 	struct RenderPassCreateInfos
 	{
 		ImageExtent extent;
+		// TODO Aurel: Move it somewhere appriopriate or create Sa::Format
+		VkFormat	format;
 
 		Color clearColor = Color::defaultClearColor;
 

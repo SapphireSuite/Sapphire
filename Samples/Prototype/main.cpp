@@ -817,6 +817,8 @@ int main()
 
 	RenderPassCreateInfos mainRenderPassInfos;
 	mainRenderPassInfos.sampling = SampleBits::Sample8Bits;
+	mainRenderPassInfos.extent = surface.ChooseSwapExtent();
+	mainRenderPassInfos.format = surface.ChooseSwapSurfaceFormat().format;
 
 	Sa::VkRenderPass& mainRenderPass = surface.CreateRenderPass(instance, mainRenderPassInfos).As<Sa::VkRenderPass>();
 	IRenderPass::main = &mainRenderPass;
@@ -824,6 +826,7 @@ int main()
 	Camera& mainCamera = instance.InstantiateCamera();
 	mainCamera.SetPosition(Vec3f(-2.0f, 2.0f, 5.0f));
 	TransffPRS camTr = mainCamera.GetTransform();
+	surface.Create(instance.GetDevice(), instance.GetDevice().GetQueueFamilyIndices(), mainRenderPass);
 
 	AssetManager assetMgr(instance);
 	CreateResources(instance, assetMgr);

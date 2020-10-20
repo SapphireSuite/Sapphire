@@ -29,7 +29,7 @@ namespace Sa
 		const VkRenderPass& vkRenderPass = _infos.renderPass->As<VkRenderPass>();
 
 		if(_infos.uniformBufferSize > 0u)
-			CreateUniformBuffers(device, _infos, vkRenderPass.GetImageNum());
+			CreateUniformBuffers(device, _infos, 3); // TODO Aurel: destroy image numbers
 
 		CreateDescriptors(vkInstance, _infos);
 
@@ -674,7 +674,7 @@ namespace Sa
 	{
 		CreateDescriptorSetLayout(_instance, _infos);
 
-		const uint32 imageNum = _infos.renderPass->As<VkRenderPass>().GetImageNum();
+		const uint32 imageNum = 3; // TODO Aurel: Remove hardcoded image number
 
 		CreateDescriptorPool(_instance, _infos, imageNum);
 		CreateDescriptorSets(_instance, _infos, imageNum);

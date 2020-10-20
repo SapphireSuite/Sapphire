@@ -46,11 +46,13 @@ namespace Sa
 		return mFrames[mImageIndex];
 	}
 
-	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
+	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface,
+								const VkQueueFamilyIndices& _queueFamilyIndices, const VkRenderPass& _renderPass)
 	{
 		CreateSwapChainKHR(_device, _surface, _queueFamilyIndices);
 		CreateImageView(_device);
-		
+		CreateFrameBuffers(_device, _renderPass);
+
 		CreateCommandBuffers(_device);
 
 		CreateSemaphores(_device);
@@ -63,6 +65,7 @@ namespace Sa
 
 		DestroyCommandBuffers(_device);
 
+		DestroyFrameBuffers(_device);
 		DestroyImageView(_device);
 		DestroySwapChainKHR(_device);
 	}
@@ -71,7 +74,7 @@ namespace Sa
 	{
 		Destroy(_device);
 
-		Create(_device, _surface, _queueFamilyIndices);
+		//Create(_device, _surface, _queueFamilyIndices);
 	}
 
 	VkRenderFrame VkSwapChain::Begin(const VkDevice& _device)
@@ -155,105 +158,22 @@ namespace Sa
 		mFrameIndex = (mFrameIndex + 1) % GetImageNum();
 	}
 
-	VkSurfaceFormatKHR VkSwapChain::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
-	{
-		// Prefered
-		for (uint32 i = 0; i < availableFormats.size(); ++i)
-		{
-			if (availableFormats[i].format == VK_FORMAT_B8G8R8A8_SRGB && availableFormats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-				return availableFormats[i];
-		}
-
-		// Default.
-		return availableFormats[0];
-	}
-
-	VkPresentModeKHR VkSwapChain::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
-	{
-		// Prefered.
-		for (uint32 i = 0; i < availablePresentModes.size(); ++i)
-		{
-			if (availablePresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
-				return availablePresentModes[i];
-		}
-
-		// Default FIFO always supported.
-		return VK_PRESENT_MODE_FIFO_KHR;
-	}
-
-	ImageExtent VkSwapChain::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
-	{
-		if (capabilities.currentExtent.width != UINT32_MAX)
-			return capabilities.currentExtent;
-		else
-		{
-			// TODO: Clean.
-			VkExtent2D actualExtent = { 1920, 1080 };
-
-			actualExtent.width = Maths::Max(capabilities.minImageExtent.width, Maths::Min(capabilities.maxImageExtent.width, actualExtent.width));
-			actualExtent.height = Maths::Max(capabilities.minImageExtent.height, Maths::Min(capabilities.maxImageExtent.height, actualExtent.height));
-
-			return actualExtent;
-		}
-	}
-
-	VkSwapChain::SupportDetails VkSwapChain::QuerySupportDetails(VkPhysicalDevice _device, const VkRenderSurface& _surface)
-	{
-		SupportDetails details;
-
-		// KHR Capabilities.
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_device, _surface, &details.capabilities);
-
-
-		// KHR Formats.
-		uint32 formatCount = 0u;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(_device, _surface, &formatCount, nullptr);
-
-		if (formatCount != 0)
-		{
-			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(_device, _surface, &formatCount, details.formats.data());
-		}
-
-
-		// KHR Present Modes.
-		uint32 presentModeCount = 0u;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(_device, _surface, &presentModeCount, nullptr);
-
-		if (presentModeCount != 0)
-		{
-			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(_device, _surface, &presentModeCount, details.presentModes.data());
-		}
-
-		return details;
-	}
-
-	bool VkSwapChain::CheckSupport(VkPhysicalDevice _device, const VkRenderSurface& _surface)
-	{
-		SupportDetails details = QuerySupportDetails(_device, _surface);
-
-		return !details.formats.empty() && !details.presentModes.empty();
-	}
-
 	void VkSwapChain::CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		// Query infos.
-		SupportDetails swapChainSupport = QuerySupportDetails(_device, _surface);
-
-		VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
-		VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
+		VkSurfaceFormatKHR surfaceFormat = _surface.ChooseSwapSurfaceFormat();
+		VkPresentModeKHR presentMode = _surface.ChooseSwapPresentMode();
 
 		mImageFormat = surfaceFormat.format;
-		mExtent = ChooseSwapExtent(swapChainSupport.capabilities);
+		mExtent = _surface.ChooseSwapExtent();
 
 
 		// Min image count to avoid driver blocking.
-		uint32 imageNum = swapChainSupport.capabilities.minImageCount + 1;
+		uint32 imageNum = _surface.GetSupportDetails().capabilities.minImageCount + 1;
 
-		if (swapChainSupport.capabilities.maxImageCount > 0 && imageNum > swapChainSupport.capabilities.maxImageCount)
-			imageNum = swapChainSupport.capabilities.maxImageCount;
-
+		if (_surface.GetSupportDetails().capabilities.maxImageCount > 0 
+				&& imageNum > _surface.GetSupportDetails().capabilities.maxImageCount)
+			imageNum = _surface.GetSupportDetails().capabilities.maxImageCount;
 
 		VkSwapchainCreateInfoKHR swapChainCreateInfo
 		{
@@ -270,7 +190,7 @@ namespace Sa
 			VK_SHARING_MODE_EXCLUSIVE, 										// imageSharingMode.
 			0,																// queueFamilyIndexCount.
 			nullptr,														// pQueueFamilyIndices.
-			swapChainSupport.capabilities.currentTransform,					// preTransform.
+			_surface.GetSupportDetails().capabilities.currentTransform,		// preTransform.
 			VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,								// compositeAlpha.
 			presentMode,													// presentMode.
 			VK_TRUE,														// clipped.
@@ -344,6 +264,49 @@ namespace Sa
 	{
 		for (uint32 i = 0; i < mFrames.size(); i++)
 			vkDestroyImageView(_device, mFrames[i].imageView, nullptr);
+	}
+
+	void VkSwapChain::CreateFrameBuffers(const VkDevice& _device, const VkRenderPass& _renderPass)
+	{
+		std::vector<VkImageView> attachements; // { mColorMultisamplingBuffer, _swapChain.GetImageView(i), mDepthBuffer }
+		attachements.reserve(3);
+
+		if (_renderPass.GetSampleBits() > SampleBits::Sample1Bit)
+			attachements.push_back(_renderPass.mColorMultisamplingBuffer);
+
+		// Swapchain image view.
+		VkImageView& swapChainView = attachements.emplace_back(VkImageView{});
+
+		// if(bDepthBuffer)
+		attachements.push_back(_renderPass.mDepthBuffer);
+
+		for (uint32 i = 0u; i < mFrames.size(); ++i)
+		{
+			swapChainView = mFrames[i].imageView;
+
+			const VkFramebufferCreateInfo framebufferCreateInfo
+			{
+				VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,			// sType.
+				nullptr,											// pNext.
+				0,													// flags.
+				_renderPass,											// renderPass.
+				SizeOf(attachements),								// attachmentCount.
+				attachements.data(),								// pAttachments.
+				mExtent.width,										// width.
+				mExtent.height,										// height.
+				1													// layers.
+
+			};
+
+			SA_VK_ASSERT(vkCreateFramebuffer(_device, &framebufferCreateInfo, nullptr, &mFrames[i].framebuffer),
+				CreationFailed, Rendering, L"Failed to create framebuffer!");
+		}
+	}
+
+	void VkSwapChain::DestroyFrameBuffers(const VkDevice& _device)
+	{
+		for (uint32 i = 0u; i < mFrames.size(); ++i)
+			vkDestroyFramebuffer(_device, mFrames[i].framebuffer, nullptr);
 	}
 
 	void VkSwapChain::CreateCommandBuffers(const VkDevice& _device)

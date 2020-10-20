@@ -6,7 +6,6 @@
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
-#include <Rendering/Vulkan/System/VkSwapChain.hpp>
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -15,11 +14,6 @@ namespace Sa
 {
 	// TODO: CLEAN LATER.
 	IRenderPass* IRenderPass::main = nullptr;
-
-	uint32 VkRenderPass::GetImageNum() const noexcept
-	{
-		return SizeOf(mFrameBuffers);
-	}
 
 	SampleBits VkRenderPass::GetSampleBits() const noexcept
 	{
@@ -41,10 +35,9 @@ namespace Sa
 			mClearValues[1] = mClearValues[0];
 	}
 
-	void VkRenderPass::Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const RenderPassCreateInfos& _createInfos)
+	void VkRenderPass::Create(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
-		const VkSwapChain& swapChain = _surface.As<VkRenderSurface>().GetSwapChain();
 
 		SetClearColor(_createInfos.clearColor);
 
@@ -57,7 +50,7 @@ namespace Sa
 		const VkAttachmentDescription colorAttachment
 		{
 			0,														// flags.
-			swapChain.GetImageFormat(),								// format.
+			_createInfos.format,									// format.
 			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
 			VK_ATTACHMENT_LOAD_OP_CLEAR,							// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
@@ -78,7 +71,7 @@ namespace Sa
 		const VkAttachmentDescription colorAttachmentResolve
 		{
 			0,														// flags.
-			swapChain.GetImageFormat(),								// format.
+			_createInfos.format,								// format.
 			VK_SAMPLE_COUNT_1_BIT,									// samples.
 			VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
@@ -173,20 +166,18 @@ namespace Sa
 		SA_VK_ASSERT(vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &mHandle),
 			CreationFailed, Rendering, L"Failed to create render pass!");
 
-		mExtent = _createInfos.extent.IsValid() ? _createInfos.extent : swapChain.GetImageExtent();
+		mExtent = _createInfos.extent;
 
 		if (mSampleBits > SampleBits::Sample1Bit)
-			CreateColorMultisamplingBuffer(device, swapChain);
+			CreateColorMultisamplingBuffer(device, _createInfos.format);
 
-		CreateDepthBuffer(device, swapChain);
-		CreateFrameBuffers(device, swapChain);
+		CreateDepthBuffer(device);
 	}
 	
 	void VkRenderPass::Destroy(const IRenderInstance& _instance)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
-		DestroyFrameBuffers(device);
 		DestroyDepthBuffer(device);
 
 		DestroyColorMultisamplingBuffer(device);
@@ -201,7 +192,7 @@ namespace Sa
 	//	Create(_instance, _surface);
 	//}
 
-	void VkRenderPass::CreateDepthBuffer(const VkDevice& _device, const VkSwapChain& _swapChain)
+	void VkRenderPass::CreateDepthBuffer(const VkDevice& _device)
 	{
 		//if (!_createInfos.subPassCreateInfos.bDepthBuffer)
 		//	return;
@@ -244,14 +235,14 @@ namespace Sa
 	}
 
 
-	void VkRenderPass::CreateColorMultisamplingBuffer(const VkDevice& _device, const VkSwapChain& _swapChain)
+	void VkRenderPass::CreateColorMultisamplingBuffer(const VkDevice& _device, const VkFormat _imageFormat)
 	{
 		// Duplicate color value.
 		mClearValues.emplace_back(mClearValues[0]);
 
 		const VkImageBufferCreateInfos colorBufferCreateInfos
 		{
-			_swapChain.GetImageFormat(),						// format.
+			_imageFormat,										// format.
 			mExtent,											// extent.
 
 			 VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |			// usage.
@@ -272,52 +263,7 @@ namespace Sa
 	}
 
 
-	void VkRenderPass::CreateFrameBuffers(const VkDevice& _device, const VkSwapChain& _swapChain)
-	{
-		mFrameBuffers.resize(_swapChain.GetImageNum());
-
-		std::vector<VkImageView> attachements; // { mColorMultisamplingBuffer, _swapChain.GetImageView(i), mDepthBuffer }
-		attachements.reserve(3);
-
-		if (mSampleBits > SampleBits::Sample1Bit)
-			attachements.push_back(mColorMultisamplingBuffer);
-
-		// Swapchain image view.
-		VkImageView& swapChainView = attachements.emplace_back(VkImageView{});
-
-		// if(bDepthBuffer)
-			attachements.push_back(mDepthBuffer);
-
-		for (uint32 i = 0u; i < mFrameBuffers.size(); ++i)
-		{
-			swapChainView = _swapChain.GetImageView(i);
-
-			const VkFramebufferCreateInfo framebufferCreateInfo
-			{
-				VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,			// sType.
-				nullptr,											// pNext.
-				0,													// flags.
-				mHandle,											// renderPass.
-				SizeOf(attachements),								// attachmentCount.
-				attachements.data(),								// pAttachments.
-				mExtent.width,										// width.
-				mExtent.height,										// height.
-				1													// layers.
-
-			};
-
-			SA_VK_ASSERT(vkCreateFramebuffer(_device, &framebufferCreateInfo, nullptr, &mFrameBuffers[i]),
-				CreationFailed, Rendering, L"Failed to create framebuffer!");
-		}
-	}
-
-	void VkRenderPass::DestroyFrameBuffers(const VkDevice& _device)
-	{
-		for (uint32 i = 0u; i < mFrameBuffers.size(); ++i)
-			vkDestroyFramebuffer(_device, mFrameBuffers[i], nullptr);
-
-		mFrameBuffers.clear();
-	}
+	
 
 	void VkRenderPass::Begin(const IRenderFrame& _frame)
 	{
@@ -328,7 +274,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,							// sType.
 			nullptr,															// pNext.
 			mHandle,															// renderPass.
-			mFrameBuffers[vkFrame.index],										// framebuffer // TODO user frame framebuffer
+			vkFrame.framebuffer,												// framebuffer
 			VkRect2D{ VkOffset2D{}, mExtent },									// renderArea.
 			SizeOf(mClearValues),												// clearValueCount.
 			mClearValues.data()													// pClearValues.

@@ -23,21 +23,38 @@ namespace Sa
 		VkSwapChain mSwapChain;
 		std::vector<VkRenderPass> mRenderPasses;
 
+		struct SupportDetails
+		{
+			VkSurfaceCapabilitiesKHR capabilities;
+			std::vector<VkSurfaceFormatKHR> formats;
+			std::vector<VkPresentModeKHR> presentModes;
+		};
+
+		SupportDetails mSupportDetails;
+		
+		SupportDetails QuerySupportDetails(VkPhysicalDevice _device) const;
+	
 	public:
-		void InitHandle(VkSurfaceKHR _newHandle);
+		void InitHandle(VkSurfaceKHR _newHandle, VkDevice _device);
 		void UnInitHandle();
 
-		SA_ENGINE_API const ImageExtent& GetImageExtent() const noexcept override final;
+		SA_ENGINE_API VkSurfaceFormatKHR ChooseSwapSurfaceFormat() const;
+		SA_ENGINE_API VkPresentModeKHR ChooseSwapPresentMode() const;
+		SA_ENGINE_API ImageExtent ChooseSwapExtent() const;
+
+		SA_ENGINE_API bool CheckSupport(VkPhysicalDevice _device) const;
+		SA_ENGINE_API const SupportDetails& GetSupportDetails() const noexcept;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API VkSwapChain& GetSwapChain();
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API const VkSwapChain& GetSwapChain() const;
 
-		void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices);
+		SA_ENGINE_API void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices, const VkRenderPass& _renderPass);
 		void Destroy(const VkDevice& _device);
 
-		SA_ENGINE_API IRenderPass& CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) override final;
+		SA_ENGINE_API IRenderPass& CreateRenderPass(const IRenderInstance& _instance, 
+													const RenderPassCreateInfos& _createInfos) override final;
 		SA_ENGINE_API void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) override final;
 
 		SA_ENGINE_API void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height) override final;

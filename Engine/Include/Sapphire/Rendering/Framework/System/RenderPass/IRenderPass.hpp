@@ -23,7 +23,7 @@ namespace Sa
 
 		virtual void SetClearColor(const Color& _color) = 0;
 
-		virtual void Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const RenderPassCreateInfos& _createInfos) = 0;
+		virtual void Create(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 
 		virtual void Begin(const IRenderFrame& _frame) = 0;
