@@ -12,18 +12,19 @@ namespace Sa
 {
 	void VkTexture::Create(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
-		VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;// TODO: use texture channel!
-		uint32 imageSize = _rawTexture.width * _rawTexture.height * 4; // TODO: use texture channel!
+		VkFormat format = API_GetFormat(_rawTexture.channel);
+		uint32 textureSize = _rawTexture.GetSize();
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 		VkBuffer stagingBuffer;
-		stagingBuffer.Create(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		stagingBuffer.Create(device, textureSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			_rawTexture.data);
 
 		void* data;
-		vkMapMemory(device, stagingBuffer, 0, imageSize, 0, &data);
-		memcpy(data, _rawTexture.data, imageSize);
+		vkMapMemory(device, stagingBuffer, 0, textureSize, 0, &data);
+		memcpy(data, _rawTexture.data, textureSize);
 		vkUnmapMemory(device, stagingBuffer);
 
 		uint32 mipLevels = ComputeMipMapLevels(_rawTexture.width, _rawTexture.height);

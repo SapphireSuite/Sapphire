@@ -8,7 +8,8 @@
 #include <string>
 
 #include <Core/Types/Int.hpp>
-#include <SDK/Assets/Texture/TextureChannel.hpp>
+
+#include <Rendering/Framework/Primitives/Texture/RawTexture.hpp>
 
 namespace Sa
 {
@@ -18,6 +19,7 @@ namespace Sa
 	class StbiWrapper
 	{
 	public:
+		static uint32 GetDataSize(const RawTexture& _texture);
 		static uint32 GetDataSize(uint32 _width, uint32 _height, TextureChannel _channel);
 
 		static void FlipVertically(void* _data, uint32 _width, uint32 _height, TextureChannel _channel);

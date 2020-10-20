@@ -9,16 +9,12 @@
 
 #include <Rendering/Framework/Primitives/Texture/ITexture.hpp>
 
-#include <SDK/Assets/Texture/TextureAssetInfos.hpp>
-
 namespace Sa
 {
 	class TextureAsset : public IAsset
 	{
 	protected:
 		RawTexture mRawData;
-
-		TextureChannel mChannel = TextureChannel::RGBA;
 
 		uint32 GetDataSize() const noexcept;
 

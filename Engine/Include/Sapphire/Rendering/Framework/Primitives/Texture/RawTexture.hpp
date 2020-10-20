@@ -7,6 +7,9 @@
 
 #include <Core/Types/Int.hpp>
 
+#include <Rendering/Framework/Primitives/Texture/TextureType.hpp>
+#include <Rendering/Framework/Primitives/Texture/TextureChannel.hpp>
+
 namespace Sa
 {
 	struct RawTexture
@@ -15,6 +18,12 @@ namespace Sa
 		uint32 height = 0;
 
 		char* data = nullptr;
+
+		TextureType type = TextureType::Simple;
+		TextureChannel channel = TextureChannel::RGBA;
+		
+		// Compute image size in format unit.
+		uint32 GetSize() const noexcept;
 	};
 }
 

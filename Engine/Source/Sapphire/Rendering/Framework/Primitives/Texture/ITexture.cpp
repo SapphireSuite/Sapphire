@@ -6,18 +6,21 @@
 
 #include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
 
-// TODO move it somewhere appropriate (include for std::max)
-#include <algorithm>
+#include <Maths/Misc/Maths.hpp>
 
 namespace Sa
 {
 	ITexture* ITexture::CreateInstance(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
+		ITexture* result = nullptr;
+
 #if SA_RENDERING_API == SA_VULKAN
 
-		ITexture* result = new VkTexture;
+		result = new VkTexture;
 
 #endif
+
+		SA_ASSERT(result, Nullptr, Rendering, L"Texture creation failed! API implemenation may be missing.");
 
 		result->Create(_instance, _rawTexture);
 
@@ -28,6 +31,6 @@ namespace Sa
 	{
 		// Source https://vulkan-tutorial.com/Generating_Mipmaps.
 
-		return static_cast<uint32_t>(std::floor(std::log2(std::max(_width, height)))) + 1u;
+		return static_cast<uint32_t>(std::floor(std::log2(Maths::Max(_width, height)))) + 1u;
 	}
 }
