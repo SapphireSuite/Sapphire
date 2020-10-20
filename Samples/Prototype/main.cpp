@@ -465,11 +465,12 @@ int main()
 	uint32 pLight1ID = instance.InstantiatePointLight(pLight1);
 
 	PLightInfos pLight2;
-	pLight2.position = API_ConvertCoordinateSystem(Vec3f(-2.0f, 2.0f, -2.0f));
+	pLight2.position = API_ConvertCoordinateSystem(Vec3f(2.0f, 2.0f, -2.0f));
 	pLight2.color = Vec3f(0.9f, 0.7f, 0.3f);
+	pLight2.range = 5.0f;
 	pLight2.intensity = 5.0f;
 
-	//uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
+	uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
 
 
 	// Magikarp

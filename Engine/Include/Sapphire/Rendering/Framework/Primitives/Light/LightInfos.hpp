@@ -42,9 +42,9 @@ namespace Sa
 
 
 		// Lighting components.
-		float ambient = 0.01f;
+		float ambient = 0.0f;
 
-		float diffuse = 0.64f;
+		float diffuse = 0.65f;
 
 		float specular = 0.35f;
 	};

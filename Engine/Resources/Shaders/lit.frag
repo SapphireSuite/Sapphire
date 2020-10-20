@@ -113,7 +113,6 @@ layout (binding = 6) buffer SpotLightBuffer
 const float PI = 3.14159265359;
 
 layout(constant_id = 0) const int alphaModel = 0;
-layout(constant_id = 1) const int illumModel = 0;
 
 
 // In.
@@ -139,16 +138,19 @@ void ComputeIllumination();
 
 void main()
 {
+	// Compute alpha first (alpha channel used in illumination).
 	ComputeAlpha();
 
+	// Compute each light on the fragment (forward rendering).
 	ComputeIllumination();
 }
 
 
+
+// === Alpha ===
 void ComputeAlpha()
 {
 	// Alpha model.
-
 
 	// Opaque.
 	if(alphaModel == 0)
@@ -166,156 +168,231 @@ void ComputeAlpha()
 }
 
 
+
+// === Illumination ===
 struct IlluminationData
 {
 	// Albedo from texture.
 	vec3 albedo;
 
 	// Normal vector.
-	vec3 vNorm;
-
-	// Object to light direction.
-	vec3 vLight;
+	vec3 vNormal;
 
 	// Object to camera direction.
 	vec3 vCam;
-
-	// Halfway vector.
-	vec3 vHalf;
-
-
-	// Dot(Normal, vLight).
-	float cosTheta;
-
-	// Blinn-Phong variant: dot(vNorm, vCam). Phong formula is: Dot(vNorm, vCam).
-	float cosAlpha;
-
-
-	// Ambient component.
-	vec3 Ra;
 	
-	// Diffuse component.
-	vec3 Rd;
-
-	// Specular component.
-	vec3 Rs;
-
-
-	// Fresnel f0 (reflectance at 0).
-	vec3 f0;
+	// Object to light direction.
+	vec3 vLight;
 };
 
-void ComputeLights(IlluminationData _data);
-vec3 ComputeIlluminationModel(IlluminationData _data);
+struct LightData
+{
+	vec3 color;
+
+	// Light components.
+	float ambient;
+	float diffuse;
+	float specular;
+
+
+	// Attenuation components.
+	vec3 position;
+	
+	float range;
+	
+	bool bAttenuation; // Should apply attenuation.
+
+
+	// Is light is cut off.
+	bool bCutOff;
+};
+
+void ComputeLights(inout IlluminationData _data);
+
+vec3 Fresnel(vec3 _f0, float _cosTheta);
+float ComputeAttenuation(vec3 _lightPosition, float _lightRange);
+
 
 void ComputeIllumination()
 {
-	// Illumination model: Unlit
-	if(illumModel == 0)
-	{
-		outColor.xyz = texture(texSamplers[0], fsIn.texture).xyz;
-		return;
-	}
-
-
-	// Illumination model: Lit.
 	IlluminationData data;
 	outColor.xyz = vec3(0);
 
-
-	// Albedo from texture.
 	data.albedo = texture(texSamplers[0], fsIn.texture).xyz;
 
+	data.vNormal = vec3(0.0);
 
 	// Normal vector.
 	if(texture(texSamplers[1], fsIn.texture).rgb != vec3(0))
 	{
+		// Normal mapping.
+
 		vec3 N = normalize(fsIn.normal);
 		vec3 T = normalize(fsIn.tangent);
 		vec3 B = /*handness */ -1.0 * cross (N, T);
 		mat3 TBN = mat3(T, B, N);
-		data.vNorm = normalize(TBN * (texture(texSamplers[1], fsIn.texture).rgb * 2.0 - 1.0));
+		data.vNormal = normalize(TBN * (texture(texSamplers[1], fsIn.texture).rgb * 2.0 - 1.0));
 	}
 	else
-		data.vNorm = normalize(fsIn.normal);
-
+		data.vNormal = normalize(fsIn.normal); // Vertex normal.
 
 	// Object to camera direction.
 	data.vCam = normalize(fsIn.viewPosition - fsIn.position);
-	
+
 
 	ComputeLights(data);
 }
 
-
-void FillIlluminationData(inout IlluminationData _data, vec3 _color, float _ambient, float _diffuse, float _specular)
+vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lData)
 {
-	// Halfway vector.
-	_data.vHalf = normalize(_data.vLight + _data.vCam);
+	float cosTheta = dot(_data.vNormal, _data.vLight);
 
-
-	_data.cosTheta = dot(_data.vNorm, _data.vLight);
-
-	// Blinn-Phong variant. Phong formula is: dot(vNorm, vCam)
-	_data.cosAlpha = max(dot(_data.vNorm, _data.vHalf), 0.0);
+	// Transparency Fix.
+	if(outColor.a < 1.0 && cosTheta < 0.0)
+	{
+		_data.vNormal *= -1;
+		cosTheta *= -1;
+	}
 
 
 	// Ambient component.
-	_data.Ra = _color * _ambient * matConsts.ambient * _data.albedo;
+	vec3 Ra = _lData.color * _lData.ambient * matConsts.ambient * _data.albedo;
 	
+
+	// Check facing: no lighting.
+	if(cosTheta < 0.0 || _lData.bCutOff)
+		return Ra;
+
+
+
 	// Diffuse component.
-	_data.Rd = _color * _diffuse * matConsts.diffuse * mix(_data.albedo, vec3(0.0), matConsts.metallic);
+	vec3 Rd = _lData.color * _lData.diffuse * matConsts.diffuse * mix(_data.albedo, vec3(0.0), matConsts.metallic);
+
+	vec3 diffuseBRDF = Rd/* / PI*/;
+
 
 	// Specular component.
-	_data.Rs = _color * _specular * matConsts.specular * mix(vec3(1.0), _data.albedo, matConsts.metallic);
+	vec3 specularBRDF = vec3(0);
+
+	// Halfway vector.
+	vec3 vHalf = normalize(_data.vLight + _data.vCam);
+
+	// Blinn-Phong variant. Phong formula is: dot(vNormal, vCam)
+	float cosAlpha = dot(_data.vNormal, vHalf);
+
+	if(cosAlpha > 0.0)
+	{
+		vec3 Rs = _lData.color * _lData.specular * matConsts.specular * mix(vec3(1.0), _data.albedo, matConsts.metallic);
+
+		// Fresnel reflectance.
+		vec3 f0 = mix(vec3(0.16 * matConsts.reflectance * matConsts.reflectance), _data.albedo, matConsts.metallic);
 
 
-	// Fresnel reflectance.
-	_data.f0 = mix(vec3(0.16 * matConsts.reflectance * matConsts.reflectance), _data.albedo, matConsts.metallic);
-}
+		/* 
+		*	Normalization factor: Gotanda approximation.
+		*	Source: http://research.tri-ace.com/Data/course_note_practical_implementation_at_triace.pdf
+		*/
+		//float normFactor = 0.0397436 * matConsts.shininess + 0.0856832;
+		float normFactor = (matConsts.shininess + 2) / (4 /** PI*/ * (2 - pow(2, -matConsts.shininess / 2)));
+
+		// Geometric factor: Neumann "Albedo pumped-up".
+		float G = 1.0 / max(cosTheta, dot(_data.vNormal, _data.vCam));
 
 
-// Blinn-Phong illumination.
-vec3 BlinnPhongIllumination(IlluminationData _data)
-{
-	// Normal facing light.
-	float facing = _data.cosTheta > 0.0 ? 1.0 : 0.0;
+		specularBRDF = Rs * normFactor * Fresnel(f0, dot(_data.vCam, vHalf)) * G * pow(cosAlpha, matConsts.shininess);
+	}
 
-	vec3 diffuse = _data.Rd * max(_data.cosTheta, 0.0);
-	vec3 specular = _data.Rs * pow(_data.cosAlpha, matConsts.shininess) * facing;
-	
+	// BRDF sum.
+	vec3 BRDF = (diffuseBRDF + specularBRDF) * cosTheta;
+
+	// Apply attenuation.
+	if(_lData.bAttenuation)
+		BRDF *= ComputeAttenuation(_lData.position, _lData.range);
+
 	//  Output.
-	return _data.Ra + diffuse + specular;
+	return Ra + BRDF;
 }
 
 
-// PBR illumination.
+vec3 ComputeDirectionnalLight(DirectionnalLight _light, inout IlluminationData _data)
+{
+	// Object to light direction.
+	_data.vLight = normalize(-_light.direction);
+
+	// Fill light data.
+	LightData lData;
+	lData.color = _light.color * _light.intensity;
+
+	lData.ambient = _light.ambient;
+	lData.diffuse = _light.diffuse;
+	lData.specular = _light.specular;
+
+	lData.bAttenuation = false;
+	lData.bCutOff = false;
+
+	return ComputeIlluminationModel(_data, lData);
+}
+
+vec3 ComputePointLight(PointLight _light, inout IlluminationData _data)
+{
+	// Object to light direction.
+	_data.vLight = normalize(_light.position - fsIn.position);
+
+	// Fill light data.
+	LightData lData;
+	lData.color = _light.color * _light.intensity;
+	
+	lData.ambient = _light.ambient;
+	lData.diffuse = _light.diffuse;
+	lData.specular = _light.specular;
+	
+	lData.bAttenuation = true;
+	lData.position = _light.position;
+	lData.range = _light.range;
+
+	lData.bCutOff = false;
+
+	return ComputeIlluminationModel(_data, lData);
+}
+
+vec3 ComputeSpotLight(SpotLight _light, inout IlluminationData _data)
+{
+	// Object to light direction.
+	_data.vLight = normalize(_light.position - fsIn.position);
+
+	// Fill light data.
+	LightData lData;
+	lData.color = _light.color * _light.intensity;
+
+	lData.ambient = _light.ambient;
+
+	float theta = dot(_data.vLight, normalize(_light.direction));
+
+	// Fragment not in spot light.
+	if(theta < _light.cutOff)
+		lData.bCutOff = true;
+	else
+	{
+		lData.diffuse = _light.diffuse;
+		lData.specular = _light.specular;
+
+		lData.bAttenuation = true;
+		lData.position = _light.position;
+		lData.range = _light.range;
+
+		lData.bCutOff = false;
+	}
+
+	return ComputeIlluminationModel(_data, lData);
+}
+
+
 vec3 Fresnel(vec3 _f0, float _cosTheta)
 {
 	// Schlick's approximation.
 	return _f0 + (1 - _f0) * pow(1 - _cosTheta, 5);
 }
 
-vec3 PBRIllumination(IlluminationData _data)
-{
-	/* 
-	*	Normalization factor: Gotanda approximation.
-	*	Source: http://research.tri-ace.com/Data/course_note_practical_implementation_at_triace.pdf
-	*/
-	//float normFactor = 0.0397436 * matConsts.shininess + 0.0856832;
-	float normFactor = (matConsts.shininess + 2) / (4 /** PI*/ * (2 - pow(2, -matConsts.shininess / 2)));
-
-	// Geometric factor: Neumann "Albedo pumped-up".
-	float G = 1.0 / max(_data.cosTheta, dot(_data.vNorm, _data.vCam));
-
-
-	vec3 diffuseBRDF = _data.Rd/* / PI*/;
-	vec3 specularBRDF = _data.Rs * normFactor * Fresnel(_data.f0, dot(_data.vCam, _data.vHalf)) * G * pow(_data.cosAlpha, matConsts.shininess);
-	
-
-	//  Output.
-	return max(_data.Ra + (diffuseBRDF + specularBRDF) * _data.cosTheta, vec3(0.0));
-}
 
 float ComputeAttenuation(vec3 _lightPosition, float _lightRange)
 {
@@ -324,57 +401,8 @@ float ComputeAttenuation(vec3 _lightPosition, float _lightRange)
 	return max(1 - (distance / _lightRange), 0.0);
 }
 
-vec3 ComputeDirectionnalLight(DirectionnalLight _light, IlluminationData _data)
-{
-	// Object to light direction.
-	_data.vLight = normalize(-_light.direction);
 
-	FillIlluminationData(_data, _light.color * _light.intensity, _light.ambient, _light.diffuse, _light.specular);
-
-	return ComputeIlluminationModel(_data);
-}
-
-vec3 ComputePointLight(PointLight _light, IlluminationData _data)
-{
-	// Object to light direction.
-	_data.vLight = normalize(_light.position - fsIn.position);
-
-	FillIlluminationData(_data, _light.color * _light.intensity, _light.ambient, _light.diffuse, _light.specular);
-
-	return ComputeAttenuation(_light.position, _light.range) * ComputeIlluminationModel(_data);
-}
-
-vec3 ComputeSpotLight(SpotLight _light, IlluminationData _data)
-{
-	// Object to light direction.
-	_data.vLight = normalize(_light.position - fsIn.position);
-
-
-	float theta = dot(_data.vLight, normalize(_light.direction));
-
-	// Fragment not in spot light.
-	if(theta < _light.cutOff)
-		return _data.Ra;
-
-
-	FillIlluminationData(_data, _light.color* _light.intensity, _light.ambient, _light.diffuse, _light.specular);
-
-
-	return ComputeAttenuation(_light.position, _light.range) * ComputeIlluminationModel(_data);
-}
-
-
-vec3 ComputeIlluminationModel(IlluminationData _data)
-{
-	// Illumination model.
-
-	if(illumModel == 1)
-		return BlinnPhongIllumination(_data);					// Simple Blinn-Phong implementation.
-	else if(illumModel == 2)
-		return PBRIllumination(_data);							// Physically based using BRDF.
-}
-
-void ComputeLights(IlluminationData _data)
+void ComputeLights(inout IlluminationData _data)
 {
 	// Directionnal Lights.
 	for(int i = 0; i < dLightBuffer.lights.length(); ++i)
