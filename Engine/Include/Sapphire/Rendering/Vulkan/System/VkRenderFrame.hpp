@@ -11,6 +11,8 @@
 
 #include <Rendering/Vulkan/Buffer/VkUniformBuffer.hpp>
 
+#include <Rendering/Vulkan/Buffer/VkCommandBuffer.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 #include <vulkan/vulkan.h>
@@ -22,15 +24,17 @@ namespace Sa
 	public:
 		uint32 index = 0u;
 
-		VkImage image;
-		VkImageView imageView;
+		CommandBuffer graphicsCommandBuffer;
 
-		VkCommandBuffer graphicsCommandBuffer;
+		// Frame data
+		VkImage image				= VK_NULL_HANDLE;
+		VkImageView imageView		= VK_NULL_HANDLE;
+		VkFramebuffer framebuffer	= VK_NULL_HANDLE;
 
-		VkRenderFrame(uint32 _index,
-			VkImage _image,
-			VkImageView _imageView,
-			VkCommandBuffer _graphicsCommandBuffer) noexcept;
+		// Synchronisation
+		VkSemaphore acquireSemaphore	= VK_NULL_HANDLE;
+		VkSemaphore presentSemaphore	= VK_NULL_HANDLE;
+		VkFence fence					= VK_NULL_HANDLE;
 	};
 }
 

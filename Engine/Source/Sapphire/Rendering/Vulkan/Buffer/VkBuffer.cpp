@@ -150,7 +150,7 @@ namespace Sa
 
 	void VkBuffer::Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint64 _size)
 	{
-		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
+		CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 
 
 		// Add copy command.
@@ -164,7 +164,7 @@ namespace Sa
 		vkCmdCopyBuffer(commandBuffer, _src, _dst, 1, &copyRegion);
 
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
+		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
 	uint32 VkBuffer::FindMemoryType(const VkDevice& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties)

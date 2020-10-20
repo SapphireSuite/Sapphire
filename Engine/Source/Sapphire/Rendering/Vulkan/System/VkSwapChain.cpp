@@ -21,7 +21,7 @@ namespace Sa
 {
 	uint32 VkSwapChain::GetImageNum() const noexcept
 	{
-		return SizeOf(mImages);
+		return SizeOf(mFrames);
 	}
 
 	VkFormat VkSwapChain::GetImageFormat() const noexcept
@@ -31,9 +31,9 @@ namespace Sa
 
 	VkImageView VkSwapChain::GetImageView(uint32 _index) const noexcept
 	{
-		SA_ASSERT(_index < SizeOf(mImageViews), OutOfRange, Rendering, _index, 0, SizeOf(mImageViews));
+		SA_ASSERT(_index < SizeOf(mFrames), OutOfRange, Rendering, _index, 0, SizeOf(mFrames));
 
-		return mImageViews[_index];
+		return mFrames[_index].imageView;
 	}
 
 	const ImageExtent& VkSwapChain::GetImageExtent() const noexcept
@@ -43,37 +43,27 @@ namespace Sa
 
 	VkRenderFrame VkSwapChain::GetRenderFrame() const noexcept
 	{
-		return VkRenderFrame
-		{
-			mFrameIndex,
-			mImages[mImageIndex],
-			mImageViews[mImageIndex],
-			mGraphicsCommandBuffers[mFrameIndex]
-		};
+		return mFrames[mImageIndex];
 	}
 
 	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
-		uint32 imageNum = CreateSwapChainKHR(_device, _surface, _queueFamilyIndices);
+		CreateSwapChainKHR(_device, _surface, _queueFamilyIndices);
+		CreateImageView(_device);
+		
+		CreateCommandBuffers(_device);
 
-		CreateImageView(_device, imageNum);
-
-		CreateCommandBuffers(_device, imageNum);
-
-		CreateSemaphores(_device, imageNum);
-
-		CreateFences(_device, imageNum);
+		CreateSemaphores(_device);
+		CreateFences(_device);
 	}
 	void VkSwapChain::Destroy(const VkDevice& _device)
 	{
-		DestroyImageView(_device);
+		DestroyFences(_device);
+		DestroySemaphores(_device);
 
 		DestroyCommandBuffers(_device);
 
-		DestroySemaphores(_device);
-
-		DestroyFences(_device);
-
+		DestroyImageView(_device);
 		DestroySwapChainKHR(_device);
 	}
 
@@ -91,17 +81,16 @@ namespace Sa
 
 
 		// Wait current Fence.
-		vkWaitForFences(_device, 1, &mMainFences[frame.index], true, UINT64_MAX);
+		vkWaitForFences(_device, 1, &frame.fence, true, UINT64_MAX);
 
 		// Reset current Fence.
-		vkResetFences(_device, 1, &mMainFences[frame.index]);
+		vkResetFences(_device, 1, &frame.fence);
 
 		// Reset Command Buffer.
 		vkResetCommandBuffer(frame.graphicsCommandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
 
-		SA_VK_ASSERT(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, mAcquireSemaphores[frame.index], VK_NULL_HANDLE, &mImageIndex),
+		SA_VK_ASSERT(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, frame.acquireSemaphore, VK_NULL_HANDLE, &mImageIndex),
 			LibCommandFailed, Rendering, L"Failed to aquire next image!");
-
 
 		const VkCommandBufferBeginInfo commandBufferBeginInfo
 		{
@@ -135,15 +124,15 @@ namespace Sa
 			VK_STRUCTURE_TYPE_SUBMIT_INFO,						// sType.
 			nullptr,											// pNext.
 			1,													// waitSemaphoreCount.
-			&mAcquireSemaphores[frame.index],					// pWaitSemaphores.
+			&frame.acquireSemaphore,					// pWaitSemaphores.
 			&waitStages,										// pWaitDstStageMask.
 			1,													// commandBufferCount.
-			&frame.graphicsCommandBuffer,						// pCommandBuffers.
+			&frame.graphicsCommandBuffer.Get(),					// pCommandBuffers.
 			1,													// signalSemaphoreCount.
-			&mPresentSemaphores[frame.index],					// pSignalSemaphores.
+			&frame.presentSemaphore,					// pSignalSemaphores.
 		};
 
-		SA_VK_ASSERT(vkQueueSubmit(_device.GetGraphicsQueue(), 1, &submitInfo, mMainFences[frame.index]),
+		SA_VK_ASSERT(vkQueueSubmit(_device.GetGraphicsQueue(), 1, &submitInfo, frame.fence),
 			LibCommandFailed, Rendering, L"Failed to submit graphics queue!");
 
 		// Submit previous present.
@@ -152,7 +141,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,					// sType.
 			nullptr,											// pNext.
 			1,													// waitSemaphoreCount.
-			&mPresentSemaphores[frame.index],					// pWaitSemaphores.
+			&frame.presentSemaphore,					// pWaitSemaphores.
 			1,													// swapchainCount.
 			&mHandle,											// pSwapchains
 			&mImageIndex,										// pImageIndices.
@@ -247,7 +236,7 @@ namespace Sa
 		return !details.formats.empty() && !details.presentModes.empty();
 	}
 
-	uint32 VkSwapChain::CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
+	void VkSwapChain::CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		// Query infos.
 		SupportDetails swapChainSupport = QuerySupportDetails(_device, _surface);
@@ -301,10 +290,15 @@ namespace Sa
 
 		// Create images.
 		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, nullptr);
-		mImages.resize(imageNum);
-		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, mImages.data());
+		mFrames.resize(imageNum);
+		std::vector<VkImage> imgs(imageNum);
+		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, imgs.data());
 
-		return imageNum;
+		for (size_t i = 0; i < imgs.size(); i++)
+		{
+			mFrames[i].index = i;
+			mFrames[i].image = imgs[i];
+		}
 	}
 	void VkSwapChain::DestroySwapChainKHR(const VkDevice& _device)
 	{
@@ -312,18 +306,16 @@ namespace Sa
 		mHandle = VK_NULL_HANDLE;
 	}
 
-	void VkSwapChain::CreateImageView(const VkDevice& _device, uint32 _imageNum)
+	void VkSwapChain::CreateImageView(const VkDevice& _device)
 	{
-		mImageViews.resize(_imageNum);
-
-		for (uint32 i = 0; i < _imageNum; i++)
+		for (uint32 i = 0; i < mFrames.size(); i++)
 		{
 			const VkImageViewCreateInfo imageViewCreateInfo
 			{
 				VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,									// sType.
 				nullptr,																	// pNext.
 				0,																			// flags.
-				mImages[i],																	// image.
+				mFrames[i].image,															// image.
 				VK_IMAGE_VIEW_TYPE_2D,														// viewType.
 				mImageFormat,																// format.
 
@@ -344,47 +336,43 @@ namespace Sa
 				}
 			};
 
-			SA_VK_ASSERT(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &mImageViews[i]),
+			SA_VK_ASSERT(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &mFrames[i].imageView),
 				CreationFailed, Rendering, L"Failed to create image views!");
 		}
 	}
 	void VkSwapChain::DestroyImageView(const VkDevice& _device)
 	{
-		for (uint32 i = 0; i < mImageViews.size(); i++)
-			vkDestroyImageView(_device, mImageViews[i], nullptr);
-
-		mImageViews.clear();
+		for (uint32 i = 0; i < mFrames.size(); i++)
+			vkDestroyImageView(_device, mFrames[i].imageView, nullptr);
 	}
 
-	void VkSwapChain::CreateCommandBuffers(const VkDevice& _device, uint32 _imageNum)
+	void VkSwapChain::CreateCommandBuffers(const VkDevice& _device)
 	{
-		mGraphicsCommandBuffers.resize(_imageNum);
-
 		const VkCommandBufferAllocateInfo commandBufferAllocInfo
 		{
 			VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,							// sType.
 			nullptr,																// nullptr.
 			_device.GetGraphicsQueue().GetCommandPool(),							// commandPool.
 			VK_COMMAND_BUFFER_LEVEL_PRIMARY,										// level.
-			_imageNum																// commandBufferCount.
+			1																// commandBufferCount.
 		};
 
-		SA_VK_ASSERT(vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, mGraphicsCommandBuffers.data()),
-			CreationFailed, Rendering, L"Failed to allocate command buffers!");
+		for (size_t i = 0; i < mFrames.size(); ++i)
+		{
+			SA_VK_ASSERT(vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, &mFrames[i].graphicsCommandBuffer.Get()),
+				CreationFailed, Rendering, L"Failed to allocate command buffers!");
+		}
 	}
-	void VkSwapChain::DestroyCommandBuffers(const VkDevice& _device)
+	void VkSwapChain::DestroyCommandBuffers(const VkDevice& _device) 
 	{
 		// Manually free command buffers (useful for resize).
-		vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(), SizeOf(mGraphicsCommandBuffers), mGraphicsCommandBuffers.data());
-
-		mGraphicsCommandBuffers.clear();
+		for (size_t i = 0; i < mFrames.size(); ++i)
+			vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(),
+								1, &mFrames[i].graphicsCommandBuffer.Get());
 	}
 
-	void VkSwapChain::CreateSemaphores(const VkDevice& _device, uint32 _imageNum)
+	void VkSwapChain::CreateSemaphores(const VkDevice& _device)
 	{
-		mAcquireSemaphores.resize(_imageNum);
-		mPresentSemaphores.resize(_imageNum);
-
 		const VkSemaphoreCreateInfo semaphoreCreateInfo
 		{
 			VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,					// sType.
@@ -392,30 +380,25 @@ namespace Sa
 			0,															// flags.
 		};
 
-		for (uint32 i = 0u; i < _imageNum; ++i)
+		for (uint32 i = 0u; i < mFrames.size(); ++i)
 		{
-			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mAcquireSemaphores[i]),
+			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mFrames[i].acquireSemaphore),
 				CreationFailed, Rendering, L"Failed to create semaphore!");
-			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mPresentSemaphores[i]),
+			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mFrames[i].presentSemaphore),
 				CreationFailed, Rendering, L"Failed to create semaphore!");
 		}
 	}
 	void VkSwapChain::DestroySemaphores(const VkDevice& _device)
 	{
-		for (uint32 i = 0; i < mAcquireSemaphores.size(); i++)
+		for (uint32 i = 0; i < mFrames.size(); i++)
 		{
-			vkDestroySemaphore(_device, mAcquireSemaphores[i], nullptr);
-			vkDestroySemaphore(_device, mPresentSemaphores[i], nullptr);
+			vkDestroySemaphore(_device, mFrames[i].acquireSemaphore, nullptr);
+			vkDestroySemaphore(_device, mFrames[i].presentSemaphore, nullptr);
 		}
-
-		mAcquireSemaphores.clear();
-		mPresentSemaphores.clear();
 	}
 
-	void VkSwapChain::CreateFences(const VkDevice& _device, uint32 _imageNum)
+	void VkSwapChain::CreateFences(const VkDevice& _device)
 	{
-		mMainFences.resize(_imageNum);
-
 		const VkFenceCreateInfo fenceCreateInfo
 		{
 			VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,					// sType.
@@ -423,18 +406,17 @@ namespace Sa
 			VK_FENCE_CREATE_SIGNALED_BIT							// flags.
 		};
 
-		for (uint32 i = 0u; i < _imageNum; ++i)
+		for (uint32 i = 0u; i < mFrames.size(); ++i)
 		{
-			SA_VK_ASSERT(vkCreateFence(_device, &fenceCreateInfo, nullptr, &mMainFences[i]),
+			SA_VK_ASSERT(vkCreateFence(_device, &fenceCreateInfo, nullptr, &mFrames[i].fence),
 				CreationFailed, Rendering, L"Failed to create fence!");
 		}
 	}
 	void VkSwapChain::DestroyFences(const VkDevice& _device)
 	{
-		for (uint32 i = 0; i < mMainFences.size(); i++)
-			vkDestroyFence(_device, mMainFences[i], nullptr);
+		for (uint32 i = 0; i < mFrames.size(); i++)
+			vkDestroyFence(_device, mFrames[i].fence, nullptr);
 
-		mMainFences.clear();
 	}
 }
 

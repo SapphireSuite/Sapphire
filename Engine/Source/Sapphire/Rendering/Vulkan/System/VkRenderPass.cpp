@@ -328,7 +328,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,							// sType.
 			nullptr,															// pNext.
 			mHandle,															// renderPass.
-			mFrameBuffers[vkFrame.index],										// framebuffer
+			mFrameBuffers[vkFrame.index],										// framebuffer // TODO user frame framebuffer
 			VkRect2D{ VkOffset2D{}, mExtent },									// renderArea.
 			SizeOf(mClearValues),												// clearValueCount.
 			mClearValues.data()													// pClearValues.

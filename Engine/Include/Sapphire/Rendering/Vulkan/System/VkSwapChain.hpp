@@ -31,7 +31,9 @@ namespace Sa
 		uint32 mFrameIndex = 0u;
 		uint32 mImageIndex = 0u;
 
-		std::vector<VkImage> mImages;
+		std::vector<VkRenderFrame> mFrames;
+
+		/*std::vector<VkImage> mImages;
 		std::vector<VkImageView> mImageViews;
 
 		std::vector<VkCommandBuffer> mGraphicsCommandBuffers;
@@ -39,7 +41,7 @@ namespace Sa
 		std::vector<VkSemaphore> mAcquireSemaphores;
 		std::vector<VkSemaphore> mPresentSemaphores;
 
-		std::vector<VkFence> mMainFences;
+		std::vector<VkFence> mMainFences;*/
 
 		struct SupportDetails
 		{
@@ -53,19 +55,20 @@ namespace Sa
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		ImageExtent ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-		uint32 CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
+		void CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface,
+								const VkQueueFamilyIndices& _queueFamilyIndices);
 		void DestroySwapChainKHR(const VkDevice& _device);
 
-		void CreateImageView(const VkDevice& _device, uint32 _imageNum);
+		void CreateImageView(const VkDevice& _device);
 		void DestroyImageView(const VkDevice& _device);
 
-		void CreateCommandBuffers(const VkDevice& _device, uint32 _imageNum);
+		void CreateCommandBuffers(const VkDevice& _device);
 		void DestroyCommandBuffers(const VkDevice& _device);
 
-		void CreateSemaphores(const VkDevice& _device, uint32 _imageNum);
+		void CreateSemaphores(const VkDevice& _device);
 		void DestroySemaphores(const VkDevice& _device);
 
-		void CreateFences(const VkDevice& _device, uint32 _imageNum);
+		void CreateFences(const VkDevice& _device);
 		void DestroyFences(const VkDevice& _device);
 
 	public:

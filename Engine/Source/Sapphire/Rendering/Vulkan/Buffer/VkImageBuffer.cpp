@@ -112,7 +112,7 @@ namespace Sa
 
 	void VkImageBuffer::TransitionImageLayout(const Sa::VkDevice& _device, const VkTransitionImageInfos& _infos)
 	{
-		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
+		Sa::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
 
 
 		VkImageMemoryBarrier barrier
@@ -175,12 +175,12 @@ namespace Sa
 
 		vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
+		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
 	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, VkExtent3D _extent, uint32 _channel, uint32 _mipLevels, uint32 _layerCount)
 	{
-		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
+		Sa::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 
 		uint64 offset = 0u;
 
@@ -218,7 +218,7 @@ namespace Sa
 		vkCmdCopyBufferToImage(commandBuffer, _buffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, SizeOf(bufferImageCopies), bufferImageCopies.data());
 
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
+		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
 
@@ -233,7 +233,7 @@ namespace Sa
 			NotSupported, Rendering, L"Texture image format does not support linear blitting!");
 #endif
 
-		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
+		Sa::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
 
 		VkImageMemoryBarrier barrier
 		{
@@ -345,7 +345,7 @@ namespace Sa
 			0, nullptr,
 			1, &barrier);
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
+		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
 
