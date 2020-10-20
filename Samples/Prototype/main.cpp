@@ -34,6 +34,9 @@ constexpr const char* unlitFragShaderAsset = "Bin/Shaders/lit_FS.spha";
 IMesh* squareMesh = nullptr;
 constexpr const char* squareMeshAsset = "Bin/Meshes/Square_M.spha";
 
+IMesh* cubeMesh = nullptr;
+constexpr const char* cubeMeshAsset = "Bin/Meshes/Cube_M.spha";
+
 
 // Magikarp
 IMesh* magikarpBodyMesh = nullptr;
@@ -101,26 +104,24 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 
 	if (!squareMesh) // Try load.
 	{
-		RawMesh rawMesh;
-
-		rawMesh.vertices =
-		{
-			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 0.0f } },
-			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 0.0f } },
-			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 1.0f } },
-			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 1.0f } },
-		};
-
-		rawMesh.indices =
-		{
-			0, 1, 2, 2, 3, 0
-		};
-
 		// Create on load failed.
-		MeshAsset gizmoMeshAsset = _assetMgr.meshMgr.Create(Move(rawMesh));
-		gizmoMeshAsset.ComputeTangents();
-		gizmoMeshAsset.Save(squareMeshAsset);
-		squareMesh = gizmoMeshAsset.GetResource();
+		MeshAsset meshAsset = _assetMgr.meshMgr.Create(Move(RawMesh::SquareMesh()));
+		meshAsset.ComputeTangents();
+		meshAsset.Save(squareMeshAsset);
+		squareMesh = meshAsset.GetResource();
+	}
+
+#if !__SA_ALWAYS_REIMPORT
+	cubeMesh = _assetMgr.meshMgr.Load(cubeMeshAsset);
+#endif
+
+	if (!cubeMesh) // Try load.
+	{
+		// Create on load failed.
+		MeshAsset meshAsset = _assetMgr.meshMgr.Create(Move(RawMesh::CubeMesh()));
+		meshAsset.ComputeTangents();
+		meshAsset.Save(cubeMeshAsset);
+		cubeMesh = meshAsset.GetResource();
 	}
 }
 
@@ -598,7 +599,7 @@ int main()
 
 		// Draw bricks.
 		bricksMat->Bind(frame);
-		squareMesh->Draw(frame);
+		cubeMesh->Draw(frame);
 
 
 		// Draw gizmos.

@@ -15,6 +15,11 @@ namespace Sa
 	{
 		std::vector<Vertex> vertices;
 		std::vector<uint32> indices;
+
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API static RawMesh SquareMesh() noexcept;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API static RawMesh CubeMesh() noexcept;
 	};
 }
 
