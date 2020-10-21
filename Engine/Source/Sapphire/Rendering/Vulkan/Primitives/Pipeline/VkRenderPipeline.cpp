@@ -111,7 +111,7 @@ namespace Sa
 			0,																		// flags.
 			VK_TRUE,																// depthTestEnable.
 			VK_TRUE,																// depthWriteEnable.
-			VK_COMPARE_OP_LESS,														// depthCompareOp.
+			VK_COMPARE_OP_LESS_OR_EQUAL,											// depthCompareOp.
 			VK_FALSE,																// depthBoundsTestEnable.
 			VK_FALSE,																// stencilTestEnable.
 			{},																		// front.

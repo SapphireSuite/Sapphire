@@ -41,7 +41,6 @@ void main()
     gl_Position = camUBO[pConst.camIndex].proj * staticView * vec4(inPosition, 1.0);
 	
     gl_Position = gl_Position.xyww; // Depth Test trick to draw faster: only if no object in front of it
-    gl_Position.z -= 0.0001; // zfight quick fix.
 
 
     // Texture.
