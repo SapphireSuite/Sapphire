@@ -20,10 +20,12 @@ namespace Sa
 
 	class StbiWrapper
 	{
+		static void GenerateMipMaps(RawTexture& _rawData);
+
 	public:
 		static const uint32 bitSize;
 
-		static void FlipVertically(void* _data, uint32 _width, uint32 _height, TextureChannel _channel);
+		static void FlipVertically(RawTexture& _rawData);
 
 		static void* Allocate(uint32 _dataSize);
 		static void Free(void* _data);

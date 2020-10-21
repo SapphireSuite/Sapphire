@@ -17,8 +17,6 @@ namespace Sa
 	protected:
 		virtual void Create(const IRenderInstance& _instance, const RawTexture& _rawTexture) = 0;
 
-		static uint32 ComputeMipMapLevels(uint32 _width, uint32 height);
-
 	public:
 		static ITexture* CreateInstance(const IRenderInstance& _instance, const RawTexture& _rawTexture);
 

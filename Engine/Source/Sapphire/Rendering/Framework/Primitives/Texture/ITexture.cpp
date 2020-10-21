@@ -26,11 +26,4 @@ namespace Sa
 
 		return result;
 	}
-
-	uint32 ITexture::ComputeMipMapLevels(uint32 _width, uint32 height)
-	{
-		// Source https://vulkan-tutorial.com/Generating_Mipmaps.
-
-		return static_cast<uint32_t>(std::floor(std::log2(Maths::Max(_width, height)))) + 1u;
-	}
 }

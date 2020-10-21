@@ -13,7 +13,7 @@ namespace Sa
 	void VkTexture::Create(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
 		VkFormat format = API_GetFormat(_rawTexture.channel);
-		uint32 textureSize = _rawTexture.GetSize();
+		uint32 textureSize = _rawTexture.GetTotalSize();
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
@@ -22,23 +22,23 @@ namespace Sa
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 			_rawTexture.data);
 
-		VkExtent3D textureExtent{ _rawTexture.width, _rawTexture.height, 1 };
-
-		uint32 mipLevels = 1u;
 		VkImageBufferCreateInfos imageBufferCreateInfos;
 
-		if(_rawTexture.type == TextureType::Simple)
-			mipLevels = ComputeMipMapLevels(_rawTexture.width, _rawTexture.height);
-		else if (_rawTexture.type == TextureType::Cubemap)
-			imageBufferCreateInfos = VkImageBufferCreateInfos::CreateCubeMapInfos();
+		//if(_rawTexture.type == TextureType::Simple)
+		//	mipLevels = ComputeMipMapLevels(_rawTexture.width, _rawTexture.height);
+		//else if (_rawTexture.type == TextureType::Cubemap)
+		//	imageBufferCreateInfos = VkImageBufferCreateInfos::CreateCubeMapInfos();
+		//if (_rawTexture.type == TextureType::Cubemap)
+		//	imageBufferCreateInfos = VkImageBufferCreateInfos::CreateCubeMapInfos();
+
 
 		imageBufferCreateInfos.format = format;
-		imageBufferCreateInfos.extent = textureExtent;
+		imageBufferCreateInfos.extent = VkExtent3D{ _rawTexture.width, _rawTexture.height, 1 };
 
 		imageBufferCreateInfos.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		imageBufferCreateInfos.mipMapLevels = mipLevels;
+		imageBufferCreateInfos.mipMapLevels = _rawTexture.mipLevels;
 
-		if (mipLevels > 1)
+		if (_rawTexture.mipLevels > 1)
 			imageBufferCreateInfos.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 		mBuffer.Create(device, imageBufferCreateInfos);
@@ -49,28 +49,28 @@ namespace Sa
 		{
 			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			mipLevels,
+			_rawTexture.mipLevels,
 			imageBufferCreateInfos.layerNum,
 		};
 
 		mBuffer.TransitionImageLayout(device, undefToDstTransitionInfos);
 
-		mBuffer.CopyBufferToImage(device, stagingBuffer, textureExtent, imageBufferCreateInfos.layerNum);
+		mBuffer.CopyBufferToImage(device, stagingBuffer, _rawTexture, imageBufferCreateInfos.layerNum);
 		stagingBuffer.Destroy(device);
 
-		if (mipLevels > 1)
-		{
-			// Will transition image layout as read only at the end.
-			mBuffer.GenerateMipmaps(device, format, _rawTexture.width, _rawTexture.height, mipLevels);
-			// TODO: Compute mipmap only once and save mipmap levels in TextureAsset.
-		}
-		else
+		//if (mipLevels > 1)
+		//{
+		//	// Will transition image layout as read only at the end.
+		//	mBuffer.GenerateMipmaps(device, format, _rawTexture.width, _rawTexture.height, mipLevels);
+		//	// TODO: Compute mipmap only once and save mipmap levels in TextureAsset.
+		//}
+		//else
 		{
 			const VkTransitionImageInfos dstToReadTransitionInfos
 			{
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				mipLevels,
+				_rawTexture.mipLevels,
 				imageBufferCreateInfos.layerNum,
 			};
 
@@ -97,7 +97,7 @@ namespace Sa
 			VK_FALSE,													// compareEnable.
 			VK_COMPARE_OP_ALWAYS,										// compareOp.
 			0.0f,														// minLod.
-			static_cast<float>(mipLevels),								// maxLod.
+			static_cast<float>(_rawTexture.mipLevels),					// maxLod.
 			VK_BORDER_COLOR_INT_OPAQUE_BLACK,							// borderColor
 			VK_FALSE,													// unnormalizedCoordinates.
 		};

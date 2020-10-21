@@ -14,16 +14,21 @@ namespace Sa
 {
 	struct RawTexture
 	{
-		uint32 width = 0;
-		uint32 height = 0;
+		uint32 width = 0u;
+		uint32 height = 0u;
+
+		uint32 mipLevels = 1u;
 
 		char* data = nullptr;
 
 		TextureType type = TextureType::Simple;
 		TextureChannel channel = TextureChannel::RGBA;
 		
-		// Compute image size in format unit.
-		uint32 GetSize(bool _bApplyType = true) const noexcept;
+		// Compute original image size in format unit.
+		uint32 GetMainSize(bool _bApplyType = true) const noexcept;
+
+		// Compute total image size (including mipmaps) in format unit.
+		uint32 GetTotalSize(bool _bApplyType = true) const noexcept;
 	};
 }
 

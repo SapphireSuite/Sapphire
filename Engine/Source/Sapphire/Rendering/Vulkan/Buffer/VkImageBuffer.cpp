@@ -2,6 +2,10 @@
 
 #include <Rendering/Vulkan/Buffer/VkImageBuffer.hpp>
 
+#include <Core/Algorithms/SizeOf.hpp>
+
+#include <Rendering/Framework/Primitives/Texture/RawTexture.hpp>
+
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
 
@@ -187,31 +191,42 @@ namespace Sa
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
-	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const VkExtent3D& _extent, uint32 _layerNum)
+	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const RawTexture& _rawTexture, uint32 _layerNum)
 	{
 		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 
+		uint64 offset = 0u;
+		VkExtent3D extent = VkExtent3D{ _rawTexture.width, _rawTexture.height, 1 };
 
-		const VkBufferImageCopy bufferImageCopy
+		std::vector<VkBufferImageCopy> bufferImageCopies;
+
+		for (uint32 i = 0u; i < _rawTexture.mipLevels; ++i)
 		{
-			0,													// bufferOffset.
-			0,													// bufferRowLength.
-			0,													// bufferImageHeight.
+			bufferImageCopies.emplace_back(VkBufferImageCopy{
+				offset,												// bufferOffset.
+				0,													// bufferRowLength.
+				0,													// bufferImageHeight.
 
-			VkImageSubresourceLayers							// imageSubresource.
-			{
-				VK_IMAGE_ASPECT_COLOR_BIT,					// aspectMask.
-				0,											// mipLevel.
-				0,											// baseArrayLayer.
-				_layerNum,									// layerCount.
-			},
+				VkImageSubresourceLayers							// imageSubresource.
+				{
+					VK_IMAGE_ASPECT_COLOR_BIT,					// aspectMask.
+					i,											// mipLevel.
+					0,											// baseArrayLayer.
+					_layerNum,									// layerCount.
+				},
 
-			{0, 0, 0},											// imageOffset.
+				{0, 0, 0},											// imageOffset.
 
-			_extent												// imageExtent.
-		};
+				extent												// imageExtent.
+				});
 
-		vkCmdCopyBufferToImage(commandBuffer, _buffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferImageCopy);
+			offset += extent.width * extent.height * static_cast<uint32>(_rawTexture.channel);
+
+			extent.width >>= 1;
+			extent.height >>= 1;
+		}
+
+		vkCmdCopyBufferToImage(commandBuffer, _buffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, SizeOf(bufferImageCopies), bufferImageCopies.data());
 
 
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());

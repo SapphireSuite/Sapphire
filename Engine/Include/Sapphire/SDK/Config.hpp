@@ -17,11 +17,11 @@
 */
 
 
-/**
-*	ResourceManager should always reimport.
-*	Usefull for debug only.
-*/
-#define __SA_ALWAYS_REIMPORT (SA_DEBUG && 0)
+///**
+//*	ResourceManager should always reimport.
+//*	Usefull for debug only.
+//*/
+//#define __SA_ALWAYS_REIMPORT (SA_DEBUG && 0)
 
 
 

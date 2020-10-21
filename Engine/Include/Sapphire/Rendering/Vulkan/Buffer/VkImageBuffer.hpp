@@ -17,6 +17,7 @@ namespace Sa
 {
 	class VkDevice;
 	class VkBuffer;
+	struct RawTexture;
 
 	struct VkImageBufferCreateInfos
 	{
@@ -67,7 +68,7 @@ namespace Sa
 		void Destroy(const VkDevice& _device);
 
 		void TransitionImageLayout(const VkDevice& _device, const VkTransitionImageInfos& _infos);
-		void CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const VkExtent3D& _extent, uint32 _layerNum = 1u);
+		void CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const RawTexture& _rawTexture, uint32 _layerNum = 1u);
 
 		void GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels);
 

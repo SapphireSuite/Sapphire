@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <filesystem>
 
 #include <Sapphire/Core/Time/Chrono.hpp>
 #include <Sapphire/Maths/Space/Transform.hpp>
@@ -21,6 +22,8 @@
 #include <Sapphire/SDK/Assets/AssetManager.hpp>
 
 using namespace Sa;
+
+#define __SA_ALWAYS_REIMPORT 0
 
 #define LOG(_str) std::cout << _str << std::endl;
 
@@ -100,9 +103,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 
 
 	// Mesh.
-#if !__SA_ALWAYS_REIMPORT
 	squareMesh = _assetMgr.meshMgr.Load(squareMeshAsset);
-#endif
 
 	if (!squareMesh) // Try load.
 	{
@@ -113,9 +114,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 		squareMesh = meshAsset.GetResource();
 	}
 
-#if !__SA_ALWAYS_REIMPORT
 	cubeMesh = _assetMgr.meshMgr.Load(cubeMeshAsset);
-#endif
 
 	if (!cubeMesh) // Try load.
 	{
@@ -164,13 +163,11 @@ void CreateMagikarp(AssetManager& _assetMgr)
 	// Model.
 	{
 		// Try load.
-#if !__SA_ALWAYS_REIMPORT
 		magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
 		magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssets[1]);
 
 		magikarpBodyMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
 		magikarpEyesMat = _assetMgr.renderMatMgr.Load(materialAssets[1]);
-#endif
 
 		if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
 		{
@@ -230,9 +227,7 @@ void CreateGizmo(AssetManager& _assetMgr)
 
 
 	// Materials.
-#if !__SA_ALWAYS_REIMPORT
 	gizmoMat = _assetMgr.renderMatMgr.Load(materialAssets);
-#endif
 
 	if (!gizmoMat) // Try load.
 	{
@@ -274,10 +269,8 @@ void CreateHelmet(AssetManager& _assetMgr)
 	// Model.
 	{
 		// Try load.
-#if !__SA_ALWAYS_REIMPORT
 		helmetMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
 		helmetMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
-#endif
 
 		if (!helmetMesh || !helmetMesh)
 		{
@@ -329,9 +322,7 @@ void CreateBricks(AssetManager& _assetMgr)
 
 
 	// Material
-#if !__SA_ALWAYS_REIMPORT
 	bricksMat = _assetMgr.renderMatMgr.Load(matAsset);
-#endif
 
 	if (!bricksMat)
 	{
@@ -368,16 +359,13 @@ void CreateWindow(AssetManager& _assetMgr)
 		{
 			// Import on load failed.
 			IAssetImportResult result = _assetMgr.importer.Import(textureResources[i]);
-			result[0]->As<TextureAsset>().FlipVertically();
 			result[0]->Save(textureAssets[i]);
 		}
 	}
 
 
 	// Material
-#if !__SA_ALWAYS_REIMPORT
 	windowMat = _assetMgr.renderMatMgr.Load(matAsset);
-#endif
 
 	if (!windowMat)
 	{
@@ -446,9 +434,7 @@ void CreateSkybox(AssetManager& _assetMgr)
 
 
 	// Material
-#if !__SA_ALWAYS_REIMPORT
 	skyboxMat = _assetMgr.renderMatMgr.Load(matAsset);
-#endif
 
 	if (!skyboxMat)
 	{
@@ -476,7 +462,7 @@ void CreateResources(AssetManager& _assetMgr)
 	CreateGizmo(_assetMgr);
 	CreateBricks(_assetMgr);
 	CreateWindow(_assetMgr);
-	CreateSkybox(_assetMgr);
+	//CreateSkybox(_assetMgr);
 
 	//CreateHelmet(_assetMgr);
 }
@@ -502,6 +488,10 @@ int main()
 {
 	LOG("=== Start ===");
 
+
+#if __SA_ALWAYS_REIMPORT
+	std::filesystem::remove_all("Bin");
+#endif
 
 	// === Init ===
 	IRenderInstance::Init();
@@ -703,9 +693,9 @@ int main()
 		cubeMesh->Draw(frame);
 
 
-		// Draw skybox.
-		skyboxMat->Bind(frame);
-		cubeMesh->Draw(frame);
+		//// Draw skybox.
+		//skyboxMat->Bind(frame);
+		//cubeMesh->Draw(frame);
 
 
 		// Draw gizmos.
