@@ -12,6 +12,47 @@
 
 namespace Sa
 {
+	VkImageBuffer VkImageBuffer::CreateColorBuffer(const VkDevice& _device, const ImageExtent& _extent,
+														const VkFormat _format, SampleBits _sampleBits)
+	{
+		VkImageBuffer imageBuffer{};
+
+		VkImageBufferCreateInfos colorBufferCreateInfos{};
+		colorBufferCreateInfos.format		= _format;
+		colorBufferCreateInfos.extent		= _extent;
+		colorBufferCreateInfos.usage		= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+		colorBufferCreateInfos.mipMapLevels = 1;
+		colorBufferCreateInfos.sampleCount	= static_cast<VkSampleCountFlagBits>(_sampleBits);
+		colorBufferCreateInfos.aspectFlags	= VK_IMAGE_ASPECT_COLOR_BIT;
+
+		imageBuffer.Create(_device, colorBufferCreateInfos);
+		return imageBuffer;
+	}
+
+	VkImageBuffer VkImageBuffer::CreateDepthBuffer(const VkDevice& _device, const ImageExtent& _extent,
+														SampleBits _sampleBits)
+	{
+		VkImageBuffer imageBuffer{};
+
+		VkImageBufferCreateInfos imageBufferCreateInfos{};
+		imageBufferCreateInfos.format		= VK_FORMAT_D32_SFLOAT;
+		imageBufferCreateInfos.extent		= _extent;
+		imageBufferCreateInfos.usage		= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		imageBufferCreateInfos.sampleCount	= static_cast<VkSampleCountFlagBits>(_sampleBits);
+		imageBufferCreateInfos.aspectFlags	= VK_IMAGE_ASPECT_DEPTH_BIT;
+
+		imageBuffer.Create(_device, imageBufferCreateInfos);
+
+		VkTransitionImageInfos depthTransitionInfos{};
+		depthTransitionInfos.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthTransitionInfos.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		depthTransitionInfos.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+		imageBuffer.TransitionImageLayout(_device, depthTransitionInfos);
+
+		return imageBuffer;
+	}
+
 	bool VkImageBuffer::IsValid()
 	{
 		return mImage != VK_NULL_HANDLE && mImageMemory != VK_NULL_HANDLE && mImageView != VK_NULL_HANDLE;

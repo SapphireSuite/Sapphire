@@ -9,6 +9,9 @@
 
 #include <Rendering/Config.hpp>
 
+#include <Rendering/Image/ImageExtent.hpp>
+#include <Rendering/Framework/System/RenderPass/SampleBits.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 #include <vulkan/vulkan.h>
@@ -57,6 +60,13 @@ namespace Sa
 		VkImage mImage = VK_NULL_HANDLE;
 		VkImageView mImageView = VK_NULL_HANDLE;
 		VkDeviceMemory mImageMemory = VK_NULL_HANDLE;
+
+	public:
+		// Copy of 3 pointers so it's 'okay'
+		static VkImageBuffer CreateColorBuffer(const VkDevice& _device, const ImageExtent& _extent,
+													const VkFormat _format, const SampleBits _sampleBits);
+		static VkImageBuffer CreateDepthBuffer(const VkDevice& _device, const ImageExtent& _extent,
+													const SampleBits _sampleBits);
 
 	public:
 		bool IsValid();
