@@ -45,10 +45,6 @@ namespace Sa
 	public:
 		SampleBits GetSampleBits() const noexcept;
 
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API VkUniformBuffer& GetUniformBuffer(uint32 _index);
-		const std::vector<VkUniformBuffer>& GetStaticUniformBuffers() const;
-
 		void SetClearColor(const Color& _color) override final;
 
 		void Create(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) override final;

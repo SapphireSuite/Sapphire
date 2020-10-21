@@ -289,7 +289,7 @@ namespace Sa
 				VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,			// sType.
 				nullptr,											// pNext.
 				0,													// flags.
-				_renderPass,											// renderPass.
+				_renderPass,										// renderPass.
 				SizeOf(attachements),								// attachmentCount.
 				attachements.data(),								// pAttachments.
 				mExtent.width,										// width.
