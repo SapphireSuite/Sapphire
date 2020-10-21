@@ -13,15 +13,7 @@
 
 namespace Sa
 {
-	uint32 StbiWrapper::GetDataSize(const RawTexture& _texture)
-	{
-		return GetDataSize(_texture.width, _texture.height, _texture.channel);
-	}
-
-	uint32 StbiWrapper::GetDataSize(uint32 _width, uint32 _height, TextureChannel _channel)
-	{
-		return _width * _height * static_cast<int32>(_channel) * sizeof(stbi_uc);
-	}
+	const uint32 StbiWrapper::bitSize = sizeof(stbi_uc);
 	
 	void StbiWrapper::FlipVertically(void* _data, uint32 _width, uint32 _height, TextureChannel _channel)
 	{
@@ -65,6 +57,54 @@ namespace Sa
 		{
 			SA_LOG("Failed to load texture image!", Error, SDK_Asset);
 			return false;
+		}
+
+		_result.emplace_back(new TextureAsset(_assetMgr.textureMgr, Move(rawData)));
+
+		return true;
+	}
+
+	bool StbiWrapper::ImportCubemap(const CubemapAssetImportInfos& _importInfos, AssetManager& _assetMgr, IAssetImportResult& _result)
+	{
+		// TODO: REMOVE LATER.
+		stbi_set_flip_vertically_on_load(true);
+
+
+		// TODO: CLEAN LATER.
+		RawTexture rawData;
+		rawData.type = TextureType::Cubemap;
+
+		char* data[6]{};
+
+		// Load textures.
+		for (uint32 i = 0u; i < 6u; ++i)
+		{
+			data[i] = reinterpret_cast<char*>(stbi_load(_importInfos.pathes[i].c_str(),
+				reinterpret_cast<int32*>(&rawData.width),
+				reinterpret_cast<int32*>(&rawData.height),
+				reinterpret_cast<int32*>(&rawData.channel),
+				4 // TODO: USE IMPORT INFOS channel.
+			));
+
+			if (!data[i])
+			{
+				SA_LOG("Failed to load texture image!", Error, SDK_Asset);
+				return false;
+			}
+		}
+
+		// TODO: fix.
+		rawData.channel = TextureChannel::RGBA;
+
+		uint32 size = rawData.GetSize(false) * bitSize;
+		rawData.data = reinterpret_cast<char*>(Allocate(6u * size));
+
+		// 
+		for (uint32 i = 0u; i < 6u; ++i)
+		{
+			MemMove(data[i], rawData.data + i * size, size);
+
+			Free(data[i]);
 		}
 
 		_result.emplace_back(new TextureAsset(_assetMgr.textureMgr, Move(rawData)));

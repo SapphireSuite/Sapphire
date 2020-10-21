@@ -11,7 +11,8 @@
 
 #include <SDK/Config.hpp>
 #include <SDK/Assets/AssetType.hpp>
-#include <SDK/Assets/AssetImportResult.hpp>
+#include <SDK/Assets/Importer/AssetImportResult.hpp>
+#include <SDK/Assets/Importer/CubemapAssetImportInfos.hpp>
 
 namespace Sa
 {
@@ -33,6 +34,7 @@ namespace Sa
 		AssetImporter(AssetManager& _manager) noexcept;
 
 		SA_ENGINE_API IAssetImportResult Import(const std::string& _resourcePath);
+		SA_ENGINE_API IAssetImportResult ImportCubemap(const CubemapAssetImportInfos& _importInfos);
 	};
 }
 

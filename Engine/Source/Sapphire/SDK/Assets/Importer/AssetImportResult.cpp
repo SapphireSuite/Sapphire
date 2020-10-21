@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <SDK/Assets/AssetImportResult.hpp>
+#include <SDK/Assets/Importer/AssetImportResult.hpp>
 
 #include <SDK/Assets/IAsset.hpp>
 

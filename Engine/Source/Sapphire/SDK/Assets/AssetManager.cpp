@@ -8,7 +8,7 @@ namespace Sa
 {
 	AssetManager::AssetManager(const IRenderInstance& _instance) noexcept :
 		mInstance{ _instance },
-		mImporter{ *this },
+		importer{ *this },
 		meshMgr{ *this },
 		shaderMgr{ *this },
 		textureMgr{ *this },
@@ -91,13 +91,6 @@ namespace Sa
 				SA_LOG("Wrong asset type!", Warning, SDK_Asset);
 		}
 	}
-
-
-	IAssetImportResult AssetManager::Import(const std::string& _resourcePath)
-	{
-		return mImporter.Import(_resourcePath);
-	}
-
 
 	void AssetManager::Clear()
 	{

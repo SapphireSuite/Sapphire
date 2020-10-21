@@ -7,6 +7,8 @@
 
 #include <Core/Types/Int.hpp>
 
+#include <Rendering/Framework/Primitives/Texture/TextureType.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 #include <vulkan/vulkan.h>
@@ -18,9 +20,9 @@ namespace Sa
 
 	struct VkImageBufferCreateInfos
 	{
-		VkFormat format;
+		VkFormat format = VK_FORMAT_UNDEFINED;
 
-		VkExtent3D extent;
+		VkExtent3D extent = {0, 0, 0};
 		
 		uint32 usage = 0u;
 
@@ -29,6 +31,16 @@ namespace Sa
 		VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT;
 
 		VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+
+		uint32 layerNum = 1u;
+
+		VkImageType imageType = VK_IMAGE_TYPE_2D;
+
+		VkImageViewType imageViewType = VK_IMAGE_VIEW_TYPE_2D;
+
+		uint32 imageFlags = 0u;
+
+		static VkImageBufferCreateInfos CreateCubeMapInfos();
 	};
 
 	struct VkTransitionImageInfos
@@ -37,6 +49,7 @@ namespace Sa
 		VkImageLayout newLayout;
 
 		uint32 mipLevels = 1u;
+		uint32 layerNum = 1u;
 
 		VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
 	};
@@ -54,7 +67,7 @@ namespace Sa
 		void Destroy(const VkDevice& _device);
 
 		void TransitionImageLayout(const VkDevice& _device, const VkTransitionImageInfos& _infos);
-		void CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const VkExtent3D& _extent);
+		void CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const VkExtent3D& _extent, uint32 _layerNum = 1u);
 
 		void GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels);
 

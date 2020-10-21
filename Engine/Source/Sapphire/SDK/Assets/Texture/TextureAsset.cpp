@@ -54,9 +54,9 @@ namespace Sa
 		return mRawData.data;
 	}
 
-	uint32 TextureAsset::GetDataSize() const noexcept
+	uint32 TextureAsset::GetDataBitSize() const noexcept
 	{
-		return StbiWrapper::GetDataSize(mRawData);
+		return mRawData.GetSize() * StbiWrapper::bitSize;
 	}
 
 	void TextureAsset::FlipVertically()
@@ -68,13 +68,13 @@ namespace Sa
 	bool TextureAsset::Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream)
 	{
 		// Header.
-		if (!(_hStream >> mRawData.width >> mRawData.height >> reinterpret_cast<uint32&>(mRawData.channel)))
+		if (!(_hStream >> mRawData.width >> mRawData.height >> reinterpret_cast<uint32&>(mRawData.channel) >> reinterpret_cast<uint32&>(mRawData.type)))
 		{
 			SA_LOG("Can't parse header!", Warning, SDK_Asset);
 			return false;
 		}
 
-		const uint32 dataSize = GetDataSize();
+		const uint32 dataSize = GetDataBitSize();
 		mRawData.data = reinterpret_cast<char*>(StbiWrapper::Allocate(dataSize));
 
 		_fStream.read(mRawData.data, dataSize);
@@ -103,9 +103,10 @@ namespace Sa
 		SA_ASSERT(mRawData.data, Nullptr, SDK_Asset, L"Save nullptr texture asset!");
 
 		// Header.
-		_fStream << mRawData.width << ' ' << mRawData.height << ' ' << static_cast<uint32>(mRawData.channel) << '\n';
+		_fStream << mRawData.width << ' ' << mRawData.height << ' ' <<
+			static_cast<uint32>(mRawData.channel) << ' ' << static_cast<uint32>(mRawData.type) << '\n';
 
-		_fStream.write(mRawData.data, GetDataSize());
+		_fStream.write(mRawData.data, GetDataBitSize());
 	}
 
 

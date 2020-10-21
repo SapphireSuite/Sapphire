@@ -18,7 +18,7 @@ layout(binding = 0) uniform CameraUniformBuffer
 layout(binding = 1) uniform ObjectUniformBuffer
 {
 	// Model transformation matrix.
-    mat4 model;
+    mat4 modelMat;
 
 	// Material UV tilling.
     float uvTilling;
@@ -53,8 +53,11 @@ layout(push_constant) uniform PushConstant
 void main()
 {
     // Position.
-    vsOut.position = mat3(oUBO.model) * inPosition;
-    gl_Position = camUBO[pConst.camIndex].proj * camUBO[pConst.camIndex].viewInv * oUBO.model * vec4(inPosition, 1.0);
+    vec4 modelPosition = oUBO.modelMat * vec4(inPosition, 1.0);
+
+    vsOut.position = modelPosition.xyz / modelPosition.w;
+    gl_Position = camUBO[pConst.camIndex].proj * camUBO[pConst.camIndex].viewInv * modelPosition;
+
 
     // Texture
     vsOut.texture = inTexture * oUBO.uvTilling + oUBO.uvOffset;

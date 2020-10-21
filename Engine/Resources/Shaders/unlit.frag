@@ -3,13 +3,12 @@
 
 
 // Uniform.
-layout(binding = 2) uniform sampler2D texSamplers[3];
+layout(binding = 2) uniform sampler2D texSampler;
 
 
 
 // Constants.
 layout(constant_id = 0) const int alphaModel = 0;
-layout(constant_id = 1) const int illumModel = 0;
 
 
 // In.
@@ -27,7 +26,7 @@ layout(location = 0) out vec4 outColor;
 // Code.
 void main()
 {
-	outColor = texture(texSamplers[0], fsIn.texture);
+	outColor = texture(texSampler, fsIn.texture);
 
 	// Alpha model.
 

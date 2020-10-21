@@ -22,25 +22,24 @@ namespace Sa
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 			_rawTexture.data);
 
-		void* data;
-		vkMapMemory(device, stagingBuffer, 0, textureSize, 0, &data);
-		memcpy(data, _rawTexture.data, textureSize);
-		vkUnmapMemory(device, stagingBuffer);
-
-		uint32 mipLevels = ComputeMipMapLevels(_rawTexture.width, _rawTexture.height);
 		VkExtent3D textureExtent{ _rawTexture.width, _rawTexture.height, 1 };
 
-		const VkImageBufferCreateInfos imageBufferCreateInfos
-		{
-			format,														// format.
-			textureExtent,												// extent.
-			
-			VK_IMAGE_USAGE_TRANSFER_SRC_BIT |							// usage.
-			VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-			VK_IMAGE_USAGE_SAMPLED_BIT,
+		uint32 mipLevels = 1u;
+		VkImageBufferCreateInfos imageBufferCreateInfos;
 
-			mipLevels,													// mipMapLevels.
-		};
+		if(_rawTexture.type == TextureType::Simple)
+			mipLevels = ComputeMipMapLevels(_rawTexture.width, _rawTexture.height);
+		else if (_rawTexture.type == TextureType::Cubemap)
+			imageBufferCreateInfos = VkImageBufferCreateInfos::CreateCubeMapInfos();
+
+		imageBufferCreateInfos.format = format;
+		imageBufferCreateInfos.extent = textureExtent;
+
+		imageBufferCreateInfos.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		imageBufferCreateInfos.mipMapLevels = mipLevels;
+
+		if (mipLevels > 1)
+			imageBufferCreateInfos.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 		mBuffer.Create(device, imageBufferCreateInfos);
 
@@ -51,11 +50,12 @@ namespace Sa
 			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			mipLevels,
+			imageBufferCreateInfos.layerNum,
 		};
 
 		mBuffer.TransitionImageLayout(device, undefToDstTransitionInfos);
 
-		mBuffer.CopyBufferToImage(device, stagingBuffer, textureExtent);
+		mBuffer.CopyBufferToImage(device, stagingBuffer, textureExtent, imageBufferCreateInfos.layerNum);
 		stagingBuffer.Destroy(device);
 
 		if (mipLevels > 1)
@@ -71,6 +71,7 @@ namespace Sa
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				mipLevels,
+				imageBufferCreateInfos.layerNum,
 			};
 
 			mBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);

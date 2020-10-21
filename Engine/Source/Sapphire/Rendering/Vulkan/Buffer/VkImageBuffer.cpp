@@ -10,6 +10,17 @@
 
 namespace Sa
 {
+	VkImageBufferCreateInfos VkImageBufferCreateInfos::CreateCubeMapInfos()
+	{
+		VkImageBufferCreateInfos result;
+
+		result.layerNum = 6u;
+		result.imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
+		result.imageFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
+		return result;
+	}
+
 	bool VkImageBuffer::IsValid()
 	{
 		return mImage != VK_NULL_HANDLE && mImageMemory != VK_NULL_HANDLE && mImageView != VK_NULL_HANDLE;
@@ -22,13 +33,13 @@ namespace Sa
 		{
 			VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,					// sType.
 			nullptr,												// pNext.
-			0,														// flags.
-			VK_IMAGE_TYPE_2D,										// imageType.
+			_createInfos.imageFlags,								// flags.
+			_createInfos.imageType,									// imageType.
 			_createInfos.format,									// format.
 			_createInfos.extent,									// extent.
 
 			_createInfos.mipMapLevels,								// mipLevels.
-			1,														// arrayLayers.
+			_createInfos.layerNum,									// arrayLayers.
 			_createInfos.sampleCount,								// samples.
 			VK_IMAGE_TILING_OPTIMAL,								// tiling.
 
@@ -72,7 +83,7 @@ namespace Sa
 			nullptr,																	// pNext.
 			0,																			// flags.
 			mImage,																		// image.
-			VK_IMAGE_VIEW_TYPE_2D,														// viewType.
+			_createInfos.imageViewType,													// viewType.
 			_createInfos.format,														// format.
 
 			VkComponentMapping															// components.
@@ -88,7 +99,7 @@ namespace Sa
 				0,																	// baseMipLevel.
 				_createInfos.mipMapLevels,											// levelCount.
 				0,																	// baseArrayLayer.
-				1																	// layerCount.
+				_createInfos.layerNum												// layerCount.
 			}
 		};
 
@@ -131,7 +142,7 @@ namespace Sa
 				0,												// baseMipLevel.
 				_infos.mipLevels,								// levelCount.
 				0,												// baseArrayLayer.
-				1,												// layerCount.
+				_infos.layerNum,								// layerCount.
 			}
 		};
 
@@ -176,7 +187,7 @@ namespace Sa
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
-	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const VkExtent3D& _extent)
+	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const VkExtent3D& _extent, uint32 _layerNum)
 	{
 		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 
@@ -192,7 +203,7 @@ namespace Sa
 				VK_IMAGE_ASPECT_COLOR_BIT,					// aspectMask.
 				0,											// mipLevel.
 				0,											// baseArrayLayer.
-				1,											// layerCount.
+				_layerNum,									// layerCount.
 			},
 
 			{0, 0, 0},											// imageOffset.

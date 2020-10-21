@@ -23,7 +23,7 @@ namespace Sa
 		TextureChannel channel = TextureChannel::RGBA;
 		
 		// Compute image size in format unit.
-		uint32 GetSize() const noexcept;
+		uint32 GetSize(bool _bApplyType = true) const noexcept;
 	};
 }
 

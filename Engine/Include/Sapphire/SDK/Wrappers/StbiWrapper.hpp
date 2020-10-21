@@ -11,6 +11,8 @@
 
 #include <Rendering/Framework/Primitives/Texture/RawTexture.hpp>
 
+#include <SDK/Assets/Importer/CubemapAssetImportInfos.hpp>
+
 namespace Sa
 {
 	class AssetManager;
@@ -19,8 +21,7 @@ namespace Sa
 	class StbiWrapper
 	{
 	public:
-		static uint32 GetDataSize(const RawTexture& _texture);
-		static uint32 GetDataSize(uint32 _width, uint32 _height, TextureChannel _channel);
+		static const uint32 bitSize;
 
 		static void FlipVertically(void* _data, uint32 _width, uint32 _height, TextureChannel _channel);
 
@@ -28,6 +29,7 @@ namespace Sa
 		static void Free(void* _data);
 
 		static bool Import(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result);
+		static bool ImportCubemap(const CubemapAssetImportInfos& _importInfos, AssetManager& _assetMgr, IAssetImportResult& _result);
 	};
 }
 

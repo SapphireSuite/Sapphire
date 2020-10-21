@@ -68,7 +68,6 @@ void main()
     vec4 modelPosition = oUBO.modelMat * vec4(inPosition, 1.0);
 
     vsOut.position = modelPosition.xyz / modelPosition.w;
-    //vsOut.position = mat3(oUBO.modelMat) * inPosition;
     gl_Position = camUBO[pConst.camIndex].proj * camUBO[pConst.camIndex].viewInv * modelPosition;
 
     

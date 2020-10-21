@@ -28,8 +28,8 @@ using namespace Sa;
 constexpr const char* litVertShaderAsset = "Bin/Shaders/lit_VS.spha";
 constexpr const char* litFragShaderAsset = "Bin/Shaders/lit_FS.spha";
 
-constexpr const char* unlitVertShaderAsset = "Bin/Shaders/lit_VS.spha";
-constexpr const char* unlitFragShaderAsset = "Bin/Shaders/lit_FS.spha";
+constexpr const char* unlitVertShaderAsset = "Bin/Shaders/unlit_VS.spha";
+constexpr const char* unlitFragShaderAsset = "Bin/Shaders/unlit_FS.spha";
 
 IMesh* squareMesh = nullptr;
 constexpr const char* squareMeshAsset = "Bin/Meshes/Square_M.spha";
@@ -58,6 +58,8 @@ IRenderMaterial* bricksMat = nullptr;
 // Window.
 IRenderMaterial* windowMat = nullptr;
 
+// Skybox.
+IRenderMaterial* skyboxMat = nullptr;
 
 void CreateDefaultResources(AssetManager& _assetMgr)
 {
@@ -65,7 +67,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(litVertShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/lit.vert");
+		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/lit.vert");
 		result[0]->Save(litVertShaderAsset);
 	}
 
@@ -74,7 +76,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(litFragShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/lit.frag");
+		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/lit.frag");
 		result[0]->Save(litFragShaderAsset);
 	}
 
@@ -83,7 +85,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(unlitVertShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/unlit.vert");
+		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.vert");
 		result[0]->Save(unlitVertShaderAsset);
 	}
 
@@ -92,7 +94,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(unlitFragShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/unlit.frag");
+		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.frag");
 		result[0]->Save(unlitFragShaderAsset);
 	}
 
@@ -153,7 +155,7 @@ void CreateMagikarp(AssetManager& _assetMgr)
 		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.Import(textureResources[i]);
+			IAssetImportResult result = _assetMgr.importer.Import(textureResources[i]);
 			result[0]->Save(textureAssets[i]);
 		}
 	}
@@ -173,7 +175,7 @@ void CreateMagikarp(AssetManager& _assetMgr)
 		if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/Magikarp/Magikarp.obj");
+			IAssetImportResult result = _assetMgr.importer.Import("../../Samples/Prototype/Resources/Magikarp/Magikarp.obj");
 			
 			// meshes
 			result[0]->As<MeshAsset>().ComputeTangents();
@@ -214,7 +216,7 @@ void CreateGizmo(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(vertShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/gizmo.vert");
+		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/gizmo.vert");
 		result[0]->Save(vertShaderAsset);
 	}
 
@@ -222,7 +224,7 @@ void CreateGizmo(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(fragShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import("../../Engine/Resources/Shaders/gizmo.frag");
+		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/gizmo.frag");
 		result[0]->Save(fragShaderAsset);
 	}
 
@@ -264,7 +266,7 @@ void CreateHelmet(AssetManager& _assetMgr)
 	if (!_assetMgr.textureMgr.Load(textureAssets[0], true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.Import(textureResources[0]);
+		IAssetImportResult result = _assetMgr.importer.Import(textureResources[0]);
 		result[0]->Save(textureAssets[0]);
 	}
 
@@ -280,7 +282,7 @@ void CreateHelmet(AssetManager& _assetMgr)
 		if (!helmetMesh || !helmetMesh)
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.Import("../../Samples/Prototype/Resources/DamagedHelmet/DamagedHelmet.gltf");
+			IAssetImportResult result = _assetMgr.importer.Import("../../Samples/Prototype/Resources/DamagedHelmet/DamagedHelmet.gltf");
 
 			// meshes
 			result[0]->Save(meshAssets[0]);
@@ -318,7 +320,7 @@ void CreateBricks(AssetManager& _assetMgr)
 		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.Import(textureResources[i]);
+			IAssetImportResult result = _assetMgr.importer.Import(textureResources[i]);
 			result[0]->As<TextureAsset>().FlipVertically();
 			result[0]->Save(textureAssets[i]);
 		}
@@ -327,7 +329,9 @@ void CreateBricks(AssetManager& _assetMgr)
 
 
 	// Material
+#if !__SA_ALWAYS_REIMPORT
 	bricksMat = _assetMgr.renderMatMgr.Load(matAsset);
+#endif
 
 	if (!bricksMat)
 	{
@@ -363,7 +367,7 @@ void CreateWindow(AssetManager& _assetMgr)
 		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.Import(textureResources[i]);
+			IAssetImportResult result = _assetMgr.importer.Import(textureResources[i]);
 			result[0]->As<TextureAsset>().FlipVertically();
 			result[0]->Save(textureAssets[i]);
 		}
@@ -371,7 +375,9 @@ void CreateWindow(AssetManager& _assetMgr)
 
 
 	// Material
+#if !__SA_ALWAYS_REIMPORT
 	windowMat = _assetMgr.renderMatMgr.Load(matAsset);
+#endif
 
 	if (!windowMat)
 	{
@@ -397,6 +403,72 @@ void CreateWindow(AssetManager& _assetMgr)
 	}
 }
 
+void CreateSkybox(AssetManager& _assetMgr)
+{
+	constexpr const char* textureAsset = "Bin/Skybox/Skybox_CM.spha";
+	const CubemapAssetImportInfos cubemapInfos(
+		"../../Samples/Prototype/Resources/Skybox/right.jpg",
+		"../../Samples/Prototype/Resources/Skybox/left.jpg",
+		"../../Samples/Prototype/Resources/Skybox/bottom.jpg",
+		"../../Samples/Prototype/Resources/Skybox/top.jpg",
+		"../../Samples/Prototype/Resources/Skybox/front.jpg",
+		"../../Samples/Prototype/Resources/Skybox/back.jpg");
+	
+	constexpr const char* skyboxVertShaderAsset = "Bin/Shaders/skybox_VS.spha";
+	constexpr const char* skyboxFragShaderAsset = "Bin/Shaders/skybox_FS.spha";
+
+	constexpr const char* matAsset = "Bin/Skybox/Skybox_Mat.spha";
+
+	// Vertex Shader.
+	if (!_assetMgr.shaderMgr.Load(skyboxVertShaderAsset, true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/skybox.vert");
+		result[0]->Save(skyboxVertShaderAsset);
+	}
+
+
+	// Fragment Shader.
+	if (!_assetMgr.shaderMgr.Load(skyboxFragShaderAsset, true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/skybox.frag");
+		result[0]->Save(skyboxFragShaderAsset);
+	}
+
+
+	if (!_assetMgr.textureMgr.Load(textureAsset, true)) // Try load.
+	{
+		// Import on load failed.
+		IAssetImportResult result = _assetMgr.importer.ImportCubemap(cubemapInfos);
+		result[0]->Save(textureAsset);
+	}
+
+
+	// Material
+#if !__SA_ALWAYS_REIMPORT
+	skyboxMat = _assetMgr.renderMatMgr.Load(matAsset);
+#endif
+
+	if (!skyboxMat)
+	{
+		RawMaterial infos;
+		infos.cullingMode = CullingMode::None;
+		infos.illumModel =	IlluminationModel::None;
+		infos.uniformBufferSize = 0u;
+
+		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
+
+		renderMatAsset.vertexShaderPath = skyboxVertShaderAsset;
+		renderMatAsset.fragmentShaderPath = skyboxFragShaderAsset;
+		renderMatAsset.texturePaths = { textureAsset };
+
+		renderMatAsset.Save(matAsset);
+
+		skyboxMat = renderMatAsset.GetResource();
+	}
+}
+
 void CreateResources(AssetManager& _assetMgr)
 {
 	CreateDefaultResources(_assetMgr);
@@ -404,6 +476,7 @@ void CreateResources(AssetManager& _assetMgr)
 	CreateGizmo(_assetMgr);
 	CreateBricks(_assetMgr);
 	CreateWindow(_assetMgr);
+	CreateSkybox(_assetMgr);
 
 	//CreateHelmet(_assetMgr);
 }
@@ -440,7 +513,7 @@ int main()
 	instance.Create();
 
 	GLFWWindow window;
-	window.Create(800u, 800u);
+	window.Create(1200u, 800u);
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
@@ -517,30 +590,58 @@ int main()
 	const float l = -1.0f;
 	const float t = 1.0f;
 	const float b = -1.0f;
-	const float n = 0.5f;
-	const float f = 20.0f;
+	const float n = 0.35f;
+	const float f = 10.0f;
 
-	Mat4f orthoMat
+	Mat4f orthoMat = API_ConvertCoordinateSystem(Mat4f
 	(
-		2 / (r - l), 0, 0, -(r + l) / (r - l),
-		0, 2 / (t - b), 0, -(t + b) / (t - b),
-		0, 0, -2 / (f - n), -(f + n) / (f - n),
-		0, 0, 0, 1
-	);
+		2 / (r - l), 0, 0, 0,
+		0, 2 / (t - b), 0, 0,
+		0, 0, -2 / (f - n), 0,
+		-(r + l) / (r - l), -(t + b) / (t - b), -(f + n) / (f - n), 1
+	));
 
 
-	const float fov = 60.0f;
-	const float ratio = 1;
+	const float fov = 90.0f;
+	const float ratio = 1200.0f / 800.0f;
 	const float scale = 1.f / tanf((fov / 2.f) * Maths::DegToRad);
 	float tan_half_angle = std::tan(Maths::DegToRad * fov / 2);
 
-	Mat4f perspMat
+	Mat4f perspMat = API_ConvertCoordinateSystem(Mat4f
 	(
 		1 / (ratio * tan_half_angle), 0, 0, 0,
 		0, 1 / (tan_half_angle), 0, 0,
-		0, 0, -(f + n) / (f - n), -(2 * f * n) / (f - n),
-		0, 0, -1, 1
-	);
+		0, 0, -f / (f - n), -(2 * f * n) / (f - n),
+		0, 0, -1, 0
+	));
+
+	//Mat4f perspMat = API_ConvertCoordinateSystem(Mat4f
+	//(
+	//	1 / (ratio * tan_half_angle), 0, 0, 0,
+	//	0, 1 / (tan_half_angle), 0, 0,
+	//	0, 0, (f + n) / (n - f), (2 * f * n) / (n - f),
+	//	0, 0, -1, 1
+	//));
+
+	//Mat4f perspMat = API_ConvertCoordinateSystem(Mat4f
+	//(
+	//	scale / ratio, 0, 0, 0,
+	//	0, scale, 0, 0,
+	//	0, 0, (f + n) / (n - f), (2 * n * f) / (n - f),
+	//	0, 0, -1, 1
+	//));
+
+	/*
+		m_aspect = (float)(win->GetWidth()) / (float)(win->GetHeight());
+		const float scale = 1.f / tanf((m_fov / 2.f) * M_PI / 180.0f);
+
+		m_projMat = Mat4f(
+			scale / m_aspect, 0, 0, 0,
+			0, scale, 0, 0,
+			0, 0, (m_far + m_near) / (m_near - m_far), -1,
+			0, 0, (2 * m_near * m_far) / (m_near - m_far), 0
+		);
+	*/
 
 
 	TransffPRS camTr;
@@ -599,6 +700,11 @@ int main()
 
 		// Draw bricks.
 		bricksMat->Bind(frame);
+		cubeMesh->Draw(frame);
+
+
+		// Draw skybox.
+		skyboxMat->Bind(frame);
 		cubeMesh->Draw(frame);
 
 

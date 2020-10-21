@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <SDK/Assets/AssetImporter.hpp>
+#include <SDK/Assets/Importer/AssetImporter.hpp>
 
 #include <Collections/Debug>
 
@@ -14,6 +14,10 @@
 
 namespace Sa
 {
+	// Supported extensions.
+	constexpr const char* shaderExts[]{ "vert", "frag" };
+	constexpr const char* textureExts[]{ "png", "jpg", "jpeg", "bmp", "tga" };
+
 	AssetImporter::AssetImporter(AssetManager& _manager) noexcept : mManager{ _manager }
 	{
 	}
@@ -63,6 +67,19 @@ namespace Sa
 		return IAssetImportResult();
 	}
 
+	IAssetImportResult AssetImporter::ImportCubemap(const CubemapAssetImportInfos& _importInfos)
+	{
+		IAssetImportResult result;
+		std::string ext = GetResourceExtension(_importInfos.pathes[0]);
+
+		if (!ContainExt(ext, textureExts, SizeOf(textureExts)))
+			return result;
+
+		StbiWrapper::ImportCubemap(_importInfos, mManager, result);
+
+		return result;
+	}
+
 
 	bool AssetImporter::TryImportModel(const std::string& _resourcePath, const std::string& _extension, IAssetImportResult& _result)
 	{
@@ -79,10 +96,7 @@ namespace Sa
 
 	bool AssetImporter::TryImportTexture(const std::string& _resourcePath, const std::string& _extension, IAssetImportResult& _result)
 	{
-		// Supported extensions.
-		constexpr const char* extensions[]{ "png", "jpg", "jpeg", "bmp", "tga" };
-
-		if (!ContainExt(_extension, extensions, SizeOf(extensions)))
+		if (!ContainExt(_extension, textureExts, SizeOf(textureExts)))
 			return false;
 
 		return StbiWrapper::Import(_resourcePath, mManager, _result);
@@ -91,10 +105,7 @@ namespace Sa
 
 	bool AssetImporter::TryImportShader(const std::string& _resourcePath, const std::string& _extension, IAssetImportResult& _result)
 	{
-		// Supported extensions.
-		constexpr const char* extensions[]{ "vert", "frag" };
-
-		if (!ContainExt(_extension, extensions, SizeOf(extensions)))
+		if (!ContainExt(_extension, shaderExts, SizeOf(shaderExts)))
 			return false;
 
 		ShaderAsset* asset = new ShaderAsset(mManager.shaderMgr);

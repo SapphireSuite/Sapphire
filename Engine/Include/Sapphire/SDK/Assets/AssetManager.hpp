@@ -5,8 +5,8 @@
 #ifndef SAPPHIRE_SDK_ASSET_MANAGER_GUARD
 #define SAPPHIRE_SDK_ASSET_MANAGER_GUARD
 
-#include <SDK/Assets/AssetImporter.hpp>
 #include <SDK/Assets/ResourceManager.hpp>
+#include <SDK/Assets/Importer/AssetImporter.hpp>
 
 #include <SDK/Assets/Mesh/MeshAsset.hpp>
 #include <SDK/Assets/Shader/ShaderAsset.hpp>
@@ -19,9 +19,9 @@ namespace Sa
 	{
 		const IRenderInstance& mInstance;
 
-		AssetImporter mImporter;
-
 	public:
+		AssetImporter importer;
+
 		ResourceMgr<MeshAsset> meshMgr;
 		ResourceMgr<ShaderAsset> shaderMgr;
 		ResourceMgr<TextureAsset> textureMgr;
@@ -37,8 +37,6 @@ namespace Sa
 
 		SA_ENGINE_API void UnLoad(IRenderPrimitive* _primitive);
 		SA_ENGINE_API void UnLoad(IRenderPrimitive* _primitive, AssetType _assetType);
-
-		SA_ENGINE_API IAssetImportResult Import(const std::string& _resourcePath);
 
 		SA_ENGINE_API void Clear();
 	};

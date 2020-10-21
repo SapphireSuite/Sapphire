@@ -16,7 +16,7 @@ namespace Sa
 	protected:
 		RawTexture mRawData;
 
-		uint32 GetDataSize() const noexcept;
+		uint32 GetDataBitSize() const noexcept;
 
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override final;
 		void UnLoad_Internal(bool _bFreeResources) override final;
