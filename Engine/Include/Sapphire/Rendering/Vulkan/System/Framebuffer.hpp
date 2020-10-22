@@ -38,9 +38,15 @@ namespace Sa
 
 			// Should analyse the render pass and create the according buffers
 			Framebuffer(const RenderPass* _renderPass, const ImageExtent& _extent);
-	
+
+			// Exception used for the swapchain.. 
+			Framebuffer(const RenderPass* _renderPass, const ImageExtent& _extent, VkImageBuffer& _colorBuffer);
+			
 			// Should clean his data
 			~Framebuffer();
+		
+		private:
+			void Create_Internal();
 
 		public:
 			// return command buffer to record

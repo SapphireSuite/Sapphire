@@ -24,34 +24,24 @@ namespace Sa::vk
 		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
 		mClearValues.emplace_back(VkClearValue{ 1.f, 0.f });
 
-		std::vector<VkImageView> attachements(3);
-		attachements.emplace_back(mBuffers[0]);
-		attachements.emplace_back(mBuffers[1]);
-		attachements.emplace_back(mBuffers[2]);
+		Create_Internal();
+	}
 
-		VkFramebufferCreateInfo framebufferCreateInfo{};
-		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferCreateInfo.pNext = nullptr;
-		framebufferCreateInfo.flags = 0;
-		framebufferCreateInfo.renderPass = _renderPass->Get();
-		framebufferCreateInfo.attachmentCount = SizeOf(attachements);
-		framebufferCreateInfo.pAttachments = attachements.data();
-		framebufferCreateInfo.width = mExtent.width;
-		framebufferCreateInfo.height = mExtent.height;
-		framebufferCreateInfo.layers = 1;
+	Framebuffer::Framebuffer(const RenderPass* _renderPass, const ImageExtent& _extent, VkImageBuffer& _colorBuffer)
+		: mRenderPass{ _renderPass }, mExtent{ _extent }
+	{
+		VkDevice device = VkRenderInstance::GetInstance()->AsPtr<VkRenderInstance>()->GetDevice();
 
-		SA_VK_ASSERT(vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr, &mFramebuffer),
-							CreationFailed, Rendering, L"Failed to create framebuffer!");
+		// hardcoded values for now
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(), _renderPass->GetSampleBits()));
+		mBuffers.emplace_back(_colorBuffer);
+		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent));
 
-		VkCommandBufferAllocateInfo commandBufferAllocInfo{};
-		commandBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		commandBufferAllocInfo.pNext = nullptr;
-		commandBufferAllocInfo.commandPool = device.GetGraphicsQueue().GetCommandPool();
-		commandBufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		commandBufferAllocInfo.commandBufferCount = 1;
-
-		SA_VK_ASSERT(vkAllocateCommandBuffers(device, &commandBufferAllocInfo, &mPrimaryCommandBuffer.Get()),
-			CreationFailed, Rendering, L"Failed to allocate command buffers!");
+		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
+		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
+		mClearValues.emplace_back(VkClearValue{ 1.f, 0.f });
+	
+		Create_Internal();
 	}
 
 	Framebuffer::~Framebuffer()
@@ -64,8 +54,52 @@ namespace Sa::vk
 			mBuffers[i].Destroy(device);
 	}
 
+	void Framebuffer::Create_Internal()
+	{
+		VkDevice device = VkRenderInstance::GetInstance()->AsPtr<VkRenderInstance>()->GetDevice();
+
+		std::vector<VkImageView> attachements(mBuffers.size());
+		for (size_t i = 0; i < mBuffers.size(); ++i)
+			attachements.emplace_back(mBuffers[i]);
+
+		VkFramebufferCreateInfo framebufferCreateInfo{};
+		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferCreateInfo.pNext = nullptr;
+		framebufferCreateInfo.flags = 0;
+		framebufferCreateInfo.renderPass = mRenderPass->Get();
+		framebufferCreateInfo.attachmentCount = SizeOf(attachements);
+		framebufferCreateInfo.pAttachments = attachements.data();
+		framebufferCreateInfo.width = mExtent.width;
+		framebufferCreateInfo.height = mExtent.height;
+		framebufferCreateInfo.layers = 1;
+
+		SA_VK_ASSERT(vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr, &mFramebuffer),
+			CreationFailed, Rendering, L"Failed to create framebuffer!");
+
+		VkCommandBufferAllocateInfo commandBufferAllocInfo{};
+		commandBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		commandBufferAllocInfo.pNext = nullptr;
+		commandBufferAllocInfo.commandPool = device.GetGraphicsQueue().GetCommandPool();
+		commandBufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		commandBufferAllocInfo.commandBufferCount = 1;
+
+		SA_VK_ASSERT(vkAllocateCommandBuffers(device, &commandBufferAllocInfo, &mPrimaryCommandBuffer.Get()),
+			CreationFailed, Rendering, L"Failed to allocate command buffers!");
+	}
+
 	const CommandBuffer& Framebuffer::Begin() const
 	{
+		vkResetCommandBuffer(mPrimaryCommandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+
+		VkCommandBufferBeginInfo commandBufferBeginInfo{};
+		commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		commandBufferBeginInfo.pNext = nullptr;
+		commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+		SA_VK_ASSERT(vkBeginCommandBuffer(mPrimaryCommandBuffer, &commandBufferBeginInfo),
+			LibCommandFailed, Rendering, L"Failed to begin command buffer!");
+
 		VkRenderPassBeginInfo renderPassBeginInfo{};
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.pNext = nullptr;
@@ -83,5 +117,8 @@ namespace Sa::vk
 	void Framebuffer::End() const
 	{
 		vkCmdEndRenderPass(mPrimaryCommandBuffer);
+
+		SA_VK_ASSERT(vkEndCommandBuffer(mPrimaryCommandBuffer),
+			LibCommandFailed, Rendering, L"Failed to end command buffer!");
 	}
 }
