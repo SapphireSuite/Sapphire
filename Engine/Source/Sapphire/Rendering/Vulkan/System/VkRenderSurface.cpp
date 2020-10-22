@@ -123,7 +123,7 @@ namespace Sa
 		return mSwapChain;
 	}
 
-	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices, const VkRenderPass& _renderPass)
+	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass)
 	{
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
@@ -143,7 +143,7 @@ namespace Sa
 
 	IRenderPass& VkRenderSurface::CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos)
 	{
-		VkRenderPass& renderPass = mRenderPasses.emplace_back(); // TODO THIS BREAK REFERENCES.
+		RenderPass& renderPass = mRenderPasses.emplace_back(); // TODO THIS BREAK REFERENCES.
 		renderPass.Create(_instance, _createInfos);
 
 		return renderPass;

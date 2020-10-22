@@ -21,7 +21,7 @@ namespace Sa
 		VkSurfaceKHR mHandle = VK_NULL_HANDLE;
 
 		VkSwapChain mSwapChain;
-		std::vector<VkRenderPass> mRenderPasses;
+		std::vector<RenderPass> mRenderPasses;
 
 		struct SupportDetails
 		{
@@ -50,7 +50,7 @@ namespace Sa
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API const VkSwapChain& GetSwapChain() const;
 
-		SA_ENGINE_API void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices, const VkRenderPass& _renderPass);
+		SA_ENGINE_API void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass);
 		void Destroy(const VkDevice& _device);
 
 		SA_ENGINE_API IRenderPass& CreateRenderPass(const IRenderInstance& _instance, 

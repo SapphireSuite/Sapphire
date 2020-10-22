@@ -47,7 +47,7 @@ namespace Sa
 	}
 
 	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface,
-								const VkQueueFamilyIndices& _queueFamilyIndices, const VkRenderPass& _renderPass)
+								const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass)
 	{
 		CreateSwapChainKHR(_device, _surface, _queueFamilyIndices);
 		CreateImageView(_device);
@@ -266,7 +266,7 @@ namespace Sa
 			vkDestroyImageView(_device, mFrames[i].imageView, nullptr);
 	}
 
-	void VkSwapChain::CreateFrameBuffers(const VkDevice& _device, const VkRenderPass& _renderPass)
+	void VkSwapChain::CreateFrameBuffers(const VkDevice& _device, const RenderPass& _renderPass)
 	{
 		std::vector<VkImageView> attachements; // { mColorMultisamplingBuffer, _swapChain.GetImageView(i), mDepthBuffer }
 		attachements.reserve(3);
@@ -289,7 +289,7 @@ namespace Sa
 				VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,			// sType.
 				nullptr,											// pNext.
 				0,													// flags.
-				_renderPass,										// renderPass.
+				_renderPass.Get(),										// renderPass.
 				SizeOf(attachements),								// attachmentCount.
 				attachements.data(),								// pAttachments.
 				mExtent.width,										// width.

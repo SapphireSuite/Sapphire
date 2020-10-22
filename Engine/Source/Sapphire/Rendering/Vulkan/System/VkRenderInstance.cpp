@@ -114,6 +114,8 @@ namespace Sa
 
 	void VkRenderInstance::Create()
 	{
+		mInstance = this;
+
 		const VkApplicationInfo appInfo
 		{
 			VK_STRUCTURE_TYPE_APPLICATION_INFO,											// sType.

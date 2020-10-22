@@ -26,7 +26,7 @@ namespace Sa
 	{
 		const VkRenderInstance& vkInstance = _instance.As<VkRenderInstance>();
 		const VkDevice& device = vkInstance.GetDevice();
-		const VkRenderPass& vkRenderPass = _infos.renderPass->As<VkRenderPass>();
+		const RenderPass& vkRenderPass = _infos.renderPass->As<RenderPass>();
 
 		if(_infos.uniformBufferSize > 0u)
 			CreateUniformBuffers(device, _infos, 3); // TODO Aurel: destroy image numbers
@@ -192,7 +192,7 @@ namespace Sa
 			&colorBlendingCreateInfo,												// pColorBlendState.
 			_infos.bDynamicViewport ? &DynamiCreateInfo : nullptr,					// pDynamicState.
 			mPipelineLayout,														// layout.
-			vkRenderPass,															// renderPass.
+			vkRenderPass.Get(),															// renderPass.
 			0,																		// subpass.
 			VK_NULL_HANDLE,															// basePipelineHandle.
 			-1																		// basePipelineIndex.

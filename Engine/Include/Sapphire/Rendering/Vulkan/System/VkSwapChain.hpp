@@ -18,7 +18,7 @@ namespace Sa
 {
 	class VkDevice;
 	class VkRenderSurface;
-	class VkRenderPass;
+	class RenderPass;
 	class VkQueueFamilyIndices;
 
 	class VkSwapChain
@@ -40,7 +40,7 @@ namespace Sa
 		void CreateImageView(const VkDevice& _device);
 		void DestroyImageView(const VkDevice& _device);
 
-		void CreateFrameBuffers(const VkDevice& _device, const VkRenderPass& _renderPass);
+		void CreateFrameBuffers(const VkDevice& _device, const RenderPass& _renderPass);
 		void DestroyFrameBuffers(const VkDevice& _device);
 
 		void CreateCommandBuffers(const VkDevice& _device);
@@ -62,7 +62,7 @@ namespace Sa
 		VkRenderFrame GetRenderFrame() const noexcept;
 
 		void Create(const VkDevice& _device, const VkRenderSurface& _surface, 
-					const VkQueueFamilyIndices& _queueFamilyIndices, const VkRenderPass& _renderPass);
+					const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass);
 		void Destroy(const VkDevice& _device);
 
 		// Optimized re-creation.

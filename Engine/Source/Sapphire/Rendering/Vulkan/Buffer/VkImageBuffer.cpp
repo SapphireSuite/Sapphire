@@ -43,6 +43,7 @@ namespace Sa
 
 		imageBuffer.Create(_device, imageBufferCreateInfos);
 
+		// TODO Aurel: Don't think it's necessary
 		VkTransitionImageInfos depthTransitionInfos{};
 		depthTransitionInfos.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		depthTransitionInfos.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

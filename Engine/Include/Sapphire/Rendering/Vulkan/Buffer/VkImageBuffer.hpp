@@ -64,9 +64,9 @@ namespace Sa
 	public:
 		// Copy of 3 pointers so it's 'okay'
 		static VkImageBuffer CreateColorBuffer(const VkDevice& _device, const ImageExtent& _extent,
-													const VkFormat _format, const SampleBits _sampleBits);
+									const VkFormat _format, const SampleBits _sampleBits = SampleBits::Sample1Bit);
 		static VkImageBuffer CreateDepthBuffer(const VkDevice& _device, const ImageExtent& _extent,
-													const SampleBits _sampleBits);
+									const SampleBits _sampleBits = SampleBits::Sample1Bit);
 
 	public:
 		bool IsValid();
