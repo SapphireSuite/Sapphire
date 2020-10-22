@@ -14,7 +14,9 @@
 #include <Rendering/Vulkan/Primitives/Shader/VkShader.hpp>
 #include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
 #include <Rendering/Vulkan/Primitives/Texture/VkCubemap.hpp>
-#include <Rendering/Vulkan/Primitives/Camera/VkCamera.hpp>
+
+// TODO: REMOVE LATER
+#include <Rendering/Image/ImageViewExtent.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -237,8 +239,8 @@ namespace Sa
 		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 		{
 			0,																	// binding.
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
-			SizeOf(_infos.cameras),												// descriptorCount.
+			VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,									// descriptorType.
+			1,																	// descriptorCount.
 			VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
 			nullptr																// pImmutableSamplers.
 		});
@@ -356,7 +358,7 @@ namespace Sa
 		// Static UBO binding.
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,										// type.
+			VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,										// type.
 			_imageNum,																// descriptorCount.
 		});
 
@@ -445,15 +447,10 @@ namespace Sa
 		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
 	{
 		// Camera UBO binding.
-		for (uint32 i = 0u; i < SizeOf(_infos.cameras); ++i)
-		{
-			SA_ASSERT(_infos.cameras[i], Nullptr, Rendering, L"Pipeline bind nullptr camera!");
+		const VkStorageBuffer<CameraBuffer>& cameraBuffer = _instance.GetCameraBuffer();
 
-			const VkCamera& camera = _infos.cameras[i]->As<VkCamera>();
-
-			_descriptorInfos.push_back(camera.CreateDescriptorBufferInfo(_index));
-			_descriptorWrites.push_back(VkUniformBuffer::CreateWriteDescriptorSet(mDescriptorSets[_index], 0, i));
-		}
+		_descriptorInfos.push_back(cameraBuffer.CreateDescriptorBufferInfo());
+		_descriptorWrites.push_back(cameraBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 0));
 
 
 		// Object UBO binding.
@@ -576,41 +573,68 @@ namespace Sa
 	VkPipelineViewportStateCreateInfo VkRenderPipeline::CreateViewportStateCreateInfo(const PipelineCreateInfos& _infos,
 		std::vector<VkViewport>& _viewports, std::vector<VkRect2D>& _scissors)
 	{
-		uint32 num = _infos.cameras.size();
+		//uint32 num = _infos.cameras.size();
 
-		if (_infos.bDynamicViewport)
+		//if (_infos.bDynamicViewport)
+		//{
+		//	return VkPipelineViewportStateCreateInfo
+		//	{
+		//		VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,					// sType.
+		//		nullptr,																// pNext.
+		//		0,																		// flags.
+		//		num,																	// viewportCount.
+		//		nullptr,																// pViewports.
+		//		num,																	// scissorCount.
+		//		nullptr																	// pScissors.
+		//	};
+		//}
+
+
+		//// Static viewport and scissors.
+		//_viewports.reserve(num);
+		//_scissors.reserve(num);
+
+		//for (auto it = _infos.cameras.begin(); it != _infos.cameras.end(); ++it)
+		//{
+		//	_viewports.push_back((*it)->GetVkViewport());
+		//	_scissors.push_back((*it)->GetVkScissor());
+		//}
+
+		//return VkPipelineViewportStateCreateInfo
+		//{
+		//	VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,					// sType.
+		//	nullptr,																// pNext.
+		//	0,																		// flags.
+		//	num,																	// viewportCount.
+		//	_viewports.data(),														// pViewports.
+		//	num,																	// scissorCount.
+		//	_scissors.data()														// pScissors.
+		//};
+
+
+		_viewports.push_back(VkViewport
 		{
-			return VkPipelineViewportStateCreateInfo
-			{
-				VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,					// sType.
-				nullptr,																// pNext.
-				0,																		// flags.
-				num,																	// viewportCount.
-				nullptr,																// pViewports.
-				num,																	// scissorCount.
-				nullptr																	// pScissors.
-			};
-		}
+			0.0f,								// x.
+			0.0f,								// y.
+			1200.0f,							// width.
+			800.0f,								// height.
+			0.0f,								// minDepth.
+			1.0f,								// maxDepth.
+		});
 
-
-		// Static viewport and scissors.
-		_viewports.reserve(num);
-		_scissors.reserve(num);
-
-		for (auto it = _infos.cameras.begin(); it != _infos.cameras.end(); ++it)
-		{
-			_viewports.push_back((*it)->GetVkViewport());
-			_scissors.push_back((*it)->GetVkScissor());
-		}
+		_scissors.push_back(VkRect2D{
+			VkOffset2D{ 0, 0 },
+			VkExtent2D{ 1200, 800 }
+		});
 
 		return VkPipelineViewportStateCreateInfo
 		{
 			VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,					// sType.
 			nullptr,																// pNext.
 			0,																		// flags.
-			num,																	// viewportCount.
+			1,																		// viewportCount.
 			_viewports.data(),														// pViewports.
-			num,																	// scissorCount.
+			1,																		// scissorCount.
 			_scissors.data()														// pScissors.
 		};
 	}

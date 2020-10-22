@@ -208,8 +208,11 @@ namespace Sa
 
 			offset += _extent.width * _extent.height * _channel;
 
-			_extent.width >>= 1;
-			_extent.height >>= 1;
+			if(_extent.width > 1)
+				_extent.width >>= 1;
+
+			if (_extent.height > 1)
+				_extent.height >>= 1;
 		}
 
 		vkCmdCopyBufferToImage(commandBuffer, _buffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, SizeOf(bufferImageCopies), bufferImageCopies.data());

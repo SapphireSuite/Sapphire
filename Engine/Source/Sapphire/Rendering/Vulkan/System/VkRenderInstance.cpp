@@ -51,6 +51,8 @@ namespace Sa
 
 	void VkRenderInstance::OnDeviceCreated()
 	{
+		mCameraBuffer.Create(mDevice);
+
 		mPointLightBuffer.Create(mDevice);
 		mDirectionnalLightBuffer.Create(mDevice);
 		mSpotLightBuffer.Create(mDevice);
@@ -87,6 +89,11 @@ namespace Sa
 		SA_ASSERT(false, InvalidParam, Rendering, L"Window not registered as render surface!")
 
 		return mSurfacePairs[0].second;
+	}
+
+	const VkStorageBuffer<CameraBuffer>& VkRenderInstance::GetCameraBuffer() const noexcept
+	{
+		return mCameraBuffer;
 	}
 
 	const VkStorageBuffer<PLightInfos>& VkRenderInstance::GetPointLightBuffer() const noexcept
@@ -169,6 +176,8 @@ namespace Sa
 
 	void VkRenderInstance::Destroy()
 	{
+		mCameraBuffer.Destroy(mDevice);
+
 		mPointLightBuffer.Destroy(mDevice);
 		mDirectionnalLightBuffer.Destroy(mDevice);
 		mSpotLightBuffer.Destroy(mDevice);
@@ -254,6 +263,22 @@ namespace Sa
 	}
 
 
+	Camera& VkRenderInstance::InstantiateCamera()
+	{
+		uint32 id = mCameraBuffer.Add(mDevice);
+		
+		return mCameras.emplace_back(id);
+	}
+
+	void VkRenderInstance::DestroyCamera(const Camera& _camera)
+	{
+		mCameraBuffer.Remove(mDevice, _camera.ID);
+
+		// O(1) access.
+		mCameras.erase(mCameras.begin() + (&_camera - mCameras.data()));
+	}
+
+
 	uint32 VkRenderInstance::InstantiatePointLight(const PLightInfos& _infos)
 	{
 		return mPointLightBuffer.Add(mDevice, _infos);
@@ -285,10 +310,48 @@ namespace Sa
 	}
 
 
+	void VkRenderInstance::UpdateCameras()
+	{
+		for (auto it = mCameras.begin(); it != mCameras.end(); ++it)
+		{
+			if (it->IsViewDirty())
+			{
+				if (it->IsProjDirty())
+				{
+					// Update whole buffer.
+
+					CameraBuffer buffer{
+						it->ComputeProjMatrix(),
+						it->ComputeViewMatrix().GetInversed(),
+						it->ComputeViewPosition()
+					};
+
+					mCameraBuffer.UpdateObject(mDevice, it->ID, buffer);
+				}
+				else
+				{
+					// Update only view matrix.
+					CameraBuffer::ViewInfos viewInfos{
+						it->ComputeViewMatrix().GetInversed(),
+						it->ComputeViewPosition()
+					};
+
+					mCameraBuffer.UpdateData(mDevice, it->ID, &viewInfos, sizeof(CameraBuffer::ViewInfos), __cameraBufferViewOffset);
+				}
+			}
+			else
+			{
+				// Update only proj matrix.
+
+				Mat4f projMat = it->ComputeProjMatrix();
+				mCameraBuffer.UpdateData(mDevice, it->ID, &projMat, sizeof(Mat4f), __cameraBufferProjMatOffset);
+			}
+		}
+	}
+
 	void VkRenderInstance::Update()
 	{
-		//for (auto it = mRenderSurfaceInfos.begin(); it != mRenderSurfaceInfos.end(); ++it)
-		//	it->renderSurface.GetSwapChain().Update(mDevice);
+		UpdateCameras();
 	}
 
 

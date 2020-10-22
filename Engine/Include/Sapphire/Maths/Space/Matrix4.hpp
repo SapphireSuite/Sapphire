@@ -312,6 +312,19 @@ namespace Sa
 
 
 		/**
+		*	\brief Make <b> perspective matrix </b>.
+		*
+		*	\param[in] _fov			Perspective FOV.
+		*	\param[in] _aspect		Aspect ratio (width/height).
+		*	\param[in] _near		Near frustum.
+		*	\param[in] _far			Far frustum.
+		*
+		*	\return perspective matrix.
+		*/
+		static Mat4 MakePerspective(T _fov = T(90.0), T _aspect = T(1.0), T _near = T(0.35), T _far = T(10.0));
+
+
+		/**
 		*	\brief \e Default move assignement.
 		*/
 		Mat4& operator=(Mat4&&) = default;

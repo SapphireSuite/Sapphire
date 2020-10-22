@@ -13,11 +13,9 @@
 #include <Sapphire/Rendering/Framework/Primitives/Mesh/IMesh.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Sapphire/Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
-#include <Sapphire/Rendering/Framework/Primitives/Camera/CameraUniformBuffer.hpp>
 
 #include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Sapphire/Rendering/Vulkan/System/VkRenderPass.hpp>
-#include <Sapphire/Rendering/Vulkan/Primitives/Camera/VkCamera.hpp>
 
 #include <Sapphire/SDK/Assets/AssetManager.hpp>
 
@@ -519,9 +517,9 @@ int main()
 	Sa::VkRenderPass& mainRenderPass = surface.CreateRenderPass(instance, mainRenderPassInfos).As<Sa::VkRenderPass>();
 	IRenderPass::main = &mainRenderPass;
 
-	VkCamera mainCamera(surface.GetImageExtent());
-	mainCamera.Create(instance, surface);
-	VkCamera::main = &mainCamera;
+	Camera& mainCamera = instance.InstantiateCamera();
+	mainCamera.SetPosition(Vec3f(-2.0f, 1.0f, 5.0f));
+	TransffPRS camTr = mainCamera.GetTransform();
 
 	AssetManager assetMgr(instance);
 	CreateResources(assetMgr);
@@ -582,66 +580,21 @@ int main()
 	}
 
 
-	const float r = 1.0f;
-	const float l = -1.0f;
-	const float t = 1.0f;
-	const float b = -1.0f;
-	const float n = 0.35f;
-	const float f = 10.0f;
+	//const float r = 1.0f;
+	//const float l = -1.0f;
+	//const float t = 1.0f;
+	//const float b = -1.0f;
+	//const float n = 0.35f;
+	//const float f = 10.0f;
 
-	Mat4f orthoMat = API_ConvertCoordinateSystem(Mat4f
-	(
-		2 / (r - l), 0, 0, 0,
-		0, 2 / (t - b), 0, 0,
-		0, 0, -2 / (f - n), 0,
-		-(r + l) / (r - l), -(t + b) / (t - b), -(f + n) / (f - n), 1
-	));
-
-
-	const float fov = 90.0f;
-	const float ratio = 1200.0f / 800.0f;
-	const float scale = 1.f / tanf((fov / 2.f) * Maths::DegToRad);
-	float tan_half_angle = std::tan(Maths::DegToRad * fov / 2);
-
-	Mat4f perspMat = API_ConvertCoordinateSystem(Mat4f
-	(
-		1 / (ratio * tan_half_angle), 0, 0, 0,
-		0, 1 / (tan_half_angle), 0, 0,
-		0, 0, -f / (f - n), -(2 * f * n) / (f - n),
-		0, 0, -1, 0
-	));
-
-	//Mat4f perspMat = API_ConvertCoordinateSystem(Mat4f
+	//Mat4f orthoMat = API_ConvertCoordinateSystem(Mat4f
 	//(
-	//	1 / (ratio * tan_half_angle), 0, 0, 0,
-	//	0, 1 / (tan_half_angle), 0, 0,
-	//	0, 0, (f + n) / (n - f), (2 * f * n) / (n - f),
-	//	0, 0, -1, 1
+	//	2 / (r - l), 0, 0, 0,
+	//	0, 2 / (t - b), 0, 0,
+	//	0, 0, -2 / (f - n), 0,
+	//	-(r + l) / (r - l), -(t + b) / (t - b), -(f + n) / (f - n), 1
 	//));
 
-	//Mat4f perspMat = API_ConvertCoordinateSystem(Mat4f
-	//(
-	//	scale / ratio, 0, 0, 0,
-	//	0, scale, 0, 0,
-	//	0, 0, (f + n) / (n - f), (2 * n * f) / (n - f),
-	//	0, 0, -1, 1
-	//));
-
-	/*
-		m_aspect = (float)(win->GetWidth()) / (float)(win->GetHeight());
-		const float scale = 1.f / tanf((m_fov / 2.f) * M_PI / 180.0f);
-
-		m_projMat = Mat4f(
-			scale / m_aspect, 0, 0, 0,
-			0, scale, 0, 0,
-			0, 0, (m_far + m_near) / (m_near - m_far), -1,
-			0, 0, (2 * m_near * m_far) / (m_near - m_far), 0
-		);
-	*/
-
-
-	TransffPRS camTr;
-	camTr.position = Vec3f(-2.0f, 1.0f, 5.0f);
 	Vec3f pL1Pos = API_ConvertCoordinateSystem(pLight1.position);
 
 	Chrono chrono;
@@ -662,16 +615,8 @@ int main()
 
 		window.TEST(camTr, pL1Pos, speed * deltaTime);
 
-		// Update Uniform Buffer.
-		{
-			CameraUniformBuffer ubo;
-			//ubo.modelMat = Mat4f::MakeRotation(Quatf(time, Vec3f::Right));
-			ubo.viewInvMat = API_ConvertCoordinateSystem(camTr.Matrix()).Inverse();
-			ubo.projMat = perspMat;
-			ubo.viewPosition = API_ConvertCoordinateSystem(camTr.position);
+		mainCamera.SetTransform(camTr);
 
-			mainCamera.GetUniformBuffer(frame.index).UpdateData(instance.GetDevice(), &ubo, sizeof(ubo));
-		}
 		
 		{
 			Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
@@ -679,7 +624,7 @@ int main()
 
 			vkDeviceWaitIdle(instance.GetDevice());
 			pLight1.position = API_ConvertCoordinateSystem(pL1Pos);
-			instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1, pLight1ID);
+			instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1ID, pLight1);
 		}
 
 
@@ -727,7 +672,7 @@ int main()
 
 	DestroyResources(assetMgr);
 
-	mainCamera.Destroy(instance);
+	//mainCamera.Destroy(instance);
 
 	instance.DestroyRenderSurface(window);
 	

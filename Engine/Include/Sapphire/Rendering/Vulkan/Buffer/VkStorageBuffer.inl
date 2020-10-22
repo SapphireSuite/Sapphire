@@ -24,7 +24,7 @@ namespace Sa
 			mFreeIndices.pop_back();
 
 			// Update new object.
-			UpdateObject(_device, _object, id);
+			UpdateObject(_device, id, _object);
 
 			return id;
 		}
@@ -33,7 +33,9 @@ namespace Sa
 		// Need to re-allocate buffer.
 
 		VkBuffer stagingBuffer;
-		stagingBuffer.Create(_device, mDeviceSize * 2 * sizeof(T), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		stagingBuffer.Create(_device, mDeviceSize * 2 * sizeof(T),
+			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 		VkBuffer::Copy(_device, mHandle, stagingBuffer, mDeviceSize * sizeof(T));
 
@@ -48,7 +50,7 @@ namespace Sa
 		InitNewObjects(_device, mDeviceSize + 1, mDeviceSize * 2);
 
 		// Update new object.
-		UpdateObject(_device, _object, id);
+		UpdateObject(_device, id, _object);
 
 		// TODO: Add descriptor callback event.
 		
@@ -78,7 +80,8 @@ namespace Sa
 	template <typename T>
 	void VkStorageBuffer<T>::Create(const VkDevice& _device, uint32 _capacity)
 	{
-		mHandle.Create(_device, sizeof(T) * _capacity, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+		mHandle.Create(_device, sizeof(T) * _capacity,
+			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 		InitNewObjects(_device, 0, _capacity);
@@ -94,7 +97,16 @@ namespace Sa
 	}
 
 	template <typename T>
-	void VkStorageBuffer<T>::UpdateObject(const VkDevice& _device, const T& _object, uint32 _id)
+	void VkStorageBuffer<T>::UpdateData(const VkDevice& _device, uint32 _id, void* _data, uint32 _size, uint32 _offset)
+	{
+		SA_ASSERT(_id < mDeviceSize, OutOfRange, Rendering, _id, 0u, mDeviceSize);
+		SA_ASSERT(_data, Nullptr, Rendering, L"Data nullptr!");
+
+		mHandle.UpdateData(_device, _data, _size, _id * sizeof(T) + _offset);
+	}
+
+	template <typename T>
+	void VkStorageBuffer<T>::UpdateObject(const VkDevice& _device, uint32 _id, const T& _object)
 	{
 		SA_ASSERT(_id < mDeviceSize, OutOfRange, Rendering, _id, 0u, mDeviceSize);
 

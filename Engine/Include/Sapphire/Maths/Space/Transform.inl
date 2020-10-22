@@ -464,7 +464,7 @@ namespace Sa
 	template <typename T, TrComp TrComps>
 	constexpr bool Transf<T, TrComps>::operator==(const Transf<T, TrComps>& _rhs) noexcept
 	{
-		return Equal(_rhs);
+		return Equals(_rhs);
 	}
 
 	template <typename T, TrComp TrComps>

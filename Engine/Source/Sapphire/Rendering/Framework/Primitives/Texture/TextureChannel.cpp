@@ -15,7 +15,7 @@ namespace Sa
 			case Sa::TextureChannel::Grey:
 				return VK_FORMAT_R8_SRGB;
 			case Sa::TextureChannel::GreyA:
-				VK_FORMAT_R8G8_SRGB;
+				return VK_FORMAT_R8G8_SRGB;
 			case Sa::TextureChannel::RGB:
 			case Sa::TextureChannel::RGBA:
 				return VK_FORMAT_R8G8B8A8_SRGB;

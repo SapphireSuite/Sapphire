@@ -9,11 +9,14 @@
 
 #include <Core/Types/Variadics/Pair.hpp>
 
+#include <Rendering/Framework/Primitives/Camera/Camera.hpp>
+#include <Rendering/Framework/Primitives/Camera/CameraBuffer.hpp>
+
+#include <Rendering/Framework/Primitives/Light/LightInfos.hpp>
+
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
 #include <Rendering/Vulkan/System/VkRenderSurface.hpp>
-
-#include <Rendering/Framework/Primitives/Light/LightInfos.hpp>
 #include <Rendering/Vulkan/Buffer/VkStorageBuffer.hpp>
 
 
@@ -29,6 +32,14 @@ namespace Sa
 
 		std::vector<Pair<const IWindow*, VkRenderSurface>> mSurfacePairs;
 
+		
+		// GPU-side buffer.
+		VkStorageBuffer<CameraBuffer> mCameraBuffer;
+
+		// CPU-side buffer.
+		std::vector<Camera> mCameras;
+
+		void UpdateCameras();
 
 	public: // TODO: REMOVE LATER.
 		VkStorageBuffer<PLightInfos> mPointLightBuffer;
@@ -57,6 +68,8 @@ namespace Sa
 
 		const VkRenderSurface& GetRenderSurface(const IWindow& _window) const;
 
+		const VkStorageBuffer<CameraBuffer>& GetCameraBuffer() const noexcept;
+
 		const VkStorageBuffer<PLightInfos>& GetPointLightBuffer() const noexcept;
 		const VkStorageBuffer<DLightInfos>& GetDirectionnalLightBuffer() const noexcept;
 		const VkStorageBuffer<SLightInfos>& GetSpotLightBuffer() const noexcept;
@@ -71,6 +84,11 @@ namespace Sa
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void DestroyRenderSurface(const IWindow& _window) override final;
 
+
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API Camera& InstantiateCamera() override final;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void DestroyCamera(const Camera& _camera) override final;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API uint32 InstantiatePointLight(const PLightInfos& _infos) override final;

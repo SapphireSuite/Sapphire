@@ -74,6 +74,17 @@ namespace Sa
 			*	\param[in] _position	Position value.
 			*/
 			constexpr TransfBase(const Vec3<T>& _position) noexcept;
+
+
+			/**
+			*	\brief \e Default move assignment.
+			*/
+			TransfBase& operator=(TransfBase&&) = default;
+
+			/**
+			*	\brief \e Default copy assignment.
+			*/
+			TransfBase& operator=(const TransfBase&) = default;
 		};
 
 
@@ -105,6 +116,17 @@ namespace Sa
 			*	\param[in] _rotation	Rotation value.
 			*/
 			constexpr TransfBase(const Quat<T>& _rotation) noexcept;
+
+
+			/**
+			*	\brief \e Default move assignment.
+			*/
+			TransfBase& operator=(TransfBase&&) = default;
+
+			/**
+			*	\brief \e Default copy assignment.
+			*/
+			TransfBase& operator=(const TransfBase&) = default;
 		};
 
 
@@ -136,6 +158,17 @@ namespace Sa
 			*	\param[in] _scale		Scale value.
 			*/
 			constexpr TransfBase(const Vec3<T>& _scale) noexcept;
+
+
+			/**
+			*	\brief \e Default move assignment.
+			*/
+			TransfBase& operator=(TransfBase&&) = default;
+
+			/**
+			*	\brief \e Default copy assignment.
+			*/
+			TransfBase& operator=(const TransfBase&) = default;
 		};
 
 
@@ -171,6 +204,17 @@ namespace Sa
 			*	\param[in] _rotation	Rotation value.
 			*/
 			constexpr TransfBase(const Vec3<T>& _position, const Quat<T>& _rotation = Quat<T>::Identity) noexcept;
+
+
+			/**
+			*	\brief \e Default move assignment.
+			*/
+			TransfBase& operator=(TransfBase&&) = default;
+
+			/**
+			*	\brief \e Default copy assignment.
+			*/
+			TransfBase& operator=(const TransfBase&) = default;
 		};
 
 
@@ -206,6 +250,17 @@ namespace Sa
 			*	\param[in] _scale		Scale value.
 			*/
 			constexpr TransfBase(const Vec3<T>& _position, const Vec3<T>& _scale = Vec3<T>::One) noexcept;
+
+
+			/**
+			*	\brief \e Default move assignment.
+			*/
+			TransfBase& operator=(TransfBase&&) = default;
+
+			/**
+			*	\brief \e Default copy assignment.
+			*/
+			TransfBase& operator=(const TransfBase&) = default;
 		};
 
 
@@ -241,6 +296,17 @@ namespace Sa
 			*	\param[in] _scale		Scale value.
 			*/
 			constexpr TransfBase(const Quat<T>& _rotation, const Vec3<T>& _scale = Vec3<T>::One) noexcept;
+
+
+			/**
+			*	\brief \e Default move assignment.
+			*/
+			TransfBase& operator=(TransfBase&&) = default;
+
+			/**
+			*	\brief \e Default copy assignment.
+			*/
+			TransfBase& operator=(const TransfBase&) = default;
 		};
 
 
@@ -280,6 +346,17 @@ namespace Sa
 			*	\param[in] _scale		Scale value.
 			*/
 			constexpr TransfBase(const Vec3<T>& _position, const Quat<T>& _rotation = Quat<T>::Identity, const Vec3<T>& _scale = Vec3<T>::One) noexcept;
+
+
+			/**
+			*	\brief \e Default move assignment.
+			*/
+			TransfBase& operator=(TransfBase&&) = default;
+
+			/**
+			*	\brief \e Default copy assignment.
+			*/
+			TransfBase& operator=(const TransfBase&) = default;
 		};
 	}
 
@@ -307,7 +384,18 @@ namespace Sa
 		static const Transf Identity;
 
 		using Base = Internal::TransfBase<T, TrComps>;
+
 		using Internal::TransfBase<T, TrComps>::TransfBase;
+
+		/**
+		*	\brief \e Default move constructor.
+		*/
+		Transf(Transf&&) = default;
+
+		/**
+		*	\brief \e Default copy constructor.
+		*/
+		Transf(const Transf&) = default;
 
 
 		/**

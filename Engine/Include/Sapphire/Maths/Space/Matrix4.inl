@@ -679,6 +679,21 @@ namespace Sa
 	}
 
 	template <typename T>
+	Mat4<T> Mat4<T>::MakePerspective(T _fov, T _aspect, T _near, T _far)
+	{
+		//const float scale = 1.f / tanf((_fov / 2.f) * Maths::DegToRad);
+		float tan_half_angle = std::tan(Maths::DegToRad * _fov / 2);
+
+		return Mat4<T>
+		(
+			1 / (_aspect * tan_half_angle), 0, 0, 0,
+			0, 1 / (tan_half_angle), 0, 0,
+			0, 0, -_far / (_far - _near), -(2 * _far * _near) / (_far - _near),
+			0, 0, -1, 0
+		);
+	}
+
+	template <typename T>
 	constexpr Mat4<T> Mat4<T>::operator-() const noexcept
 	{
 		// Allows constexpr

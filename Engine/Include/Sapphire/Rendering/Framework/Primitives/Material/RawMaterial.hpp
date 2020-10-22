@@ -30,7 +30,6 @@ namespace Sa
 	{
 		const IRenderPass* renderPass = nullptr;
 
-		std::vector<const ICamera*> cameras;
 		bool bDynamicViewport = true;
 
 		const ICubemap* skybox = nullptr;

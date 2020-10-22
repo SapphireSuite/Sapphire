@@ -21,9 +21,6 @@ namespace Sa
 		ImageViewExtent mScissor;
 
 	public:
-		// TODO: CLEAN LATER.
-		SA_ENGINE_API static ICamera* main;
-
 		Event<void(ICamera&, ImageViewExtent)> onViewportChange;
 		Event<void(ICamera&, ImageViewExtent)> onScissorChange;
 

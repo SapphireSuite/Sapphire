@@ -3,23 +3,31 @@
 
 
 // Uniform.
-// Static UBO: common to all shader instances.
-layout(binding = 0) uniform StaticUniformBuffer
+// CameraUBO: shared across shader instances.
+struct Camera
 {
-	// Camera inverse transformation matrix.
-    mat4 viewInv;
-    
 	// Camera projection matrix.
     mat4 proj;
+    
+	// Camera inverse transformation matrix.
+    mat4 viewInv;
 
-} sUBO;
+    // Camera position.
+    vec3 viewPosition;
+};
+
+layout(binding = 0) buffer CameraUniformBuffer
+{
+    Camera cameras[];
+} cameraUBO;
+
 
 // Object UBO: specific to this shader instance.
 layout(binding = 1) uniform ObjectUniformBuffer
 {
 	// Model transformation matrix.
-    mat4 model;
-} oUBO;
+    mat4 modelMat;
+} objectUBO;
 
 
 // In.
@@ -34,15 +42,22 @@ layout(location = 0) out DataBlock
 } vsOut;
 
 
+// Constants.
+layout(push_constant) uniform PushConstant
+{
+    int camIndex;
+} pConst;
+
+
 // Code
 void main()
 {
     // always facing camera.
-    mat4 viewRot = inverse(sUBO.viewInv);
+    mat4 viewRot = inverse(cameraUBO.cameras[pConst.camIndex].viewInv);
     viewRot[3].xyz = vec3(0,0,0);
 
     // Position.
-    gl_Position = sUBO.proj * sUBO.viewInv *  oUBO.model * viewRot * vec4(inPosition, 1.0);
+    gl_Position = cameraUBO.cameras[pConst.camIndex].proj * cameraUBO.cameras[pConst.camIndex].viewInv *  objectUBO.modelMat * viewRot * vec4(inPosition, 1.0);
 
     // Texture
     vsOut.texture = inTexture;

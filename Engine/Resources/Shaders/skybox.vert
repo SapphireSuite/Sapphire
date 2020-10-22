@@ -4,15 +4,22 @@
 
 // Uniform.
 // CameraUBO: shared across shader instances.
-layout(binding = 0) uniform CameraUniformBuffer
+struct Camera
 {
-	// Camera inverse transformation matrix.
-    mat4 viewInv;
-    
 	// Camera projection matrix.
     mat4 proj;
+    
+	// Camera inverse transformation matrix.
+    mat4 viewInv;
 
-} camUBO[5];
+    // Camera position.
+    vec3 viewPosition;
+};
+
+layout(binding = 0) buffer CameraUniformBuffer
+{
+    Camera cameras[];
+} cameraUBO;
 
 
 // In.
@@ -37,8 +44,8 @@ layout(push_constant) uniform PushConstant
 void main()
 {
     // Position.
-    mat4 staticView = mat4(mat3(camUBO[pConst.camIndex].viewInv)); // Remove camera translation.
-    gl_Position = camUBO[pConst.camIndex].proj * staticView * vec4(inPosition, 1.0);
+    mat4 staticView = mat4(mat3(cameraUBO.cameras[pConst.camIndex].viewInv)); // Remove camera translation.
+    gl_Position = cameraUBO.cameras[pConst.camIndex].proj * staticView * vec4(inPosition, 1.0);
 	
     gl_Position = gl_Position.xyww; // Depth Test trick to draw faster: only if no object in front of it
 

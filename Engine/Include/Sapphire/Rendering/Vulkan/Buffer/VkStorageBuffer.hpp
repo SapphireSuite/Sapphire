@@ -30,13 +30,14 @@ namespace Sa
 	public:
 		uint32 Size() const noexcept;
 
-		uint32 Add(const VkDevice& _device, const T& _object);
+		uint32 Add(const VkDevice& _device, const T& _object = T());
 		void Remove(const VkDevice& _device, uint32 _id);
 
 		void Create(const VkDevice& _device, uint32 _capacity = 5u);
 		void Destroy(const VkDevice& _device);
 
-		void UpdateObject(const VkDevice& _device, const T& _object, uint32 _id);
+		void UpdateData(const VkDevice& _device, uint32 _id, void* _data, uint32 _size, uint32 _offset);
+		void UpdateObject(const VkDevice& _device, uint32 _id, const T& _object);
 
 		VkDescriptorBufferInfo CreateDescriptorBufferInfo() const noexcept;
 		static VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) noexcept;

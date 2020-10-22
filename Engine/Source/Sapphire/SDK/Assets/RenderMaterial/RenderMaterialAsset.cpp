@@ -231,7 +231,6 @@ namespace Sa
 
 		// TODO: Remove later.
 		mRawData.renderPass = IRenderPass::main;
-		mRawData.cameras = { ICamera::main };
 		mRawData.bDynamicViewport = false;
 		mRawData.skybox = ICubemap::main;
 
