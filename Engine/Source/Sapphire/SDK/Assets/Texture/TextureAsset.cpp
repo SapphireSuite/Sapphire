@@ -73,7 +73,7 @@ namespace Sa
 			return false;
 		}
 
-		const uint32 dataSize = mRawData.GetTotalSize() * StbiWrapper::bitSize;
+		const uint64 dataSize = mRawData.GetTotalSize() * StbiWrapper::bitSize;
 		mRawData.data = reinterpret_cast<char*>(StbiWrapper::Allocate(dataSize));
 
 		_fStream.read(mRawData.data, dataSize);

@@ -45,7 +45,7 @@ namespace Sa
 		delete[] infos;
 	}
 
-	void* StbiWrapper::Allocate(uint32 _dataSize)
+	void* StbiWrapper::Allocate(uint64 _dataSize)
 	{
 		return stbi__malloc(_dataSize);
 	}
@@ -120,7 +120,7 @@ namespace Sa
 		// TODO: fix.
 		rawData.channel = TextureChannel::RGBA;
 
-		uint32 size = rawData.GetMainSize(false) * bitSize;
+		uint64 size = rawData.GetMainSize(false) * bitSize;
 		rawData.data = reinterpret_cast<char*>(Allocate(6u * size));
 
 		// 
@@ -150,7 +150,7 @@ namespace Sa
 		MipMapInfos* mipmapInfos = new MipMapInfos[_rawData.mipLevels];
 
 		uint32 channelSize = static_cast<uint32>(_rawData.channel);
-		uint32 totalSize = Mipmap::ComputeTotalSize(_rawData.width, _rawData.height, _rawData.mipLevels, mipmapInfos);
+		uint64 totalSize = Mipmap::ComputeTotalSize(_rawData.width, _rawData.height, _rawData.mipLevels, mipmapInfos);
 
 		char* original = _rawData.data;
 		_rawData.data = reinterpret_cast<char*>(Allocate(totalSize * bitSize * channelSize));

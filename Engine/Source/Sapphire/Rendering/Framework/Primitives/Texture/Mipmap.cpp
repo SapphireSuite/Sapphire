@@ -12,16 +12,16 @@ namespace Sa
 	{
 		// Source https://vulkan-tutorial.com/Generating_Mipmaps.
 
-		return static_cast<uint32_t>(std::floor(std::log2(Maths::Max(_width, _height)))) - _minLevel;
+		return static_cast<uint32_t>(std::floor(std::log2(Maths::Max(_width, _height)))) + 1 - _minLevel;
 	}
 
-	uint32 Mipmap::ComputeTotalSize(uint32 _width, uint32 _height, uint32 _mipmapLevels, MipMapInfos* _infos) noexcept
+	uint64 Mipmap::ComputeTotalSize(uint32 _width, uint32 _height, uint32 _mipmapLevels, MipMapInfos* _infos) noexcept
 	{
 		if (_mipmapLevels == 0u)
 			_mipmapLevels = ComputeLevels(_width, _height);
 
 
-		uint32 totalSize = 0u;
+		uint64 totalSize = 0u;
 
 		for (uint32 i = 0u; i < _mipmapLevels; ++i)
 		{

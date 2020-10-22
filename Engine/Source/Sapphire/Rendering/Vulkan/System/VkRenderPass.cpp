@@ -363,7 +363,7 @@ namespace Sa
 			}
 
 			// Sample not supported by hardware: down sample.
-			current >> 1;
+			current >>= 1;
 		}
 
 		mSampleBits = SampleBits::Sample1Bit;

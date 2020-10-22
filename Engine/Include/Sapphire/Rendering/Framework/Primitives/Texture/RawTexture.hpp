@@ -25,10 +25,10 @@ namespace Sa
 		TextureChannel channel = TextureChannel::RGBA;
 		
 		// Compute original image size in format unit.
-		uint32 GetMainSize(bool _bApplyType = true) const noexcept;
+		uint64 GetMainSize(bool _bApplyType = true) const noexcept;
 
 		// Compute total image size (including mipmaps) in format unit.
-		uint32 GetTotalSize(bool _bApplyType = true) const noexcept;
+		uint64 GetTotalSize(bool _bApplyType = true) const noexcept;
 	};
 }
 

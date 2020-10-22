@@ -6,9 +6,9 @@
 
 namespace Sa
 {
-	uint32 RawTexture::GetMainSize(bool _bApplyType) const noexcept
+	uint64 RawTexture::GetMainSize(bool _bApplyType) const noexcept
 	{
-		uint32 result = width * height * static_cast<uint32>(channel);
+		uint64 result = width * height * static_cast<uint32>(channel);
 
 		if (_bApplyType)
 		{
@@ -19,9 +19,9 @@ namespace Sa
 		return result;
 	}
 
-	uint32 RawTexture::GetTotalSize(bool _bApplyType) const noexcept
+	uint64 RawTexture::GetTotalSize(bool _bApplyType) const noexcept
 	{
-		uint32 result = Mipmap::ComputeTotalSize(width, height, mipLevels) * static_cast<uint32>(channel);
+		uint64 result = Mipmap::ComputeTotalSize(width, height, mipLevels) * static_cast<uint32>(channel);
 
 		if (_bApplyType)
 		{

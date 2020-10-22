@@ -21,7 +21,7 @@ namespace Sa
 		//static const uint32 minLevel;
 
 		static uint32 ComputeLevels(uint32 _width, uint32 _height, uint32 _minLevel = 0u) noexcept;
-		static uint32 ComputeTotalSize(uint32 _width, uint32 _height, uint32 _mipmapLevels = 0u, MipMapInfos* _infos = nullptr) noexcept;
+		static uint64 ComputeTotalSize(uint32 _width, uint32 _height, uint32 _mipmapLevels = 0u, MipMapInfos* _infos = nullptr) noexcept;
 	};
 }
 

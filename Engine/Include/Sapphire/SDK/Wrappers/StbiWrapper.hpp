@@ -27,7 +27,7 @@ namespace Sa
 
 		static void FlipVertically(RawTexture& _rawData);
 
-		static void* Allocate(uint32 _dataSize);
+		static void* Allocate(uint64 _dataSize);
 		static void Free(void* _data);
 
 		static bool Import(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result);

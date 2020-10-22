@@ -35,7 +35,7 @@ namespace Sa
 	*	\param[in] _num		Number of T to reset.
 	*/
 	template <typename T>
-	void MemReset(T* _dest, uint32 _num)
+	void MemReset(T* _dest, uint64 _num)
 	{
 		SA_ASSERT(_dest, Nullptr, Tools, L"_dest nullptr!");
 

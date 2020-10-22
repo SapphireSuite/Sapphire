@@ -36,7 +36,7 @@ namespace Sa
 	*	\param[in] _num		Number of T to fill.
 	*/
 	template <typename T>
-	void MemFill(T* _dest, const T& _val, uint32 _num)
+	void MemFill(T* _dest, const T& _val, uint64 _num)
 	{
 		SA_ASSERT(_dest, Nullptr, Tools, L"_dest nullptr!");
 

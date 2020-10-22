@@ -13,7 +13,7 @@ namespace Sa
 	void VkTexture::Create(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
 		VkFormat format = API_GetFormat(_rawTexture.channel);
-		uint32 textureSize = _rawTexture.GetTotalSize();
+		uint64 textureSize = _rawTexture.GetTotalSize();
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 

@@ -36,7 +36,7 @@ namespace Sa
 	*	\param[in] _num		Number of T to copy.
 	*/
 	template <typename T>
-	void MemCopy(const T* _src, T* _dest, uint32 _num)
+	void MemCopy(const T* _src, T* _dest, uint64 _num)
 	{
 		SA_ASSERT(_src, Nullptr, Tools, L"_src nullptr!");
 		SA_ASSERT(_dest, Nullptr, Tools, L"_dest nullptr!");

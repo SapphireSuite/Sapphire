@@ -16,7 +16,7 @@ namespace Sa
 	}
 
 	void VkBuffer::Create_Internal(const VkDevice& _device,
-		uint32 _size, VkBufferUsageFlags _usage,
+		uint64 _size, VkBufferUsageFlags _usage,
 		VkMemoryPropertyFlags _properties,
 		const void* _data)
 	{
@@ -67,7 +67,7 @@ namespace Sa
 	}
 
 	void VkBuffer::Create(const VkDevice& _device,
-		uint32 _size, VkBufferUsageFlags _usage,
+		uint64 _size, VkBufferUsageFlags _usage,
 		VkMemoryPropertyFlags _properties,
 		const void* _data)
 	{
@@ -148,7 +148,7 @@ namespace Sa
 		};
 	}
 
-	void VkBuffer::Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint32 _size)
+	void VkBuffer::Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint64 _size)
 	{
 		VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 

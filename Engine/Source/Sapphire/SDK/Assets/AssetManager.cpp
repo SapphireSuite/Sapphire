@@ -51,8 +51,6 @@ namespace Sa
 				return nullptr;
 			}
 		}
-
-		return nullptr;
 	}
 
 	void AssetManager::UnLoad(IRenderPrimitive* _primitive)

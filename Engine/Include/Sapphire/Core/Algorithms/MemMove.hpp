@@ -36,7 +36,7 @@ namespace Sa
 	*	\param[in] _num		Number of T to move.
 	*/
 	template <typename T>
-	void MemMove(const T* _src, T* _dest, uint32 _num)
+	void MemMove(const T* _src, T* _dest, uint64 _num)
 	{
 		SA_ASSERT(_src, Nullptr, Tools, L"_src nullptr!");
 		SA_ASSERT(_dest, Nullptr, Tools, L"dest nullptr!");
