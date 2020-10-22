@@ -29,13 +29,6 @@ namespace Sa
 		return mImageFormat;
 	}
 
-	VkImageView VkSwapChain::GetImageView(uint32 _index) const noexcept
-	{
-		SA_ASSERT(_index < SizeOf(mFrames), OutOfRange, Rendering, _index, 0, SizeOf(mFrames));
-
-		return mFrames[_index].imageView;
-	}
-
 	const ImageExtent& VkSwapChain::GetImageExtent() const noexcept
 	{
 		return mExtent;
@@ -49,11 +42,7 @@ namespace Sa
 	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface,
 								const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass)
 	{
-		CreateSwapChainKHR(_device, _surface, _queueFamilyIndices);
-		CreateImageView(_device);
-		CreateFrameBuffers(_device, _renderPass);
-
-		CreateCommandBuffers(_device);
+		CreateSwapChainKHR(_device, _surface, _queueFamilyIndices, _renderPass);
 
 		CreateSemaphores(_device);
 		CreateFences(_device);
@@ -63,10 +52,6 @@ namespace Sa
 		DestroyFences(_device);
 		DestroySemaphores(_device);
 
-		DestroyCommandBuffers(_device);
-
-		DestroyFrameBuffers(_device);
-		DestroyImageView(_device);
 		DestroySwapChainKHR(_device);
 	}
 
@@ -82,31 +67,17 @@ namespace Sa
 		// Get new current frame components.
 		VkRenderFrame frame = GetRenderFrame();
 
-
 		// Wait current Fence.
 		vkWaitForFences(_device, 1, &frame.fence, true, UINT64_MAX);
 
 		// Reset current Fence.
 		vkResetFences(_device, 1, &frame.fence);
 
-		// Reset Command Buffer.
-		vkResetCommandBuffer(frame.graphicsCommandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
-
 		SA_VK_ASSERT(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, frame.acquireSemaphore, VK_NULL_HANDLE, &mImageIndex),
 			LibCommandFailed, Rendering, L"Failed to aquire next image!");
 
-		const VkCommandBufferBeginInfo commandBufferBeginInfo
-		{
-			VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,		// sType.
-			nullptr,											// pNext.
-			VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,		// flags.
-			nullptr,											// pInheritanceInfo.
-		};
-
-		SA_VK_ASSERT(vkBeginCommandBuffer(frame.graphicsCommandBuffer, &commandBufferBeginInfo),
-			LibCommandFailed, Rendering, L"Failed to begin command buffer!");
-
-
+		frame = GetRenderFrame();
+		frame.framebuffer->Begin();
 		return frame;
 	}
 	
@@ -115,9 +86,7 @@ namespace Sa
 		// Get current frame components.
 		VkRenderFrame frame = GetRenderFrame();
 
-		SA_VK_ASSERT(vkEndCommandBuffer(frame.graphicsCommandBuffer),
-			LibCommandFailed, Rendering, L"Failed to end command buffer!");
-
+		frame.framebuffer->End();
 
 		const VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -130,7 +99,7 @@ namespace Sa
 			&frame.acquireSemaphore,					// pWaitSemaphores.
 			&waitStages,										// pWaitDstStageMask.
 			1,													// commandBufferCount.
-			&frame.graphicsCommandBuffer.Get(),					// pCommandBuffers.
+			&frame.framebuffer->GetCommandBuffer().Get(),					// pCommandBuffers.
 			1,													// signalSemaphoreCount.
 			&frame.presentSemaphore,					// pSignalSemaphores.
 		};
@@ -158,7 +127,7 @@ namespace Sa
 		mFrameIndex = (mFrameIndex + 1) % GetImageNum();
 	}
 
-	void VkSwapChain::CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
+	void VkSwapChain::CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass)
 	{
 		// Query infos.
 		VkSurfaceFormatKHR surfaceFormat = _surface.ChooseSwapSurfaceFormat();
@@ -217,121 +186,27 @@ namespace Sa
 		for (size_t i = 0; i < imgs.size(); i++)
 		{
 			mFrames[i].index = i;
-			mFrames[i].image = imgs[i];
+
+			VkImageBufferCreateInfos colorBufferCreateInfos{};
+			colorBufferCreateInfos.format = _renderPass.GetColorFormat();
+			colorBufferCreateInfos.extent = mExtent;
+			colorBufferCreateInfos.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+			colorBufferCreateInfos.mipMapLevels = 1;
+			colorBufferCreateInfos.sampleCount = static_cast<VkSampleCountFlagBits>(SampleBits::Sample1Bit);
+			colorBufferCreateInfos.aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+
+			VkImageBuffer imageBuffer{};
+			imageBuffer.CreateFromImage(_device, colorBufferCreateInfos, imgs[i]);
+			mFrames[i].framebuffer = new vk::Framebuffer(&_renderPass, mExtent, imageBuffer);
 		}
 	}
 	void VkSwapChain::DestroySwapChainKHR(const VkDevice& _device)
 	{
+		for (size_t i = 0; i < mFrames.size(); ++i)
+			delete mFrames[i].framebuffer;
+
 		vkDestroySwapchainKHR(_device, mHandle, nullptr);
 		mHandle = VK_NULL_HANDLE;
-	}
-
-	void VkSwapChain::CreateImageView(const VkDevice& _device)
-	{
-		for (uint32 i = 0; i < mFrames.size(); i++)
-		{
-			const VkImageViewCreateInfo imageViewCreateInfo
-			{
-				VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,									// sType.
-				nullptr,																	// pNext.
-				0,																			// flags.
-				mFrames[i].image,															// image.
-				VK_IMAGE_VIEW_TYPE_2D,														// viewType.
-				mImageFormat,																// format.
-
-				VkComponentMapping															// components.
-				{
-					VK_COMPONENT_SWIZZLE_IDENTITY,										// r.
-					VK_COMPONENT_SWIZZLE_IDENTITY,										// g.
-					VK_COMPONENT_SWIZZLE_IDENTITY,										// b.
-					VK_COMPONENT_SWIZZLE_IDENTITY										// a.
-				},
-				VkImageSubresourceRange														// subresourceRange.
-				{
-					VK_IMAGE_ASPECT_COLOR_BIT,											// aspectMask.
-					0,																	// baseMipLevel.
-					1,																	// levelCount.
-					0,																	// baseArrayLayer.
-					1																	// layerCount.
-				}
-			};
-
-			SA_VK_ASSERT(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &mFrames[i].imageView),
-				CreationFailed, Rendering, L"Failed to create image views!");
-		}
-	}
-	void VkSwapChain::DestroyImageView(const VkDevice& _device)
-	{
-		for (uint32 i = 0; i < mFrames.size(); i++)
-			vkDestroyImageView(_device, mFrames[i].imageView, nullptr);
-	}
-
-	void VkSwapChain::CreateFrameBuffers(const VkDevice& _device, const RenderPass& _renderPass)
-	{
-		std::vector<VkImageView> attachements; // { mColorMultisamplingBuffer, _swapChain.GetImageView(i), mDepthBuffer }
-		attachements.reserve(3);
-
-		if (_renderPass.GetSampleBits() > SampleBits::Sample1Bit)
-			attachements.push_back(_renderPass.mColorMultisamplingBuffer);
-
-		// Swapchain image view.
-		VkImageView& swapChainView = attachements.emplace_back(VkImageView{});
-
-		// if(bDepthBuffer)
-		attachements.push_back(_renderPass.mDepthBuffer);
-
-		for (uint32 i = 0u; i < mFrames.size(); ++i)
-		{
-			swapChainView = mFrames[i].imageView;
-
-			const VkFramebufferCreateInfo framebufferCreateInfo
-			{
-				VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,			// sType.
-				nullptr,											// pNext.
-				0,													// flags.
-				_renderPass.Get(),										// renderPass.
-				SizeOf(attachements),								// attachmentCount.
-				attachements.data(),								// pAttachments.
-				mExtent.width,										// width.
-				mExtent.height,										// height.
-				1													// layers.
-
-			};
-
-			SA_VK_ASSERT(vkCreateFramebuffer(_device, &framebufferCreateInfo, nullptr, &mFrames[i].framebuffer),
-				CreationFailed, Rendering, L"Failed to create framebuffer!");
-		}
-	}
-
-	void VkSwapChain::DestroyFrameBuffers(const VkDevice& _device)
-	{
-		for (uint32 i = 0u; i < mFrames.size(); ++i)
-			vkDestroyFramebuffer(_device, mFrames[i].framebuffer, nullptr);
-	}
-
-	void VkSwapChain::CreateCommandBuffers(const VkDevice& _device)
-	{
-		const VkCommandBufferAllocateInfo commandBufferAllocInfo
-		{
-			VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,							// sType.
-			nullptr,																// nullptr.
-			_device.GetGraphicsQueue().GetCommandPool(),							// commandPool.
-			VK_COMMAND_BUFFER_LEVEL_PRIMARY,										// level.
-			1																// commandBufferCount.
-		};
-
-		for (size_t i = 0; i < mFrames.size(); ++i)
-		{
-			SA_VK_ASSERT(vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, &mFrames[i].graphicsCommandBuffer.Get()),
-				CreationFailed, Rendering, L"Failed to allocate command buffers!");
-		}
-	}
-	void VkSwapChain::DestroyCommandBuffers(const VkDevice& _device) 
-	{
-		// Manually free command buffers (useful for resize).
-		for (size_t i = 0; i < mFrames.size(); ++i)
-			vkFreeCommandBuffers(_device, _device.GetGraphicsQueue().GetCommandPool(),
-								1, &mFrames[i].graphicsCommandBuffer.Get());
 	}
 
 	void VkSwapChain::CreateSemaphores(const VkDevice& _device)

@@ -16,6 +16,7 @@
 // TODO: REMOVE LATER.
 #include <Rendering/Framework/System/RenderPass/IRenderPass.hpp>
 #include <Rendering/Framework/Primitives/Camera/ICamera.hpp>
+#include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 
 
 namespace Sa
@@ -263,7 +264,11 @@ namespace Sa
 		IRenderMaterial* result = IRenderMaterial::CreateInstance();
 
 		//mRawData.renderPass = IRenderPass::mainRenderPass;
-		mRawData.cameras = { ICamera::mainCamera };
+
+		auto it = _instance.As<VkRenderInstance>().mSurfacePairs.begin();
+		
+		// TODO: Remove later.
+		mRawData.renderPass = &it->second.mRenderPasses[0];
 		mRawData.bDynamicViewport = false;
 		mRawData.skybox = ICubemap::main;
 

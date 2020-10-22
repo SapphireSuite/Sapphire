@@ -46,11 +46,11 @@ namespace Sa
 
 		VkDeviceSize offsets[] = { 0 };
 		::VkBuffer vkHandleVertexBuffer = mVertexBuffer;
-		vkCmdBindVertexBuffers(vkFrame.graphicsCommandBuffer, 0, 1, &vkHandleVertexBuffer, offsets);
+		vkCmdBindVertexBuffers(vkFrame.framebuffer->GetCommandBuffer(), 0, 1, &vkHandleVertexBuffer, offsets);
 
-		vkCmdBindIndexBuffer(vkFrame.graphicsCommandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(vkFrame.framebuffer->GetCommandBuffer(), mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdDrawIndexed(vkFrame.graphicsCommandBuffer, mIndicesSize, 1, 0, 0, 0);
+		vkCmdDrawIndexed(vkFrame.framebuffer->GetCommandBuffer(), mIndicesSize, 1, 0, 0, 0);
 	}
 }
 

@@ -77,6 +77,11 @@ namespace Sa
 		_commandBuffer.EndSingleTimeCommands_Internal(_device, _queue);
 	}
 
+	const ::VkCommandBuffer& CommandBuffer::Get() const
+	{
+		return mHandle;
+	}
+
 	::VkCommandBuffer& CommandBuffer::Get()
 	{
 		return mHandle;

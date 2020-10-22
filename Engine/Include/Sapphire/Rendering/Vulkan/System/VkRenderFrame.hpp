@@ -11,7 +11,7 @@
 
 #include <Rendering/Vulkan/Buffer/VkUniformBuffer.hpp>
 
-#include <Rendering/Vulkan/Buffer/VkCommandBuffer.hpp>
+#include <Rendering/Vulkan/System/Framebuffer.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -24,12 +24,8 @@ namespace Sa
 	public:
 		uint32 index = 0u;
 
-		CommandBuffer graphicsCommandBuffer;
-
-		// Frame data
-		VkImage image				= VK_NULL_HANDLE;
-		VkImageView imageView		= VK_NULL_HANDLE;
-		VkFramebuffer framebuffer	= VK_NULL_HANDLE;
+		// TODO Aurel: don't make it a pointer
+		vk::Framebuffer* framebuffer;
 
 		// Synchronisation
 		VkSemaphore acquireSemaphore	= VK_NULL_HANDLE;

@@ -49,8 +49,11 @@ namespace Sa
 			void Create_Internal();
 
 		public:
+			const CommandBuffer& GetCommandBuffer() const;
+
 			// return command buffer to record
-			const CommandBuffer& Begin() const;
+			void Begin() const;
+			// return command buffer for swapchain compability
 			void End() const;
 		};
 	}

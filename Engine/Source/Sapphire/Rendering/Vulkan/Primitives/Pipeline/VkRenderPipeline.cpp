@@ -749,9 +749,9 @@ namespace Sa
 	{
 		const VkRenderFrame& vkFrame = _frame.As<VkRenderFrame>();
 
-		vkCmdBindPipeline(vkFrame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mHandle);
+		vkCmdBindPipeline(vkFrame.framebuffer->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, mHandle);
 
-		vkCmdBindDescriptorSets(vkFrame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout,
+		vkCmdBindDescriptorSets(vkFrame.framebuffer->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout,
 			0, 1, &mDescriptorSets[vkFrame.index], 0, nullptr);
 	}
 

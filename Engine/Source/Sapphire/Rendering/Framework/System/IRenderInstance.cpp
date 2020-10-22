@@ -6,6 +6,8 @@
 
 namespace Sa
 {
+	IRenderInstance* IRenderInstance::mInstance = nullptr;
+
 	const IRenderInstance* IRenderInstance::GetInstance()
 	{
 		return mInstance;

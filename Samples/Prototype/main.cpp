@@ -820,8 +820,7 @@ int main()
 	mainRenderPassInfos.extent = surface.ChooseSwapExtent();
 	mainRenderPassInfos.format = surface.ChooseSwapSurfaceFormat().format;
 
-	Sa::VkRenderPass& mainRenderPass = surface.CreateRenderPass(instance, mainRenderPassInfos).As<Sa::VkRenderPass>();
-	IRenderPass::main = &mainRenderPass;
+	Sa::RenderPass& mainRenderPass = surface.CreateRenderPass(instance, mainRenderPassInfos).As<Sa::RenderPass>();
 
 	Camera& mainCamera = instance.InstantiateCamera();
 	mainCamera.SetPosition(Vec3f(-2.0f, 2.0f, 5.0f));
@@ -906,9 +905,6 @@ int main()
 		}
 
 
-		mainRenderPass.Begin(frame);
-
-
 		// Draw Magikarp.
 		if (magikarpBodyMat)
 		{
@@ -960,10 +956,6 @@ int main()
 			windowMat->Bind(frame);
 			squareMesh->Draw(frame);
 		}
-
-
-		mainRenderPass.End(frame);
-
 
 		surface.GetSwapChain().End(instance.GetDevice());
 	}

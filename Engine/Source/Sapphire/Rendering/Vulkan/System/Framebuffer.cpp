@@ -18,7 +18,7 @@ namespace Sa::vk
 		// hardcoded values for now
 		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(), _renderPass->GetSampleBits()));
 		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat()));
-		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent));
+		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent, _renderPass->GetSampleBits()));
 
 		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
 		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
@@ -35,7 +35,7 @@ namespace Sa::vk
 		// hardcoded values for now
 		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(), _renderPass->GetSampleBits()));
 		mBuffers.emplace_back(_colorBuffer);
-		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent));
+		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent, _renderPass->GetSampleBits()));
 
 		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
 		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
@@ -60,7 +60,7 @@ namespace Sa::vk
 
 		std::vector<VkImageView> attachements(mBuffers.size());
 		for (size_t i = 0; i < mBuffers.size(); ++i)
-			attachements.emplace_back(mBuffers[i]);
+			attachements[i] = mBuffers[i];
 
 		VkFramebufferCreateInfo framebufferCreateInfo{};
 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -87,7 +87,12 @@ namespace Sa::vk
 			CreationFailed, Rendering, L"Failed to allocate command buffers!");
 	}
 
-	const CommandBuffer& Framebuffer::Begin() const
+	const CommandBuffer& Framebuffer::GetCommandBuffer() const
+	{
+		return mPrimaryCommandBuffer;
+	}
+
+	void Framebuffer::Begin() const
 	{
 		vkResetCommandBuffer(mPrimaryCommandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
 
@@ -110,8 +115,6 @@ namespace Sa::vk
 		renderPassBeginInfo.pClearValues = mClearValues.data();
 		
 		vkCmdBeginRenderPass(mPrimaryCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		return mPrimaryCommandBuffer;
 	}
 
 	void Framebuffer::End() const

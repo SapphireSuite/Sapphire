@@ -21,8 +21,10 @@ namespace Sa
 		VkSurfaceKHR mHandle = VK_NULL_HANDLE;
 
 		VkSwapChain mSwapChain;
+		//TODO aurel: Temporary..
+	public:
 		std::vector<RenderPass> mRenderPasses;
-
+	private:
 		struct SupportDetails
 		{
 			VkSurfaceCapabilitiesKHR capabilities;

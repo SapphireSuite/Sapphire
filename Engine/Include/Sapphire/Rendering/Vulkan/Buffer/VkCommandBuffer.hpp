@@ -27,6 +27,7 @@ namespace Sa
 		static CommandBuffer BeginSingleTimeCommands(const VkDevice& _device, const VkQueue& _queue);
 		static void EndSingleTimeCommands(const VkDevice& _device, CommandBuffer _commandBuffer, const VkQueue& _queue);
 
+		const ::VkCommandBuffer& Get() const;
 		::VkCommandBuffer& Get();
 
 		operator ::VkCommandBuffer() const;

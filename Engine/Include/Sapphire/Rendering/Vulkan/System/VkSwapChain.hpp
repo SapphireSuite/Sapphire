@@ -34,17 +34,8 @@ namespace Sa
 		std::vector<VkRenderFrame> mFrames;
 
 		void CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface,
-								const VkQueueFamilyIndices& _queueFamilyIndices);
+								const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass);
 		void DestroySwapChainKHR(const VkDevice& _device);
-
-		void CreateImageView(const VkDevice& _device);
-		void DestroyImageView(const VkDevice& _device);
-
-		void CreateFrameBuffers(const VkDevice& _device, const RenderPass& _renderPass);
-		void DestroyFrameBuffers(const VkDevice& _device);
-
-		void CreateCommandBuffers(const VkDevice& _device);
-		void DestroyCommandBuffers(const VkDevice& _device);
 
 		void CreateSemaphores(const VkDevice& _device);
 		void DestroySemaphores(const VkDevice& _device);
@@ -56,7 +47,6 @@ namespace Sa
 		uint32 GetImageNum() const noexcept;
 		VkFormat GetImageFormat() const noexcept;
 
-		VkImageView GetImageView(uint32 _index) const noexcept;
 		const ImageExtent& GetImageExtent() const noexcept;
 
 		VkRenderFrame GetRenderFrame() const noexcept;
