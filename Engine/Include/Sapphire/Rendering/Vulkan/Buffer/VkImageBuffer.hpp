@@ -72,6 +72,7 @@ namespace Sa
 		bool IsValid();
 
 		void Create(const VkDevice& _device, const VkImageBufferCreateInfos& _createInfos);
+		void CreateFromImage(const VkDevice& _device, const VkImageBufferCreateInfos& _createInfos, VkImage& _image);
 		void Destroy(const VkDevice& _device);
 
 		void TransitionImageLayout(const VkDevice& _device, const VkTransitionImageInfos& _infos);

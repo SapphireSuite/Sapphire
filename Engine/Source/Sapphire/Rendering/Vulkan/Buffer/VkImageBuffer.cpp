@@ -107,7 +107,12 @@ namespace Sa
 
 		vkBindImageMemory(_device, mImage, mImageMemory, 0);
 
+		CreateFromImage(_device, _createInfos, mImage);
+	}
 
+	void VkImageBuffer::CreateFromImage(const VkDevice& _device, const VkImageBufferCreateInfos& _createInfos, VkImage& _image)
+	{
+		mImage = _image;
 
 		// Create image view.
 		const VkImageViewCreateInfo imageViewCreateInfo
@@ -145,11 +150,15 @@ namespace Sa
 		vkDestroyImageView(_device, mImageView, nullptr);
 		mImageView = VK_NULL_HANDLE;
 
-		vkDestroyImage(_device, mImage, nullptr);
-		mImage = VK_NULL_HANDLE;
+		// In case, the image was given to the buffer
+		if (mImageMemory != VK_NULL_HANDLE)
+		{
+			vkDestroyImage(_device, mImage, nullptr);
+			mImage = VK_NULL_HANDLE;
 
-		vkFreeMemory(_device, mImageMemory, nullptr) ;// Free memory after destroying image: memory no more used.
-		mImageMemory = VK_NULL_HANDLE;
+			vkFreeMemory(_device, mImageMemory, nullptr) ;// Free memory after destroying image: memory no more used.
+			mImageMemory = VK_NULL_HANDLE;
+		}
 	}
 
 	void VkImageBuffer::TransitionImageLayout(const Sa::VkDevice& _device, const VkTransitionImageInfos& _infos)
