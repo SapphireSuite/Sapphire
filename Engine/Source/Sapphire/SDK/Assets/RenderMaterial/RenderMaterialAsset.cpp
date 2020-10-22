@@ -262,11 +262,10 @@ namespace Sa
 	{
 		IRenderMaterial* result = IRenderMaterial::CreateInstance();
 
-		// TODO: Remove later.
-		mRawData.renderPass = IRenderPass::main;
+		//mRawData.renderPass = IRenderPass::mainRenderPass;
+		mRawData.cameras = { ICamera::mainCamera };
 		mRawData.bDynamicViewport = false;
 		mRawData.skybox = ICubemap::main;
-
 
 		// Shaders.
 		mRawData.shaders[0].shader = mManager.shaderMgr.Load(vertexShaderPath);
