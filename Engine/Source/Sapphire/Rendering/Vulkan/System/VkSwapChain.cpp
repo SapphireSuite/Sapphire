@@ -8,12 +8,11 @@
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
-#include <Rendering/Vulkan/System/VkRenderPass.hpp>
 #include <Rendering/Vulkan/System/VkRenderSurface.hpp>
 
 #include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 
-#include <Rendering/Vulkan/Buffer/VkCommandBuffer.hpp>
+#include <Rendering/Vulkan/System/Framebuffer.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -34,24 +33,22 @@ namespace Sa
 		return mExtent;
 	}
 
-	VkRenderFrame VkSwapChain::GetRenderFrame() const noexcept
+	const VkRenderFrame VkSwapChain::GetRenderFrame() const noexcept
 	{
-		return mFrames[mImageIndex];
+		return VkRenderFrame{ mImageIndex, &mFrames[mImageIndex] };
 	}
 
 	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface,
 								const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass)
 	{
-		CreateSwapChainKHR(_device, _surface, _queueFamilyIndices, _renderPass);
-
-		CreateSemaphores(_device);
-		CreateFences(_device);
+		CreateSwapChainKHR(_device, _surface, _queueFamilyIndices);
+		CreateFrames(_device, _renderPass);
+		CreateSynchronisation(_device);
 	}
 	void VkSwapChain::Destroy(const VkDevice& _device)
 	{
-		DestroyFences(_device);
-		DestroySemaphores(_device);
-
+		DestroySynchronisation(_device);
+		DestroyFrames(_device);
 		DestroySwapChainKHR(_device);
 	}
 
@@ -64,19 +61,16 @@ namespace Sa
 
 	VkRenderFrame VkSwapChain::Begin(const VkDevice& _device)
 	{
-		// Get new current frame components.
-		VkRenderFrame frame = GetRenderFrame();
-
 		// Wait current Fence.
-		vkWaitForFences(_device, 1, &frame.fence, true, UINT64_MAX);
+		vkWaitForFences(_device, 1, &mFramesSynchronisation[mFrameIndex].fence, true, UINT64_MAX);
 
 		// Reset current Fence.
-		vkResetFences(_device, 1, &frame.fence);
+		vkResetFences(_device, 1, &mFramesSynchronisation[mFrameIndex].fence);
 
-		SA_VK_ASSERT(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, frame.acquireSemaphore, VK_NULL_HANDLE, &mImageIndex),
+		SA_VK_ASSERT(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, mFramesSynchronisation[mFrameIndex].acquireSemaphore, VK_NULL_HANDLE, &mImageIndex),
 			LibCommandFailed, Rendering, L"Failed to aquire next image!");
 
-		frame = GetRenderFrame();
+		VkRenderFrame frame = GetRenderFrame();
 		frame.framebuffer->Begin();
 		return frame;
 	}
@@ -96,15 +90,15 @@ namespace Sa
 			VK_STRUCTURE_TYPE_SUBMIT_INFO,						// sType.
 			nullptr,											// pNext.
 			1,													// waitSemaphoreCount.
-			&frame.acquireSemaphore,					// pWaitSemaphores.
+			&mFramesSynchronisation[mFrameIndex].acquireSemaphore,					// pWaitSemaphores.
 			&waitStages,										// pWaitDstStageMask.
 			1,													// commandBufferCount.
 			&frame.framebuffer->GetCommandBuffer().Get(),					// pCommandBuffers.
 			1,													// signalSemaphoreCount.
-			&frame.presentSemaphore,					// pSignalSemaphores.
+			&mFramesSynchronisation[mFrameIndex].presentSemaphore,					// pSignalSemaphores.
 		};
 
-		SA_VK_ASSERT(vkQueueSubmit(_device.GetGraphicsQueue(), 1, &submitInfo, frame.fence),
+		SA_VK_ASSERT(vkQueueSubmit(_device.GetGraphicsQueue(), 1, &submitInfo, mFramesSynchronisation[mFrameIndex].fence),
 			LibCommandFailed, Rendering, L"Failed to submit graphics queue!");
 
 		// Submit previous present.
@@ -113,7 +107,7 @@ namespace Sa
 			VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,					// sType.
 			nullptr,											// pNext.
 			1,													// waitSemaphoreCount.
-			&frame.presentSemaphore,					// pWaitSemaphores.
+			&mFramesSynchronisation[mFrameIndex].presentSemaphore,					// pWaitSemaphores.
 			1,													// swapchainCount.
 			&mHandle,											// pSwapchains
 			&mImageIndex,										// pImageIndices.
@@ -124,10 +118,10 @@ namespace Sa
 			LibCommandFailed, Rendering, L"Failed to submit present queue!");
 
 		// Increment next frame.
-		mFrameIndex = (mFrameIndex + 1) % GetImageNum();
+		mFrameIndex = (mFrameIndex + 1) % mFramesSynchronisation.size();
 	}
 
-	void VkSwapChain::CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass)
+	void VkSwapChain::CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		// Query infos.
 		VkSurfaceFormatKHR surfaceFormat = _surface.ChooseSwapSurfaceFormat();
@@ -175,18 +169,25 @@ namespace Sa
 
 		SA_VK_ASSERT(vkCreateSwapchainKHR(_device, &swapChainCreateInfo, nullptr, &mHandle),
 			CreationFailed, Rendering, L"Failed to create swap chain!");
+	}
 
+	void VkSwapChain::DestroySwapChainKHR(const VkDevice& _device)
+	{
+		vkDestroySwapchainKHR(_device, mHandle, nullptr);
+		mHandle = VK_NULL_HANDLE;
+	}
 
+	void VkSwapChain::CreateFrames(const VkDevice& _device, const RenderPass& _renderPass)
+	{
 		// Create images.
+		uint32_t imageNum;
 		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, nullptr);
-		mFrames.resize(imageNum);
 		std::vector<VkImage> imgs(imageNum);
 		vkGetSwapchainImagesKHR(_device, mHandle, &imageNum, imgs.data());
 
+		mFrames.reserve(imageNum);
 		for (size_t i = 0; i < imgs.size(); i++)
 		{
-			mFrames[i].index = i;
-
 			VkImageBufferCreateInfos colorBufferCreateInfos{};
 			colorBufferCreateInfos.format = _renderPass.GetColorFormat();
 			colorBufferCreateInfos.extent = mExtent;
@@ -197,19 +198,16 @@ namespace Sa
 
 			VkImageBuffer imageBuffer{};
 			imageBuffer.CreateFromImage(_device, colorBufferCreateInfos, imgs[i]);
-			mFrames[i].framebuffer = new vk::Framebuffer(&_renderPass, mExtent, imageBuffer);
+			mFrames.emplace_back(&_renderPass, mExtent, imageBuffer);
 		}
 	}
-	void VkSwapChain::DestroySwapChainKHR(const VkDevice& _device)
-	{
-		for (size_t i = 0; i < mFrames.size(); ++i)
-			delete mFrames[i].framebuffer;
 
-		vkDestroySwapchainKHR(_device, mHandle, nullptr);
-		mHandle = VK_NULL_HANDLE;
+	void VkSwapChain::DestroyFrames(const VkDevice& _device)
+	{
+
 	}
 
-	void VkSwapChain::CreateSemaphores(const VkDevice& _device)
+	void VkSwapChain::CreateSynchronisation(const VkDevice& _device)
 	{
 		const VkSemaphoreCreateInfo semaphoreCreateInfo
 		{
@@ -218,25 +216,6 @@ namespace Sa
 			0,															// flags.
 		};
 
-		for (uint32 i = 0u; i < mFrames.size(); ++i)
-		{
-			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mFrames[i].acquireSemaphore),
-				CreationFailed, Rendering, L"Failed to create semaphore!");
-			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mFrames[i].presentSemaphore),
-				CreationFailed, Rendering, L"Failed to create semaphore!");
-		}
-	}
-	void VkSwapChain::DestroySemaphores(const VkDevice& _device)
-	{
-		for (uint32 i = 0; i < mFrames.size(); i++)
-		{
-			vkDestroySemaphore(_device, mFrames[i].acquireSemaphore, nullptr);
-			vkDestroySemaphore(_device, mFrames[i].presentSemaphore, nullptr);
-		}
-	}
-
-	void VkSwapChain::CreateFences(const VkDevice& _device)
-	{
 		const VkFenceCreateInfo fenceCreateInfo
 		{
 			VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,					// sType.
@@ -244,17 +223,29 @@ namespace Sa
 			VK_FENCE_CREATE_SIGNALED_BIT							// flags.
 		};
 
-		for (uint32 i = 0u; i < mFrames.size(); ++i)
+		const int framesInFlight = 2;
+
+		mFramesSynchronisation.resize(framesInFlight);
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
-			SA_VK_ASSERT(vkCreateFence(_device, &fenceCreateInfo, nullptr, &mFrames[i].fence),
+			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mFramesSynchronisation[i].acquireSemaphore),
+				CreationFailed, Rendering, L"Failed to create semaphore!");
+			SA_VK_ASSERT(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &mFramesSynchronisation[i].presentSemaphore),
+				CreationFailed, Rendering, L"Failed to create semaphore!");
+
+			SA_VK_ASSERT(vkCreateFence(_device, &fenceCreateInfo, nullptr, &mFramesSynchronisation[i].fence),
 				CreationFailed, Rendering, L"Failed to create fence!");
 		}
 	}
-	void VkSwapChain::DestroyFences(const VkDevice& _device)
-	{
-		for (uint32 i = 0; i < mFrames.size(); i++)
-			vkDestroyFence(_device, mFrames[i].fence, nullptr);
 
+	void VkSwapChain::DestroySynchronisation(const VkDevice& _device)
+	{
+		for (uint32 i = 0; i < mFramesSynchronisation.size(); i++)
+		{
+			vkDestroySemaphore(_device, mFramesSynchronisation[i].acquireSemaphore, nullptr);
+			vkDestroySemaphore(_device, mFramesSynchronisation[i].presentSemaphore, nullptr);
+			vkDestroyFence(_device, mFramesSynchronisation[i].fence, nullptr);
+		}
 	}
 }
 

@@ -37,13 +37,13 @@ namespace Sa
 			Framebuffer() = delete;
 
 			// Should analyse the render pass and create the according buffers
-			Framebuffer(const RenderPass* _renderPass, const ImageExtent& _extent);
+			SA_ENGINE_API Framebuffer(const RenderPass* _renderPass, const ImageExtent& _extent);
 
 			// Exception used for the swapchain.. 
-			Framebuffer(const RenderPass* _renderPass, const ImageExtent& _extent, VkImageBuffer& _colorBuffer);
+			SA_ENGINE_API Framebuffer(const RenderPass* _renderPass, const ImageExtent& _extent, VkImageBuffer& _colorBuffer);
 			
 			// Should clean his data
-			~Framebuffer();
+			SA_ENGINE_API ~Framebuffer();
 		
 		private:
 			void Create_Internal();

@@ -23,6 +23,13 @@ namespace Sa
 
 	class VkSwapChain
 	{
+		struct Synchronisation
+		{
+			VkSemaphore acquireSemaphore	= VK_NULL_HANDLE;
+			VkSemaphore presentSemaphore	= VK_NULL_HANDLE;
+			VkFence		fence				= VK_NULL_HANDLE;
+		};
+
 		VkSwapchainKHR mHandle = VK_NULL_HANDLE;
 
 		ImageExtent mExtent;
@@ -31,17 +38,18 @@ namespace Sa
 		uint32 mFrameIndex = 0u;
 		uint32 mImageIndex = 0u;
 
-		std::vector<VkRenderFrame> mFrames;
+		std::vector<vk::Framebuffer> mFrames;
+		std::vector<Synchronisation> mFramesSynchronisation;
 
 		void CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface,
-								const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass);
+								const VkQueueFamilyIndices& _queueFamilyIndices);
 		void DestroySwapChainKHR(const VkDevice& _device);
 
-		void CreateSemaphores(const VkDevice& _device);
-		void DestroySemaphores(const VkDevice& _device);
+		void CreateFrames(const VkDevice& _device, const RenderPass& _renderPass);
+		void DestroyFrames(const VkDevice& _device);
 
-		void CreateFences(const VkDevice& _device);
-		void DestroyFences(const VkDevice& _device);
+		void CreateSynchronisation(const VkDevice& _device);
+		void DestroySynchronisation(const VkDevice& _device);
 
 	public:
 		uint32 GetImageNum() const noexcept;
@@ -49,7 +57,7 @@ namespace Sa
 
 		const ImageExtent& GetImageExtent() const noexcept;
 
-		VkRenderFrame GetRenderFrame() const noexcept;
+		const VkRenderFrame GetRenderFrame() const noexcept;
 
 		void Create(const VkDevice& _device, const VkRenderSurface& _surface, 
 					const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass);

@@ -24,13 +24,9 @@ namespace Sa
 	public:
 		uint32 index = 0u;
 
-		// TODO Aurel: don't make it a pointer
-		vk::Framebuffer* framebuffer;
+		const vk::Framebuffer* framebuffer;
 
-		// Synchronisation
-		VkSemaphore acquireSemaphore	= VK_NULL_HANDLE;
-		VkSemaphore presentSemaphore	= VK_NULL_HANDLE;
-		VkFence fence					= VK_NULL_HANDLE;
+		VkRenderFrame(const uint32 _index, const vk::Framebuffer* _framebuffer) : index{ _index }, framebuffer{ _framebuffer } {}
 	};
 }
 
