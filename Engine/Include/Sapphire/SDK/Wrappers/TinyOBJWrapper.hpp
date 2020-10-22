@@ -9,14 +9,13 @@
 
 namespace Sa
 {
-	class AssetManager;
-	class IAssetImportResult;
+	class ModelAsset;
 
 	class TinyOBJWrapper
 	{
 	public:
-		static bool ImportOBJ(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result);
-		static bool ImportMTL(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result);
+		static bool ImportOBJ(const std::string& _resourcePath, ModelAsset& _result);
+		static bool ImportMTL(const std::string& _resourcePath, ModelAsset& _result);
 	};
 }
 

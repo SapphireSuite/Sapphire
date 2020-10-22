@@ -6,8 +6,6 @@
 
 #include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
 
-#include <Maths/Misc/Maths.hpp>
-
 namespace Sa
 {
 	ITexture* ITexture::CreateInstance(const IRenderInstance& _instance, const RawTexture& _rawTexture)

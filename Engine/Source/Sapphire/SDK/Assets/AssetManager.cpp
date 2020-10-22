@@ -12,6 +12,7 @@ namespace Sa
 		meshMgr{ *this },
 		shaderMgr{ *this },
 		textureMgr{ *this },
+		cubemapMgr{ *this },
 		renderMatMgr{ *this }
 	{
 	}
@@ -43,6 +44,8 @@ namespace Sa
 				return shaderMgr.Load(_filePath, _bKeepLoaded);
 			case Sa::AssetType::Texture:
 				return textureMgr.Load(_filePath, _bKeepLoaded);
+			case Sa::AssetType::Cubemap:
+				return cubemapMgr.Load(_filePath, _bKeepLoaded);
 			case Sa::AssetType::RenderMaterial:
 				return renderMatMgr.Load(_filePath, _bKeepLoaded);
 			default:

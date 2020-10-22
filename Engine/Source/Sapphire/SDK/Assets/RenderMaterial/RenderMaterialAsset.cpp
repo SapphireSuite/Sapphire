@@ -20,7 +20,13 @@
 
 namespace Sa
 {
-	RenderMaterialAsset::RenderMaterialAsset(IResourceMgrBase& _manager) noexcept : IAsset(_manager, AssetType::RenderMaterial)
+	RenderMaterialAsset::RenderMaterialAsset(AssetManager& _manager) noexcept : IAsset(_manager, AssetType::RenderMaterial)
+	{
+	}
+
+	RenderMaterialAsset::RenderMaterialAsset(AssetManager& _manager, RawT&& _raw) noexcept :
+		IAsset(_manager, AssetType::RenderMaterial),
+		mRawData{ Move(_raw) }
 	{
 	}
 
@@ -34,12 +40,6 @@ namespace Sa
 		_other.UnLoad(false);
 	}
 
-	RenderMaterialAsset::RenderMaterialAsset(IResourceMgrBase& _manager, RawT&& _raw) noexcept :
-		IAsset(_manager, AssetType::RenderMaterial),
-		mRawData{ Move(_raw) }
-	{
-	}
-
 	RenderMaterialAsset::~RenderMaterialAsset()
 	{
 		UnLoad_Internal(true);
@@ -49,14 +49,13 @@ namespace Sa
 	IRenderMaterial* RenderMaterialAsset::GetResource() const
 	{
 		IRenderMaterial* result = nullptr;
-		auto& manager = mManager.As<ResourceMgr<RenderMaterialAsset>>();
 
-		result = manager.Query(mFilePath);
+		result = mManager.renderMatMgr.Query(mFilePath);
 
 		if (result)
 			return result;
 
-		return manager.Load(*this);
+		return mManager.renderMatMgr.Load(*this);
 	}
 
 	bool RenderMaterialAsset::IsValid() const noexcept
@@ -230,19 +229,18 @@ namespace Sa
 	{
 		IRenderMaterial* result = IRenderMaterial::CreateInstance();
 
-		AssetManager& assetMgr = mManager.As<ResourceMgr<RenderMaterialAsset>>().GetAssetMgr();
-
 		// TODO: Remove later.
-		mRawData.renderPass = IRenderPass::mainRenderPass;
-		mRawData.cameras = { ICamera::mainCamera };
+		mRawData.renderPass = IRenderPass::main;
+		mRawData.cameras = { ICamera::main };
 		mRawData.bDynamicViewport = false;
+		mRawData.skybox = ICubemap::main;
 
 
 		// Shaders.
-		mRawData.shaders[0].shader = assetMgr.shaderMgr.Load(vertexShaderPath);
+		mRawData.shaders[0].shader = mManager.shaderMgr.Load(vertexShaderPath);
 		SA_ASSERT(mRawData.shaders[0].shader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
 
-		mRawData.shaders[1].shader = assetMgr.shaderMgr.Load(fragmentShaderPath);
+		mRawData.shaders[1].shader = mManager.shaderMgr.Load(fragmentShaderPath);
 		SA_ASSERT(mRawData.shaders[1].shader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
 
 
@@ -252,7 +250,7 @@ namespace Sa
 			if (texturePaths[i].empty())
 				continue;
 
-			mRawData.textures.data[i] = assetMgr.textureMgr.Load(texturePaths[i]);
+			mRawData.textures.data[i] = mManager.textureMgr.Load(texturePaths[i]);
 			SA_ASSERT(mRawData.textures.data[i], Nullptr, SDK_Asset, L"Texture asset nulltpr! Path invalid");
 		}
 

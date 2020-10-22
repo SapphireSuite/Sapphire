@@ -25,8 +25,8 @@ namespace Sa
 		using ResT = IMesh;
 		using RawT = RawMesh;
 
-		SA_ENGINE_API MeshAsset(IResourceMgrBase& _manager) noexcept;
-		SA_ENGINE_API MeshAsset(IResourceMgrBase& _manager, RawT&& _rawData);
+		SA_ENGINE_API MeshAsset(AssetManager& _manager) noexcept;
+		SA_ENGINE_API MeshAsset(AssetManager& _manager, RawT&& _rawData);
 		SA_ENGINE_API MeshAsset(MeshAsset&& _other) noexcept;
 		SA_ENGINE_API ~MeshAsset();
 

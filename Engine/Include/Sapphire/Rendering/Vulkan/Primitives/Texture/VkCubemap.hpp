@@ -2,10 +2,10 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_VK_TEXTURE_GUARD
-#define SAPPHIRE_RENDERING_VK_TEXTURE_GUARD
+#ifndef SAPPHIRE_RENDERING_VK_CUBEMAP_GUARD
+#define SAPPHIRE_RENDERING_VK_CUBEMAP_GUARD
 
-#include <Rendering/Framework/Primitives/Texture/ITexture.hpp>
+#include <Rendering/Framework/Primitives/Texture/ICubemap.hpp>
 
 #include <Rendering/Vulkan/Buffer/VkImageBuffer.hpp>
 
@@ -15,17 +15,19 @@
 
 namespace Sa
 {
-	class VkTexture : public ITexture
+	class VkCubemap : public ICubemap
 	{
 		VkImageBuffer mBuffer;
+		VkImageBuffer mIrradianceBuffer;
 
 		VkSampler mSampler = VK_NULL_HANDLE;
 
 	public:
-		void Create(const IRenderInstance& _instance, const RawTexture& _rawTexture) override final;
+		void Create(const IRenderInstance& _instance, const RawCubemap& _rawCubemap) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
 		VkDescriptorImageInfo CreateDescriptorImageInfo() const noexcept;
+		VkDescriptorImageInfo CreateIrradianceDescriptorImageInfo() const noexcept;
 		static VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem = 0u) noexcept;
 	};
 }

@@ -9,14 +9,15 @@
 
 #include <Core/Types/Int.hpp>
 
-#include <Rendering/Framework/Primitives/Texture/RawTexture.hpp>
-
-#include <SDK/Assets/Importer/CubemapAssetImportInfos.hpp>
+#include <SDK/Config.hpp>
 
 namespace Sa
 {
-	class AssetManager;
-	class IAssetImportResult;
+	class TextureAsset;
+	class CubemapAsset;
+
+	struct RawTexture;
+	struct CubemapAssetImportInfos;
 
 	class StbiWrapper
 	{
@@ -30,8 +31,11 @@ namespace Sa
 		static void* Allocate(uint64 _dataSize);
 		static void Free(void* _data);
 
-		static bool Import(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result);
-		static bool ImportCubemap(const CubemapAssetImportInfos& _importInfos, AssetManager& _assetMgr, IAssetImportResult& _result);
+		// Import single texture.
+		static bool Import(const std::string& _resourcePath, TextureAsset& _result);
+
+		// Import cubemap.
+		static bool Import(const CubemapAssetImportInfos& _importInfos, CubemapAsset& _result);
 	};
 }
 

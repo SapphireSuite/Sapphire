@@ -7,7 +7,7 @@
 
 #include <Core/Types/Int.hpp>
 
-#include <Rendering/Framework/Primitives/Texture/TextureType.hpp>
+#include <Rendering/Config.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -17,7 +17,6 @@ namespace Sa
 {
 	class VkDevice;
 	class VkBuffer;
-	struct RawTexture;
 
 	struct VkImageBufferCreateInfos
 	{
@@ -40,8 +39,6 @@ namespace Sa
 		VkImageViewType imageViewType = VK_IMAGE_VIEW_TYPE_2D;
 
 		uint32 imageFlags = 0u;
-
-		static VkImageBufferCreateInfos CreateCubeMapInfos();
 	};
 
 	struct VkTransitionImageInfos
@@ -68,9 +65,10 @@ namespace Sa
 		void Destroy(const VkDevice& _device);
 
 		void TransitionImageLayout(const VkDevice& _device, const VkTransitionImageInfos& _infos);
-		void CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const RawTexture& _rawTexture, uint32 _layerNum = 1u);
+		void CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, VkExtent3D _extent, uint32 _channel, uint32 _mipLevels = 1u, uint32 _layerNum = 1u);
 
-		void GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels);
+		// Old mipmap generation. Mipmap are now generated on resource import (See StbiWrapper).
+		//void GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels);
 
 		operator VkImage() const;
 		operator VkImageView() const;

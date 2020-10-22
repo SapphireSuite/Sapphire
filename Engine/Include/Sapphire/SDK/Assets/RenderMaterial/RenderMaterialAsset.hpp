@@ -24,8 +24,6 @@ namespace Sa
 
 		void Save_Internal(std::fstream& _fStream) const override;
 
-		static std::vector<RenderMaterialAsset> ImportMTL(IResourceMgrBase& _manager, const std::string& _resourcePath);
-
 	public:
 		using ResT = IRenderMaterial;
 		using RawT = RawMaterial;
@@ -35,9 +33,9 @@ namespace Sa
 
 		std::vector<std::string> texturePaths;
 
-		SA_ENGINE_API RenderMaterialAsset(IResourceMgrBase& _manager) noexcept;
+		SA_ENGINE_API RenderMaterialAsset(AssetManager& _manager) noexcept;
+		SA_ENGINE_API RenderMaterialAsset(AssetManager& _manager, RawT&& _raw) noexcept;
 		SA_ENGINE_API RenderMaterialAsset(RenderMaterialAsset&& _other) noexcept;
-		SA_ENGINE_API RenderMaterialAsset(IResourceMgrBase& _manager, RawT&& _raw) noexcept;
 		SA_ENGINE_API ~RenderMaterialAsset();
 
 		SA_ENGINE_API ResT* GetResource() const;

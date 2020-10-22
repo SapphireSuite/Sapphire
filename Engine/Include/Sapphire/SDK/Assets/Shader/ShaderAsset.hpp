@@ -35,8 +35,8 @@ namespace Sa
 		using ResT = IShader;
 		using RawT = RawShader;
 
-		SA_ENGINE_API ShaderAsset(IResourceMgrBase& _manager) noexcept;
-		SA_ENGINE_API ShaderAsset(IResourceMgrBase& _manager, RawT&& _raw) noexcept;
+		SA_ENGINE_API ShaderAsset(AssetManager& _manager) noexcept;
+		SA_ENGINE_API ShaderAsset(AssetManager& _manager, RawT&& _raw) noexcept;
 		SA_ENGINE_API ShaderAsset(ShaderAsset&& _other) noexcept;
 		SA_ENGINE_API ~ShaderAsset();
 

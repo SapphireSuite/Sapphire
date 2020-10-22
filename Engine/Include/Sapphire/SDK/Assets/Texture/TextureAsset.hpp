@@ -25,18 +25,19 @@ namespace Sa
 		using ResT = ITexture;
 		using RawT = RawTexture;
 
-		SA_ENGINE_API TextureAsset(IResourceMgrBase& _manager) noexcept;
-		SA_ENGINE_API TextureAsset(IResourceMgrBase& _manager, RawT&& _rawData) noexcept;
+		SA_ENGINE_API TextureAsset(AssetManager& _manager) noexcept;
+		SA_ENGINE_API TextureAsset(AssetManager& _manager, RawT&& _rawData) noexcept;
 		SA_ENGINE_API TextureAsset(TextureAsset&& _other) noexcept;
 		SA_ENGINE_API ~TextureAsset();
 
-		SA_ENGINE_API ITexture* GetResource() const;
+		SA_ENGINE_API ResT* GetResource() const;
 		SA_ENGINE_API bool IsValid() const noexcept override final;
 
 		SA_ENGINE_API void FlipVertically();
 
-		SA_ENGINE_API ITexture* Create(const IRenderInstance& _instance) const;
+		SA_ENGINE_API ResT* Create(const IRenderInstance& _instance) const;
 
+		TextureAsset& operator=(RawT&& _rhs);
 		TextureAsset& operator=(TextureAsset&& _rhs);
 		TextureAsset& operator=(const TextureAsset&) = delete;
 	};

@@ -60,8 +60,6 @@ namespace Sa
 		ResourceMgr(ResourceMgr&&) = delete;
 		ResourceMgr(const ResourceMgr&) = delete;
 
-		AssetManager& GetAssetMgr() const;
-
 		ResT* Load(const AssetT& _asset, bool _bPreLoaded = false);
 		std::vector<ResT*> Load(const std::vector<AssetT>& _assets, bool _bPreLoaded = false);
 		ResT* Load(const std::string& _assetPath, bool _bPreLoaded = false);

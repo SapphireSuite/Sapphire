@@ -14,7 +14,7 @@
 namespace Sa
 {
 	// TODO: CLEAN LATER.
-	IRenderPass* IRenderPass::mainRenderPass = nullptr;
+	IRenderPass* IRenderPass::main = nullptr;
 
 	uint32 VkRenderPass::GetImageNum() const noexcept
 	{

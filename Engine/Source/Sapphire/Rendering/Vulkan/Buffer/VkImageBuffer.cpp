@@ -4,8 +4,6 @@
 
 #include <Core/Algorithms/SizeOf.hpp>
 
-#include <Rendering/Framework/Primitives/Texture/RawTexture.hpp>
-
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
 
@@ -14,17 +12,6 @@
 
 namespace Sa
 {
-	VkImageBufferCreateInfos VkImageBufferCreateInfos::CreateCubeMapInfos()
-	{
-		VkImageBufferCreateInfos result;
-
-		result.layerNum = 6u;
-		result.imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
-		result.imageFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-
-		return result;
-	}
-
 	bool VkImageBuffer::IsValid()
 	{
 		return mImage != VK_NULL_HANDLE && mImageMemory != VK_NULL_HANDLE && mImageView != VK_NULL_HANDLE;
@@ -191,16 +178,15 @@ namespace Sa
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
-	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, const RawTexture& _rawTexture, uint32 _layerNum)
+	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, VkExtent3D _extent, uint32 _channel, uint32 _mipLevels, uint32 _layerNum)
 	{
 		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 
 		uint64 offset = 0u;
-		VkExtent3D extent = VkExtent3D{ _rawTexture.width, _rawTexture.height, 1 };
 
 		std::vector<VkBufferImageCopy> bufferImageCopies;
 
-		for (uint32 i = 0u; i < _rawTexture.mipLevels; ++i)
+		for (uint32 i = 0u; i < _mipLevels; ++i)
 		{
 			bufferImageCopies.emplace_back(VkBufferImageCopy{
 				offset,												// bufferOffset.
@@ -217,13 +203,13 @@ namespace Sa
 
 				{0, 0, 0},											// imageOffset.
 
-				extent												// imageExtent.
+				_extent												// imageExtent.
 				});
 
-			offset += extent.width * extent.height * static_cast<uint32>(_rawTexture.channel);
+			offset += _extent.width * _extent.height * _channel;
 
-			extent.width >>= 1;
-			extent.height >>= 1;
+			_extent.width >>= 1;
+			_extent.height >>= 1;
 		}
 
 		vkCmdCopyBufferToImage(commandBuffer, _buffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, SizeOf(bufferImageCopies), bufferImageCopies.data());
@@ -232,6 +218,7 @@ namespace Sa
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
+	/*
 	void VkImageBuffer::GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels)
 	{
 #if SA_DEBUG
@@ -241,13 +228,6 @@ namespace Sa
 		// Image format supports linear blitting.
 		SA_ASSERT(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT,
 			NotSupported, Rendering, L"Texture image format does not support linear blitting!");
-
-		/**
-		* TODO: Implement mip map generation using stb_image_resize.
-		*
-		* https://vulkan-tutorial.com/Generating_Mipmaps
-		* https://github.com/nothings/stb/blob/master/stb_image_resize.h
-		*/
 #endif
 
 		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
@@ -257,10 +237,10 @@ namespace Sa
 		{
 			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,							// sType.
 			nullptr,														// pNext.
-			0 /* Set later. */,												// srcAccessMask.
-			0 /* Set later. */,												// dstAccessMask.
-			VK_IMAGE_LAYOUT_UNDEFINED /* Set later. */,						// oldLayout.
-			VK_IMAGE_LAYOUT_UNDEFINED /* Set later. */,						// newLayout.
+			0, // Set later.												// srcAccessMask.
+			0, // Set later.												// dstAccessMask.
+			VK_IMAGE_LAYOUT_UNDEFINED, // Set later.						// oldLayout.
+			VK_IMAGE_LAYOUT_UNDEFINED, // Set later.						// newLayout.
 			VK_QUEUE_FAMILY_IGNORED,										// srcQueueFamilyIndex.
 			VK_QUEUE_FAMILY_IGNORED,										// dstQueueFamilyIndex.
 			mImage,															// image.
@@ -366,6 +346,7 @@ namespace Sa
 
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
+	*/
 
 	VkImageBuffer::operator VkImage() const
 	{

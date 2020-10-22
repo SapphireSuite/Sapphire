@@ -14,13 +14,14 @@
 #include <Rendering/Framework/Primitives/Pipeline/PolygonMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/CullingMode.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/FrontFaceMode.hpp>
-#include <Rendering/Framework/Primitives/Pipeline/IlluminationModel.hpp>
+#include <Rendering/Framework/Primitives/Pipeline/PipelineFlags.hpp>
 #include <Rendering/Framework/Primitives/Pipeline/PushConstantInfos.hpp>
 
 namespace Sa
 {
 	class IShader;
 	class ITexture;
+	class ICubemap;
 
 	class ICamera;
 	class IRenderPass;
@@ -32,6 +33,8 @@ namespace Sa
 		std::vector<const ICamera*> cameras;
 		bool bDynamicViewport = true;
 
+		const ICubemap* skybox = nullptr;
+
 		MaterialShaders shaders = MaterialShaders::defaultT;
 		MaterialTextures textures;
 		MaterialConstants matConstants;
@@ -42,7 +45,7 @@ namespace Sa
 		PolygonMode polygonMode = PolygonMode::Fill;
 		CullingMode cullingMode = CullingMode::Back;
 		FrontFaceMode frontFaceMode = FrontFaceMode::Clockwise;
-		IlluminationModel illumModel = IlluminationModel::PBR;
+		Flags<PipelineFlag> pipelineFlags = defaultPipelineFlags;
 
 		PushConstantInfos pushConstInfos = PushConstantInfos::defaultT;
 	};

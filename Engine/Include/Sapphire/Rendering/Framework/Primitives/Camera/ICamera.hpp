@@ -22,7 +22,7 @@ namespace Sa
 
 	public:
 		// TODO: CLEAN LATER.
-		SA_ENGINE_API static ICamera* mainCamera;
+		SA_ENGINE_API static ICamera* main;
 
 		Event<void(ICamera&, ImageViewExtent)> onViewportChange;
 		Event<void(ICamera&, ImageViewExtent)> onScissorChange;

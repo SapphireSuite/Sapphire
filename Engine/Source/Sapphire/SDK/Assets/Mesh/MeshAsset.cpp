@@ -11,11 +11,11 @@
 
 namespace Sa
 {
-	MeshAsset::MeshAsset(IResourceMgrBase& _manager) noexcept : IAsset(_manager, AssetType::Mesh)
+	MeshAsset::MeshAsset(AssetManager& _manager) noexcept : IAsset(_manager, AssetType::Mesh)
 	{
 	}
 
-	MeshAsset::MeshAsset(IResourceMgrBase& _manager, RawT&& _raw) :
+	MeshAsset::MeshAsset(AssetManager& _manager, RawT&& _raw) :
 		IAsset(_manager, AssetType::Mesh),
 		mRawData{ Move(_raw) }
 	{
@@ -36,14 +36,13 @@ namespace Sa
 	IMesh* MeshAsset::GetResource() const
 	{
 		IMesh* result = nullptr;
-		auto& manager = mManager.As<ResourceMgr<MeshAsset>>();
 
-		result = manager.Query(mFilePath);
+		result = mManager.meshMgr.Query(mFilePath);
 
 		if (result)
 			return result;
 
-		return manager.Load(*this);
+		return mManager.meshMgr.Load(*this);
 	}
 
 	bool MeshAsset::IsValid() const noexcept

@@ -8,12 +8,6 @@ namespace Sa
 	}
 
 	template<typename AssetT>
-	AssetManager& ResourceMgr<AssetT>::GetAssetMgr() const
-	{
-		return mAssetMgr;
-	}
-
-	template<typename AssetT>
 	typename ResourceMgr<AssetT>::ResT* ResourceMgr<AssetT>::Load(const AssetT& _asset, bool _bPreLoaded)
 	{
 		if (!_asset.IsValid())
@@ -78,7 +72,7 @@ namespace Sa
 			return it->second.ptr;
 		}
 
-		AssetT asset(*this);
+		AssetT asset(mAssetMgr);
 
 		// Can't load asset: file does not exist.
 		if (!asset.Load(_assetPath))
@@ -132,7 +126,7 @@ namespace Sa
 	template<typename AssetT>
 	AssetT ResourceMgr<AssetT>::Create(RawT&& _rawData)
 	{
-		AssetT asset(*this, Move(_rawData));
+		AssetT asset(mAssetMgr, Move(_rawData));
 
 		return asset;
 	}

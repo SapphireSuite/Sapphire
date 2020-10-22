@@ -21,6 +21,8 @@ namespace Sa
 
 		Model,
 
+		Cubemap,
+
 		Max
 	};
 }

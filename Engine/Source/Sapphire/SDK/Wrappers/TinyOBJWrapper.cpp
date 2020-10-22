@@ -200,7 +200,7 @@ namespace Sa
 	};
 
 
-	bool TinyOBJWrapper::ImportOBJ(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result)
+	bool TinyOBJWrapper::ImportOBJ(const std::string& _resourcePath, ModelAsset& _result)
 	{
 		Callback cb;
 		std::string warn; std::string error;
@@ -226,16 +226,23 @@ namespace Sa
 			return false;
 		}
 
-		for (auto it = cb.rawMeshes.begin(); it != cb.rawMeshes.end(); ++it)
-			_result.emplace_back(new MeshAsset(_assetMgr.meshMgr, Move(*it)));
+		// Add meshes.
+		_result.meshes.reserve(cb.rawMeshes.size());
 
+		for (auto it = cb.rawMeshes.begin(); it != cb.rawMeshes.end(); ++it)
+			_result.Add(Move(*it));
+
+
+		// Add render materials.
+		_result.renderMats.reserve(cb.rawMats.size());
+		
 		for (auto it = cb.rawMats.begin(); it != cb.rawMats.end(); ++it)
-			_result.emplace_back(new RenderMaterialAsset(_assetMgr.renderMatMgr, Move(*it)));
+			_result.Add(Move(*it));
 
 		return true;
 	}
 
-	bool TinyOBJWrapper::ImportMTL(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result)
+	bool TinyOBJWrapper::ImportMTL(const std::string& _resourcePath, ModelAsset& _result)
 	{
 		std::map<std::string, int> matMap;
 		std::vector<tinyobj::material_t> materials;
@@ -250,7 +257,8 @@ namespace Sa
 			return false;
 		}
 
-		_result.reserve(materials.size());
+
+		_result.renderMats.reserve(materials.size());
 
 		for (auto it = materials.begin(); it != materials.end(); ++it)
 		{
@@ -267,7 +275,7 @@ namespace Sa
 
 			infos.matConstants.refractIndex = it->ior;
 
-			_result.emplace_back(new RenderMaterialAsset(_assetMgr.renderMatMgr, Move(infos)));
+			_result.Add(Move(infos));
 		}
 
 		return true;

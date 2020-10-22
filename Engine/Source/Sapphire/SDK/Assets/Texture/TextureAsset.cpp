@@ -12,11 +12,11 @@
 
 namespace Sa
 {
-	TextureAsset::TextureAsset(IResourceMgrBase& _manager) noexcept : IAsset(_manager, AssetType::Texture)
+	TextureAsset::TextureAsset(AssetManager& _manager) noexcept : IAsset(_manager, AssetType::Texture)
 	{
 	}
 
-	TextureAsset::TextureAsset(IResourceMgrBase& _manager, RawT&& _rawData) noexcept :
+	TextureAsset::TextureAsset(AssetManager& _manager, RawT&& _rawData) noexcept :
 		IAsset(_manager, AssetType::Texture),
 		mRawData{ Move(_rawData) }
 	{
@@ -36,17 +36,16 @@ namespace Sa
 	}
 
 
-	ITexture* TextureAsset::GetResource() const
+	TextureAsset::ResT* TextureAsset::GetResource() const
 	{
 		ITexture* result = nullptr;
-		auto& manager = mManager.As<ResourceMgr<TextureAsset>>();
 
-		result = manager.Query(mFilePath);
+		result = mManager.textureMgr.Query(mFilePath);
 
 		if (result)
 			return result;
 
-		return manager.Load(*this);
+		return mManager.textureMgr.Load(*this);
 	}
 
 	bool TextureAsset::IsValid() const noexcept
@@ -66,8 +65,7 @@ namespace Sa
 		if (!(_hStream >> mRawData.width >>
 			mRawData.height >>
 			mRawData.mipLevels >>
-			reinterpret_cast<uint32&>(mRawData.channel) >>
-			reinterpret_cast<uint32&>(mRawData.type)))
+			reinterpret_cast<uint32&>(mRawData.channel)))
 		{
 			SA_LOG("Can't parse header!", Warning, SDK_Asset);
 			return false;
@@ -106,20 +104,30 @@ namespace Sa
 		_fStream << mRawData.width << ' ';
 		_fStream << mRawData.height << ' ';
 		_fStream << mRawData.mipLevels << ' ';
-		_fStream << static_cast<uint32>(mRawData.channel) << ' ';
-		_fStream << static_cast<uint32>(mRawData.type) << '\n';
+		_fStream << static_cast<uint32>(mRawData.channel) << '\n';
 
 		_fStream.write(mRawData.data, mRawData.GetTotalSize() * StbiWrapper::bitSize);
 	}
 
 
-	ITexture* TextureAsset::Create(const IRenderInstance& _instance) const
+	TextureAsset::ResT* TextureAsset::Create(const IRenderInstance& _instance) const
 	{
 		return ITexture::CreateInstance(_instance, mRawData);
 	}
 
+	TextureAsset& TextureAsset::operator=(RawT&& _rhs)
+	{
+		UnLoad(true);
+
+		mRawData = Move(_rhs);
+
+		return *this;
+	}
+
 	TextureAsset& TextureAsset::operator=(TextureAsset&& _rhs)
 	{
+		UnLoad(true);
+	
 		mRawData = Move(_rhs.mRawData);
 
 		_rhs.UnLoad(false);

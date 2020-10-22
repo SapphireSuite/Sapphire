@@ -21,11 +21,11 @@ namespace Sa
 {
 	constexpr const char tempDirectory[] = "Temp/Shaders/";
 
-	ShaderAsset::ShaderAsset(IResourceMgrBase& _manager) noexcept : IAsset(_manager, AssetType::Shader)
+	ShaderAsset::ShaderAsset(AssetManager& _manager) noexcept : IAsset(_manager, AssetType::Shader)
 	{
 	}
 
-	ShaderAsset::ShaderAsset(IResourceMgrBase& _manager, RawT&& _raw) noexcept :
+	ShaderAsset::ShaderAsset(AssetManager& _manager, RawT&& _raw) noexcept :
 		IAsset(_manager, AssetType::Shader),
 		mRawData{ _raw }
 	{
@@ -46,14 +46,13 @@ namespace Sa
 	IShader* ShaderAsset::GetResource() const
 	{
 		IShader* result = nullptr;
-		auto& manager = mManager.As<ResourceMgr<ShaderAsset>>();
 
-		result = manager.Query(mFilePath);
+		result = mManager.shaderMgr.Query(mFilePath);
 
 		if (result)
 			return result;
 
-		return manager.Load(*this);
+		return mManager.shaderMgr.Load(*this);
 	}
 
 	bool ShaderAsset::IsValid() const noexcept

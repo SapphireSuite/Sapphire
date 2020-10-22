@@ -57,7 +57,7 @@ namespace Sa
 		stbi_image_free(_data);
 	}
 
-	bool StbiWrapper::Import(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result)
+	bool StbiWrapper::Import(const std::string& _resourcePath, TextureAsset& _result)
 	{
 		// TODO: REMOVE LATER.
 		stbi_set_flip_vertically_on_load(true);
@@ -83,20 +83,19 @@ namespace Sa
 
 		GenerateMipMaps(rawData);
 
-		_result.emplace_back(new TextureAsset(_assetMgr.textureMgr, Move(rawData)));
+		_result = Move(rawData);
 
 		return true;
 	}
 
-	bool StbiWrapper::ImportCubemap(const CubemapAssetImportInfos& _importInfos, AssetManager& _assetMgr, IAssetImportResult& _result)
+	bool StbiWrapper::Import(const CubemapAssetImportInfos& _importInfos, CubemapAsset& _result)
 	{
 		// TODO: REMOVE LATER.
 		stbi_set_flip_vertically_on_load(true);
 
 
 		// TODO: CLEAN LATER.
-		RawTexture rawData;
-		rawData.type = TextureType::Cubemap;
+		RawCubemap rawData;
 
 		char* data[6]{};
 
@@ -120,18 +119,30 @@ namespace Sa
 		// TODO: fix.
 		rawData.channel = TextureChannel::RGBA;
 
-		uint64 size = rawData.GetMainSize(false) * bitSize;
-		rawData.data = reinterpret_cast<char*>(Allocate(6u * size));
+		// single image size.
+		const uint64 size = rawData.GetMapSize() * bitSize / 6u;
+		const uint64 irradianceSize = rawData.GetIrradianceMapSize() * bitSize / 6u;
 
-		// 
+		rawData.cubemapData = reinterpret_cast<char*>(Allocate(6u * size));
+		rawData.irradiancemapData = reinterpret_cast<char*>(Allocate(6u * irradianceSize));
+
+
 		for (uint32 i = 0u; i < 6u; ++i)
 		{
-			MemMove(data[i], rawData.data + i * size, size);
+			bool res = stbir_resize_uint8(reinterpret_cast<unsigned char*>(data[i]),
+				rawData.width, rawData.height, 0,
+				reinterpret_cast<unsigned char*>(rawData.irradiancemapData + i * irradianceSize),
+				rawData.GetIrradianceWidth(), rawData.GetIrradianceHeight(), 0,
+				static_cast<uint32>(rawData.channel));
+
+			SA_ASSERT(res, CreationFailed, SDK_Assert, L"Irradiance map creation failed!");
+
+			MemMove(data[i], rawData.cubemapData + i * size, size);
 
 			Free(data[i]);
 		}
 
-		_result.emplace_back(new TextureAsset(_assetMgr.textureMgr, Move(rawData)));
+		_result = Move(rawData);
 
 		return true;
 	}

@@ -19,7 +19,7 @@
 
 namespace Sa
 {
-	bool TinyGLTFWrapper::Import_Internal(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result, bool _bIsBinary)
+	bool TinyGLTFWrapper::Import_Internal(const std::string& _resourcePath, ModelAsset& _result, bool _bIsBinary)
 	{
 		tinygltf::Model model;
 		tinygltf::TinyGLTF loader;
@@ -55,13 +55,13 @@ namespace Sa
 		return true;
 	}
 
-	bool TinyGLTFWrapper::ImportGLTF(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result)
+	bool TinyGLTFWrapper::ImportGLTF(const std::string& _resourcePath, ModelAsset& _result)
 	{
-		return Import_Internal(_resourcePath, _assetMgr, _result, false);
+		return Import_Internal(_resourcePath, _result, false);
 	}
 
-	bool TinyGLTFWrapper::ImportGLB(const std::string& _resourcePath, AssetManager& _assetMgr, IAssetImportResult& _result)
+	bool TinyGLTFWrapper::ImportGLB(const std::string& _resourcePath, ModelAsset& _result)
 	{
-		return Import_Internal(_resourcePath, _assetMgr, _result, true);
+		return Import_Internal(_resourcePath, _result, true);
 	}
 }

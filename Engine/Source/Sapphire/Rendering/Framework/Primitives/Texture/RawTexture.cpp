@@ -6,29 +6,13 @@
 
 namespace Sa
 {
-	uint64 RawTexture::GetMainSize(bool _bApplyType) const noexcept
+	uint64 RawTexture::GetMainSize() const noexcept
 	{
-		uint64 result = width * height * static_cast<uint32>(channel);
-
-		if (_bApplyType)
-		{
-			if (type == TextureType::Cubemap)
-				result *= 6u;
-		}
-
-		return result;
+		return width * height * static_cast<uint32>(channel);
 	}
 
-	uint64 RawTexture::GetTotalSize(bool _bApplyType) const noexcept
+	uint64 RawTexture::GetTotalSize() const noexcept
 	{
-		uint64 result = Mipmap::ComputeTotalSize(width, height, mipLevels) * static_cast<uint32>(channel);
-
-		if (_bApplyType)
-		{
-			if (type == TextureType::Cubemap)
-				result *= 6u;
-		}
-
-		return result;
+		return Mipmap::ComputeTotalSize(width, height, mipLevels) * static_cast<uint32>(channel);
 	}
 }

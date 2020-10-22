@@ -8,11 +8,11 @@
 
 #include <Core/Algorithms/Move.hpp>
 
-#include <SDK/Assets/ResourceManager.hpp>
+#include <SDK/Assets/AssetManager.hpp>
 
 namespace Sa
 {
-	IAsset::IAsset(IResourceMgrBase& _manager, AssetType _assetType) noexcept :
+	IAsset::IAsset(AssetManager& _manager, AssetType _assetType) noexcept :
 		mManager{ _manager },
 		assetType{ _assetType }
 	{
@@ -131,8 +131,31 @@ namespace Sa
 
 		Save_Internal(fStream);
 
-		if(_bUpdateMgr)
-			mManager.Save(this, oldPath);
+		// TODO: CLEAN LATER.
+		if (_bUpdateMgr)
+		{
+			switch (assetType)
+			{
+				case AssetType::Mesh:
+					mManager.meshMgr.Save(this, oldPath);
+					break;
+				case AssetType::Shader:
+					mManager.shaderMgr.Save(this, oldPath);
+					break;
+				case AssetType::Texture:
+					mManager.textureMgr.Save(this, oldPath);
+					break;
+				case AssetType::RenderMaterial:
+					mManager.renderMatMgr.Save(this, oldPath);
+					break;
+				case AssetType::Cubemap:
+					mManager.cubemapMgr.Save(this, oldPath);
+					break;
+				default:
+					SA_ASSERT(false, InvalidParam, SDK_Asset, L"Unknown Asset type!")
+					break;
+			}
+		}
 
 		fStream.close();
 	}

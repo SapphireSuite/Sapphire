@@ -19,7 +19,7 @@ namespace Sa
 	{
 	public:
 		// TODO: CLEAN LATER
-		SA_ENGINE_API static IRenderPass* mainRenderPass;
+		SA_ENGINE_API static IRenderPass* main;
 
 		virtual void SetClearColor(const Color& _color) = 0;
 

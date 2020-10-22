@@ -13,6 +13,7 @@
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
 #include <Rendering/Vulkan/Primitives/Shader/VkShader.hpp>
 #include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
+#include <Rendering/Vulkan/Primitives/Texture/VkCubemap.hpp>
 #include <Rendering/Vulkan/Primitives/Camera/VkCamera.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -205,7 +206,7 @@ namespace Sa
 		// TODO: REMOVE LATER.
 		static int specs[2];
 		specs[0] = static_cast<int>(_infos.alphaModel);
-		specs[1] = static_cast<int>(_infos.illumModel);
+		specs[1] = static_cast<int>(_infos.pipelineFlags);
 
 
 		for (auto it = _infos.shaders.begin(); it != _infos.shaders.end(); ++it)
@@ -237,7 +238,7 @@ namespace Sa
 		{
 			0,																	// binding.
 			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
-			SizeOf(_infos.cameras),										// descriptorCount.
+			SizeOf(_infos.cameras),												// descriptorCount.
 			VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
 			nullptr																// pImmutableSamplers.
 		});
@@ -258,18 +259,32 @@ namespace Sa
 
 
 		// Texture bindings.
-		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+		if (_infos.textures.GetTextureNum() == 0)  // TODO: CLEAN LATER.
 		{
-			2,																		// binding.
-			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// descriptorType.
-			_infos.textures.GetTextureNum(),										// descriptorCount.
-			VK_SHADER_STAGE_FRAGMENT_BIT,											// stageFlags.
-			nullptr																	// pImmutableSamplers.
-		});
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				2,																		// binding.
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// descriptorType.
+				1,																		// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,											// stageFlags.
+				nullptr																	// pImmutableSamplers.
+			});
+		}
+		else
+		{
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				2,																		// binding.
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// descriptorType.
+				_infos.textures.GetTextureNum(),										// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,											// stageFlags.
+				nullptr																	// pImmutableSamplers.
+			});
+		}
 
 
 		// Light bindings.
-		if (_infos.illumModel != IlluminationModel::None)
+		if (_infos.pipelineFlags & PipelineFlag::Lighting)
 		{
 			// Material UBO bindings.
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
@@ -289,6 +304,19 @@ namespace Sa
 				{
 					4 + i,																// binding.
 					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,									// descriptorType.
+					1,																	// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+					nullptr																// pImmutableSamplers.
+				});
+			}
+
+			// Skybox (IBL) binding.
+			if (_infos.pipelineFlags & PipelineFlag::IBL)
+			{
+				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					7,																	// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
 					1,																	// descriptorCount.
 					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
 					nullptr																// pImmutableSamplers.
@@ -353,7 +381,7 @@ namespace Sa
 
 
 		// Light bindings.
-		if (_infos.illumModel != IlluminationModel::None)
+		if (_infos.pipelineFlags & PipelineFlag::Lighting)
 		{
 			// Material UBO bindigs.
 			_poolSizes.push_back(VkDescriptorPoolSize
@@ -372,6 +400,17 @@ namespace Sa
 					1,																	// descriptorCount.
 				}
 			);
+
+
+			// Skybox binding (IBL).
+			if (_infos.pipelineFlags & PipelineFlag::IBL)
+			{
+				_poolSizes.push_back(VkDescriptorPoolSize
+				{
+					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
+					1,																	// descriptorCount.
+				});
+			}
 		}
 	}
 
@@ -426,20 +465,28 @@ namespace Sa
 
 
 		// Texture bindings.
-		for (uint32 i = 0u; i < MaterialTextures::size; ++i)
+		if (!_infos.textures.albedo) // TODO: CLEAN LATER.
 		{
-			if (!_infos.textures.data[i])
-				continue;
+			_descriptorInfos.push_back(_infos.skybox->As<VkCubemap>().CreateDescriptorImageInfo());
+			_descriptorWrites.push_back(VkCubemap::CreateWriteDescriptorSet(mDescriptorSets[_index], 2));
+		}
+		else
+		{
+			for (uint32 i = 0u; i < MaterialTextures::size; ++i)
+			{
+				if (!_infos.textures.data[i])
+					continue;
 
-			const VkTexture& vkTexture = _infos.textures.data[i]->As<VkTexture>();
+				const VkTexture& vkTexture = _infos.textures.data[i]->As<VkTexture>();
 
-			_descriptorInfos.push_back(vkTexture.CreateDescriptorImageInfo());
-			_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], 2, i));
+				_descriptorInfos.push_back(vkTexture.CreateDescriptorImageInfo());
+				_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], 2, i));
+			}
 		}
 
 
 		// Light bindings.
-		if (_infos.illumModel != IlluminationModel::None)
+		if (_infos.pipelineFlags & PipelineFlag::Lighting)
 		{
 			// Material UBO bindigs.
 			_descriptorInfos.push_back(mMatConstantUniformBuffer.CreateDescriptorBufferInfo(sizeof(MaterialConstants)));
@@ -465,6 +512,13 @@ namespace Sa
 
 			_descriptorInfos.push_back(sLightBuffer.CreateDescriptorBufferInfo());
 			_descriptorWrites.push_back(sLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 6));
+
+
+			if (_infos.pipelineFlags & PipelineFlag::IBL)
+			{
+				_descriptorInfos.push_back(_infos.skybox->As<VkCubemap>().CreateIrradianceDescriptorImageInfo());
+				_descriptorWrites.push_back(VkCubemap::CreateWriteDescriptorSet(mDescriptorSets[_index], 7));
+			}
 		}
 	}
 
@@ -620,11 +674,6 @@ namespace Sa
 		//		ReCreate(_instance, _infos);
 		//	}
 		//));
-
-		if (_infos.illumModel != IlluminationModel::None)
-		{
-			// TODO: ADD Pipeline recreation event.
-		}
 	}
 
 	void VkRenderPipeline::Destroy(const IRenderInstance& _instance)

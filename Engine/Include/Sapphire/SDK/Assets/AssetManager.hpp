@@ -11,6 +11,8 @@
 #include <SDK/Assets/Mesh/MeshAsset.hpp>
 #include <SDK/Assets/Shader/ShaderAsset.hpp>
 #include <SDK/Assets/Texture/TextureAsset.hpp>
+#include <SDK/Assets/Texture/CubemapAsset.hpp>
+#include <SDK/Assets/Model/ModelAsset.hpp>
 #include <SDK/Assets/RenderMaterial/RenderMaterialAsset.hpp>
 
 namespace Sa
@@ -25,6 +27,7 @@ namespace Sa
 		ResourceMgr<MeshAsset> meshMgr;
 		ResourceMgr<ShaderAsset> shaderMgr;
 		ResourceMgr<TextureAsset> textureMgr;
+		ResourceMgr<CubemapAsset> cubemapMgr;
 		ResourceMgr<RenderMaterialAsset> renderMatMgr;
 
 		SA_ENGINE_API AssetManager(const IRenderInstance& _instance) noexcept;

@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
+#include <Rendering/Vulkan/Primitives/Texture/VkCubemap.hpp>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/Buffer/VkBuffer.hpp>
@@ -10,30 +10,26 @@
 
 namespace Sa
 {
-	void VkTexture::Create(const IRenderInstance& _instance, const RawTexture& _rawTexture)
+	void VkCubemap::Create(const IRenderInstance& _instance, const RawCubemap& _rawCubemap)
 	{
-		VkFormat format = API_GetFormat(_rawTexture.channel);
-		uint64 textureSize = _rawTexture.GetTotalSize();
+		VkFormat format = API_GetFormat(_rawCubemap.channel);
+		uint64 textureSize = _rawCubemap.GetMapSize();
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
 		VkBuffer stagingBuffer;
 		stagingBuffer.Create(device, textureSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			_rawTexture.data);
+			_rawCubemap.cubemapData);
 
 		VkImageBufferCreateInfos imageBufferCreateInfos;
 
 		imageBufferCreateInfos.format = format;
-		imageBufferCreateInfos.extent = VkExtent3D{ _rawTexture.width, _rawTexture.height, 1 };
-
+		imageBufferCreateInfos.extent = VkExtent3D{ _rawCubemap.width, _rawCubemap.height, 1 };
 		imageBufferCreateInfos.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		imageBufferCreateInfos.mipMapLevels = _rawTexture.mipLevels;
-
-		if (_rawTexture.mipLevels > 1)
-			imageBufferCreateInfos.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-
-		mBuffer.Create(device, imageBufferCreateInfos);
+		imageBufferCreateInfos.layerNum = 6u;
+		imageBufferCreateInfos.imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
+		imageBufferCreateInfos.imageFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
 
 		// Copy image to shader.
@@ -41,29 +37,52 @@ namespace Sa
 		{
 			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			_rawTexture.mipLevels,
-			imageBufferCreateInfos.layerNum,
+			1u,
+			6u,
 		};
-
-		mBuffer.TransitionImageLayout(device, undefToDstTransitionInfos);
-
-		mBuffer.CopyBufferToImage(device, stagingBuffer,
-			VkExtent3D{ _rawTexture.width, _rawTexture.height, 1 },
-			static_cast<uint32>(_rawTexture.channel),
-			_rawTexture.mipLevels,
-			imageBufferCreateInfos.layerNum);
-
-		stagingBuffer.Destroy(device);
 
 		const VkTransitionImageInfos dstToReadTransitionInfos
 		{
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-			_rawTexture.mipLevels,
-			imageBufferCreateInfos.layerNum,
+			1u,
+			6u,
 		};
 
+
+		// === Create buffer ===
+		mBuffer.Create(device, imageBufferCreateInfos);
+
+		mBuffer.TransitionImageLayout(device, undefToDstTransitionInfos);
+
+		mBuffer.CopyBufferToImage(device, stagingBuffer,
+			imageBufferCreateInfos.extent,
+			static_cast<uint32>(_rawCubemap.channel),
+			1u,
+			6u);
+
 		mBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
+
+
+		// === Create irradiance buffer ===
+		uint64 irradianceSize = _rawCubemap.GetIrradianceMapSize();
+		imageBufferCreateInfos.extent = VkExtent3D{ _rawCubemap.GetIrradianceWidth(), _rawCubemap.GetIrradianceHeight(), 1 };
+
+		stagingBuffer.UpdateData(device, _rawCubemap.irradiancemapData, irradianceSize);
+
+		mIrradianceBuffer.Create(device, imageBufferCreateInfos);
+
+		mIrradianceBuffer.TransitionImageLayout(device, undefToDstTransitionInfos);
+
+		mIrradianceBuffer.CopyBufferToImage(device, stagingBuffer,
+			imageBufferCreateInfos.extent,
+			static_cast<uint32>(_rawCubemap.channel),
+			1u,
+			6u);
+
+		mIrradianceBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
+
+		stagingBuffer.Destroy(device);
 
 
 
@@ -85,7 +104,7 @@ namespace Sa
 			VK_FALSE,													// compareEnable.
 			VK_COMPARE_OP_ALWAYS,										// compareOp.
 			0.0f,														// minLod.
-			static_cast<float>(_rawTexture.mipLevels),					// maxLod.
+			0.0f,														// maxLod.
 			VK_BORDER_COLOR_INT_OPAQUE_BLACK,							// borderColor
 			VK_FALSE,													// unnormalizedCoordinates.
 		};
@@ -94,7 +113,7 @@ namespace Sa
 			CreationFailed, Rendering, L"Failed to create texture sampler!")
 	}
 
-	void VkTexture::Destroy(const IRenderInstance& _instance)
+	void VkCubemap::Destroy(const IRenderInstance& _instance)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
@@ -102,9 +121,10 @@ namespace Sa
 		mSampler = VK_NULL_HANDLE;
 
 		mBuffer.Destroy(device);
+		mIrradianceBuffer.Destroy(device);
 	}
 
-	VkDescriptorImageInfo VkTexture::CreateDescriptorImageInfo() const noexcept
+	VkDescriptorImageInfo VkCubemap::CreateDescriptorImageInfo() const noexcept
 	{
 		return VkDescriptorImageInfo
 		{
@@ -113,7 +133,18 @@ namespace Sa
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL			// imageLayout.
 		};
 	}
-	VkWriteDescriptorSet VkTexture::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem) noexcept
+
+	VkDescriptorImageInfo VkCubemap::CreateIrradianceDescriptorImageInfo() const noexcept
+	{
+		return VkDescriptorImageInfo
+		{
+			mSampler,											// sampler.
+			mIrradianceBuffer,									// imageView.
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL			// imageLayout.
+		};
+	}
+
+	VkWriteDescriptorSet VkCubemap::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem) noexcept
 	{
 		return VkWriteDescriptorSet
 		{

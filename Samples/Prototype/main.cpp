@@ -70,8 +70,8 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(litVertShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/lit.vert");
-		result[0]->Save(litVertShaderAsset);
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/lit.vert");
+		result->Save(litVertShaderAsset);
 	}
 
 
@@ -79,8 +79,8 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(litFragShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/lit.frag");
-		result[0]->Save(litFragShaderAsset);
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/lit.frag");
+		result->Save(litFragShaderAsset);
 	}
 
 
@@ -88,8 +88,8 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(unlitVertShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.vert");
-		result[0]->Save(unlitVertShaderAsset);
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.vert");
+		result->Save(unlitVertShaderAsset);
 	}
 
 
@@ -97,8 +97,8 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(unlitFragShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.frag");
-		result[0]->Save(unlitFragShaderAsset);
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.frag");
+		result->Save(unlitFragShaderAsset);
 	}
 
 
@@ -154,8 +154,8 @@ void CreateMagikarp(AssetManager& _assetMgr)
 		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.importer.Import(textureResources[i]);
-			result[0]->Save(textureAssets[i]);
+			auto result = _assetMgr.importer.Import(textureResources[i]);
+			result->Save(textureAssets[i]);
 		}
 	}
 
@@ -172,19 +172,20 @@ void CreateMagikarp(AssetManager& _assetMgr)
 		if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.importer.Import("../../Samples/Prototype/Resources/Magikarp/Magikarp.obj");
+			auto resPtr = _assetMgr.importer.Import("../../Samples/Prototype/Resources/Magikarp/Magikarp.obj");
+			ModelAsset& result = resPtr->As<ModelAsset>();
 			
 			// meshes
-			result[0]->As<MeshAsset>().ComputeTangents();
-			result[0]->Save(meshAssets[0]);
-			magikarpBodyMesh = result[0]->As<MeshAsset>().GetResource();
+			result.meshes[0].ComputeTangents();
+			result.meshes[0].Save(meshAssets[0]);
+			magikarpBodyMesh = result.meshes[0].GetResource();
 
-			result[1]->As<MeshAsset>().ComputeTangents();
-			result[1]->Save(meshAssets[1]);
-			magikarpEyesMesh = result[1]->As<MeshAsset>().GetResource();
+			result.meshes[1].ComputeTangents();
+			result.meshes[1].Save(meshAssets[1]);
+			magikarpEyesMesh = result.meshes[1].GetResource();
 
 
-			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
+			RenderMaterialAsset& bodyRenderMat = result.renderMats[0];
 			bodyRenderMat.vertexShaderPath = litVertShaderAsset;
 			bodyRenderMat.fragmentShaderPath = litFragShaderAsset;
 			bodyRenderMat.texturePaths = { textureAssets[0] };
@@ -192,7 +193,7 @@ void CreateMagikarp(AssetManager& _assetMgr)
 			magikarpBodyMat = bodyRenderMat.GetResource();
 
 
-			RenderMaterialAsset& eyesRenderMat = result[3]->As<RenderMaterialAsset>();
+			RenderMaterialAsset& eyesRenderMat = result.renderMats[1];
 			eyesRenderMat.vertexShaderPath = litVertShaderAsset;
 			eyesRenderMat.fragmentShaderPath = litFragShaderAsset;
 			eyesRenderMat.texturePaths = { textureAssets[1] };
@@ -213,16 +214,16 @@ void CreateGizmo(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(vertShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/gizmo.vert");
-		result[0]->Save(vertShaderAsset);
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/gizmo.vert");
+		result->Save(vertShaderAsset);
 	}
 
 	// Fragment Shader.
 	if (!_assetMgr.shaderMgr.Load(fragShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/gizmo.frag");
-		result[0]->Save(fragShaderAsset);
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/gizmo.frag");
+		result->Save(fragShaderAsset);
 	}
 
 
@@ -237,7 +238,7 @@ void CreateGizmo(AssetManager& _assetMgr)
 		gizmoRawMat.uniformBufferSize = sizeof(Mat4f);
 		gizmoRawMat.alphaModel = AlphaModel::Opaque;
 		gizmoRawMat.cullingMode = CullingMode::None;
-		gizmoRawMat.illumModel = IlluminationModel::None;
+		gizmoRawMat.pipelineFlags = 0;
 
 		RenderMaterialAsset gizmoMatAsset = _assetMgr.renderMatMgr.Create(Move(gizmoRawMat));
 		
@@ -261,8 +262,8 @@ void CreateHelmet(AssetManager& _assetMgr)
 	if (!_assetMgr.textureMgr.Load(textureAssets[0], true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.Import(textureResources[0]);
-		result[0]->Save(textureAssets[0]);
+		auto result = _assetMgr.importer.Import(textureResources[0]);
+		result->Save(textureAssets[0]);
 	}
 
 
@@ -275,14 +276,15 @@ void CreateHelmet(AssetManager& _assetMgr)
 		if (!helmetMesh || !helmetMesh)
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.importer.Import("../../Samples/Prototype/Resources/DamagedHelmet/DamagedHelmet.gltf");
+			auto resPtr = _assetMgr.importer.Import("../../Samples/Prototype/Resources/DamagedHelmet/DamagedHelmet.gltf");
+			ModelAsset& result = resPtr->As<ModelAsset>();
 
 			// meshes
-			result[0]->Save(meshAssets[0]);
-			helmetMesh = result[0]->As<MeshAsset>().GetResource();
+			result.meshes[0].Save(meshAssets[0]);
+			helmetMesh = result.meshes[0].GetResource();
 
 
-			RenderMaterialAsset& bodyRenderMat = result[2]->As<RenderMaterialAsset>();
+			RenderMaterialAsset& bodyRenderMat = result.renderMats[0];
 			bodyRenderMat.vertexShaderPath = litVertShaderAsset;
 			bodyRenderMat.fragmentShaderPath = litFragShaderAsset;
 			bodyRenderMat.texturePaths = { textureAssets[0] };
@@ -313,9 +315,9 @@ void CreateBricks(AssetManager& _assetMgr)
 		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.importer.Import(textureResources[i]);
-			result[0]->As<TextureAsset>().FlipVertically();
-			result[0]->Save(textureAssets[i]);
+			auto result = _assetMgr.importer.Import(textureResources[i]);
+			result->As<TextureAsset>().FlipVertically();
+			result->Save(textureAssets[i]);
 		}
 	}
 
@@ -358,8 +360,8 @@ void CreateWindow(AssetManager& _assetMgr)
 		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
 		{
 			// Import on load failed.
-			IAssetImportResult result = _assetMgr.importer.Import(textureResources[i]);
-			result[0]->Save(textureAssets[i]);
+			auto result = _assetMgr.importer.Import(textureResources[i]);
+			result->Save(textureAssets[i]);
 		}
 	}
 
@@ -411,8 +413,8 @@ void CreateSkybox(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(skyboxVertShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/skybox.vert");
-		result[0]->Save(skyboxVertShaderAsset);
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/skybox.vert");
+		result->Save(skyboxVertShaderAsset);
 	}
 
 
@@ -420,16 +422,18 @@ void CreateSkybox(AssetManager& _assetMgr)
 	if (!_assetMgr.shaderMgr.Load(skyboxFragShaderAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/skybox.frag");
-		result[0]->Save(skyboxFragShaderAsset);
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/skybox.frag");
+		result->Save(skyboxFragShaderAsset);
 	}
 
 
-	if (!_assetMgr.textureMgr.Load(textureAsset, true)) // Try load.
+	ICubemap::main = _assetMgr.cubemapMgr.Load(textureAsset, true);
+	if (!ICubemap::main) // Try load.
 	{
 		// Import on load failed.
-		IAssetImportResult result = _assetMgr.importer.ImportCubemap(cubemapInfos);
-		result[0]->Save(textureAsset);
+		CubemapAsset result = _assetMgr.importer.Import(cubemapInfos);
+		result.Save(textureAsset);
+		ICubemap::main = result.GetResource();
 	}
 
 
@@ -440,14 +444,14 @@ void CreateSkybox(AssetManager& _assetMgr)
 	{
 		RawMaterial infos;
 		infos.cullingMode = CullingMode::None;
-		infos.illumModel =	IlluminationModel::None;
+		infos.pipelineFlags = 0;
 		infos.uniformBufferSize = 0u;
 
 		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
 
 		renderMatAsset.vertexShaderPath = skyboxVertShaderAsset;
 		renderMatAsset.fragmentShaderPath = skyboxFragShaderAsset;
-		renderMatAsset.texturePaths = { textureAsset };
+		//renderMatAsset.texturePaths = { textureAsset };
 
 		renderMatAsset.Save(matAsset);
 
@@ -458,11 +462,13 @@ void CreateSkybox(AssetManager& _assetMgr)
 void CreateResources(AssetManager& _assetMgr)
 {
 	CreateDefaultResources(_assetMgr);
+
+	CreateSkybox(_assetMgr);
+	
 	CreateMagikarp(_assetMgr);
 	CreateGizmo(_assetMgr);
 	CreateBricks(_assetMgr);
 	CreateWindow(_assetMgr);
-	//CreateSkybox(_assetMgr);
 
 	//CreateHelmet(_assetMgr);
 }
@@ -511,11 +517,11 @@ int main()
 	mainRenderPassInfos.sampling = SampleBits::Sample8Bits;
 
 	Sa::VkRenderPass& mainRenderPass = surface.CreateRenderPass(instance, mainRenderPassInfos).As<Sa::VkRenderPass>();
-	IRenderPass::mainRenderPass = &mainRenderPass;
+	IRenderPass::main = &mainRenderPass;
 
 	VkCamera mainCamera(surface.GetImageExtent());
 	mainCamera.Create(instance, surface);
-	VkCamera::mainCamera = &mainCamera;
+	VkCamera::main = &mainCamera;
 
 	AssetManager assetMgr(instance);
 	CreateResources(assetMgr);
@@ -693,9 +699,9 @@ int main()
 		cubeMesh->Draw(frame);
 
 
-		//// Draw skybox.
-		//skyboxMat->Bind(frame);
-		//cubeMesh->Draw(frame);
+		// Draw skybox.
+		skyboxMat->Bind(frame);
+		cubeMesh->Draw(frame);
 
 
 		// Draw gizmos.

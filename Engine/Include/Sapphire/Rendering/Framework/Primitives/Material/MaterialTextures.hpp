@@ -11,18 +11,21 @@ namespace Sa
 {
 	class ITexture;
 
-	union MaterialTextures
+	struct MaterialTextures
 	{
 		static constexpr uint32 size = 4u;
 		
-		const ITexture* data[size]{};
-
-		struct
+		union
 		{
-			const ITexture* albedo;
-			const ITexture* normalMap;
-			const ITexture* specularMap;
-			const ITexture* roughMap;
+			const ITexture* data[size]{};
+
+			struct
+			{
+				const ITexture* albedo;
+				const ITexture* normalMap;
+				const ITexture* specularMap;
+				const ITexture* roughMap;
+			};
 		};
 
 		uint32 GetTextureNum() const noexcept;

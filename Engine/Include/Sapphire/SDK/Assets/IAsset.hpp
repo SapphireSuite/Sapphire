@@ -16,16 +16,16 @@
 
 namespace Sa
 {
-	class IResourceMgrBase;
+	class AssetManager;
 
 	class IAsset : public IInterface
 	{
 	protected:
-		IResourceMgrBase& mManager;
+		AssetManager& mManager;
 
 		std::string mFilePath;
 
-		IAsset(IResourceMgrBase& _manager, AssetType _assetType) noexcept;
+		IAsset(AssetManager& _manager, AssetType _assetType) noexcept;
 
 		virtual bool PreLoadOperation(const std::string& _filePath);
 		virtual bool PostLoadOperation(const std::string& _filePath);
