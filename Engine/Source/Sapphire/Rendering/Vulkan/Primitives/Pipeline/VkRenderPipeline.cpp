@@ -382,8 +382,8 @@ namespace Sa
 		// Static UBO binding.
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
-			VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,										// type.
-			_imageNum,																// descriptorCount.
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,										// type.
+			_imageNum * 100,																// descriptorCount.
 		});
 
 
@@ -393,7 +393,7 @@ namespace Sa
 			_poolSizes.push_back(VkDescriptorPoolSize
 			{
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-				_imageNum,															// descriptorCount.
+				_imageNum * 100															// descriptorCount.
 			});
 		}
 
@@ -402,7 +402,7 @@ namespace Sa
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// type.
-			1,																		// descriptorCount.
+			1 * 100,																		// descriptorCount.
 		});
 
 
@@ -413,7 +413,7 @@ namespace Sa
 			_poolSizes.push_back(VkDescriptorPoolSize
 			{
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-				1,																	// descriptorCount.
+				1 * 100,																	// descriptorCount.
 			});
 
 

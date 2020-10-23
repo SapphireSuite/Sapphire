@@ -35,7 +35,7 @@ namespace Sa
 
 	const VkRenderFrame VkSwapChain::GetRenderFrame() const noexcept
 	{
-		return VkRenderFrame{ mImageIndex, &mFrames[mImageIndex] };
+		return VkRenderFrame{ mImageIndex, mFrames[mImageIndex] };
 	}
 
 	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface,
@@ -130,7 +130,6 @@ namespace Sa
 		mImageFormat = surfaceFormat.format;
 		mExtent = _surface.ChooseSwapExtent();
 
-
 		// Min image count to avoid driver blocking.
 		uint32 imageNum = _surface.GetSupportDetails().capabilities.minImageCount + 1;
 
@@ -191,20 +190,22 @@ namespace Sa
 			VkImageBufferCreateInfos colorBufferCreateInfos{};
 			colorBufferCreateInfos.format = _renderPass.GetColorFormat();
 			colorBufferCreateInfos.extent = mExtent;
-			colorBufferCreateInfos.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+			colorBufferCreateInfos.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 			colorBufferCreateInfos.mipMapLevels = 1;
 			colorBufferCreateInfos.sampleCount = static_cast<VkSampleCountFlagBits>(SampleBits::Sample1Bit);
 			colorBufferCreateInfos.aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
 
 			VkImageBuffer imageBuffer{};
 			imageBuffer.CreateFromImage(_device, colorBufferCreateInfos, imgs[i]);
-			mFrames.emplace_back(&_renderPass, mExtent, imageBuffer);
+			mFrames.emplace_back(new vk::Framebuffer{ &_renderPass, mExtent, imageBuffer });
 		}
 	}
 
 	void VkSwapChain::DestroyFrames(const VkDevice& _device)
 	{
-
+		for (size_t i = 0; i < mFrames.size(); ++i)
+			delete mFrames[i];
+		mFrames.clear();
 	}
 
 	void VkSwapChain::CreateSynchronisation(const VkDevice& _device)

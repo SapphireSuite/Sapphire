@@ -38,7 +38,7 @@ namespace Sa
 		uint32 mFrameIndex = 0u;
 		uint32 mImageIndex = 0u;
 
-		std::vector<vk::Framebuffer> mFrames;
+		std::vector<vk::Framebuffer*> mFrames;
 		std::vector<Synchronisation> mFramesSynchronisation;
 
 		void CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface,

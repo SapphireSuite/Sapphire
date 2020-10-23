@@ -16,12 +16,13 @@ namespace Sa::vk
 		VkDevice device = VkRenderInstance::GetInstance()->AsPtr<VkRenderInstance>()->GetDevice();
 
 		// hardcoded values for now
-		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(), _renderPass->GetSampleBits()));
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(),
+																_renderPass->GetSampleBits()));
 		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat()));
 		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent, _renderPass->GetSampleBits()));
 
-		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
-		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 1.f, 0.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 1.f, 0.f });
 		mClearValues.emplace_back(VkClearValue{ 1.f, 0.f });
 
 		Create_Internal();
@@ -33,12 +34,13 @@ namespace Sa::vk
 		VkDevice device = VkRenderInstance::GetInstance()->AsPtr<VkRenderInstance>()->GetDevice();
 
 		// hardcoded values for now
-		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(), _renderPass->GetSampleBits()));
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(),
+																_renderPass->GetSampleBits()));
 		mBuffers.emplace_back(_colorBuffer);
 		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent, _renderPass->GetSampleBits()));
 
-		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
-		mClearValues.emplace_back(VkClearValue{ 0.2f, 0.2f, 1.f, 1.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 1.f, 0.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 1.f, 0.f });
 		mClearValues.emplace_back(VkClearValue{ 1.f, 0.f });
 	
 		Create_Internal();
