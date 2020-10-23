@@ -13,7 +13,7 @@ namespace Sa
 
 	struct MaterialTextures
 	{
-		static constexpr uint32 size = 4u;
+		static constexpr uint32 size = 6u;
 		
 		union
 		{
@@ -24,7 +24,9 @@ namespace Sa
 				const ITexture* albedo;
 				const ITexture* normalMap;
 				const ITexture* specularMap;
+				const ITexture* metallicMap;
 				const ITexture* roughMap;
+				const ITexture* ambiantOcclusion;
 			};
 		};
 

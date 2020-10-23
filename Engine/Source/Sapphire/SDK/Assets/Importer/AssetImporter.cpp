@@ -46,6 +46,8 @@ namespace Sa
 
 	std::unique_ptr<IAsset> AssetImporter::Import(const std::string& _resourcePath)
 	{
+		SA_LOG("Import Asset", Infos, SDK_Asset);
+
 		std::string ext = GetResourceExtension(_resourcePath);
 
 		if (ModelAsset* asset = TryImportModel(_resourcePath, ext))

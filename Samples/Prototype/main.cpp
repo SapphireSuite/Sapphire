@@ -62,6 +62,11 @@ IRenderMaterial* windowMat = nullptr;
 // Skybox.
 IRenderMaterial* skyboxMat = nullptr;
 
+// Spheres.
+IMesh* sphereMesh = nullptr;
+IRenderMaterial* sphereMats[12]{};
+
+
 void CreateDefaultResources(AssetManager& _assetMgr)
 {
 	// Lit Vertex Shader.
@@ -124,7 +129,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	}
 }
 
-void CreateMagikarp(AssetManager& _assetMgr)
+void CreateMagikarp(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
 	constexpr const char* textureAssets[] = {
 		"Bin/Magikarp/Body_T.spha",
@@ -198,10 +203,18 @@ void CreateMagikarp(AssetManager& _assetMgr)
 			eyesRenderMat.Save(materialAssets[1]);
 			magikarpEyesMat = eyesRenderMat.GetResource();
 		}
+
+		DefaultUniformBuffer ubo;
+		ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-1.0f, -1.0, 20.0f),
+			Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix());
+		ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
+
+		magikarpBodyMat->InitVariable(_instance, &ubo, sizeof(ubo));
+		magikarpEyesMat->InitVariable(_instance, &ubo, sizeof(ubo));
 	}
 }
 
-void CreateGizmo(AssetManager& _assetMgr)
+void CreateGizmo(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
 	constexpr const char* vertShaderAsset = "Bin/Gizmo/Gizmo_VS.spha";
 	constexpr const char* fragShaderAsset = "Bin/Gizmo/Gizmo_FS.spha";
@@ -248,7 +261,7 @@ void CreateGizmo(AssetManager& _assetMgr)
 	}
 }
 
-void CreateHelmet(AssetManager& _assetMgr)
+void CreateHelmet(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
 	constexpr const char* textureAssets[] = { "Bin/Helmet/Albedo_T.spha" };
 	constexpr const char* meshAssets[] = { "Bin/Helmet/Helmet_M.spha" };
@@ -292,7 +305,7 @@ void CreateHelmet(AssetManager& _assetMgr)
 	}
 }
 
-void CreateBricks(AssetManager& _assetMgr)
+void CreateBricks(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
 	constexpr const char* textureAssets[] = {
 	"Bin/Bricks/albedo_T.spha",
@@ -338,9 +351,16 @@ void CreateBricks(AssetManager& _assetMgr)
 
 		bricksMat = renderMatAsset.GetResource();
 	}
+
+	DefaultUniformBuffer ubo;
+	ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(15.0f, 0.0, 22.0f),
+		Quatf(-90.0f, Vec3f::Up), Vec3f(5.0f)).Matrix());
+	ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
+
+	bricksMat->InitVariable(_instance, &ubo, sizeof(ubo));
 }
 
-void CreateWindow(AssetManager& _assetMgr)
+void CreateWindow(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
 	constexpr const char* textureAssets[] = {
 		"Bin/Window/albedo_T.spha",
@@ -389,23 +409,30 @@ void CreateWindow(AssetManager& _assetMgr)
 
 		windowMat = renderMatAsset.GetResource();
 	}
+
+	DefaultUniformBuffer ubo;
+	ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-15.0f, 0.0, 22.0f),
+		Quatf(90.0f, Vec3f::Up), Vec3f(5.0f)).Matrix());
+	ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
+
+	windowMat->InitVariable(_instance, &ubo, sizeof(ubo));
 }
 
-void CreateSkybox(AssetManager& _assetMgr)
+void CreateSkybox(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
-	constexpr const char* textureAsset = "Bin/Skybox/Skybox_CM.spha";
+	constexpr const char* textureAsset = "Bin/Skybox/Skybox_Cube_CM.spha";
 	const CubemapAssetImportInfos cubemapInfos(
-		"../../Samples/Prototype/Resources/Skybox/right.jpg",
-		"../../Samples/Prototype/Resources/Skybox/left.jpg",
-		"../../Samples/Prototype/Resources/Skybox/bottom.jpg",
-		"../../Samples/Prototype/Resources/Skybox/top.jpg",
-		"../../Samples/Prototype/Resources/Skybox/front.jpg",
-		"../../Samples/Prototype/Resources/Skybox/back.jpg");
+		"../../Samples/Prototype/Resources/Skybox/Cube/right.jpg",
+		"../../Samples/Prototype/Resources/Skybox/Cube/left.jpg",
+		"../../Samples/Prototype/Resources/Skybox/Cube/bottom.jpg",
+		"../../Samples/Prototype/Resources/Skybox/Cube/top.jpg",
+		"../../Samples/Prototype/Resources/Skybox/Cube/front.jpg",
+		"../../Samples/Prototype/Resources/Skybox/Cube/back.jpg");
 	
 	constexpr const char* skyboxVertShaderAsset = "Bin/Shaders/skybox_VS.spha";
 	constexpr const char* skyboxFragShaderAsset = "Bin/Shaders/skybox_FS.spha";
 
-	constexpr const char* matAsset = "Bin/Skybox/Skybox_Mat.spha";
+	constexpr const char* matAsset = "Bin/Skybox/Skybox_Cube_Mat.spha";
 
 	// Vertex Shader.
 	if (!_assetMgr.shaderMgr.Load(skyboxVertShaderAsset, true)) // Try load.
@@ -457,36 +484,218 @@ void CreateSkybox(AssetManager& _assetMgr)
 	}
 }
 
-void CreateResources(AssetManager& _assetMgr)
+void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
+{
+	constexpr const char* meshAsset = "Bin/Spheres/sphere_M.spha";
+
+	std::vector<std::string> names =
+	{
+		"Bricks",
+		"Gold",
+		"Grass",
+		"Hardwood",
+		"IndustrialBricks",
+		"Rusted",
+		"ScuffedGold",
+		"ScuffedTitanium",
+		"Shoreline",
+		"Snow",
+		"WarpedSheet",
+		"Worn"
+	};
+	std::vector<std::vector<std::string>> matResourcePathes =
+	{
+		{
+			"red-bricks2_albedo",
+			"red-bricks2_normal",
+			"red-bricks2_height",
+			"red-bricks2_metallness",
+			"red-bricks2_roughness",
+			"red-bricks2_ao"
+		},
+		{
+			"lightgold_albedo",
+			"lightgold_normal",
+			"",
+			"lightgold_metallic",
+			"lightgold_roughness"
+		},
+		{
+			"grass1-albedo3",
+			"grass1-normal",
+			"grass1-height",
+			"",
+			"grass1-rough",
+			"grass1-ao"
+		},
+		{
+			"hardwood-brown-planks-albedo",
+			"hardwood-brown-planks-normal",
+			"hardwood-brown-planks-height",
+			"hardwood-brown-planks-metallic",
+			"hardwood-brown-planks-roughness",
+			"hardwood-brown-planks-ao"
+		},
+		{
+			"industrial-narrow-brick-albedo",
+			"industrial-narrow-brick-normal",
+			"industrial-narrow-brick-height",
+			"industrial-narrow-brick-metallic",
+			"industrial-narrow-brick-roughness",
+			"industrial-narrow-brick-ao"
+		},
+		{
+			"rustediron-streaks_basecolor",
+			"rustediron-streaks_normal",
+			"",
+			"rustediron-streaks_metallic",
+			"rustediron-streaks_roughness"
+		},
+		{
+			"gold-scuffed_basecolor-boosted",
+			"gold-scuffed_normal",
+			"",
+			"gold-scuffed_metallic",
+			"gold-scuffed_roughness",
+		},
+		{
+			"Titanium-Scuffed_basecolor",
+			"Titanium-Scuffed_normal",
+			"",
+			"Titanium-Scuffed_metallic",
+			"Titanium-Scuffed_roughness"
+		},
+		{
+			"rocky-shoreline1-albedo",
+			"rocky-shoreline1-normal",
+			"rocky-shoreline1-height",
+			"rocky-shoreline1-metallic",
+			"rocky-shoreline1-roughness",
+			"rocky-shoreline1-ao"
+		},
+		{
+			"snowdrift1_albedo",
+			"snowdrift1_Normal",
+			"snowdrift1_Height",
+			"snowdrift1_Metallic",
+			"snowdrift1_Roughness",
+			"snowdrift1_ao"
+		},
+		{
+			"warped-sheet-metal_albedo",
+			"warped-sheet-metal_normal",
+			"warped-sheet-metal_height",
+			"warped-sheet-metal_metallic",
+			"warped-sheet-metal_roughness",
+			"warped-sheet-metal_ao"
+		},
+		{
+			"worn_metal4_albedo",
+			"worn_metal4_Normal",
+			"worn_metal4_Height",
+			"worn_metal4_Metallic",
+			"worn_metal4_Roughness",
+			"worn_metal4_ao"
+		}
+	};
+
+	// Textures.
+	for (uint32 i = 0u; i < SizeOf(names); ++i)
+	{
+		for (uint32 j = 0u; j < SizeOf(matResourcePathes[i]); ++j)
+		{
+			if (matResourcePathes[i][j].empty())
+				continue;
+
+			std::string sphaPath = "Bin/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".spha";
+			std::string resPath = "../../Samples/Prototype/Resources/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".png";
+
+			if (!_assetMgr.textureMgr.Load(sphaPath, true)) // Try load.
+			{
+				// Import on load failed.
+				auto result = _assetMgr.importer.Import(resPath);
+				result->Save(sphaPath);
+			}
+		}
+	}
+
+	// Mesh.
+	sphereMesh = _assetMgr.meshMgr.Load(meshAsset);
+	
+	if (!sphereMesh)
+	{
+		// Import on load failed.
+		auto resPtr = _assetMgr.importer.Import("../../Samples/Prototype/Resources/Spheres/sphere.obj");
+		ModelAsset& result = resPtr->As<ModelAsset>();
+
+		// meshes
+		result.meshes[0].ComputeTangents();
+		result.meshes[0].Save(meshAsset);
+		sphereMesh = result.meshes[0].GetResource();
+	}
+
+	// Materials.
+	for (uint32 i = 0u; i < SizeOf(sphereMats); ++i)
+	{
+		std::string path = "Bin/Spheres/" + names[i] + '/' + names[i] + "_Mat.spha";
+
+		sphereMats[i] = _assetMgr.renderMatMgr.Load(path);
+
+		if (!sphereMats[i])
+		{
+			RawMaterial infos;
+
+			RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
+
+			renderMatAsset.vertexShaderPath = litVertShaderAsset;
+			renderMatAsset.fragmentShaderPath = litFragShaderAsset;
+
+			renderMatAsset.texturePaths.reserve(matResourcePathes[i].size());
+
+			for (uint32 j = 0u; j < SizeOf(matResourcePathes[i]); ++j)
+			{
+				if (matResourcePathes[i][j].empty())
+					continue;
+
+				renderMatAsset.texturePaths.emplace_back("Bin/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".spha");
+			}
+
+			renderMatAsset.Save(path);
+
+			sphereMats[i] = renderMatAsset.GetResource();
+		}
+	}
+
+	for (uint32 x = 0u; x < 4; ++x)
+	{
+		for (uint32 y = 0u; y < 3; ++y)
+		{
+			DefaultUniformBuffer ubo;
+			ubo.modelMat = API_ConvertCoordinateSystem(Mat4f::MakeTransform(Vec3f(-10.0f + x * 5.0f,-2.0f + y * 5.0f, -5.0f), Quatf(180_deg, Vec3f::Up), Vec3f::One * 0.1f));
+			ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
+
+			sphereMats[3 * x + y]->InitVariable(_instance, &ubo, sizeof(ubo));
+		}
+	}
+}
+
+void CreateResources(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
 	CreateDefaultResources(_assetMgr);
 
-	CreateSkybox(_assetMgr);
-	
-	CreateMagikarp(_assetMgr);
-	CreateGizmo(_assetMgr);
-	CreateBricks(_assetMgr);
-	CreateWindow(_assetMgr);
+	CreateSkybox(_instance, _assetMgr);
 
-	//CreateHelmet(_assetMgr);
+	CreateSpheres(_instance, _assetMgr);
+
+	CreateGizmo(_instance, _assetMgr);
+
+	CreateMagikarp(_instance, _assetMgr);
+	CreateBricks(_instance, _assetMgr);
+	CreateWindow(_instance, _assetMgr);
+
+	//CreateHelmet(_instance, _assetMgr);
 }
 
-void DestroyResources(AssetManager& _assetMgr)
-{
-	// === Gizmo ===
-	_assetMgr.renderMatMgr.Unload(gizmoMat);
-
-
-	// === Magikarp ===
-	_assetMgr.renderMatMgr.Unload(magikarpEyesMat);
-	_assetMgr.renderMatMgr.Unload(magikarpBodyMat);
-
-	_assetMgr.meshMgr.Unload(magikarpEyesMesh);
-	_assetMgr.meshMgr.Unload(magikarpBodyMesh);
-
-
-	_assetMgr.Clear();
-}
 
 int main()
 {
@@ -518,66 +727,35 @@ int main()
 	IRenderPass::main = &mainRenderPass;
 
 	Camera& mainCamera = instance.InstantiateCamera();
-	mainCamera.SetPosition(Vec3f(-2.0f, 1.0f, 5.0f));
+	mainCamera.SetPosition(Vec3f(-2.0f, 2.0f, -15.0f));
+	mainCamera.SetRotation(Quatf(180_deg, Vec3f::Up));
 	TransffPRS camTr = mainCamera.GetTransform();
 
 	AssetManager assetMgr(instance);
-	CreateResources(assetMgr);
+	CreateResources(instance, assetMgr);
 
 
 	// Create Lights.
 	PLightInfos pLight1;
-	pLight1.position = API_ConvertCoordinateSystem(Vec3f(-1.0f, 2.0f, 3.0f));
-	pLight1.color = Vec3f(0.9f, 0.7f, 0.3f);
+	pLight1.position = API_ConvertCoordinateSystem(Vec3f(-1.0f, 2.0f, -10.0f));
+	//pLight1.color = Vec3f(0.9f, 0.7f, 0.3f);
+	pLight1.intensity = 5.0f;
 
-	uint32 pLight1ID = instance.InstantiatePointLight(pLight1);
+	uint32 pLight1ID = uint32(-1);
+	pLight1ID = instance.InstantiatePointLight(pLight1);
 
-	PLightInfos pLight2;
-	pLight2.position = API_ConvertCoordinateSystem(Vec3f(2.0f, 2.0f, -2.0f));
-	pLight2.color = Vec3f(0.9f, 0.7f, 0.3f);
-	pLight2.range = 5.0f;
-	pLight2.intensity = 5.0f;
+	//PLightInfos pLight2;
+	//pLight2.position = API_ConvertCoordinateSystem(Vec3f(2.0f, 2.0f, -2.0f));
+	//pLight2.color = Vec3f(0.9f, 0.7f, 0.3f);
+	//pLight2.range = 5.0f;
+	//pLight2.intensity = 5.0f;
 
-	uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
+	//uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
 
-
-	// Magikarp
-	{
-		DefaultUniformBuffer ubo;
-		ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-1.0f, -1.0, -2.5f),
-			Quatf(180, Vec3f::Up) * Quatf(-90, Vec3f::Right), Vec3f(0.000001f)).Matrix());
-		ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ?  ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
-
-		magikarpBodyMat->InitVariable(instance, &ubo, sizeof(ubo));
-		magikarpEyesMat->InitVariable(instance, &ubo, sizeof(ubo));
-	}
-
-
-	// Bricks
-	{
-		DefaultUniformBuffer ubo;
-		ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(6.0f, 0.0, 2.0f),
-			Quatf(-90.0f, Vec3f::Up), Vec3f(5.0f)).Matrix());
-		ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
-		
-		bricksMat->InitVariable(instance, &ubo, sizeof(ubo));
-	}
-
-
-	// Window.
-	{
-		DefaultUniformBuffer ubo;
-		ubo.modelMat = API_ConvertCoordinateSystem(TransffPRS(Vec3f(-6.0f, 0.0, 2.0f),
-			Quatf(90.0f, Vec3f::Up), Vec3f(5.0f)).Matrix());
-		ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
-		
-		windowMat->InitVariable(instance, &ubo, sizeof(ubo));
-	}
-
-	{
-		Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-		gizmoMat->InitVariable(instance, &modelMat, sizeof(Mat4f));
-	}
+	//{
+	//	Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+	//	gizmoMat->InitVariable(instance, &modelMat, sizeof(Mat4f));
+	//}
 
 
 	//const float r = 1.0f;
@@ -617,7 +795,7 @@ int main()
 
 		mainCamera.SetTransform(camTr);
 
-		
+		if(pLight1ID != uint32(-1))
 		{
 			Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
 			gizmoMat->UpdateVariable(instance, frame, &modelMat, sizeof(Mat4f));
@@ -632,31 +810,56 @@ int main()
 
 
 		// Draw Magikarp.
-		magikarpBodyMat->Bind(frame);
-		magikarpBodyMesh->Draw(frame);
+		if (magikarpBodyMat)
+		{
+			magikarpBodyMat->Bind(frame);
+			magikarpBodyMesh->Draw(frame);
 
-		magikarpEyesMat->Bind(frame);
-		magikarpEyesMesh->Draw(frame);
+			magikarpEyesMat->Bind(frame);
+			magikarpEyesMesh->Draw(frame);
+		}
 
 
 		// Draw bricks.
-		bricksMat->Bind(frame);
-		cubeMesh->Draw(frame);
+		if (bricksMat)
+		{
+			bricksMat->Bind(frame);
+			cubeMesh->Draw(frame);
+		}
+
+		// Draw spheres.
+		if (sphereMats[0])
+		{
+			for (uint32 i = 0; i < SizeOf(sphereMats); ++i)
+			{
+				sphereMats[i]->Bind(frame);
+				sphereMesh->Draw(frame);
+			}
+		}
 
 
 		// Draw skybox.
-		skyboxMat->Bind(frame);
-		cubeMesh->Draw(frame);
+		if (skyboxMat)
+		{
+			skyboxMat->Bind(frame);
+			cubeMesh->Draw(frame);
+		}
 
 
 		// Draw gizmos.
-		gizmoMat->Bind(frame);
-		squareMesh->Draw(frame);
+		if (gizmoMat)
+		{
+			gizmoMat->Bind(frame);
+			squareMesh->Draw(frame);
+		}
 
 		
 		// Draw window.
-		windowMat->Bind(frame);
-		squareMesh->Draw(frame);
+		if (windowMat)
+		{
+			windowMat->Bind(frame);
+			squareMesh->Draw(frame);
+		}
 
 
 		mainRenderPass.End(frame);
@@ -670,7 +873,7 @@ int main()
 	// === Destroy ===
 	vkDeviceWaitIdle(instance.GetDevice());
 
-	DestroyResources(assetMgr);
+	assetMgr.Clear();
 
 	//mainCamera.Destroy(instance);
 

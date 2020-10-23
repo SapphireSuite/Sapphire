@@ -41,9 +41,9 @@ namespace Sa
 	constexpr uint32 BitSizeOf(const T& _elem)
 	{
 		if constexpr (HM_size<T>::value)
-			return static_cast<uint32>(_elem.size()) * sizeof(T::value_type);
+			return static_cast<uint32>(_elem.size()) * sizeof(typename T::value_type);
 		else if constexpr (HM_Size<T>::value)
-			return static_cast<uint32>(_elem.Size()) * sizeof(T::T);
+			return static_cast<uint32>(_elem.Size()) * sizeof(typename T::T);
 		else
 			return sizeof(T);
 	}

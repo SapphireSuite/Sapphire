@@ -3,7 +3,15 @@
 
 
 // Uniform.
-layout(binding = 2) uniform sampler2D texSamplers[3];
+/*
+*	0. albedo
+*	1. normalMap
+*	2. specularMap
+*	3. metallicMap
+*	4. roughMap
+*	5. ambiantOcclusion.
+*/
+layout(binding = 2) uniform sampler2D texSamplers[6];
 
 
 layout(binding = 3) uniform MaterialConstants
@@ -51,7 +59,7 @@ struct DirectionnalLight
 	float specular;
 };
 
-layout (binding = 4) buffer DirectionnalLightBuffer
+layout(binding = 4) buffer DirectionnalLightBuffer
 {
 	DirectionnalLight lights[];
 } dLightBuffer;
@@ -75,7 +83,7 @@ struct PointLight
 	float specular;
 };
 
-layout (binding = 5) buffer PointLightBuffer
+layout(binding = 5) buffer PointLightBuffer
 {
 	PointLight lights[];
 } pLightBuffer;
@@ -103,7 +111,7 @@ struct SpotLight
 	float specular;
 };
 
-layout (binding = 6) buffer SpotLightBuffer
+layout(binding = 6) buffer SpotLightBuffer
 {
 	SpotLight lights[];
 } sLightBuffer;
@@ -175,6 +183,13 @@ struct IlluminationData
 	// Albedo from texture.
 	vec3 albedo;
 
+	// Metallic from texture.
+	vec3 metallic;
+
+	// Roughness from texture.
+	vec3 roughness;
+
+
 	// Normal vector.
 	vec3 vNormal;
 
@@ -183,6 +198,9 @@ struct IlluminationData
 	
 	// Object to light direction.
 	vec3 vLight;
+
+	// Fresnel reflectance.
+	vec3 f0;
 };
 
 struct LightData
@@ -209,7 +227,7 @@ struct LightData
 
 void ComputeLights(inout IlluminationData _data);
 
-vec3 Fresnel(vec3 _f0, float _cosTheta);
+vec3 Fresnel(vec3 _f0, float _cosTheta, vec3 _roughness);
 float ComputeAttenuation(vec3 _lightPosition, float _lightRange);
 
 
@@ -218,11 +236,15 @@ void ComputeIllumination()
 	IlluminationData data;
 	outColor.xyz = vec3(0);
 
+	// Textures.
 	data.albedo = texture(texSamplers[0], fsIn.texture).xyz;
+	data.metallic = texture(texSamplers[3], fsIn.texture).xyz;
+	data.roughness = texture(texSamplers[4], fsIn.texture).xyz;
 
+
+	// === Normal vector ===
 	data.vNormal = vec3(0.0);
 
-	// Normal vector.
 	if(texture(texSamplers[1], fsIn.texture).rgb != vec3(0))
 	{
 		// Normal mapping.
@@ -236,9 +258,13 @@ void ComputeIllumination()
 	else
 		data.vNormal = normalize(fsIn.normal); // Vertex normal.
 
-	// Object to camera direction.
+
+	// === Object to camera direction ===
 	data.vCam = normalize(fsIn.viewPosition - fsIn.position);
 
+
+	// === Fresnel reflectance ===
+	data.f0 = mix(vec3(0.16 * matConsts.reflectance * matConsts.reflectance), data.albedo, matConsts.metallic);
 
 	ComputeLights(data);
 }
@@ -255,7 +281,7 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 	}
 
 
-	// Ambient component.
+	// === Ambient component ===
 	vec3 Ra = _lData.color * _lData.ambient * matConsts.ambient * _data.albedo;
 	
 
@@ -265,13 +291,13 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 
 
 
-	// Diffuse component.
-	vec3 Rd = _lData.color * _lData.diffuse * matConsts.diffuse * mix(_data.albedo, vec3(0.0), matConsts.metallic);
+	// === Diffuse component ===
+	vec3 Rd = _lData.color * _lData.diffuse * matConsts.diffuse * mix(_data.albedo, vec3(0.0), _data.metallic);
 
 	vec3 diffuseBRDF = Rd/* / PI*/;
 
 
-	// Specular component.
+	// === Specular component ===
 	vec3 specularBRDF = vec3(0);
 
 	// Halfway vector.
@@ -282,11 +308,7 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 
 	if(cosAlpha > 0.0)
 	{
-		vec3 Rs = _lData.color * _lData.specular * matConsts.specular * mix(vec3(1.0), _data.albedo, matConsts.metallic);
-
-		// Fresnel reflectance.
-		vec3 f0 = mix(vec3(0.16 * matConsts.reflectance * matConsts.reflectance), _data.albedo, matConsts.metallic);
-
+		vec3 Rs = _lData.color * _lData.specular * matConsts.specular * mix(vec3(1.0), _data.albedo, _data.metallic);
 
 		/* 
 		*	Normalization factor: Gotanda approximation.
@@ -299,15 +321,17 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 		float G = 1.0 / max(cosTheta, dot(_data.vNormal, _data.vCam));
 
 
-		specularBRDF = Rs * normFactor * Fresnel(f0, dot(_data.vCam, vHalf)) * G * pow(cosAlpha, matConsts.shininess);
+		specularBRDF = Rs * normFactor * Fresnel(_data.f0, dot(_data.vCam, vHalf), _data.roughness) * G * pow(cosAlpha, matConsts.shininess);
 	}
 
-	// BRDF sum.
+
+	// === BRDF sum ===
 	vec3 BRDF = (diffuseBRDF + specularBRDF) * cosTheta;
 
 	// Apply attenuation.
 	if(_lData.bAttenuation)
 		BRDF *= ComputeAttenuation(_lData.position, _lData.range);
+
 
 	//  Output.
 	return Ra + BRDF;
@@ -387,10 +411,10 @@ vec3 ComputeSpotLight(SpotLight _light, inout IlluminationData _data)
 }
 
 
-vec3 Fresnel(vec3 _f0, float _cosTheta)
+vec3 Fresnel(vec3 _f0, float _cosTheta, vec3 _roughness)
 {
 	// Schlick's approximation.
-	return _f0 + (1 - _f0) * pow(1 - _cosTheta, 5);
+	return _f0 + (max(vec3(1.0) - _roughness, _f0) - _f0) * pow(1.0 - _cosTheta, 5.0);
 }
 
 
