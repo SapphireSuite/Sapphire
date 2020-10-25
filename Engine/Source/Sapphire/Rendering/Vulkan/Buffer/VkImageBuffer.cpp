@@ -133,7 +133,7 @@ namespace Sa
 				0,												// baseMipLevel.
 				_infos.mipLevels,								// levelCount.
 				0,												// baseArrayLayer.
-				_infos.layerNum,								// layerCount.
+				_infos.layerCount,								// layerCount.
 			}
 		};
 
@@ -178,7 +178,7 @@ namespace Sa
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
-	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, VkExtent3D _extent, uint32 _channel, uint32 _mipLevels, uint32 _layerNum)
+	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, VkExtent3D _extent, uint32 _channel, uint32 _mipLevels, uint32 _layerCount)
 	{
 		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 
@@ -186,7 +186,7 @@ namespace Sa
 
 		std::vector<VkBufferImageCopy> bufferImageCopies;
 
-		for (uint32 i = 0u; i < _mipLevels; ++i)
+		for (uint32 currMipLevel = 0u; currMipLevel < _mipLevels; ++currMipLevel)
 		{
 			bufferImageCopies.emplace_back(VkBufferImageCopy{
 				offset,												// bufferOffset.
@@ -196,19 +196,19 @@ namespace Sa
 				VkImageSubresourceLayers							// imageSubresource.
 				{
 					VK_IMAGE_ASPECT_COLOR_BIT,					// aspectMask.
-					i,											// mipLevel.
+					currMipLevel,								// mipLevel.
 					0,											// baseArrayLayer.
-					_layerNum,									// layerCount.
+					_layerCount,									// layerCount.
 				},
 
 				{0, 0, 0},											// imageOffset.
 
 				_extent												// imageExtent.
-				});
+			});
 
 			offset += _extent.width * _extent.height * _channel;
 
-			if(_extent.width > 1)
+			if (_extent.width > 1)
 				_extent.width >>= 1;
 
 			if (_extent.height > 1)
@@ -221,8 +221,8 @@ namespace Sa
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
-	/*
-	void VkImageBuffer::GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels)
+
+	void VkImageBuffer::GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels, uint32 _layerCount)
 	{
 #if SA_DEBUG
 		VkFormatProperties formatProperties;
@@ -234,7 +234,6 @@ namespace Sa
 #endif
 
 		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
-
 
 		VkImageMemoryBarrier barrier
 		{
@@ -254,16 +253,16 @@ namespace Sa
 				0,												// baseMipLevel.
 				1,												// levelCount.
 				0,												// baseArrayLayer.
-				1,												// layerCount.
+				_layerCount,									// layerCount.
 			}
 		};
 
 		int32 mipWidth = _width;
 		int32 mipHeight = _height;
 
-		for (uint32 i = 1u; i < _mipLevels; i++)
+		for (uint32 currMipLevel = 1u; currMipLevel < _mipLevels; currMipLevel++)
 		{
-			barrier.subresourceRange.baseMipLevel = i - 1;
+			barrier.subresourceRange.baseMipLevel = currMipLevel - 1;
 
 			// Transfer prev mip level to source.
 			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -271,7 +270,7 @@ namespace Sa
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
 				0, 0, nullptr, 0, nullptr, 1, &barrier);
 
 
@@ -284,9 +283,9 @@ namespace Sa
 				VkImageSubresourceLayers								// srcSubresource.
 				{
 					VK_IMAGE_ASPECT_COLOR_BIT,					// aspectMask.
-					i - 1,										// mipLevel.
+					currMipLevel - 1,							// mipLevel.
 					0,											// baseArrayLayer.
-					1,											// layerCount.
+					_layerCount,								// layerCount.
 				},
 
 				{														// srcOffsets[2].
@@ -298,9 +297,9 @@ namespace Sa
 				VkImageSubresourceLayers								// dstSubresource.
 				{
 					VK_IMAGE_ASPECT_COLOR_BIT,					// aspectMask.
-					i,											// mipLevel.
+					currMipLevel,								// mipLevel.
 					0,											// baseArrayLayer.
-					1,											// layerCount.
+					_layerCount,								// layerCount.
 				},
 
 				{														// dstOffsets[2].
@@ -346,10 +345,9 @@ namespace Sa
 			0, nullptr,
 			1, &barrier);
 
-
 		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
-	*/
+
 
 	VkImageBuffer::operator VkImage() const
 	{

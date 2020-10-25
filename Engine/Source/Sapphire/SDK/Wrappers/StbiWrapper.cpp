@@ -121,26 +121,28 @@ namespace Sa
 
 		// single image size.
 		const uint64 size = rawData.GetMapSize() * bitSize / 6u;
-		const uint64 irradianceSize = rawData.GetIrradianceMapSize() * bitSize / 6u;
+		//const uint64 irradianceSize = rawData.GetIrradianceMapSize() * bitSize / 6u;
 
 		rawData.cubemapData = reinterpret_cast<char*>(Allocate(6u * size));
-		rawData.irradiancemapData = reinterpret_cast<char*>(Allocate(6u * irradianceSize));
+		//rawData.irradiancemapData = reinterpret_cast<char*>(Allocate(6u * irradianceSize));
 
 
 		for (uint32 i = 0u; i < 6u; ++i)
 		{
-			bool res = stbir_resize_uint8(reinterpret_cast<unsigned char*>(data[i]),
-				rawData.width, rawData.height, 0,
-				reinterpret_cast<unsigned char*>(rawData.irradiancemapData + i * irradianceSize),
-				rawData.GetIrradianceWidth(), rawData.GetIrradianceHeight(), 0,
-				static_cast<uint32>(rawData.channel));
+			//bool res = stbir_resize_uint8(reinterpret_cast<unsigned char*>(data[i]),
+			//	rawData.width, rawData.height, 0,
+			//	reinterpret_cast<unsigned char*>(rawData.irradiancemapData + i * irradianceSize),
+			//	rawData.GetIrradianceWidth(), rawData.GetIrradianceHeight(), 0,
+			//	static_cast<uint32>(rawData.channel));
 
-			SA_ASSERT(res, CreationFailed, SDK_Assert, L"Irradiance map creation failed!");
+			//SA_ASSERT(res, CreationFailed, SDK_Assert, L"Irradiance map creation failed!");
 
 			MemMove(data[i], rawData.cubemapData + i * size, size);
 
 			Free(data[i]);
 		}
+
+		//GenerateMipMaps(rawData);
 
 		_result = Move(rawData);
 
@@ -158,21 +160,64 @@ namespace Sa
 			return;
 		}
 
-		MipMapInfos* mipmapInfos = new MipMapInfos[_rawData.mipLevels];
+		GenerateMipMaps(_rawData.width, _rawData.height, _rawData.mipLevels, _rawData.data, _rawData.channel);
+	}
+
+	void StbiWrapper::GenerateMipMaps(RawCubemap& _rawData)
+	{
+		MipMapInfos* mipmapInfos = new MipMapInfos[RawCubemap::mipLevels];
 
 		uint32 channelSize = static_cast<uint32>(_rawData.channel);
-		uint64 totalSize = Mipmap::ComputeTotalSize(_rawData.width, _rawData.height, _rawData.mipLevels, mipmapInfos);
+		uint64 totalSize = Mipmap::ComputeTotalSize(_rawData.width, _rawData.height, RawCubemap::mipLevels, mipmapInfos) * channelSize * bitSize * 6u;
 
-		char* original = _rawData.data;
-		_rawData.data = reinterpret_cast<char*>(Allocate(totalSize * bitSize * channelSize));
+		char* original = _rawData.cubemapData;
+		_rawData.cubemapData = reinterpret_cast<char*>(Allocate(totalSize));
 
 		// Move original data.
-		MemMove(original, _rawData.data, _rawData.width * _rawData.height * bitSize * channelSize);
+		MemMove(original, _rawData.cubemapData, _rawData.width * _rawData.height * bitSize * channelSize * 6u);
 		Free(original);
 
-		unsigned char* src = reinterpret_cast<unsigned char*>(_rawData.data);
+		unsigned char* src = reinterpret_cast<unsigned char*>(_rawData.cubemapData);
 
-		for (uint32 i = 1u; i < _rawData.mipLevels; ++i)
+		for (uint32 i = 1u; i < RawCubemap::mipLevels; ++i)
+		{
+			uint64 parentOffset = mipmapInfos[i - 1].width * mipmapInfos[i - 1].height * bitSize * channelSize;
+			uint64 offset = mipmapInfos[i].width * mipmapInfos[i].height * bitSize * channelSize;
+			unsigned char* dst = src + 6u * parentOffset;
+
+			for (uint32 j = 0u; j < 6u; ++j)
+			{
+				bool res = stbir_resize_uint8(src, mipmapInfos[i - 1].width, mipmapInfos[i - 1].height, 0,
+					dst, mipmapInfos[i].width, mipmapInfos[i].height, 0,
+					channelSize);
+
+				SA_ASSERT(res, CreationFailed, SDK_Assert, L"Mip map creation failed!");
+				
+				dst += offset;
+				src += parentOffset;
+			}
+		}
+
+		delete[] mipmapInfos;
+	}
+
+	void StbiWrapper::GenerateMipMaps(uint32 _width, uint32 _height, uint32 _mipLevels, char*& _data, TextureChannel _channel)
+	{
+		MipMapInfos* mipmapInfos = new MipMapInfos[_mipLevels];
+
+		uint32 channelSize = static_cast<uint32>(_channel);
+		uint64 totalSize = Mipmap::ComputeTotalSize(_width, _height, _mipLevels, mipmapInfos);
+
+		char* original = _data;
+		_data = reinterpret_cast<char*>(Allocate(totalSize * bitSize * channelSize));
+
+		// Move original data.
+		MemMove(original, _data, _width * _height * bitSize * channelSize);
+		Free(original);
+
+		unsigned char* src = reinterpret_cast<unsigned char*>(_data);
+
+		for (uint32 i = 1u; i < _mipLevels; ++i)
 		{
 			uint32 offset = mipmapInfos[i - 1].width * mipmapInfos[i - 1].height * bitSize * channelSize;
 			unsigned char* dst = src + offset;

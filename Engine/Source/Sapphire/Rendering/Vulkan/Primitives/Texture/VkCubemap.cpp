@@ -14,6 +14,7 @@ namespace Sa
 	{
 		VkFormat format = API_GetFormat(_rawCubemap.channel);
 		uint64 textureSize = _rawCubemap.GetMapSize();
+		//uint64 textureSize = _rawCubemap.GetTotalSize();
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
@@ -22,22 +23,26 @@ namespace Sa
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 			_rawCubemap.cubemapData);
 
+
 		VkImageBufferCreateInfos imageBufferCreateInfos;
 
 		imageBufferCreateInfos.format = format;
 		imageBufferCreateInfos.extent = VkExtent3D{ _rawCubemap.width, _rawCubemap.height, 1 };
 		imageBufferCreateInfos.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		imageBufferCreateInfos.mipMapLevels = RawCubemap::mipLevels;
 		imageBufferCreateInfos.layerNum = 6u;
 		imageBufferCreateInfos.imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
 		imageBufferCreateInfos.imageFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
+		if (RawCubemap::mipLevels > 1)
+			imageBufferCreateInfos.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 		// Copy image to shader.
 		const VkTransitionImageInfos undefToDstTransitionInfos
 		{
 			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			1u,
+			RawCubemap::mipLevels,
 			6u,
 		};
 
@@ -45,7 +50,7 @@ namespace Sa
 		{
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-			1u,
+			RawCubemap::mipLevels,
 			6u,
 		};
 
@@ -61,9 +66,12 @@ namespace Sa
 			1u,
 			6u);
 
-		mBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
+		//mBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
+
+		mBuffer.GenerateMipmaps(device, format, _rawCubemap.width, _rawCubemap.height, RawCubemap::mipLevels, 6u);
 
 
+		/*
 		// === Create irradiance buffer ===
 		uint64 irradianceSize = _rawCubemap.GetIrradianceMapSize();
 		imageBufferCreateInfos.extent = VkExtent3D{ _rawCubemap.GetIrradianceWidth(), _rawCubemap.GetIrradianceHeight(), 1 };
@@ -81,6 +89,7 @@ namespace Sa
 			6u);
 
 		mIrradianceBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
+		*/
 
 		stagingBuffer.Destroy(device);
 
@@ -104,7 +113,7 @@ namespace Sa
 			VK_FALSE,													// compareEnable.
 			VK_COMPARE_OP_ALWAYS,										// compareOp.
 			0.0f,														// minLod.
-			0.0f,														// maxLod.
+			static_cast<float>(RawCubemap::mipLevels),					// maxLod.
 			VK_BORDER_COLOR_INT_OPAQUE_BLACK,							// borderColor
 			VK_FALSE,													// unnormalizedCoordinates.
 		};

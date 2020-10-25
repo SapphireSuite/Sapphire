@@ -797,8 +797,11 @@ int main()
 
 		if(pLight1ID != uint32(-1))
 		{
-			Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-			gizmoMat->UpdateVariable(instance, frame, &modelMat, sizeof(Mat4f));
+			if (gizmoMat)
+			{
+				Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+				gizmoMat->UpdateVariable(instance, frame, &modelMat, sizeof(Mat4f));
+			}
 
 			vkDeviceWaitIdle(instance.GetDevice());
 			pLight1.position = API_ConvertCoordinateSystem(pL1Pos);

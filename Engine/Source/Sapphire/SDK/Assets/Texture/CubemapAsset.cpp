@@ -49,7 +49,7 @@ namespace Sa
 
 	bool CubemapAsset::IsValid() const noexcept
 	{
-		return mRawData.cubemapData && mRawData.irradiancemapData;
+		return mRawData.cubemapData/* && mRawData.irradiancemapData*/;
 	}
 
 
@@ -65,13 +65,13 @@ namespace Sa
 		}
 
 		const uint64 dataSize = mRawData.GetMapSize() * StbiWrapper::bitSize;
-		const uint64 irradianceDataSize = mRawData.GetIrradianceMapSize() * StbiWrapper::bitSize;
+		//const uint64 irradianceDataSize = mRawData.GetIrradianceMapSize() * StbiWrapper::bitSize;
 
 		mRawData.cubemapData = reinterpret_cast<char*>(StbiWrapper::Allocate(dataSize));
 		_fStream.read(mRawData.cubemapData, dataSize);
 
-		mRawData.irradiancemapData = reinterpret_cast<char*>(StbiWrapper::Allocate(irradianceDataSize));
-		_fStream.read(mRawData.irradiancemapData, irradianceDataSize);
+		//mRawData.irradiancemapData = reinterpret_cast<char*>(StbiWrapper::Allocate(irradianceDataSize));
+		//_fStream.read(mRawData.irradiancemapData, irradianceDataSize);
 
 		return true;
 	}
@@ -89,29 +89,27 @@ namespace Sa
 			if (mRawData.cubemapData)
 				StbiWrapper::Free(mRawData.cubemapData);
 
-			if (mRawData.irradiancemapData)
-				StbiWrapper::Free(mRawData.irradiancemapData);
+			//if (mRawData.irradiancemapData)
+			//	StbiWrapper::Free(mRawData.irradiancemapData);
 		}
 
 		mRawData.cubemapData = nullptr;
-		mRawData.irradiancemapData = nullptr;
+		//mRawData.irradiancemapData = nullptr;
 	}
 
 
 	void CubemapAsset::Save_Internal(std::fstream& _fStream) const
 	{
-		SA_ASSERT(mRawData.cubemapData && mRawData.irradiancemapData, Nullptr, SDK_Asset, L"Save nullptr cubemap asset!");
-
 		// Header.
 		_fStream << mRawData.width << ' ';
 		_fStream << mRawData.height << ' ';
 		_fStream << static_cast<uint32>(mRawData.channel) << '\n';
 
 		const uint64 dataSize = mRawData.GetMapSize() * StbiWrapper::bitSize;
-		const uint64 irradianceDataSize = mRawData.GetIrradianceMapSize() * StbiWrapper::bitSize;
+		//const uint64 irradianceDataSize = mRawData.GetIrradianceMapSize() * StbiWrapper::bitSize;
 
 		_fStream.write(mRawData.cubemapData, dataSize);
-		_fStream.write(mRawData.irradiancemapData, irradianceDataSize);
+		//_fStream.write(mRawData.irradiancemapData, irradianceDataSize);
 	}
 
 

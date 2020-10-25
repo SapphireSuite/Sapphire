@@ -462,7 +462,7 @@ namespace Sa
 
 
 		// Texture bindings.
-		if (!_infos.textures.albedo) // TODO: CLEAN LATER.
+		if (!_infos.textures.albedo && _infos.skybox) // TODO: CLEAN LATER.
 		{
 			_descriptorInfos.push_back(_infos.skybox->As<VkCubemap>().CreateDescriptorImageInfo());
 			_descriptorWrites.push_back(VkCubemap::CreateWriteDescriptorSet(mDescriptorSets[_index], 2));
@@ -511,9 +511,9 @@ namespace Sa
 			_descriptorWrites.push_back(sLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 6));
 
 
-			if (_infos.pipelineFlags & PipelineFlag::IBL)
+			if (_infos.pipelineFlags & PipelineFlag::IBL && _infos.skybox)
 			{
-				_descriptorInfos.push_back(_infos.skybox->As<VkCubemap>().CreateIrradianceDescriptorImageInfo());
+				_descriptorInfos.push_back(_infos.skybox->As<VkCubemap>().CreateDescriptorImageInfo());
 				_descriptorWrites.push_back(VkCubemap::CreateWriteDescriptorSet(mDescriptorSets[_index], 7));
 			}
 		}

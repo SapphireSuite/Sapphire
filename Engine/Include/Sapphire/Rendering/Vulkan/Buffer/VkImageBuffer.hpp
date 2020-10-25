@@ -47,7 +47,7 @@ namespace Sa
 		VkImageLayout newLayout;
 
 		uint32 mipLevels = 1u;
-		uint32 layerNum = 1u;
+		uint32 layerCount = 1u;
 
 		VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
 	};
@@ -65,10 +65,10 @@ namespace Sa
 		void Destroy(const VkDevice& _device);
 
 		void TransitionImageLayout(const VkDevice& _device, const VkTransitionImageInfos& _infos);
-		void CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, VkExtent3D _extent, uint32 _channel, uint32 _mipLevels = 1u, uint32 _layerNum = 1u);
+		void CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, VkExtent3D _extent, uint32 _channel, uint32 _mipLevels = 1u, uint32 _layerCount = 1u);
 
 		// Old mipmap generation. Mipmap are now generated on resource import (See StbiWrapper).
-		//void GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels);
+		void GenerateMipmaps(const Sa::VkDevice& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels, uint32 _layerNum = 1u);
 
 		operator VkImage() const;
 		operator VkImageView() const;

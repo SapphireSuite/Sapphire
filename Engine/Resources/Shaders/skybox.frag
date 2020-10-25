@@ -1,9 +1,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-
 // Uniform.
-layout(binding = 2) uniform samplerCube textures;
+layout(binding = 2) uniform samplerCube texSampler;
 
 // In.
 layout(location = 0) in DataBlock
@@ -19,5 +18,5 @@ layout(location = 0) out vec4 outColor;
 // Code.
 void main()
 {
-	outColor = texture(textures, fsIn.texture);
+	outColor = texture(texSampler, fsIn.texture);
 }
