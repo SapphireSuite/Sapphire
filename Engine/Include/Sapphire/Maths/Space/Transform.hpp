@@ -6,6 +6,7 @@
 #define SAPPHIRE_MATHS_TRANSFORM_GUARD
 
 #include <Maths/Space/Matrix4.hpp>
+#include <Maths/Space/TransformBase.hpp>
 
 namespace Sa
 {
@@ -17,348 +18,6 @@ namespace Sa
 	*	\ingroup Maths
 	*	\{
 	*/
-
-	enum class TrComp : uint8
-	{
-		None = 0,
-
-		Position = 1 << 0,
-
-		Rotation = 1 << 1,
-
-		Scale = 1 << 2
-	};
-
-
-	namespace Internal
-	{
-		/**
-		*	\brief \e Transform base Sapphire's class.
-		*
-		*	\tparam T	Type of the Transform.
-		*
-		*	\tparam Components	Components of the transform, defined by TrComp.
-		*/
-		template <typename T, TrComp TrComps>
-		struct TransfBase;
-
-		template <typename T>
-		struct TransfBase<T, TrComp::None>;
-
-
-		// === Transf P ===
-		template <typename T>
-		struct TransfBase <T, TrComp::Position>
-		{
-			/// Position component of the transform.
-			Vec3<T> position;
-
-			/**
-			*	\brief \e Default constructor.
-			*/
-			TransfBase() = default;
-
-			/**
-			*	\brief \e Default move constructor.
-			*/
-			TransfBase(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy constructor.
-			*/
-			TransfBase(const TransfBase&) = default;
-
-			/**
-			*	\brief \e Value constructor.
-			*
-			*	\param[in] _position	Position value.
-			*/
-			constexpr TransfBase(const Vec3<T>& _position) noexcept;
-
-
-			/**
-			*	\brief \e Default move assignment.
-			*/
-			TransfBase& operator=(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy assignment.
-			*/
-			TransfBase& operator=(const TransfBase&) = default;
-		};
-
-
-		// === Transf R ===
-		template <typename T>
-		struct TransfBase <T, TrComp::Rotation>
-		{
-			/// Rotation component of the transform.
-			Quat<T> rotation = Quat<T>::Identity;
-
-			/**
-			*	\brief \e Default constructor.
-			*/
-			TransfBase() = default;
-
-			/**
-			*	\brief \e Default move constructor.
-			*/
-			TransfBase(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy constructor.
-			*/
-			TransfBase(const TransfBase&) = default;
-
-			/**
-			*	\brief \e Value constructor.
-			*
-			*	\param[in] _rotation	Rotation value.
-			*/
-			constexpr TransfBase(const Quat<T>& _rotation) noexcept;
-
-
-			/**
-			*	\brief \e Default move assignment.
-			*/
-			TransfBase& operator=(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy assignment.
-			*/
-			TransfBase& operator=(const TransfBase&) = default;
-		};
-
-
-		// === Transf S ===
-		template <typename T>
-		struct TransfBase <T, TrComp::Scale>
-		{
-			/// Scale component of the transform.
-			Vec3<T> scale = Vec3<T>::One;
-
-			/**
-			*	\brief \e Default constructor.
-			*/
-			TransfBase() = default;
-
-			/**
-			*	\brief \e Default move constructor.
-			*/
-			TransfBase(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy constructor.
-			*/
-			TransfBase(const TransfBase&) = default;
-
-			/**
-			*	\brief \e Value constructor.
-			*
-			*	\param[in] _scale		Scale value.
-			*/
-			constexpr TransfBase(const Vec3<T>& _scale) noexcept;
-
-
-			/**
-			*	\brief \e Default move assignment.
-			*/
-			TransfBase& operator=(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy assignment.
-			*/
-			TransfBase& operator=(const TransfBase&) = default;
-		};
-
-
-		// === Transf PR ===
-		template <typename T>
-		struct TransfBase <T, TrComp::Position | TrComp::Rotation>
-		{
-			/// Position component of the transform.
-			Vec3<T> position;
-
-			/// Rotation component of the transform.
-			Quat<T> rotation = Quat<T>::Identity;
-
-			/**
-			*	\brief \e Default constructor.
-			*/
-			TransfBase() = default;
-
-			/**
-			*	\brief \e Default move constructor.
-			*/
-			TransfBase(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy constructor.
-			*/
-			TransfBase(const TransfBase&) = default;
-
-			/**
-			*	\brief \e Value constructor.
-			*
-			*	\param[in] _position	Position value.
-			*	\param[in] _rotation	Rotation value.
-			*/
-			constexpr TransfBase(const Vec3<T>& _position, const Quat<T>& _rotation = Quat<T>::Identity) noexcept;
-
-
-			/**
-			*	\brief \e Default move assignment.
-			*/
-			TransfBase& operator=(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy assignment.
-			*/
-			TransfBase& operator=(const TransfBase&) = default;
-		};
-
-
-		// === Transf PS ===
-		template <typename T>
-		struct TransfBase <T, TrComp::Position | TrComp::Scale>
-		{
-			/// Position component of the transform.
-			Vec3<T> position;
-
-			/// Scale component of the transform.
-			Vec3<T> scale = Vec3<T>::One;
-
-			/**
-			*	\brief \e Default constructor.
-			*/
-			TransfBase() = default;
-
-			/**
-			*	\brief \e Default move constructor.
-			*/
-			TransfBase(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy constructor.
-			*/
-			TransfBase(const TransfBase&) = default;
-
-			/**
-			*	\brief \e Value constructor.
-			*
-			*	\param[in] _position	Position value.
-			*	\param[in] _scale		Scale value.
-			*/
-			constexpr TransfBase(const Vec3<T>& _position, const Vec3<T>& _scale = Vec3<T>::One) noexcept;
-
-
-			/**
-			*	\brief \e Default move assignment.
-			*/
-			TransfBase& operator=(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy assignment.
-			*/
-			TransfBase& operator=(const TransfBase&) = default;
-		};
-
-
-		// === Transf RS ===
-		template <typename T>
-		struct TransfBase <T, TrComp::Rotation | TrComp::Scale>
-		{
-			/// Rotation component of the transform.
-			Quat<T> rotation = Quat<T>::Identity;
-
-			/// Scale component of the transform.
-			Vec3<T> scale = Vec3<T>::One;
-
-			/**
-			*	\brief \e Default constructor.
-			*/
-			TransfBase() = default;
-
-			/**
-			*	\brief \e Default move constructor.
-			*/
-			TransfBase(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy constructor.
-			*/
-			TransfBase(const TransfBase&) = default;
-
-			/**
-			*	\brief \e Value constructor.
-			*
-			*	\param[in] _rotation	Rotation value.
-			*	\param[in] _scale		Scale value.
-			*/
-			constexpr TransfBase(const Quat<T>& _rotation, const Vec3<T>& _scale = Vec3<T>::One) noexcept;
-
-
-			/**
-			*	\brief \e Default move assignment.
-			*/
-			TransfBase& operator=(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy assignment.
-			*/
-			TransfBase& operator=(const TransfBase&) = default;
-		};
-
-
-		// === Transf PRS ===
-		template <typename T>
-		struct TransfBase <T, TrComp::Position | TrComp::Rotation | TrComp::Scale>
-		{
-			/// Position component of the transform.
-			Vec3<T> position;
-
-			/// Rotation component of the transform.
-			Quat<T> rotation = Quat<T>::Identity;
-
-			/// Scale component of the transform.
-			Vec3<T> scale = Vec3<T>::One;
-
-			/**
-			*	\brief \e Default constructor.
-			*/
-			TransfBase() = default;
-
-			/**
-			*	\brief \e Default move constructor.
-			*/
-			TransfBase(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy constructor.
-			*/
-			TransfBase(const TransfBase&) = default;
-
-			/**
-			*	\brief \e Value constructor.
-			*
-			*	\param[in] _position	Position value.
-			*	\param[in] _rotation	Rotation value.
-			*	\param[in] _scale		Scale value.
-			*/
-			constexpr TransfBase(const Vec3<T>& _position, const Quat<T>& _rotation = Quat<T>::Identity, const Vec3<T>& _scale = Vec3<T>::One) noexcept;
-
-
-			/**
-			*	\brief \e Default move assignment.
-			*/
-			TransfBase& operator=(TransfBase&&) = default;
-
-			/**
-			*	\brief \e Default copy assignment.
-			*/
-			TransfBase& operator=(const TransfBase&) = default;
-		};
-	}
 
 
 	/**
@@ -612,19 +271,19 @@ namespace Sa
 
 	/// Alias for Position Rotation Transf.
 	template <typename T>
-	using TransfPR = Transf<T, TrComp::Position | TrComp::Rotation>;
+	using TransfPR = Transf<T, TrComp::PR>;
 
 	/// Alias for Position Scale Transf.
 	template <typename T>
-	using TransfPS = Transf<T, TrComp::Position | TrComp::Scale>;
+	using TransfPS = Transf<T, TrComp::PS>;
 
 	/// Alias for Rotation Scale Transf.
 	template <typename T>
-	using TransfRS = Transf<T, TrComp::Rotation | TrComp::Scale>;
+	using TransfRS = Transf<T, TrComp::RS>;
 
 	/// Alias for Position Rotation Scale Transf.
 	template <typename T>
-	using TransfPRS = Transf<T, TrComp::Position | TrComp::Rotation | TrComp::Scale>;
+	using TransfPRS = Transf<T, TrComp::PRS>;
 
 
 	/// Alias for float Transf.
@@ -641,16 +300,16 @@ namespace Sa
 	using TransffS = Transf<float, TrComp::Scale>;
 
 	/// Alias for float Position Rotation Transf.
-	using TransffPR = Transf<float, TrComp::Position | TrComp::Rotation>;
+	using TransffPR = Transf<float, TrComp::PR>;
 
 	/// Alias for float Position Scale Transf.
-	using TransffPS = Transf<float, TrComp::Position | TrComp::Scale>;
+	using TransffPS = Transf<float, TrComp::PS>;
 
 	/// Alias for float Rotation Scale Transf.
-	using TransffRS = Transf<float, TrComp::Rotation | TrComp::Scale>;
+	using TransffRS = Transf<float, TrComp::RS>;
 
 	/// Alias for float Position Rotation Scale Transf.
-	using TransffPRS = Transf<float, TrComp::Position | TrComp::Rotation | TrComp::Scale>;
+	using TransffPRS = Transf<float, TrComp::PRS>;
 
 
 	/// Template alias of Transform
@@ -671,19 +330,19 @@ namespace Sa
 
 	/// Alias for Position Rotation Transform.
 	template <typename T>
-	using TransformPR = Transform<T, TrComp::Position | TrComp::Rotation>;
+	using TransformPR = Transform<T, TrComp::PR>;
 
 	/// Alias for Position Scale Transform.
 	template <typename T>
-	using TransformPS = Transform<T, TrComp::Position | TrComp::Scale>;
+	using TransformPS = Transform<T, TrComp::PS>;
 
 	/// Alias for Rotation Scale Transform.
 	template <typename T>
-	using TransformRS = Transform<T, TrComp::Rotation | TrComp::Scale>;
+	using TransformRS = Transform<T, TrComp::RS>;
 
 	/// Alias for Position Rotation Scale Transform.
 	template <typename T>
-	using TransformPRS = Transform<T, TrComp::Position | TrComp::Rotation | TrComp::Scale>;
+	using TransformPRS = Transform<T, TrComp::PRS>;
 
 
 	/** \} */

@@ -2,76 +2,6 @@
 
 namespace Sa
 {
-	namespace Internal
-	{
-		// === TransfBase P ===
-		template <typename T>
-		constexpr TransfBase<T, TrComp::Position>::TransfBase(const Vec3<T>& _position) noexcept :
-			position{ _position }
-		{
-		}
-
-
-		// === TransfBase R ===
-		template <typename T>
-		constexpr TransfBase<T, TrComp::Rotation>::TransfBase(const Quat<T>& _rotation) noexcept :
-			rotation{ _rotation }
-		{
-		}
-
-
-		// === TransfBase S ===
-		template <typename T>
-		constexpr TransfBase<T, TrComp::Scale>::TransfBase(const Vec3<T>& _scale) noexcept :
-			scale{ _scale }
-		{
-		}
-
-
-
-
-		// === TransfBase PR ===
-		template <typename T>
-		constexpr TransfBase<T, TrComp::Position | TrComp::Rotation>::TransfBase(const Vec3<T>& _position, const Quat<T>& _rotation) noexcept :
-			position{ _position },
-			rotation{ _rotation }
-		{
-		}
-
-
-
-		// === TransfBase PS ===
-		template <typename T>
-		constexpr TransfBase<T, TrComp::Position | TrComp::Scale>::TransfBase(const Vec3<T>& _position, const Vec3<T>& _scale) noexcept :
-			position{ _position },
-			scale{ _scale }
-		{
-		}
-
-
-
-		// === TransfBase RS ===
-		template <typename T>
-		constexpr TransfBase<T, TrComp::Rotation | TrComp::Scale>::TransfBase(const Quat<T>& _rotation, const Vec3<T>& _scale) noexcept :
-			rotation{ _rotation },
-			scale{ _scale }
-		{
-		}
-
-
-
-		// === TransfBase PRS ===
-		template <typename T>
-		constexpr TransfBase<T, TrComp::Position | TrComp::Rotation | TrComp::Scale>::TransfBase(const Vec3<T>& _position, const Quat<T>& _rotation, const Vec3<T>& _scale) noexcept :
-			position{ _position },
-			rotation{ _rotation },
-			scale{ _scale }
-		{
-		}
-	}
-
-
-
 	// === Transf ===
 	template <typename T, TrComp TrComps>
 	const Transf<T, TrComps> Transf<T, TrComps>::Zero = TransfPRS(Vec3<T>::Zero, Quat<T>::Zero, Vec3<T>::Zero);
@@ -84,112 +14,81 @@ namespace Sa
 	template <typename TIn, TrComp CIn>
 	constexpr Transf<T, TrComps>::Transf(const Transf<TIn, CIn>& _other) noexcept
 	{
-		if constexpr ((TrComps & TrComp::Position) != TrComp::None && (CIn & TrComp::Position) != TrComp::None)
-			Base::position = _other.position;
-
-		if constexpr ((TrComps & TrComp::Rotation) != TrComp::None && (CIn & TrComp::Rotation) != TrComp::None)
-			Base::rotation = _other.rotation;
-
-		if constexpr ((TrComps & TrComp::Scale) != TrComp::None && (CIn & TrComp::Scale) != TrComp::None)
-			Base::scale = _other.scale;
+		// Call assignment operator.
+		*this = _other;
 	}
 
 
 	template <typename T, TrComp TrComps>
 	constexpr bool Transf<T, TrComps>::IsZero() const noexcept
 	{
-		if constexpr ((TrComps & TrComp::Position | TrComp::Rotation | TrComp::Scale) != TrComp::None)
-			return Base::position.IsZero() && Base::rotation.IsZero() && Base::scale.IsZero();
+		if constexpr ((TrComps & TrComp::Position) != TrComp::None)
+		{
+			if (!Base::position.IsZero())
+				return false;
+		}
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Rotation) != TrComp::None)
-			return Base::position.IsZero() && Base::rotation.IsZero();
+		if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
+		{
+			if (!Base::rotation.IsZero())
+				return false;
+		}
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Scale) != TrComp::None)
-			return Base::position.IsZero() && Base::scale.IsZero();
+		if constexpr ((TrComps & TrComp::Scale) != TrComp::None)
+		{
+			if (!Base::scale.IsZero())
+				return false;
+		}
 
-		else if constexpr ((TrComps & TrComp::Rotation | TrComp::Scale) != TrComp::None)
-			return Base::rotation.IsZero() && Base::scale.IsZero();
-
-		else if constexpr ((TrComps & TrComp::Position) != TrComp::None)
-			return Base::position.IsZero();
-
-		else if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
-			return Base::rotation.IsZero();
-
-		else if constexpr ((TrComps & TrComp::Scale) != TrComp::None)
-			return Base::scale.IsZero();
-
-		else
-			return false;
+		return true;
 	}
 
 	template <typename T, TrComp TrComps>
 	constexpr bool Transf<T, TrComps>::IsIdentity() const noexcept
 	{
-		if constexpr ((TrComps & TrComp::Position | TrComp::Rotation | TrComp::Scale) != TrComp::None)
-			return Base::position.IsZero() && Base::rotation.IsIdentity() && Base::scale.Equals(Vec3<T>::One);
+		if constexpr ((TrComps & TrComp::Position) != TrComp::None)
+		{
+			if (!Base::position.IsZero())
+				return false;
+		}
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Rotation) != TrComp::None)
-			return Base::position.IsZero() && Base::rotation.IsIdentity();
+		if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
+		{
+			if (!Base::rotation.IsIdentity())
+				return false;
+		}
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Scale) != TrComp::None)
-			return Base::position.IsZero() && Base::scale.Equals(Vec3<T>::One);
+		if constexpr ((TrComps & TrComp::Scale) != TrComp::None)
+		{
+			if (!Base::scale.Equals(Vec3<T>::One))
+				return false;
+		}
 
-		else if constexpr ((TrComps & TrComp::Rotation | TrComp::Scale) != TrComp::None)
-			return Base::rotation.IsIdentity() && Base::scale.Equals(Vec3<T>::One);
-
-		else if constexpr ((TrComps & TrComp::Position) != TrComp::None)
-			return Base::position.IsZero();
-
-		else if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
-			return Base::rotation.IsIdentity();
-
-		else if constexpr ((TrComps & TrComp::Scale) != TrComp::None)
-			return Base::scale.Equals(Vec3<T>::One);
-		
-		else
-			return false;
+		return true;
 	}
 
 	template <typename T, TrComp TrComps>
 	constexpr bool Transf<T, TrComps>::Equals(const Transf<T, TrComps>& _other, T _threshold) const noexcept
 	{
-		if constexpr ((TrComps & TrComp::Position | TrComp::Rotation | TrComp::Scale) != TrComp::None)
+		if constexpr ((TrComps & TrComp::Position) != TrComp::None)
 		{
-			return Base::position.Equals(_other.position, _threshold) &&
-				Base::rotation.Equals(_other.rotation, _threshold) &&
-				Base::scale.Equals(_other.scale, _threshold);
+			if (!Base::position.Equals(_other.position, _threshold))
+				return false;
 		}
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Rotation) != TrComp::None)
+		if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
 		{
-			return Base::position.Equals(_other.position, _threshold) &&
-				Base::rotation.Equals(_other.rotation, _threshold);
+			if (!Base::rotation.Equals(_other.rotation, _threshold))
+				return false;
 		}
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Scale) != TrComp::None)
+		if constexpr ((TrComps & TrComp::Scale) != TrComp::None)
 		{
-			return Base::position.Equals(_other.position, _threshold) &&
-				Base::scale.Equals(_other.scale, _threshold);
+			if (!Base::scale.Equals(_other.scale, _threshold))
+				return false;
 		}
 
-		else if constexpr ((TrComps & TrComp::Rotation | TrComp::Scale) != TrComp::None)
-		{
-			return Base::rotation.Equals(_other.rotation, _threshold) &&
-				Base::scale.Equals(_other.scale, _threshold);
-		}
-
-		else if constexpr ((TrComps & TrComp::Position) != TrComp::None)
-			return Base::position.Equals(_other.position, _threshold);
-
-		else if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
-			return Base::rotation.Equals(_other.rotation, _threshold);
-
-		else if constexpr ((TrComps & TrComp::Scale) != TrComp::None)
-			return Base::scale.Equals(_other.scale, _threshold);
-		
-		else
-			return false;
+		return true;
 	}
 
 	template <typename T, TrComp TrComps>
@@ -254,25 +153,25 @@ namespace Sa
 	template <typename T, TrComp TrComps>
 	Mat4<T> Transf<T, TrComps>::Matrix() const
 	{
-		if constexpr ((TrComps & TrComp::Position | TrComp::Rotation | TrComp::Scale) != TrComp::None)
+		if constexpr (TrComps == TrComp::PRS)
 			return Mat4<T>::MakeTransform(Base::position, Base::rotation, Base::scale);
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Rotation) != TrComp::None)
+		else if constexpr (TrComps == TrComp::PR)
 			return Mat4<T>::MakeTransform(Base::position, Base::rotation);
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Scale) != TrComp::None)
+		else if constexpr (TrComps == TrComp::PS)
 			return Mat4<T>::MakeTransform(Base::position, Base::scale);
 
-		else if constexpr ((TrComps & TrComp::Rotation | TrComp::Scale) != TrComp::None)
+		else if constexpr (TrComps == TrComp::RS)
 			return Mat4<T>::MakeTransform(Base::rotation, Base::scale);
 
-		else if constexpr ((TrComps & TrComp::Position) != TrComp::None)
+		else if constexpr (TrComps == TrComp::Position)
 			return Mat4<T>::MakeTranslation(Base::position);
 
-		else if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
+		else if constexpr (TrComps == TrComp::Rotation)
 			return Mat4<T>::MakeRotation(Base::rotation);
 
-		else if constexpr ((TrComps & TrComp::Scale) != TrComp::None)
+		else if constexpr (TrComps == TrComp::Scale)
 			return Mat4<T>::MakeScale(Base::scale);
 
 		else
@@ -291,42 +190,46 @@ namespace Sa
 	{
 		// Always use SLerp for smooth rotation.
 
-		if constexpr ((TrComps & TrComp::Position | TrComp::Rotation | TrComp::Scale) != TrComp::None)
+		if constexpr (TrComps == TrComp::PRS)
 		{
 			return Transf(
 				Vec3.LerpUnclamped(_start.position, _end.position, _alpha),
 				Quat.SLerpUnclamped(_start.rotation, _end.rotation, _alpha),
-				Vec3.LerpUnclamped(_start.scale, _end.scale, _alpha));
+				Vec3.LerpUnclamped(_start.scale, _end.scale, _alpha)
+			);
 		}
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Rotation) != TrComp::None)
+		else if constexpr (TrComps == TrComp::PR)
 		{
 			return Transf(
 				Vec3.LerpUnclamped(_start.position, _end.position, _alpha),
-				Quat.SLerpUnclamped(_start.rotation, _end.rotation, _alpha));
+				Quat.SLerpUnclamped(_start.rotation, _end.rotation, _alpha)
+			);
 		}
 
-		else if constexpr ((TrComps & TrComp::Position | TrComp::Scale) != TrComp::None)
+		else if constexpr (TrComps == TrComp::PS)
 		{
 			return Transf(
 				Vec3.LerpUnclamped(_start.position, _end.position, _alpha),
-				Vec3.LerpUnclamped(_start.scale, _end.scale, _alpha));
+				Vec3.LerpUnclamped(_start.scale, _end.scale, _alpha)
+			);
 		}
 
-		else if constexpr ((TrComps & TrComp::Rotation | TrComp::Scale) != TrComp::None)
+		else if constexpr (TrComps == TrComp::RS)
 		{
 			return Transf(
 				Quat.SLerpUnclamped(_start.rotation, _end.rotation, _alpha),
-				Vec3.LerpUnclamped(_start.scale, _end.scale, _alpha));
+				Vec3.LerpUnclamped(_start.scale, _end.scale, _alpha)
+			);
 		}
 
-		else if constexpr ((TrComps & TrComp::Position) != TrComp::None)
+		else if constexpr (TrComps == TrComp::Position)
 			return Transf(Vec3.LerpUnclamped(_start.position, _end.position, _alpha));
 
-		else if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
+		else if constexpr (TrComps == TrComp::Rotation)
 			return Transf(Quat.SLerpUnclamped(_start.rotation, _end.rotation, _alpha));
 
-		else if constexpr ((TrComps & TrComp::Scale) != TrComp::None)
+		else if constexpr (TrComps == TrComp::Scale)
 			return Transf(Vec3.LerpUnclamped(_start.scale, _end.scale, _alpha));
 
 		else
@@ -338,14 +241,14 @@ namespace Sa
 	template <typename TIn, TrComp CIn>
 	Transf<T, TrComps>& Transf<T, TrComps>::operator=(const Transf<TIn, CIn>& _rhs)
 	{
-		if constexpr ((TrComps & TrComp::Position) != TrComp::None && (CIn & TrComp::Position) != TrComp::None)
-			return position = _rhs.position;
+		if constexpr ((TrComps & CIn & TrComp::Position) != TrComp::None)
+			position = _rhs.position;
 
-		if constexpr ((TrComps & TrComp::Rotation) != TrComp::None && (CIn & TrComp::Rotation) != TrComp::None)
-			return rotation = _rhs.rotation;
+		if constexpr ((TrComps & CIn & TrComp::Rotation) != TrComp::None)
+			rotation = _rhs.rotation;
 
-		if constexpr ((TrComps & TrComp::Scale) != TrComp::None && (CIn & TrComp::Scale) != TrComp::None)
-			return scale = _rhs.scale;
+		if constexpr ((TrComps & CIn & TrComp::Scale) != TrComp::None)
+			scale = _rhs.scale;
 
 		return *this;
 	}
@@ -365,7 +268,7 @@ namespace Sa
 
 		if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
 		{
-			if constexpr ((TrComps & TrComp::Position) != TrComp::None && (CIn & TrComp::Position) != TrComp::None)
+			if constexpr ((TrComps & CIn & TrComp::Position) != TrComp::None)
 				result.position += rotation.Rotate(_other.position);
 
 			if constexpr ((CIn & TrComp::Rotation) != TrComp::None)
@@ -394,7 +297,7 @@ namespace Sa
 
 		if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
 		{
-			if constexpr ((TrComps & TrComp::Position) != TrComp::None && (CIn & TrComp::Position) != TrComp::None)
+			if constexpr ((TrComps & CIn & TrComp::Position) != TrComp::None)
 				result.position -= rotation.Rotate(_other.position);
 
 			if constexpr ((CIn & TrComp::Rotation) != TrComp::None)
@@ -420,7 +323,7 @@ namespace Sa
 
 		if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
 		{
-			if constexpr ((TrComps & TrComp::Position) != TrComp::None && (CIn & TrComp::Position) != TrComp::None)
+			if constexpr ((TrComps & CIn & TrComp::Position) != TrComp::None)
 				position += rotation.Rotate(_other.position);
 
 			if constexpr ((CIn & TrComp::Rotation) != TrComp::None)
@@ -447,7 +350,7 @@ namespace Sa
 
 		if constexpr ((TrComps & TrComp::Rotation) != TrComp::None)
 		{
-			if constexpr ((TrComps & TrComp::Position) != TrComp::None && (CIn & TrComp::Position) != TrComp::None)
+			if constexpr ((TrComps & CIn & TrComp::Position) != TrComp::None)
 				position -= rotation.Rotate(_other.position);
 
 			if constexpr ((CIn & TrComp::Rotation) != TrComp::None)
