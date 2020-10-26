@@ -132,8 +132,8 @@ namespace Sa
 			VK_BLEND_FACTOR_SRC_ALPHA,												// srcColorBlendFactor.
 			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,									// dstColorBlendFactor.
 			VK_BLEND_OP_ADD,														// colorBlendOp.
-			VK_BLEND_FACTOR_ONE,													// srcAlphaBlendFactor.
-			VK_BLEND_FACTOR_ZERO,													// dstAlphaBlendFactor.
+			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,												// srcAlphaBlendFactor.
+			VK_BLEND_FACTOR_ZERO,									// dstAlphaBlendFactor.
 			VK_BLEND_OP_ADD,														// alphaBlendOp.
 
 			VK_COLOR_COMPONENT_R_BIT |												// colorWriteMask.

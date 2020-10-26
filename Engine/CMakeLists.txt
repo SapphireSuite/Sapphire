@@ -40,6 +40,9 @@ target_include_directories(Engine PRIVATE ThirdParty/Libs/glfw-3.3/include)
 # tiny header libs.
 target_include_directories(Engine PRIVATE ThirdParty/Libs/tiny)
 
+# imgui.
+add_subdirectory(ThirdParty/Libs/imgui)
+target_link_libraries(Engine imgui)
 
 
 # === Dependencies ===

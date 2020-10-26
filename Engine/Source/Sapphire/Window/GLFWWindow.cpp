@@ -25,7 +25,7 @@
 
 namespace Sa
 {
-	uint32 GLFWWindow::sInitCount = 0u;
+	uint32 GLFWWindowT::sInitCount = 0u;
 
 	// TODO: Clean later:
 	static double oldX = 0.0f;
@@ -35,17 +35,17 @@ namespace Sa
 	static float dx = 0.0f;
 	static float dy = 0.0f;
 
-	void GLFWWindow::Init()
+	void GLFWWindowT::Init()
 	{
 		SA_ASSERT(glfwInit(), Init, Window, L"GLFW init failed!");
 	}
 
-	void GLFWWindow::UnInit()
+	void GLFWWindowT::UnInit()
 	{
 		glfwTerminate();
 	}
 
-	void GLFWWindow::Create(uint32 _width, uint32 _height, const char* _name)
+	void GLFWWindowT::Create(uint32 _width, uint32 _height, const char* _name)
 	{
 		// Init GLFW lib.
 		if (sInitCount++ == 0)
@@ -68,14 +68,14 @@ namespace Sa
 		};
 
 		glfwSetKeyCallback(mHandle, lambda);
-		glfwSetInputMode(mHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		//glfwSetInputMode(mHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 		glfwGetCursorPos(mHandle, &mouseX, &mouseY);
 		oldX = mouseX;
 		oldY = mouseY;
 	}
 
-	void GLFWWindow::Destroy()
+	void GLFWWindowT::Destroy()
 	{
 		SA_ASSERT(mHandle, Nullptr, Window, L"Window handle nulltpr! Try to destroy a non-created window, call Create() first.");
 
@@ -90,7 +90,7 @@ namespace Sa
 		mHandle = nullptr;
 	}
 
-	void GLFWWindow::Update()
+	void GLFWWindowT::Update()
 	{
 		static uint32 sUpdateCount = 0u;
 
@@ -100,12 +100,12 @@ namespace Sa
 			glfwPollEvents();
 	}
 
-	bool GLFWWindow::ShouldClose() const
+	bool GLFWWindowT::ShouldClose() const
 	{
 		return glfwWindowShouldClose(mHandle);
 	}
 
-	void GLFWWindow::ResizeCallback(GLFWwindow* _handle, int32 _width, int32 _height)
+	void GLFWWindowT::ResizeCallback(GLFWwindow* _handle, int32 _width, int32 _height)
 	{
 		SA_ASSERT(_handle, Nullptr, Window, L"Window handle nulltpr!");
 		
@@ -119,13 +119,13 @@ namespace Sa
 		//window->onResizeEvent(*window, static_cast<uint32>(_width), static_cast<uint32>(_height));
 	}
 
-	GLFWWindow::operator GLFWwindow*() const
+	GLFWWindowT::operator GLFWwindow*() const
 	{
 		return mHandle;
 	}
 
 
-	void GLFWWindow::GetRequiredExtensions(std::vector<const char*>& _extensions) noexcept
+	void GLFWWindowT::GetRequiredExtensions(std::vector<const char*>& _extensions) noexcept
 	{
 		// Query extensions.
 		uint32_t glfwExtensionCount = 0;
@@ -139,7 +139,7 @@ namespace Sa
 
 #if SA_RENDERING_API == SA_VULKAN
 
-	VkSurfaceKHR_T* GLFWWindow::CreateRenderSurface(const IRenderInstance& _instance) const
+	VkSurfaceKHR_T* GLFWWindowT::CreateRenderSurface(const IRenderInstance& _instance) const
 	{
 		VkSurfaceKHR vkSurface;
 		VkResult res = glfwCreateWindowSurface(
@@ -157,7 +157,7 @@ namespace Sa
 #endif
 
 
-	void GLFWWindow::TEST(TransffPRS& _camTr, Vec3f& _lightPos, float _deltaTime)
+	void GLFWWindowT::TEST(TransffPRS& _camTr, Vec3f& _lightPos, float _deltaTime)
 	{
 		if (glfwGetKey(mHandle, GLFW_KEY_D) == GLFW_PRESS)
 			_camTr.position += _deltaTime * _camTr.RightVector();

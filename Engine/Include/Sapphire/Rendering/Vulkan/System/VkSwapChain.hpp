@@ -57,7 +57,7 @@ namespace Sa
 
 		const ImageExtent& GetImageExtent() const noexcept;
 
-		const VkRenderFrame GetRenderFrame() const noexcept;
+		SA_ENGINE_API const VkRenderFrame GetRenderFrame() const noexcept;
 
 		void Create(const VkDevice& _device, const VkRenderSurface& _surface, 
 					const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass);

@@ -46,7 +46,7 @@ namespace Sa
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
 			VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
 			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
-			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,				// initialLayout.
 			finalLayout												// finalLayout.
 		};
 
@@ -67,7 +67,7 @@ namespace Sa
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
 			VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
 			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
-			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,								// initialLayout.
 			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR							// finalLayout.
 		};
 
@@ -112,23 +112,29 @@ namespace Sa
 			&colorAttachmentRef,									// pColorAttachments.
 			resolveAttachments,										// pResolveAttachments.
 			&depthAttachmentRef,									// pDepthStencilAttachment.
-			//bDepthBuffer ? &depthAttachmentRef : nullptr,			// pDepthStencilAttachment.
 			0,														// preserveAttachmentCount.
 			nullptr													// pPreserveAttachments.
 
 		};
 
-		const VkSubpassDependency subpassDependency
-		{
-			VK_SUBPASS_EXTERNAL,									// srcSubpass.
-			0,														// dstSubpass.
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,			// srcStageMask.
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,			// dstStageMask.
-			0,														// srcAccessMask.
-			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,					// dstAccessMask.
-			0														// dependencyFlags.
-		};
+		// Use subpass dependencies for layout transitions
+		VkSubpassDependency dependencies[2];
 
+		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[0].dstSubpass = 0;
+		dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+		dependencies[1].srcSubpass = 0;
+		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 		std::vector<VkAttachmentDescription> attachements; //{ colorAttachment, colorAttachmentResolve, depthAttachment };
 		attachements.reserve(3);
@@ -149,8 +155,8 @@ namespace Sa
 			attachements.data(),									// pAttachments.
 			1,														// subpassCount.
 			&subpass,												// pSubpasses.
-			1,														// dependencyCount.
-			&subpassDependency										// pDependencies.
+			2,														// dependencyCount.
+			dependencies											// pDependencies.
 		};
 
 		SA_VK_ASSERT(vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &mRenderPass),

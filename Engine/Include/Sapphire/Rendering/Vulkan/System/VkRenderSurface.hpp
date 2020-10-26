@@ -5,14 +5,19 @@
 #ifndef SAPPHIRE_RENDERING_VK_RENDER_SURFACE_GUARD
 #define SAPPHIRE_RENDERING_VK_RENDER_SURFACE_GUARD
 
-#include <vulkan/vulkan.h>
-
 #include <Rendering/Framework/System/IRenderSurface.hpp>
+
+#include <Window/IWindow.hpp>
+
+#if SA_RENDERING_API == SA_VULKAN
+
+#include <vulkan/vulkan.h>
 
 #include <Rendering/Vulkan/System/VkSwapChain.hpp>
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
 
-#if SA_RENDERING_API == SA_VULKAN
+// DUNNNO
+#include <Editor/Editor.hpp>
 
 namespace Sa
 {
@@ -21,6 +26,7 @@ namespace Sa
 		VkSurfaceKHR mHandle = VK_NULL_HANDLE;
 
 		VkSwapChain mSwapChain;
+		edtr::Editor* mEditor = nullptr;
 		//TODO aurel: Temporary..
 	public:
 		std::vector<RenderPass> mRenderPasses;
@@ -58,6 +64,11 @@ namespace Sa
 		SA_ENGINE_API IRenderPass& CreateRenderPass(const IRenderInstance& _instance, 
 													const RenderPassCreateInfos& _createInfos) override final;
 		SA_ENGINE_API void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) override final;
+
+		SA_ENGINE_API void CreateEditor(const IWindow& _window, const IRenderInstance& _renderInstance);
+		
+		SA_ENGINE_API void Begin(const VkDevice& _device);
+		SA_ENGINE_API void End(const VkDevice& _device);
 
 		SA_ENGINE_API void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height) override final;
 

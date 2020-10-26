@@ -10,7 +10,7 @@ namespace Sa
 	{
 #if SA_WINDOW_API == SA_GLFW
 
-		GLFWWindow::Init();
+		GLFWWindowT::Init();
 
 #endif
 	}
@@ -19,7 +19,7 @@ namespace Sa
 	{
 #if SA_WINDOW_API == SA_GLFW
 
-		GLFWWindow::UnInit();
+		GLFWWindowT::UnInit();
 
 #endif
 	}
@@ -28,7 +28,7 @@ namespace Sa
 	{
 #if SA_WINDOW_API == SA_GLFW
 
-		GLFWWindow::GetRequiredExtensions(_extensions);
+		GLFWWindowT::GetRequiredExtensions(_extensions);
 
 #endif
 	}

@@ -6,6 +6,8 @@
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 
+#include <Window/GLFWWindow.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
@@ -138,6 +140,8 @@ namespace Sa
 
 		//onResizeEvent.Clear();
 
+		delete mEditor;
+
 		mSwapChain.Destroy(_device);
 	}
 
@@ -157,6 +161,24 @@ namespace Sa
 
 		_renderPass.Destroy(_instance);
 		mRenderPasses.erase(mRenderPasses.begin() + (&_renderPass - static_cast<IRenderPass*>(mRenderPasses.data()))); // TODO THIS BREAK REFERENCES.
+	}
+
+	void VkRenderSurface::CreateEditor(const IWindow& _window, const IRenderInstance& _renderInstance)
+	{
+		mEditor = new edtr::Editor(_window.As<GLFWWindowT>(), _renderInstance.As<VkRenderInstance>());
+	}
+
+	void VkRenderSurface::Begin(const VkDevice& _device)
+	{
+		mEditor->StartFrame();
+		mSwapChain.Begin(_device);
+	}
+
+	void VkRenderSurface::End(const VkDevice& _device)
+	{
+		mEditor->Draw(mSwapChain.GetRenderFrame());
+		mSwapChain.End(_device);
+		mEditor->EndFrame();
 	}
 
 	void VkRenderSurface::ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height)

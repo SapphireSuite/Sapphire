@@ -16,14 +16,11 @@ namespace Sa::vk
 		VkDevice device = VkRenderInstance::GetInstance()->AsPtr<VkRenderInstance>()->GetDevice();
 
 		// hardcoded values for now
-		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(),
-																_renderPass->GetSampleBits()));
+		if(_renderPass->GetSampleBits() > SampleBits::Sample1Bit)
+			mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(),
+																	_renderPass->GetSampleBits()));
 		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat()));
 		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent, _renderPass->GetSampleBits()));
-
-		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 1.f, 0.f });
-		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 1.f, 0.f });
-		mClearValues.emplace_back(VkClearValue{ 1.f, 0.f });
 
 		Create_Internal();
 	}
@@ -34,15 +31,12 @@ namespace Sa::vk
 		VkDevice device = VkRenderInstance::GetInstance()->AsPtr<VkRenderInstance>()->GetDevice();
 
 		// hardcoded values for now
-		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(),
-																_renderPass->GetSampleBits()));
+		if (_renderPass->GetSampleBits() > SampleBits::Sample1Bit)
+			mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat(),
+																	_renderPass->GetSampleBits()));
 		mBuffers.emplace_back(_colorBuffer);
 		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent, _renderPass->GetSampleBits()));
 
-		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 1.f, 0.f });
-		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 1.f, 0.f });
-		mClearValues.emplace_back(VkClearValue{ 1.f, 0.f });
-	
 		Create_Internal();
 	}
 
@@ -59,6 +53,10 @@ namespace Sa::vk
 	void Framebuffer::Create_Internal()
 	{
 		VkDevice device = VkRenderInstance::GetInstance()->AsPtr<VkRenderInstance>()->GetDevice();
+
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 0.7f, 0.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 0.7f, 0.f });
+		mClearValues.emplace_back(VkClearValue{ 1.f, 0.f });
 
 		std::vector<VkImageView> attachements(mBuffers.size());
 		for (size_t i = 0; i < mBuffers.size(); ++i)
@@ -117,6 +115,18 @@ namespace Sa::vk
 		renderPassBeginInfo.pClearValues = mClearValues.data();
 		
 		vkCmdBeginRenderPass(mPrimaryCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		VkViewport viewport = {};
+		viewport.width = mExtent.width;
+		viewport.height = mExtent.height;
+		viewport.minDepth = 0.f;
+		viewport.maxDepth = 1.f;
+		vkCmdSetViewport(mPrimaryCommandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor = {};
+		scissor.offset = { 0,0 };
+		scissor.extent = { mExtent.width, mExtent.height };
+		vkCmdSetScissor(mPrimaryCommandBuffer, 0, 1, &scissor);
 	}
 
 	void Framebuffer::End() const
