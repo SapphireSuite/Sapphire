@@ -38,7 +38,7 @@ namespace Sa
 			imageBufferCreateInfos.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 		// Copy image to shader.
-		const VkTransitionImageInfos undefToDstTransitionInfos
+		VkTransitionImageInfos undefToDstTransitionInfos
 		{
 			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -46,7 +46,7 @@ namespace Sa
 			6u,
 		};
 
-		const VkTransitionImageInfos dstToReadTransitionInfos
+		VkTransitionImageInfos dstToReadTransitionInfos
 		{
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -66,17 +66,18 @@ namespace Sa
 			1u,
 			6u);
 
-		//mBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
-
 		mBuffer.GenerateMipmaps(device, format, _rawCubemap.width, _rawCubemap.height, RawCubemap::mipLevels, 6u);
 
 
-		/*
+		
 		// === Create irradiance buffer ===
-		uint64 irradianceSize = _rawCubemap.GetIrradianceMapSize();
-		imageBufferCreateInfos.extent = VkExtent3D{ _rawCubemap.GetIrradianceWidth(), _rawCubemap.GetIrradianceHeight(), 1 };
+		imageBufferCreateInfos.mipMapLevels = 1u;
+		imageBufferCreateInfos.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-		stagingBuffer.UpdateData(device, _rawCubemap.irradiancemapData, irradianceSize);
+		undefToDstTransitionInfos.mipLevels = 1u;
+		dstToReadTransitionInfos.mipLevels = 1u;
+
+		stagingBuffer.UpdateData(device, _rawCubemap.irradiancemapData, textureSize);
 
 		mIrradianceBuffer.Create(device, imageBufferCreateInfos);
 
@@ -89,7 +90,7 @@ namespace Sa
 			6u);
 
 		mIrradianceBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
-		*/
+
 
 		stagingBuffer.Destroy(device);
 

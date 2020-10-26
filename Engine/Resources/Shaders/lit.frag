@@ -117,10 +117,20 @@ layout(binding = 6) buffer SpotLightBuffer
 } sLightBuffer;
 
 
+// IBL.
+layout(binding = 7) uniform samplerCube skybox;
+layout(binding = 8) uniform samplerCube irradianceMap;
+
+
 // Constants.
 const float PI = 3.14159265359;
 
+// Flags.
+const int lightingFlag = 1 << 0;
+const int IBLFlag = 1 << 1;
+
 layout(constant_id = 0) const int alphaModel = 0;
+layout(constant_id = 1) const int flags = 0;
 
 
 // In.
@@ -225,6 +235,7 @@ struct LightData
 	bool bCutOff;
 };
 
+void ComputeIBL(inout IlluminationData _data);
 void ComputeLights(inout IlluminationData _data);
 
 vec3 Fresnel(vec3 _f0, float _cosTheta, vec3 _roughness);
@@ -233,6 +244,10 @@ float ComputeAttenuation(vec3 _lightPosition, float _lightRange);
 
 void ComputeIllumination()
 {
+//	if(flags & lightingFlag == 0)
+//		return;
+
+
 	IlluminationData data;
 	outColor.xyz = vec3(0);
 
@@ -266,7 +281,69 @@ void ComputeIllumination()
 	// === Fresnel reflectance ===
 	data.f0 = mix(vec3(0.16 * matConsts.reflectance * matConsts.reflectance), data.albedo, matConsts.metallic);
 
+
+//	if(flags & IBLFlag == 0)
+		ComputeIBL(data);
+
 	ComputeLights(data);
+}
+
+void ComputeIBL(inout IlluminationData _data)
+{
+	vec3 irradiance = texture(irradianceMap, _data.vNormal).xyz;
+
+	// === Diffuse component ===
+
+	vec3 diffuse = irradiance * matConsts.diffuse * _data.albedo;
+
+
+	// === Ambient component ===
+	vec3 ambiantOccl = texture(texSamplers[5], fsIn.texture).xyz;
+
+	float cosAlpha = dot(_data.vCam, _data.vNormal);
+	vec3 kS = Fresnel(_data.f0, cosAlpha, _data.roughness);
+	vec3 kD = 1.0 - kS;
+	
+	vec3 ambient = (kD * diffuse) * ambiantOccl; 
+
+	outColor.xyz = ambient + diffuse;
+
+
+//	vec3 refl = reflect(-_data.vCam, _data.vNormal);
+//	float cosAlpha = dot(_data.vCam, _data.vNormal);
+//
+//	vec3 F = Fresnel(_data.f0, cosAlpha, _data.roughness);
+//
+//	vec3 Ks = F;
+//
+//	vec3 prefilteredColor = texture(irradianceMap, refl).xyz;
+//
+//	outColor.xyz = ambiantOccl;
+
+//
+//	vec3 normal = normalize(fsIn.normal);
+//
+//	// === Ambient component ===
+//	vec3 Ra = texture(irradianceMap, normal).rgb;
+//	//vec3 Ra = texture(irradianceMap, normal).rgb * matConsts.ambient * _data.albedo;
+//
+//
+//	vec3 kS = Fresnel(_data.f0, cosAlpha, _data.roughness);
+//	vec3 kD = 1.0 - kS;
+//	vec3 irradiance = texture(irradianceMap, normal).rgb;
+//	vec3 diffuse = irradiance * _data.albedo;
+//	vec3 ambient = (kD * diffuse)/* * ao*/; 
+//
+//
+//
+//	outColor.xyz = ambient + diffuse;
+
+	//vec3 irradiance = texture(irradianceMap, _data.vNormal).xyz;
+
+
+	//vec3 refl = -reflect(_data.vCam, normalize(fsIn.normal));
+	//vec3 refl = -reflect(_data.vCam, _data.vNormal);
+	//outColor.xyz = texture(irradianceMap, refl).xyz;
 }
 
 vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lData)

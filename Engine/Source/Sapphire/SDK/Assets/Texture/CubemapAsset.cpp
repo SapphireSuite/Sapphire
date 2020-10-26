@@ -65,13 +65,12 @@ namespace Sa
 		}
 
 		const uint64 dataSize = mRawData.GetMapSize() * StbiWrapper::bitSize;
-		//const uint64 irradianceDataSize = mRawData.GetIrradianceMapSize() * StbiWrapper::bitSize;
 
 		mRawData.cubemapData = reinterpret_cast<char*>(StbiWrapper::Allocate(dataSize));
-		_fStream.read(mRawData.cubemapData, dataSize);
+		mRawData.irradiancemapData = reinterpret_cast<char*>(StbiWrapper::Allocate(dataSize));
 
-		//mRawData.irradiancemapData = reinterpret_cast<char*>(StbiWrapper::Allocate(irradianceDataSize));
-		//_fStream.read(mRawData.irradiancemapData, irradianceDataSize);
+		_fStream.read(mRawData.cubemapData, dataSize);
+		_fStream.read(mRawData.irradiancemapData, dataSize);
 
 		return true;
 	}
@@ -89,12 +88,12 @@ namespace Sa
 			if (mRawData.cubemapData)
 				StbiWrapper::Free(mRawData.cubemapData);
 
-			//if (mRawData.irradiancemapData)
-			//	StbiWrapper::Free(mRawData.irradiancemapData);
+			if (mRawData.irradiancemapData)
+				StbiWrapper::Free(mRawData.irradiancemapData);
 		}
 
 		mRawData.cubemapData = nullptr;
-		//mRawData.irradiancemapData = nullptr;
+		mRawData.irradiancemapData = nullptr;
 	}
 
 
@@ -106,10 +105,9 @@ namespace Sa
 		_fStream << static_cast<uint32>(mRawData.channel) << '\n';
 
 		const uint64 dataSize = mRawData.GetMapSize() * StbiWrapper::bitSize;
-		//const uint64 irradianceDataSize = mRawData.GetIrradianceMapSize() * StbiWrapper::bitSize;
 
 		_fStream.write(mRawData.cubemapData, dataSize);
-		//_fStream.write(mRawData.irradiancemapData, irradianceDataSize);
+		_fStream.write(mRawData.irradiancemapData, dataSize);
 	}
 
 

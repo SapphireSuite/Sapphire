@@ -97,10 +97,10 @@ namespace Sa
 		// TODO: CLEAN LATER.
 		RawCubemap rawData;
 
-		char* data[6]{};
+		char* data[12u]{};
 
 		// Load textures.
-		for (uint32 i = 0u; i < 6u; ++i)
+		for (uint32 i = 0u; i < 12u; ++i)
 		{
 			data[i] = reinterpret_cast<char*>(stbi_load(_importInfos.pathes[i].c_str(),
 				reinterpret_cast<int32*>(&rawData.width),
@@ -121,25 +121,17 @@ namespace Sa
 
 		// single image size.
 		const uint64 size = rawData.GetMapSize() * bitSize / 6u;
-		//const uint64 irradianceSize = rawData.GetIrradianceMapSize() * bitSize / 6u;
 
 		rawData.cubemapData = reinterpret_cast<char*>(Allocate(6u * size));
-		//rawData.irradiancemapData = reinterpret_cast<char*>(Allocate(6u * irradianceSize));
-
+		rawData.irradiancemapData = reinterpret_cast<char*>(Allocate(6u * size));
 
 		for (uint32 i = 0u; i < 6u; ++i)
 		{
-			//bool res = stbir_resize_uint8(reinterpret_cast<unsigned char*>(data[i]),
-			//	rawData.width, rawData.height, 0,
-			//	reinterpret_cast<unsigned char*>(rawData.irradiancemapData + i * irradianceSize),
-			//	rawData.GetIrradianceWidth(), rawData.GetIrradianceHeight(), 0,
-			//	static_cast<uint32>(rawData.channel));
-
-			//SA_ASSERT(res, CreationFailed, SDK_Assert, L"Irradiance map creation failed!");
-
 			MemMove(data[i], rawData.cubemapData + i * size, size);
+			MemMove(data[i + 6u], rawData.irradiancemapData + i * size, size);
 
 			Free(data[i]);
+			Free(data[i + 6u]);
 		}
 
 		//GenerateMipMaps(rawData);

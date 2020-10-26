@@ -15,7 +15,7 @@ namespace Sa
 	{
 		union
 		{
-			std::string pathes[6]{};
+			std::string pathes[12]{};
 
 			struct
 			{
@@ -25,6 +25,13 @@ namespace Sa
 				std::string bottom;
 				std::string front;
 				std::string back;
+
+				std::string rightIrr;
+				std::string leftIrr;
+				std::string topIrr;
+				std::string bottomIrr;
+				std::string frontIrr;
+				std::string backIrr;
 			};
 		};
 
@@ -33,7 +40,10 @@ namespace Sa
 		// Remove SA_ENGINE_API.
 		SA_ENGINE_API CubemapAssetImportInfos(const std::string& _right, const std::string& _left,
 			const std::string& _top, const std::string& _bottom,
-			const std::string& _front, const std::string& _back) noexcept;
+			const std::string& _front, const std::string& _back,
+			const std::string& _rightIrr, const std::string& _leftIrr,
+			const std::string& _topIrr, const std::string& _bottomIrr,
+			const std::string& _frontIrr, const std::string& _backIrr) noexcept;
 
 		SA_ENGINE_API ~CubemapAssetImportInfos();
 	};

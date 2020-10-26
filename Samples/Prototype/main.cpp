@@ -422,12 +422,18 @@ void CreateSkybox(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
 	constexpr const char* textureAsset = "Bin/Skybox/Skybox_Cube_CM.spha";
 	const CubemapAssetImportInfos cubemapInfos(
-		"../../Samples/Prototype/Resources/Skybox/Cube/right.jpg",
-		"../../Samples/Prototype/Resources/Skybox/Cube/left.jpg",
-		"../../Samples/Prototype/Resources/Skybox/Cube/bottom.jpg",
-		"../../Samples/Prototype/Resources/Skybox/Cube/top.jpg",
-		"../../Samples/Prototype/Resources/Skybox/Cube/front.jpg",
-		"../../Samples/Prototype/Resources/Skybox/Cube/back.jpg");
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/left.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/right.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/bottom.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/top.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/front.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/back.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/left_irr.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/right_irr.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/bottom_irr.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/top_irr.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/front_irr.bmp",
+		"../../Samples/Prototype/Resources/Skybox/Cube/Forest/back_irr.bmp");
 	
 	constexpr const char* skyboxVertShaderAsset = "Bin/Shaders/skybox_VS.spha";
 	constexpr const char* skyboxFragShaderAsset = "Bin/Shaders/skybox_FS.spha";
@@ -742,7 +748,7 @@ int main()
 	pLight1.intensity = 5.0f;
 
 	uint32 pLight1ID = uint32(-1);
-	pLight1ID = instance.InstantiatePointLight(pLight1);
+	//pLight1ID = instance.InstantiatePointLight(pLight1);
 
 	//PLightInfos pLight2;
 	//pLight2.position = API_ConvertCoordinateSystem(Vec3f(2.0f, 2.0f, -2.0f));

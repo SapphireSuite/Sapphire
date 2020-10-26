@@ -315,9 +315,20 @@ namespace Sa
 			// Skybox (IBL) binding.
 			if (_infos.pipelineFlags & PipelineFlag::IBL)
 			{
+				// Skybox.
 				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 				{
 					7,																	// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
+					1,																	// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+					nullptr																// pImmutableSamplers.
+				});
+
+				// Irradiance map.
+				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					8,																	// binding.
 					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
 					1,																	// descriptorCount.
 					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
@@ -409,8 +420,8 @@ namespace Sa
 			{
 				_poolSizes.push_back(VkDescriptorPoolSize
 				{
-					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-					1,																	// descriptorCount.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
+					2,																	// descriptorCount.
 				});
 			}
 		}
@@ -515,6 +526,9 @@ namespace Sa
 			{
 				_descriptorInfos.push_back(_infos.skybox->As<VkCubemap>().CreateDescriptorImageInfo());
 				_descriptorWrites.push_back(VkCubemap::CreateWriteDescriptorSet(mDescriptorSets[_index], 7));
+
+				_descriptorInfos.push_back(_infos.skybox->As<VkCubemap>().CreateIrradianceDescriptorImageInfo());
+				_descriptorWrites.push_back(VkCubemap::CreateWriteDescriptorSet(mDescriptorSets[_index], 8));
 			}
 		}
 	}
