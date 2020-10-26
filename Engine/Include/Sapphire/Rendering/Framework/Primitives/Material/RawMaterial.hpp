@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_RENDERING_RAW_MATERIAL_GUARD
 #define SAPPHIRE_RENDERING_RAW_MATERIAL_GUARD
 
+#include <Rendering/Framework/Primitives/Mesh/Vertex/VertexBindingLayout.hpp>
+
 #include <Rendering/Framework/Primitives/Material/UniformBuffers.hpp>
 #include <Rendering/Framework/Primitives/Material/MaterialShaders.hpp>
 #include <Rendering/Framework/Primitives/Material/MaterialTextures.hpp>
@@ -34,6 +36,8 @@ namespace Sa
 
 		const ICubemap* skybox = nullptr;
 
+		VertexBindingLayout vertexBindingLayout;
+		
 		MaterialShaders shaders = MaterialShaders::defaultT;
 		MaterialTextures textures;
 		MaterialConstants matConstants;

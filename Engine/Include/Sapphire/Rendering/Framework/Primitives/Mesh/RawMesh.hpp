@@ -7,20 +7,38 @@
 
 #include <vector>
 
-#include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
+#include <Core/Algorithms/Move.hpp>
+#include <Core/Algorithms/SizeOf.hpp>
+#include <Core/Algorithms/MemMove.hpp>
+
+#include <Rendering/Framework/Primitives/Mesh/Vertex/VertexLayoutSpec.hpp>
 
 namespace Sa
 {
-	struct RawMesh
+	class RawMesh
 	{
-		std::vector<Vertex> vertices;
+		std::shared_ptr<VertexLayout> mLayout = VertexLayout::Make(VertexComp::Default);
+
+
+	public:
+		std::vector<char> vertices;
 		std::vector<uint32> indices;
 
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API static RawMesh SquareMesh() noexcept;
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API static RawMesh CubeMesh() noexcept;
+		RawMesh() = default;
+		RawMesh(VertexComp _comps) noexcept;
+
+		std::shared_ptr<VertexLayout> GetLayout() const noexcept;
+		void SetLayout(VertexComp _comps);
+
+		SA_ENGINE_API void ComputeTangents();
+
+		template <VertexComp Comps = VertexComp::PNTanTex>
+		static RawMesh SquareMesh() noexcept;
+		template <VertexComp Comps = VertexComp::PNTanTex>
+		static RawMesh CubeMesh() noexcept;
 	};
 }
+
+#include <Rendering/Framework/Primitives/Mesh/RawMesh.inl>
 
 #endif // GUARD

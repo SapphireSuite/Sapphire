@@ -111,8 +111,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!squareMesh) // Try load.
 	{
 		// Create on load failed.
-		MeshAsset meshAsset = _assetMgr.meshMgr.Create(Move(RawMesh::SquareMesh()));
-		meshAsset.ComputeTangents();
+		MeshAsset meshAsset = _assetMgr.meshMgr.Create(Move(RawMesh::SquareMesh<VertexComp::PNTanTex>()));
 		meshAsset.Save(squareMeshAsset);
 		squareMesh = meshAsset.GetResource();
 	}
@@ -122,8 +121,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!cubeMesh) // Try load.
 	{
 		// Create on load failed.
-		MeshAsset meshAsset = _assetMgr.meshMgr.Create(Move(RawMesh::CubeMesh()));
-		meshAsset.ComputeTangents();
+		MeshAsset meshAsset = _assetMgr.meshMgr.Create(Move(RawMesh::CubeMesh<VertexComp::PNTanTex>()));
 		meshAsset.Save(cubeMeshAsset);
 		cubeMesh = meshAsset.GetResource();
 	}
@@ -179,11 +177,11 @@ void CreateMagikarp(IRenderInstance& _instance, AssetManager& _assetMgr)
 			ModelAsset& result = resPtr->As<ModelAsset>();
 			
 			// meshes
-			result.meshes[0].ComputeTangents();
+			//result.meshes[0].ComputeTangents();
 			result.meshes[0].Save(meshAssets[0]);
 			magikarpBodyMesh = result.meshes[0].GetResource();
 
-			result.meshes[1].ComputeTangents();
+			//result.meshes[1].ComputeTangents();
 			result.meshes[1].Save(meshAssets[1]);
 			magikarpEyesMesh = result.meshes[1].GetResource();
 
@@ -192,6 +190,7 @@ void CreateMagikarp(IRenderInstance& _instance, AssetManager& _assetMgr)
 			bodyRenderMat.vertexShaderPath = litVertShaderAsset;
 			bodyRenderMat.fragmentShaderPath = litFragShaderAsset;
 			bodyRenderMat.texturePaths = { textureAssets[0] };
+			bodyRenderMat.mRawData.vertexBindingLayout.meshLayout = magikarpBodyMesh->GetLayout(); // TODO: Clean?
 			bodyRenderMat.Save(materialAssets[0]);
 			magikarpBodyMat = bodyRenderMat.GetResource();
 
@@ -200,6 +199,7 @@ void CreateMagikarp(IRenderInstance& _instance, AssetManager& _assetMgr)
 			eyesRenderMat.vertexShaderPath = litVertShaderAsset;
 			eyesRenderMat.fragmentShaderPath = litFragShaderAsset;
 			eyesRenderMat.texturePaths = { textureAssets[1] };
+			eyesRenderMat.mRawData.vertexBindingLayout.meshLayout = magikarpEyesMesh->GetLayout(); // TODO: Clean?
 			eyesRenderMat.Save(materialAssets[1]);
 			magikarpEyesMat = eyesRenderMat.GetResource();
 		}
@@ -219,7 +219,7 @@ void CreateGizmo(IRenderInstance& _instance, AssetManager& _assetMgr)
 	constexpr const char* vertShaderAsset = "Bin/Gizmo/Gizmo_VS.spha";
 	constexpr const char* fragShaderAsset = "Bin/Gizmo/Gizmo_FS.spha";
 
-	constexpr const char* materialAssets = "Bin/Gizmo/Square_Mat.spha";
+	constexpr const char* materialAsset = "Bin/Gizmo/Gizmo_Mat.spha";
 
 	// Vertex Shader.
 	if (!_assetMgr.shaderMgr.Load(vertShaderAsset, true)) // Try load.
@@ -239,12 +239,15 @@ void CreateGizmo(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 
 	// Materials.
-	gizmoMat = _assetMgr.renderMatMgr.Load(materialAssets);
+	gizmoMat = _assetMgr.renderMatMgr.Load(materialAsset);
 
 	if (!gizmoMat) // Try load.
 	{
 		// Import on load failed.
 		RawMaterial gizmoRawMat;
+
+		gizmoRawMat.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::PTex>();
+		gizmoRawMat.vertexBindingLayout.meshLayout = squareMesh->GetLayout();
 
 		gizmoRawMat.uniformBufferSize = sizeof(Mat4f);
 		gizmoRawMat.alphaModel = AlphaModel::Opaque;
@@ -255,7 +258,7 @@ void CreateGizmo(IRenderInstance& _instance, AssetManager& _assetMgr)
 		
 		gizmoMatAsset.vertexShaderPath = vertShaderAsset;
 		gizmoMatAsset.fragmentShaderPath = fragShaderAsset;
-		gizmoMatAsset.Save(materialAssets);
+		gizmoMatAsset.Save(materialAsset);
 
 		gizmoMat = gizmoMatAsset.GetResource();
 	}
@@ -320,7 +323,6 @@ void CreateBricks(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 
 	// Textures
-
 	for (uint32 i = 0u; i < SizeOf(textureAssets); ++i)
 	{
 		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
@@ -342,6 +344,8 @@ void CreateBricks(IRenderInstance& _instance, AssetManager& _assetMgr)
 		RawMaterial infos;
 
 		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
+
+		renderMatAsset.mRawData.vertexBindingLayout.meshLayout = cubeMesh->GetLayout();
 
 		renderMatAsset.vertexShaderPath = litVertShaderAsset;
 		renderMatAsset.fragmentShaderPath = litFragShaderAsset;
@@ -401,6 +405,7 @@ void CreateWindow(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
 
+		renderMatAsset.mRawData.vertexBindingLayout.meshLayout = squareMesh->GetLayout();
 		renderMatAsset.vertexShaderPath = litVertShaderAsset;
 		renderMatAsset.fragmentShaderPath = litFragShaderAsset;
 		renderMatAsset.texturePaths = { textureAssets[0] };
@@ -474,6 +479,9 @@ void CreateSkybox(IRenderInstance& _instance, AssetManager& _assetMgr)
 	if (!skyboxMat)
 	{
 		RawMaterial infos;
+		infos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Position>();
+		infos.vertexBindingLayout.meshLayout = cubeMesh->GetLayout();
+
 		infos.cullingMode = CullingMode::None;
 		infos.pipelineFlags = 0;
 		infos.uniformBufferSize = 0u;
@@ -635,7 +643,7 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 		ModelAsset& result = resPtr->As<ModelAsset>();
 
 		// meshes
-		result.meshes[0].ComputeTangents();
+		//result.meshes[0].ComputeTangents();
 		result.meshes[0].Save(meshAsset);
 		sphereMesh = result.meshes[0].GetResource();
 	}
@@ -652,6 +660,8 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 			RawMaterial infos;
 
 			RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
+
+			renderMatAsset.mRawData.vertexBindingLayout.meshLayout = sphereMesh->GetLayout();
 
 			renderMatAsset.vertexShaderPath = litVertShaderAsset;
 			renderMatAsset.fragmentShaderPath = litFragShaderAsset;
@@ -748,7 +758,7 @@ int main()
 	pLight1.intensity = 5.0f;
 
 	uint32 pLight1ID = uint32(-1);
-	//pLight1ID = instance.InstantiatePointLight(pLight1);
+	pLight1ID = instance.InstantiatePointLight(pLight1);
 
 	//PLightInfos pLight2;
 	//pLight2.position = API_ConvertCoordinateSystem(Vec3f(2.0f, 2.0f, -2.0f));

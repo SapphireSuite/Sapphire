@@ -129,6 +129,33 @@ namespace Sa
 			}
 		}
 
+		// Vertex Layout.
+		{
+			uint32 desiredLayout = 0u;
+			uint32 meshLayout = 0u;
+
+			if (!std::getline(_fStream, line))
+			{
+				SA_LOG("Can't parse vertex layout!", Warning, SDK_Asset);
+				return false;
+			}
+
+			std::istringstream stream(line);
+
+			if (!(stream >> desiredLayout >> meshLayout))
+			{
+				SA_LOG("Can't parse vertex layout!", Warning, SDK_Asset);
+				return false;
+			}
+
+			if (desiredLayout)
+				mRawData.vertexBindingLayout.desiredLayout = VertexLayout::Make(static_cast<VertexComp>(desiredLayout));
+			
+			if(meshLayout)
+				mRawData.vertexBindingLayout.meshLayout = VertexLayout::Make(static_cast<VertexComp>(meshLayout));
+		}
+
+
 		// Data
 		{
 			_fStream.read(reinterpret_cast<char*>(&mRawData.bDynamicViewport), sizeof(bool));
@@ -193,6 +220,12 @@ namespace Sa
 		for (auto it = texturePaths.begin(); it != texturePaths.end(); ++it)
 			_fStream << *it << ' ';
 
+		_fStream << '\n';
+
+
+		// Vertex Layout.
+		_fStream << (mRawData.vertexBindingLayout.desiredLayout ? static_cast<uint32>(mRawData.vertexBindingLayout.desiredLayout->comps) : 0) << ' ' <<
+			(mRawData.vertexBindingLayout.meshLayout ? static_cast<uint32>(mRawData.vertexBindingLayout.meshLayout->comps) : 0);
 		_fStream << '\n';
 
 

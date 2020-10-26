@@ -307,43 +307,6 @@ void ComputeIBL(inout IlluminationData _data)
 	vec3 ambient = (kD * diffuse) * ambiantOccl; 
 
 	outColor.xyz = ambient + diffuse;
-
-
-//	vec3 refl = reflect(-_data.vCam, _data.vNormal);
-//	float cosAlpha = dot(_data.vCam, _data.vNormal);
-//
-//	vec3 F = Fresnel(_data.f0, cosAlpha, _data.roughness);
-//
-//	vec3 Ks = F;
-//
-//	vec3 prefilteredColor = texture(irradianceMap, refl).xyz;
-//
-//	outColor.xyz = ambiantOccl;
-
-//
-//	vec3 normal = normalize(fsIn.normal);
-//
-//	// === Ambient component ===
-//	vec3 Ra = texture(irradianceMap, normal).rgb;
-//	//vec3 Ra = texture(irradianceMap, normal).rgb * matConsts.ambient * _data.albedo;
-//
-//
-//	vec3 kS = Fresnel(_data.f0, cosAlpha, _data.roughness);
-//	vec3 kD = 1.0 - kS;
-//	vec3 irradiance = texture(irradianceMap, normal).rgb;
-//	vec3 diffuse = irradiance * _data.albedo;
-//	vec3 ambient = (kD * diffuse)/* * ao*/; 
-//
-//
-//
-//	outColor.xyz = ambient + diffuse;
-
-	//vec3 irradiance = texture(irradianceMap, _data.vNormal).xyz;
-
-
-	//vec3 refl = -reflect(_data.vCam, normalize(fsIn.normal));
-	//vec3 refl = -reflect(_data.vCam, _data.vNormal);
-	//outColor.xyz = texture(irradianceMap, refl).xyz;
 }
 
 vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lData)

@@ -4,7 +4,7 @@
 
 #include <Core/Algorithms/SizeOf.hpp>
 
-#include <Rendering/Framework/Primitives/Mesh/Vertex.hpp>
+#include <Rendering/Framework/Primitives/Mesh/Vertex/Vertex.hpp>
 #include <Rendering/Framework/Primitives/Material/RawMaterial.hpp>
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
@@ -39,15 +39,18 @@ namespace Sa
 		CreateShaderStages(shaderStages, specConstRanges, _infos);
 
 
+		auto bindingDescriptions = _infos.vertexBindingLayout.GetBindingDescription();
+		auto attributeDescriptions = _infos.vertexBindingLayout.GetAttributeDescriptions();
+
 		const VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo
 		{
-			VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,			// sType.
-			nullptr,															// pNext.
-			0,																	// flags.
-			Vertex::bindingDescriptionNum,										// vertexBindingDescriptionCount.
-			Vertex::GetBindingDescription(),									// pVertexBindingDescriptions.
-			Vertex::attributeDescriptionNum,									// vertexAttributeDescriptionCount.
-			Vertex::GetAttributeDescriptions()									// pVertexAttributeDescriptions.
+			VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,				// sType.
+			nullptr,																// pNext.
+			0,																		// flags.
+			_infos.vertexBindingLayout.GetBindingDescriptionNum(),					// vertexBindingDescriptionCount.
+			bindingDescriptions.get(),												// pVertexBindingDescriptions.
+			_infos.vertexBindingLayout.GetAttributeDescriptionNum(),				// vertexAttributeDescriptionCount.
+			attributeDescriptions.get()												// pVertexAttributeDescriptions.
 		};
 
 		const VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo
@@ -84,9 +87,9 @@ namespace Sa
 			0,																		// flags.
 			VK_FALSE,																// depthClampEnable.
 			VK_FALSE,																// rasterizerDiscardEnable.
-			API_GetPolygonMode(_infos.polygonMode),				// polygonMode.
-			API_GetCullingMode(_infos.cullingMode),				// cullMode.
-			API_GetFrontFaceMode(_infos.frontFaceMode),			// frontFace.
+			API_GetPolygonMode(_infos.polygonMode),									// polygonMode.
+			API_GetCullingMode(_infos.cullingMode),									// cullMode.
+			API_GetFrontFaceMode(_infos.frontFaceMode),								// frontFace.
 			VK_FALSE,																// depthBiasEnable.
 			0.0f,																	// depthBiasConstantFactor.
 			0.0f,																	// depthBiasClamp.
@@ -174,25 +177,25 @@ namespace Sa
 
 		const VkGraphicsPipelineCreateInfo pipelineCreateInfo
 		{
-			VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,					// sType.
-			nullptr,															// pNext.
-			0,																	// flags.
-			SizeOf(shaderStages),												// stageCount.
-			shaderStages.data(),												// pStages.
-			&vertexInputCreateInfo,												// pVertexInputState.
-			&inputAssemblyCreateInfo,											// pInputAssemblyState.
-			nullptr,															// pTessellationState.
-			&viewportStateCreateInfo,											// pViewportState.
-			&rasterizerCreateInfo,												// pRasterizationState.
-			&multisamplingCreateInfo,											// pMultisampleState.
-			&depthStencilCreateInfo,											// pDepthStencilState.
-			&colorBlendingCreateInfo,											// pColorBlendState.
-			_infos.bDynamicViewport ? &DynamiCreateInfo : nullptr,				// pDynamicState.
-			mPipelineLayout,													// layout.
-			vkRenderPass,														// renderPass.
-			0,																	// subpass.
-			VK_NULL_HANDLE,														// basePipelineHandle.
-			-1																	// basePipelineIndex.
+			VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,						// sType.
+			nullptr,																// pNext.
+			0,																		// flags.
+			SizeOf(shaderStages),													// stageCount.
+			shaderStages.data(),													// pStages.
+			&vertexInputCreateInfo,													// pVertexInputState.
+			&inputAssemblyCreateInfo,												// pInputAssemblyState.
+			nullptr,																// pTessellationState.
+			&viewportStateCreateInfo,												// pViewportState.
+			&rasterizerCreateInfo,													// pRasterizationState.
+			&multisamplingCreateInfo,												// pMultisampleState.
+			&depthStencilCreateInfo,												// pDepthStencilState.
+			&colorBlendingCreateInfo,												// pColorBlendState.
+			_infos.bDynamicViewport ? &DynamiCreateInfo : nullptr,					// pDynamicState.
+			mPipelineLayout,														// layout.
+			vkRenderPass,															// renderPass.
+			0,																		// subpass.
+			VK_NULL_HANDLE,															// basePipelineHandle.
+			-1																		// basePipelineIndex.
 		};
 
 		SA_VK_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mHandle),
@@ -238,11 +241,11 @@ namespace Sa
 		// Static UBO binding.
 		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 		{
-			0,																	// binding.
-			VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,									// descriptorType.
-			1,																	// descriptorCount.
-			VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
-			nullptr																// pImmutableSamplers.
+			0,																		// binding.
+			VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,										// descriptorType.
+			1,																		// descriptorCount.
+			VK_SHADER_STAGE_VERTEX_BIT,												// stageFlags.
+			nullptr																	// pImmutableSamplers.
 		});
 
 
@@ -265,22 +268,22 @@ namespace Sa
 		{
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 			{
-				2,																		// binding.
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// descriptorType.
-				1,																		// descriptorCount.
-				VK_SHADER_STAGE_FRAGMENT_BIT,											// stageFlags.
-				nullptr																	// pImmutableSamplers.
+				2,																	// binding.
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
 			});
 		}
 		else
 		{
 			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 			{
-				2,																		// binding.
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// descriptorType.
-				_infos.textures.GetTextureNum(),										// descriptorCount.
-				VK_SHADER_STAGE_FRAGMENT_BIT,											// stageFlags.
-				nullptr																	// pImmutableSamplers.
+				2,																	// binding.
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
+				_infos.textures.GetTextureNum(),									// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
 			});
 		}
 
@@ -304,11 +307,11 @@ namespace Sa
 			{
 				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 				{
-					4 + i,																// binding.
-					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,									// descriptorType.
-					1,																	// descriptorCount.
-					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
-					nullptr																// pImmutableSamplers.
+					4 + i,															// binding.
+					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,								// descriptorType.
+					1,																// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
+					nullptr															// pImmutableSamplers.
 				});
 			}
 
@@ -318,21 +321,21 @@ namespace Sa
 				// Skybox.
 				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 				{
-					7,																	// binding.
-					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
-					1,																	// descriptorCount.
-					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
-					nullptr																// pImmutableSamplers.
+					7,																// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// descriptorType.
+					1,																// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
+					nullptr															// pImmutableSamplers.
 				});
 
 				// Irradiance map.
 				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
 				{
-					8,																	// binding.
-					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
-					1,																	// descriptorCount.
-					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
-					nullptr																// pImmutableSamplers.
+					8,																// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// descriptorType.
+					1,																// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
+					nullptr															// pImmutableSamplers.
 				});
 			}
 		}
@@ -409,8 +412,8 @@ namespace Sa
 				static_cast<uint8>(LightType::Max),
 				VkDescriptorPoolSize
 				{
-					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,									// type.
-					1,																	// descriptorCount.
+					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,								// type.
+					1,																// descriptorCount.
 				}
 			);
 
@@ -420,8 +423,8 @@ namespace Sa
 			{
 				_poolSizes.push_back(VkDescriptorPoolSize
 				{
-					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// type.
-					2,																	// descriptorCount.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// type.
+					2,																// descriptorCount.
 				});
 			}
 		}

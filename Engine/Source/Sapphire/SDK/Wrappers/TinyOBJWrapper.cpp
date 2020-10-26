@@ -47,13 +47,12 @@ namespace std
 		}
 	};
 	template <>
-	struct hash<Sa::Vertex>
+	struct hash<Sa::Vertex<Sa::VertexComp::Default>>
 	{
-		size_t operator()(const Sa::Vertex& v) const
+		size_t operator()(const Sa::Vertex<Sa::VertexComp::Default>& v) const
 		{
 			size_t h = std::hash<Sa::Vec3f>()(v.position);
 			hash_combine(h, v.normal);
-			hash_combine(h, v.tangent);
 			hash_combine(h, v.texture);
 			return h;
 		}
@@ -74,7 +73,7 @@ namespace Sa
 		std::vector<Vec3f> vertexNorm;
 		std::vector<Vec2f> vertexText;
 
-		std::unordered_map<Vertex, uint32> vertexIndexMap;
+		std::unordered_map<Vertex<VertexComp::Default>, uint32> vertexIndexMap;
 
 
 		static tinyobj::callback_t Tiny()
@@ -123,7 +122,7 @@ namespace Sa
 			for (int i = 0; i < _size; ++i)
 			{
 				// Apply -1 since OBJ index start at 1 and not 0.
-				Sa::Vertex vertex{
+				Sa::Vertex<Sa::VertexComp::Default> vertex{
 					cb.vertexPos[_indices[i].vertex_index - 1],
 					cb.vertexNorm[_indices[i].normal_index - 1],
 					Vec3f::Zero,
@@ -141,8 +140,8 @@ namespace Sa
 					uint32 index = SizeOf(cb.vertexIndexMap); // index start at 0: query before insert.
 
 					rawMesh.indices.push_back(index);
-					rawMesh.vertices.push_back(vertex);
-					
+					rawMesh.vertices.insert(rawMesh.vertices.end(), reinterpret_cast<const char*>(&vertex), reinterpret_cast<const char*>(&vertex) + sizeof(vertex));
+
 					// Save vertex index.
 					cb.vertexIndexMap.insert({ vertex, index });
 				}
@@ -230,7 +229,13 @@ namespace Sa
 		_result.meshes.reserve(cb.rawMeshes.size());
 
 		for (auto it = cb.rawMeshes.begin(); it != cb.rawMeshes.end(); ++it)
+		{
+			// TODO: use import infos.
+			if constexpr((VertexComp::Default & VertexComp::Tangent) != VertexComp::None)
+				it->ComputeTangents();
+
 			_result.Add(Move(*it));
+		}
 
 
 		// Add render materials.

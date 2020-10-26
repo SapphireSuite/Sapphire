@@ -40,7 +40,7 @@ layout(binding = 1) uniform ObjectUniformBuffer
 
 // In.
 layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec2 inTexture;
+layout(location = 3) in vec2 inTexture;
 
 
 // Out.

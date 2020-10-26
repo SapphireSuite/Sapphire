@@ -4,79 +4,72 @@
 
 namespace Sa
 {
-	RawMesh RawMesh::SquareMesh() noexcept
+	RawMesh::RawMesh(VertexComp _comps) noexcept :
+		mLayout{ VertexLayout::Make(_comps) }
 	{
-		RawMesh mesh;
-
-		mesh.vertices =
-		{
-			{ { -0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 0.0f } },
-			{ { 0.5f, -0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 0.0f } },
-			{ { 0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 1.0f } },
-			{ { -0.5f, 0.5f, 0.0f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 1.0f } },
-		};
-
-		mesh.indices =
-		{
-			0, 1, 2, 2, 3, 0
-		};
-
-		return mesh;
 	}
 
-	RawMesh RawMesh::CubeMesh() noexcept
+	std::shared_ptr<VertexLayout> RawMesh::GetLayout() const noexcept
 	{
-		RawMesh mesh;
+		return mLayout;
+	}
 
-		mesh.vertices =
+	void RawMesh::SetLayout(VertexComp _comps)
+	{
+		// No conversion to perform.
+		if (mLayout->comps == VertexComp::None || mLayout->comps == _comps)
 		{
-			// Front face.
-			{ { -0.5f, -0.5f, 0.5f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 0.0f } },	// 0.
-			{ { 0.5f, -0.5f, 0.5f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 0.0f } },		// 1.
-			{ { 0.5f, 0.5f, 0.5f }, Vec3f::Forward, Vec3f::Zero, { 0.0f, 1.0f } },		// 2.
-			{ { -0.5f, 0.5f, 0.5f }, Vec3f::Forward, Vec3f::Zero, { 1.0f, 1.0f } },		// 3.
+			mLayout = VertexLayout::Make(_comps);
+			return;
+		}
 
-			// Right face.
-			{ { 0.5f, -0.5f, 0.5f }, Vec3f::Right, Vec3f::Zero, { 1.0f, 0.0f } },		// 4.
-			{ { 0.5f, -0.5f, -0.5f }, Vec3f::Right, Vec3f::Zero, { 0.0f, 0.0f } },		// 5.
-			{ { 0.5f, 0.5f, -0.5f }, Vec3f::Right, Vec3f::Zero, { 0.0f, 1.0f } },		// 6.
-			{ { 0.5f, 0.5f, 0.5f }, Vec3f::Right, Vec3f::Zero, { 1.0f, 1.0f } },		// 7.
+		// TODO: Implement layout conversion.
+		SA_ASSERT(false, NotImplemented, Rendering, L"Method not implemented yet!")
 
-			// Back face.
-			{ { 0.5f, -0.5f, -0.5f }, -Vec3f::Forward, Vec3f::Zero, { 1.0f, 0.0f } },	// 8.
-			{ { -0.5f, -0.5f, -0.5f }, -Vec3f::Forward, Vec3f::Zero, { 0.0f, 0.0f } },	// 9.
-			{ { -0.5f, 0.5f, -0.5f }, -Vec3f::Forward, Vec3f::Zero, { 0.0f, 1.0f } },	// 10.
-			{ { 0.5f, 0.5f, -0.5f }, -Vec3f::Forward, Vec3f::Zero, { 1.0f, 1.0f } },	// 11
+		mLayout = VertexLayout::Make(_comps);
+	}
 
-			// Left face.
-			{ { -0.5f, -0.5f, -0.5f }, -Vec3f::Right, Vec3f::Zero, { 1.0f, 0.0f } },	// 12.
-			{ { -0.5f, -0.5f, 0.5f }, -Vec3f::Right, Vec3f::Zero, { 0.0f, 0.0f } },		// 13.
-			{ { -0.5f, 0.5f, 0.5f }, -Vec3f::Right, Vec3f::Zero, { 0.0f, 1.0f } },		// 14.
-			{ { -0.5f, 0.5f, -0.5f }, -Vec3f::Right, Vec3f::Zero, { 1.0f, 1.0f } },		// 15.
+	void RawMesh::ComputeTangents()
+	{
+		SA_ASSERT((mLayout->comps & VertexComp::Texture) != VertexComp::None,
+			InvalidParam, Rendering, L"Mesh need texture channel to compute tangents!");
 
-			// Top face.
-			{ { -0.5f, 0.5f, 0.5f }, Vec3f::Up, Vec3f::Zero, { 1.0f, 0.0f } },			// 16.
-			{ { 0.5f, 0.5f, 0.5f }, Vec3f::Up, Vec3f::Zero, { 0.0f, 0.0f } },			// 17.
-			{ { 0.5f, 0.5f, -0.5f }, Vec3f::Up, Vec3f::Zero, { 0.0f, 1.0f } },			// 18.
-			{ { -0.5f, 0.5f, -0.5f }, Vec3f::Up, Vec3f::Zero, { 1.0f, 1.0f } },			// 19.
-
-			// Bottom face.
-			{ { -0.5f, -0.5f, -0.5f }, -Vec3f::Up, Vec3f::Zero, { 1.0f, 0.0f } },		// 20.
-			{ { 0.5f, -0.5f, -0.5f }, -Vec3f::Up, Vec3f::Zero, { 0.0f, 0.0f } },		// 21.
-			{ { 0.5f, -0.5f, 0.5f }, -Vec3f::Up, Vec3f::Zero, { 0.0f, 1.0f } },			// 22.
-			{ { -0.5f, -0.5f, 0.5f }, -Vec3f::Up, Vec3f::Zero, { 1.0f, 1.0f } },		// 23.
-		};
-
-		mesh.indices =
+		for (uint32 i = 0; i + 2 < SizeOf(indices); i += 3)
 		{
-			0, 1, 2, 2, 3, 0,
-			4, 5, 6, 6, 7, 4,
-			8, 9, 10, 10, 11, 8,
-			12, 13, 14, 14, 15, 12,
-			16, 17, 18, 18, 19, 16,
-			20, 21, 22, 22, 23, 20,
-		};
+			const Vec3f& APosition = *mLayout->Position(vertices.data(), indices[i]);
+			const Vec3f& ATexture = *mLayout->Texture(vertices.data(), indices[i]);
 
-		return mesh;
+			const Vec3f& BPosition = *mLayout->Position(vertices.data(), indices[i + 1]);
+			const Vec3f& BTexture = *mLayout->Texture(vertices.data(), indices[i + 1]);
+
+			const Vec3f& CPosition = *mLayout->Position(vertices.data(), indices[i + 2]);
+			const Vec3f& CTexture = *mLayout->Texture(vertices.data(), indices[i + 2]);
+
+			Vec3f edge1 = BPosition - APosition;
+			Vec3f edge2 = CPosition - APosition;
+
+			Vec2f deltaUV1 = BTexture - ATexture;
+			Vec2f deltaUV2 = CTexture - ATexture;
+
+			float ratio = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
+
+			if (Maths::Equals0(ratio))
+				continue;
+
+			float f = 1.0f / ratio;
+
+			Vec3f tangent = (f * Vec3f(deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
+				deltaUV2.y * edge1.y - deltaUV1.y * edge2.y,
+				deltaUV2.y * edge1.z - deltaUV1.y * edge2.z)).Normalize();
+
+			// Average tangent.
+			*mLayout->Tangent(vertices.data(), indices[i]) += tangent;
+			*mLayout->Tangent(vertices.data(), indices[i + 1]) += tangent;
+			*mLayout->Tangent(vertices.data(), indices[i + 2]) += tangent;
+		}
+
+
+		for (uint32 i = 0; i < SizeOf(vertices) / mLayout->vertexSize; ++i)
+			mLayout->Tangent(vertices.data(), i)->Normalize();
 	}
 }

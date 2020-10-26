@@ -16,8 +16,14 @@ namespace Sa
 	class IMesh : public IRenderPrimitive
 	{
 	protected:
+		std::shared_ptr<VertexLayout> mLayout;
+
 		virtual void Create(const IRenderInstance& _instance, const RawMesh& _rawMesh) = 0;
+
 	public:
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API std::shared_ptr<VertexLayout> GetLayout() const noexcept;
+
 		// TODO: REMOVE SA_ENGINE_API
 		SA_ENGINE_API static IMesh* CreateInstance(const IRenderInstance& _instance, const RawMesh& _rawMesh);
 		

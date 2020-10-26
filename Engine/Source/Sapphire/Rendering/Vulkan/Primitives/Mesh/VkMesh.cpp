@@ -18,7 +18,7 @@ namespace Sa
 
 
 		// Create Vertex buffer.
-		mVertexBuffer.Create(device, sizeof(Vertex) * SizeOf(_rawMesh.vertices),
+		mVertexBuffer.Create(device, SizeOf(_rawMesh.vertices),
 			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			_rawMesh.vertices.data());

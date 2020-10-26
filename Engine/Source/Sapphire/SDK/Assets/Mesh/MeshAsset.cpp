@@ -55,14 +55,18 @@ namespace Sa
 		uint32 vSize = 0u;
 		uint32 iSize = 0u;
 
+		uint32 vertexComps;
+
 		// Header.
-		if (!(_hStream >> vSize >> iSize))
+		if (!(_hStream >> vSize >> iSize >> vertexComps))
 		{
 			SA_LOG("Can't parse header!", Warning, SDK_Asset);
 			return false;
 		}
 
-		mRawData.vertices.resize(vSize / sizeof(Vertex));
+		mRawData.SetLayout(static_cast<VertexComp>(vertexComps));
+
+		mRawData.vertices.resize(vSize);
 		mRawData.indices.resize(iSize / sizeof(uint32));
 
 		_fStream.read(reinterpret_cast<char*>(mRawData.vertices.data()), vSize);
@@ -86,69 +90,15 @@ namespace Sa
 		uint32 iSize = BitSizeOf(mRawData.indices);
 
 		// Header.
-		_fStream << vSize << ' ' << iSize << '\n';
+		_fStream << vSize << ' ' << iSize << ' ' << static_cast<uint32>(mRawData.GetLayout()->comps) << '\n';
 
-		_fStream.write(reinterpret_cast<const char*>(mRawData.vertices.data()), vSize);
+		_fStream.write(mRawData.vertices.data(), vSize);
 		_fStream.write(reinterpret_cast<const char*>(mRawData.indices.data()), iSize);
 	}
 
 	IMesh* MeshAsset::Create(const IRenderInstance& _instance) const
 	{
 		return IMesh::CreateInstance(_instance, Move(mRawData));
-	}
-
-
-	//void MeshAsset::AddTangent(const Vec3f& _tangent, uint32 _indiceIndex) noexcept
-	//{
-	//	uint32& vertIndex = mRawData.indices[_indiceIndex];
-	//	Vertex& vertex = mRawData.vertices[vertIndex];
-
-	//	if (vertex.tangent == Vec3f::Zero)
-	//		vertex.tangent = _tangent;
-	//	else if (vertex.tangent != _tangent)
-	//	{
-	//		// Index start at 0: update before insert.
-	//		vertIndex = SizeOf(mRawData.vertices);
-
-	//		Vertex& newVertex = mRawData.vertices.emplace_back(vertex);
-	//		newVertex.tangent = _tangent;
-	//	}
-	//}
-
-	void MeshAsset::ComputeTangents()
-	{
-		for (uint32 i = 0; i + 2 < SizeOf(mRawData.indices); i += 3)
-		{
-			Vec3f edge1 = mRawData.vertices[mRawData.indices[i + 1]].position - mRawData.vertices[mRawData.indices[i]].position;
-			Vec3f edge2 = mRawData.vertices[mRawData.indices[i + 2]].position - mRawData.vertices[mRawData.indices[i]].position;
-
-			Vec2f deltaUV1 = mRawData.vertices[mRawData.indices[i + 1]].texture - mRawData.vertices[mRawData.indices[i]].texture;
-			Vec2f deltaUV2 = mRawData.vertices[mRawData.indices[i + 2]].texture - mRawData.vertices[mRawData.indices[i]].texture;
-
-			float ratio = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
-
-			if (Maths::Equals0(ratio))
-				continue;
-
-			float f = 1.0f / ratio ;
-
-			Vec3f tangent = (f * Vec3f(deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
-				deltaUV2.y * edge1.y - deltaUV1.y * edge2.y,
-				deltaUV2.y * edge1.z - deltaUV1.y * edge2.z)).Normalize();
-
-			// Previous implementation with vertex duplication.
-			//AddTangent(tangent, i);
-			//AddTangent(tangent, i + 1);
-			//AddTangent(tangent, i + 2);
-
-			// Average tangent.
-			mRawData.vertices[mRawData.indices[i]].tangent += tangent;
-			mRawData.vertices[mRawData.indices[i + 1]].tangent += tangent;
-			mRawData.vertices[mRawData.indices[i + 2]].tangent += tangent;
-		}
-
-		for (auto it = mRawData.vertices.begin(); it != mRawData.vertices.end(); ++it)
-			it->tangent.Normalize();
 	}
 
 

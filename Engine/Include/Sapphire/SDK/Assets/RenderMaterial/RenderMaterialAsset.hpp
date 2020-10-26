@@ -16,9 +16,6 @@ namespace Sa
 
 	class RenderMaterialAsset : public IAsset
 	{
-	protected:
-		mutable RawMaterial mRawData;
-
 		bool Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream) override;
 		void UnLoad_Internal(bool _bFreeResources) override;
 
@@ -27,6 +24,8 @@ namespace Sa
 	public:
 		using ResT = IRenderMaterial;
 		using RawT = RawMaterial;
+
+		mutable RawMaterial mRawData; // TODO: Private?
 
 		std::string vertexShaderPath;
 		std::string fragmentShaderPath;
