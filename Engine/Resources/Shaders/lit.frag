@@ -194,10 +194,10 @@ struct IlluminationData
 	vec3 albedo;
 
 	// Metallic from texture.
-	vec3 metallic;
+	float metallic;
 
 	// Roughness from texture.
-	vec3 roughness;
+	float roughness;
 
 
 	// Normal vector.
@@ -250,8 +250,8 @@ void ComputeIllumination()
 
 	// Textures.
 	data.albedo = texture(texSamplers[0], fsIn.texture).xyz;
-	data.metallic = texture(texSamplers[3], fsIn.texture).xyz;
-	data.roughness = texture(texSamplers[4], fsIn.texture).xyz;
+	data.metallic = texture(texSamplers[3], fsIn.texture).r;
+	data.roughness = texture(texSamplers[4], fsIn.texture).r;
 
 
 	// === Normal vector ===
@@ -285,37 +285,37 @@ void ComputeIllumination()
 	ComputeLights(data);
 }
 
-vec3 DistributionGGX(float cosAlpha, vec3 _roughness)
+float DistributionGGX(float cosAlpha, float _roughness)
 {
 	// Normal distribution function: GGX model.
-	vec3 roughSqr = _roughness * _roughness;
+	float roughSqr = _roughness * _roughness;
 
-	vec3 denom = cosAlpha * cosAlpha * (roughSqr - 1.0) + 1.0;
+	float denom = cosAlpha * cosAlpha * (roughSqr - 1.0) + 1.0;
 
     return roughSqr / (PI * denom * denom);
 }
 
-vec3 GeometrySchlickGGX(float cosRho, vec3 _roughness)
+float GeometrySchlickGGX(float cosRho, float _roughness)
 {
 	// Geometry distribution function: GGX model.
 
-	vec3 k = ((_roughness + 1.0) * (_roughness + 1.0)) / 8.0;
+	float k = ((_roughness + 1.0) * (_roughness + 1.0)) / 8.0;
 
     return cosRho / (cosRho * (1.0 - k) + k);
 }
   
-vec3 GeometrySmith(float cosTheta, float cosRho, vec3 _roughness)
+float GeometrySmith(float cosTheta, float cosRho, float _roughness)
 {
-    vec3 ggx1 = GeometrySchlickGGX(cosRho, _roughness);
-    vec3 ggx2 = GeometrySchlickGGX(cosTheta, _roughness);
+    float ggx1 = GeometrySchlickGGX(cosRho, _roughness);
+    float ggx2 = GeometrySchlickGGX(cosTheta, _roughness);
 	
     return ggx1 * ggx2;
 }
 
-vec3 Fresnel(vec3 _f0, float _cosTheta, vec3 _roughness)
+vec3 Fresnel(vec3 _f0, float _cosTheta, float _roughness)
 {
 	// Schlick's approximation.
-	return _f0 + (max(vec3(1.0) - _roughness, _f0) - _f0) * pow(1.0 - _cosTheta, 5.0);
+	return _f0 + (max(vec3(1.0 - _roughness), _f0) - _f0) * pow(1.0 - _cosTheta, 5.0);
 }
 
 float ComputeAttenuation(vec3 _lightPosition, float _lightRange)
@@ -330,18 +330,21 @@ void ComputeIBL(inout IlluminationData _data)
 	vec3 irradiance = texture(irradianceMap, _data.vNormal).xyz;
 
 	// === Diffuse component ===
-
 	vec3 diffuse = irradiance * matConsts.diffuse * _data.albedo;
 
 
 	// === Ambient component ===
-	vec3 ambiantOccl = texture(texSamplers[5], fsIn.texture).xyz;
+	float ambiantOccl = texture(texSamplers[5], fsIn.texture).r;
 
 	float cosAlpha = dot(_data.vCam, _data.vNormal);
 	vec3 kS = Fresnel(_data.f0, cosAlpha, _data.roughness);
 	vec3 kD = 1.0 - kS;
 	
 	vec3 ambient = (kD * diffuse) * ambiantOccl;
+
+
+	// === Specular component ===
+
 
 	outColor.xyz = ambient + diffuse;
 }
@@ -359,7 +362,7 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 
 
 	// === Ambient component ===
-	vec3 kA = _lData.color * _lData.ambient * matConsts.ambient * _data.albedo;
+	vec3 rA = _lData.color * _lData.ambient * matConsts.ambient * _data.albedo; // ambient radiance.
 	
 
 	// === BRDF ===
@@ -381,14 +384,14 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 
 		if(cosAlpha > 0.0 && cosRho > 0.0)
 		{
-			vec3 NDF = DistributionGGX(cosAlpha, _data.roughness);
-			vec3 G = GeometrySmith(cosTheta, cosRho, _data.roughness);
+			float NDF = DistributionGGX(cosAlpha, _data.roughness);
+			float G = GeometrySmith(cosTheta, cosRho, _data.roughness);
 		
 			specularBRDF = _lData.color * _lData.specular * matConsts.specular * (NDF * G * F) / (4.0 * cosTheta * cosRho);
 		}
 
 		// === Diffuse Component ===
-		vec3 kD = (vec3(1.0) - F) * (vec3(1.0) - _data.metallic);
+		vec3 kD = (vec3(1.0) - F) * (1.0 - _data.metallic);
 		vec3 diffuseBRDF = kD * _lData.color * _lData.diffuse * matConsts.diffuse * _data.albedo / PI;
 
 		// === BRDF sum ===
@@ -396,7 +399,7 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 	}
 
 	//  === Output ===
-	vec3 result = kA + BRDF;
+	vec3 result = rA + BRDF;
 
 	// Apply attenuation.
 	if(_lData.bAttenuation)
