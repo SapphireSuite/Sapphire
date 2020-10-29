@@ -32,6 +32,8 @@ constexpr const char* litFragShaderAsset = "Bin/Shaders/lit_FS.spha";
 constexpr const char* unlitVertShaderAsset = "Bin/Shaders/unlit_VS.spha";
 constexpr const char* unlitFragShaderAsset = "Bin/Shaders/unlit_FS.spha";
 
+constexpr const char* missingTextureAsset = "Bin/Textures/missing_T.spha";
+
 IMesh* squareMesh = nullptr;
 constexpr const char* squareMeshAsset = "Bin/Meshes/Square_M.spha";
 
@@ -64,7 +66,8 @@ IRenderMaterial* skyboxMat = nullptr;
 
 // Spheres.
 IMesh* sphereMesh = nullptr;
-IRenderMaterial* sphereMats[12]{};
+uint32 sphereMatNum = 0u;
+IRenderMaterial** sphereMats = nullptr;
 
 
 void CreateDefaultResources(AssetManager& _assetMgr)
@@ -102,6 +105,15 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 		// Import on load failed.
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.frag");
 		result->Save(unlitFragShaderAsset);
+	}
+
+
+	// Textures
+	if (!_assetMgr.textureMgr.Load(missingTextureAsset, true)) // Try load.
+	{
+		// Import on load failed.
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/MissingTexture.png");
+		result->Save(missingTextureAsset);
 	}
 
 
@@ -510,12 +522,14 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 		"Hardwood",
 		"IndustrialBricks",
 		"Rusted",
+		"Rusted2",
 		"ScuffedGold",
 		"ScuffedTitanium",
 		"Shoreline",
 		"Snow",
 		"WarpedSheet",
-		"Worn"
+		"Worn",
+		"WornShiny",
 	};
 	std::vector<std::vector<std::string>> matResourcePathes =
 	{
@@ -566,6 +580,13 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 			"rustediron-streaks_roughness"
 		},
 		{
+			"rustediron2_basecolor",
+			"rustediron2_normal",
+			"",
+			"rustediron2_metallic",
+			"rustediron2_roughness"
+		},
+		{
 			"gold-scuffed_basecolor-boosted",
 			"gold-scuffed_normal",
 			"",
@@ -610,25 +631,43 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 			"worn_metal4_Metallic",
 			"worn_metal4_Roughness",
 			"worn_metal4_ao"
+		},
+		{
+			"worn-shiny-metal-albedo",
+			"worn-shiny-metal-Normal",
+			"worn-shiny-metal-Height",
+			"worn-shiny-metal-Metallic",
+			"worn-shiny-metal-Roughness",
+			"worn-shiny-metal-ao"
 		}
 	};
 
+	sphereMatNum = SizeOf(names);
+	sphereMats = new IRenderMaterial*[sphereMatNum] {};
+
 	// Textures.
-	for (uint32 i = 0u; i < SizeOf(names); ++i)
 	{
-		for (uint32 j = 0u; j < SizeOf(matResourcePathes[i]); ++j)
+		std::string sphaPath;
+		std::string resPath;
+
+		for (uint32 i = 0u; i < sphereMatNum; ++i)
 		{
-			if (matResourcePathes[i][j].empty())
-				continue;
-
-			std::string sphaPath = "Bin/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".spha";
-			std::string resPath = "../../Samples/Prototype/Resources/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".png";
-
-			if (!_assetMgr.textureMgr.Load(sphaPath, true)) // Try load.
+			for (uint32 j = 0u; j < SizeOf(matResourcePathes[i]); ++j)
 			{
-				// Import on load failed.
-				auto result = _assetMgr.importer.Import(resPath);
-				result->Save(sphaPath);
+				if (matResourcePathes[i][j].empty())
+					sphaPath = missingTextureAsset;
+				else
+				{
+					sphaPath = "Bin/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".spha";
+					resPath = "../../Samples/Prototype/Resources/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".png";
+				}
+
+				if (!_assetMgr.textureMgr.Load(sphaPath, true)) // Try load.
+				{
+					// Import on load failed.
+					auto result = _assetMgr.importer.Import(resPath);
+					result->Save(sphaPath);
+				}
 			}
 		}
 	}
@@ -649,7 +688,7 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 	}
 
 	// Materials.
-	for (uint32 i = 0u; i < SizeOf(sphereMats); ++i)
+	for (uint32 i = 0u; i < sphereMatNum; ++i)
 	{
 		std::string path = "Bin/Spheres/" + names[i] + '/' + names[i] + "_Mat.spha";
 
@@ -671,9 +710,9 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 			for (uint32 j = 0u; j < SizeOf(matResourcePathes[i]); ++j)
 			{
 				if (matResourcePathes[i][j].empty())
-					continue;
-
-				renderMatAsset.texturePaths.emplace_back("Bin/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".spha");
+					renderMatAsset.texturePaths.emplace_back(missingTextureAsset);
+				else
+					renderMatAsset.texturePaths.emplace_back("Bin/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".spha");
 			}
 
 			renderMatAsset.Save(path);
@@ -682,16 +721,22 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 		}
 	}
 
-	for (uint32 x = 0u; x < 4; ++x)
-	{
-		for (uint32 y = 0u; y < 3; ++y)
-		{
-			DefaultUniformBuffer ubo;
-			ubo.modelMat = API_ConvertCoordinateSystem(Mat4f::MakeTransform(Vec3f(-10.0f + x * 5.0f,-2.0f + y * 5.0f, -5.0f), Quatf(180_deg, Vec3f::Up), Vec3f::One * 0.1f));
-			ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
 
-			sphereMats[3 * x + y]->InitVariable(_instance, &ubo, sizeof(ubo));
-		}
+	uint32 x = 0u;
+	uint32 y = 0u;
+
+	for (uint32 i = 0u; i < sphereMatNum; ++i)
+	{
+		DefaultUniformBuffer ubo;
+		ubo.modelMat = API_ConvertCoordinateSystem(Mat4f::MakeTransform(Vec3f(-10.0f + x * 5.0f, -2.0f + y * 5.0f, -5.0f), Quatf(180_deg, Vec3f::Up), Vec3f::One * 0.1f));
+		ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
+
+		sphereMats[i]->InitVariable(_instance, &ubo, sizeof(ubo));
+
+		y = (y + 1) % 3;
+
+		if (y == 0)
+			++x;
 	}
 }
 
@@ -705,9 +750,9 @@ void CreateResources(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 	CreateGizmo(_instance, _assetMgr);
 
-	CreateMagikarp(_instance, _assetMgr);
-	CreateBricks(_instance, _assetMgr);
-	CreateWindow(_instance, _assetMgr);
+	//CreateMagikarp(_instance, _assetMgr);
+	//CreateBricks(_instance, _assetMgr);
+	//CreateWindow(_instance, _assetMgr);
 
 	//CreateHelmet(_instance, _assetMgr);
 }
@@ -849,7 +894,7 @@ int main()
 		// Draw spheres.
 		if (sphereMats[0])
 		{
-			for (uint32 i = 0; i < SizeOf(sphereMats); ++i)
+			for (uint32 i = 0; i < sphereMatNum; ++i)
 			{
 				sphereMats[i]->Bind(frame);
 				sphereMesh->Draw(frame);

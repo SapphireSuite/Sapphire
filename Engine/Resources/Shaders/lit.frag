@@ -6,7 +6,7 @@
 /*
 *	0. albedo
 *	1. normalMap
-*	2. specularMap
+*	2. heightMap
 *	3. metallicMap
 *	4. roughMap
 *	5. ambiantOcclusion.
@@ -238,9 +238,6 @@ struct LightData
 void ComputeIBL(inout IlluminationData _data);
 void ComputeLights(inout IlluminationData _data);
 
-vec3 Fresnel(vec3 _f0, float _cosTheta, vec3 _roughness);
-float ComputeAttenuation(vec3 _lightPosition, float _lightRange);
-
 
 void ComputeIllumination()
 {
@@ -288,6 +285,46 @@ void ComputeIllumination()
 	ComputeLights(data);
 }
 
+vec3 DistributionGGX(float cosAlpha, vec3 _roughness)
+{
+	// Normal distribution function: GGX model.
+	vec3 roughSqr = _roughness * _roughness;
+
+	vec3 denom = cosAlpha * cosAlpha * (roughSqr - 1.0) + 1.0;
+
+    return roughSqr / (PI * denom * denom);
+}
+
+vec3 GeometrySchlickGGX(float cosRho, vec3 _roughness)
+{
+	// Geometry distribution function: GGX model.
+
+	vec3 k = ((_roughness + 1.0) * (_roughness + 1.0)) / 8.0;
+
+    return cosRho / (cosRho * (1.0 - k) + k);
+}
+  
+vec3 GeometrySmith(float cosTheta, float cosRho, vec3 _roughness)
+{
+    vec3 ggx1 = GeometrySchlickGGX(cosRho, _roughness);
+    vec3 ggx2 = GeometrySchlickGGX(cosTheta, _roughness);
+	
+    return ggx1 * ggx2;
+}
+
+vec3 Fresnel(vec3 _f0, float _cosTheta, vec3 _roughness)
+{
+	// Schlick's approximation.
+	return _f0 + (max(vec3(1.0) - _roughness, _f0) - _f0) * pow(1.0 - _cosTheta, 5.0);
+}
+
+float ComputeAttenuation(vec3 _lightPosition, float _lightRange)
+{
+	float distance = length(_lightPosition - fsIn.position);
+
+	return max(1 - (distance / _lightRange), 0.0);
+}
+
 void ComputeIBL(inout IlluminationData _data)
 {
 	vec3 irradiance = texture(irradianceMap, _data.vNormal).xyz;
@@ -304,7 +341,7 @@ void ComputeIBL(inout IlluminationData _data)
 	vec3 kS = Fresnel(_data.f0, cosAlpha, _data.roughness);
 	vec3 kD = 1.0 - kS;
 	
-	vec3 ambient = (kD * diffuse) * ambiantOccl; 
+	vec3 ambient = (kD * diffuse) * ambiantOccl;
 
 	outColor.xyz = ambient + diffuse;
 }
@@ -322,59 +359,99 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 
 
 	// === Ambient component ===
-	vec3 Ra = _lData.color * _lData.ambient * matConsts.ambient * _data.albedo;
+	vec3 kA = _lData.color * _lData.ambient * matConsts.ambient * _data.albedo;
 	
 
+	// === BRDF ===
+	vec3 BRDF = vec3(0.0);
+
 	// Check facing: no lighting.
-	if(cosTheta < 0.0 || _lData.bCutOff)
-		return Ra;
-
-
-
-	// === Diffuse component ===
-	vec3 Rd = _lData.color * _lData.diffuse * matConsts.diffuse * mix(_data.albedo, vec3(0.0), _data.metallic);
-
-	vec3 diffuseBRDF = Rd/* / PI*/;
-
-
-	// === Specular component ===
-	vec3 specularBRDF = vec3(0);
-
-	// Halfway vector.
-	vec3 vHalf = normalize(_data.vLight + _data.vCam);
-
-	// Blinn-Phong variant. Phong formula is: dot(vNormal, vCam)
-	float cosAlpha = dot(_data.vNormal, vHalf);
-
-	if(cosAlpha > 0.0)
+	if(cosTheta > 0.0 && !_lData.bCutOff)
 	{
-		vec3 Rs = _lData.color * _lData.specular * matConsts.specular * mix(vec3(1.0), _data.albedo, _data.metallic);
+		// === Specular component ===
+		// Halfway vector.
+		vec3 vHalf = normalize(_data.vLight + _data.vCam);
 
-		/* 
-		*	Normalization factor: Gotanda approximation.
-		*	Source: http://research.tri-ace.com/Data/course_note_practical_implementation_at_triace.pdf
-		*/
-		//float normFactor = 0.0397436 * matConsts.shininess + 0.0856832;
-		float normFactor = (matConsts.shininess + 2) / (4 /** PI*/ * (2 - pow(2, -matConsts.shininess / 2)));
+		// Blinn-Phong variant. Phong formula is: dot(vNormal, vCam)
+		float cosAlpha = dot(_data.vNormal, vHalf);
+		float cosRho = dot(_data.vNormal, _data.vCam);
 
-		// Geometric factor: Neumann "Albedo pumped-up".
-		float G = 1.0 / max(cosTheta, dot(_data.vNormal, _data.vCam));
+		vec3 F = Fresnel(_data.f0, dot(_data.vCam, vHalf), _data.roughness);
+		vec3 specularBRDF = vec3(0);
 
+		if(cosAlpha > 0.0 && cosRho > 0.0)
+		{
+			vec3 NDF = DistributionGGX(cosAlpha, _data.roughness);
+			vec3 G = GeometrySmith(cosTheta, cosRho, _data.roughness);
+		
+			specularBRDF = _lData.color * _lData.specular * matConsts.specular * (NDF * G * F) / (4.0 * cosTheta * cosRho);
+		}
 
-		specularBRDF = Rs * normFactor * Fresnel(_data.f0, dot(_data.vCam, vHalf), _data.roughness) * G * pow(cosAlpha, matConsts.shininess);
+		// === Diffuse Component ===
+		vec3 kD = (vec3(1.0) - F) * (vec3(1.0) - _data.metallic);
+		vec3 diffuseBRDF = kD * _lData.color * _lData.diffuse * matConsts.diffuse * _data.albedo / PI;
+
+		// === BRDF sum ===
+		BRDF = (diffuseBRDF + specularBRDF) * cosTheta;
 	}
 
-
-	// === BRDF sum ===
-	vec3 BRDF = (diffuseBRDF + specularBRDF) * cosTheta;
+	//  === Output ===
+	vec3 result = kA + BRDF;
 
 	// Apply attenuation.
 	if(_lData.bAttenuation)
-		BRDF *= ComputeAttenuation(_lData.position, _lData.range);
+		result *= ComputeAttenuation(_lData.position, _lData.range);
+
+	return result;
 
 
-	//  Output.
-	return Ra + BRDF;
+
+
+
+//	// === Diffuse component ===
+//	vec3 Rd = _lData.color * _lData.diffuse * matConsts.diffuse * mix(_data.albedo, vec3(0.0), _data.metallic);
+//
+//	vec3 diffuseBRDF = Rd/* / PI*/;
+//
+//
+//	// === Specular component ===
+//	vec3 specularBRDF = vec3(0);
+//
+//	// Halfway vector.
+//	vec3 vHalf = normalize(_data.vLight + _data.vCam);
+//
+//	// Blinn-Phong variant. Phong formula is: dot(vNormal, vCam)
+//	float cosAlpha = dot(_data.vNormal, vHalf);
+//
+//	if(cosAlpha > 0.0)
+//	{
+//		vec3 Rs = _lData.color * _lData.specular * matConsts.specular * mix(vec3(1.0), _data.albedo, _data.metallic);
+//
+//		/* 
+//		*	Normalization factor: Gotanda approximation.
+//		*	Source: http://research.tri-ace.com/Data/course_note_practical_implementation_at_triace.pdf
+//		*/
+//		//float normFactor = 0.0397436 * matConsts.shininess + 0.0856832;
+//		float normFactor = (matConsts.shininess + 2) / (4 /** PI*/ * (2 - pow(2, -matConsts.shininess / 2)));
+//
+//		// Geometric factor: Neumann "Albedo pumped-up".
+//		float G = 1.0 / max(cosTheta, dot(_data.vNormal, _data.vCam));
+//
+//
+//		specularBRDF = Rs * normFactor * Fresnel(_data.f0, dot(_data.vCam, vHalf), _data.roughness) * G * pow(cosAlpha, matConsts.shininess);
+//	}
+//
+//
+//	// === BRDF sum ===
+//	vec3 BRDF = (diffuseBRDF + specularBRDF) * cosTheta;
+//
+//	// Apply attenuation.
+//	if(_lData.bAttenuation)
+//		BRDF *= ComputeAttenuation(_lData.position, _lData.range);
+//
+//
+//	//  Output.
+//	return Ra + BRDF;
 }
 
 
@@ -448,21 +525,6 @@ vec3 ComputeSpotLight(SpotLight _light, inout IlluminationData _data)
 	}
 
 	return ComputeIlluminationModel(_data, lData);
-}
-
-
-vec3 Fresnel(vec3 _f0, float _cosTheta, vec3 _roughness)
-{
-	// Schlick's approximation.
-	return _f0 + (max(vec3(1.0) - _roughness, _f0) - _f0) * pow(1.0 - _cosTheta, 5.0);
-}
-
-
-float ComputeAttenuation(vec3 _lightPosition, float _lightRange)
-{
-	float distance = length(_lightPosition - fsIn.position);
-
-	return max(1 - (distance / _lightRange), 0.0);
 }
 
 
