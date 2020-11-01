@@ -26,13 +26,14 @@ using namespace Sa;
 #define LOG(_str) std::cout << _str << std::endl;
 
 // Default
-constexpr const char* litVertShaderAsset = "Bin/Shaders/lit_VS.spha";
-constexpr const char* litFragShaderAsset = "Bin/Shaders/lit_FS.spha";
+constexpr const char* litVertShaderAsset = "Bin/Engine/Shaders/lit_VS.spha";
+constexpr const char* litFragShaderAsset = "Bin/Engine/Shaders/lit_FS.spha";
 
-constexpr const char* unlitVertShaderAsset = "Bin/Shaders/unlit_VS.spha";
-constexpr const char* unlitFragShaderAsset = "Bin/Shaders/unlit_FS.spha";
+constexpr const char* unlitVertShaderAsset = "Bin/Engine/Shaders/unlit_VS.spha";
+constexpr const char* unlitFragShaderAsset = "Bin/Engine/Shaders/unlit_FS.spha";
 
-constexpr const char* missingTextureAsset = "Bin/Textures/missing_T.spha";
+constexpr const char* missingTextureAsset = "Bin/Engine/Textures/missing_T.spha";
+constexpr const char* BRDFLookUpTableTextureAsset = "Bin/Engine/Textures/brdf_lut_T.spha";
 
 IMesh* squareMesh = nullptr;
 constexpr const char* squareMeshAsset = "Bin/Meshes/Square_M.spha";
@@ -112,9 +113,17 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!_assetMgr.textureMgr.Load(missingTextureAsset, true)) // Try load.
 	{
 		// Import on load failed.
-		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/MissingTexture.png");
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/missing_texture.png");
 		result->Save(missingTextureAsset);
 	}
+	if (!(ITexture::brdfLUT = _assetMgr.textureMgr.Load(BRDFLookUpTableTextureAsset, true))) // Try load.
+	{
+		// Import on load failed.
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/brdf_lut.jpg");
+		result->Save(BRDFLookUpTableTextureAsset);
+		ITexture::brdfLUT = result->AsPtr<TextureAsset>()->GetResource();
+	}
+
 
 
 	// Mesh.
@@ -341,7 +350,6 @@ void CreateBricks(IRenderInstance& _instance, AssetManager& _assetMgr)
 		{
 			// Import on load failed.
 			auto result = _assetMgr.importer.Import(textureResources[i]);
-			result->As<TextureAsset>().FlipVertically();
 			result->Save(textureAssets[i]);
 		}
 	}
@@ -728,7 +736,7 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 	for (uint32 i = 0u; i < sphereMatNum; ++i)
 	{
 		DefaultUniformBuffer ubo;
-		ubo.modelMat = API_ConvertCoordinateSystem(Mat4f::MakeTransform(Vec3f(-10.0f + x * 5.0f, -2.0f + y * 5.0f, -5.0f), Quatf(180_deg, Vec3f::Up), Vec3f::One * 0.1f));
+		ubo.modelMat = API_ConvertCoordinateSystem(Mat4f::MakeTransform(Vec3f(-10.0f + x * 7.5f, -2.0f + y * 7.5f, -5.0f), Quatf::Identity, Vec3f::One * 0.1f));
 		ubo.normalMat = !Maths::Equals0(ubo.modelMat.Determinant()) ? ubo.modelMat.GetInversed().Transpose() : Mat4f::Identity;
 
 		sphereMats[i]->InitVariable(_instance, &ubo, sizeof(ubo));
@@ -788,8 +796,7 @@ int main()
 	IRenderPass::main = &mainRenderPass;
 
 	Camera& mainCamera = instance.InstantiateCamera();
-	mainCamera.SetPosition(Vec3f(-2.0f, 2.0f, -15.0f));
-	mainCamera.SetRotation(Quatf(180_deg, Vec3f::Up));
+	mainCamera.SetPosition(Vec3f(-2.0f, 2.0f, 5.0f));
 	TransffPRS camTr = mainCamera.GetTransform();
 
 	AssetManager assetMgr(instance);
@@ -798,12 +805,12 @@ int main()
 
 	// Create Lights.
 	PLightInfos pLight1;
-	pLight1.position = API_ConvertCoordinateSystem(Vec3f(-1.0f, 2.0f, -10.0f));
+	pLight1.position = API_ConvertCoordinateSystem(Vec3f(-1.0f, 2.0f, 0.0f));
 	//pLight1.color = Vec3f(0.9f, 0.7f, 0.3f);
 	pLight1.intensity = 5.0f;
 
 	uint32 pLight1ID = uint32(-1);
-	pLight1ID = instance.InstantiatePointLight(pLight1);
+	//pLight1ID = instance.InstantiatePointLight(pLight1);
 
 	//PLightInfos pLight2;
 	//pLight2.position = API_ConvertCoordinateSystem(Vec3f(2.0f, 2.0f, -2.0f));
@@ -892,7 +899,7 @@ int main()
 		}
 
 		// Draw spheres.
-		if (sphereMats[0])
+		if (sphereMats)
 		{
 			for (uint32 i = 0; i < sphereMatNum; ++i)
 			{

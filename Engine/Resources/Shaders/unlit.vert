@@ -46,7 +46,6 @@ layout(location = 3) in vec2 inTexture;
 // Out.
 layout(location = 0) out DataBlock
 {
-    vec3 position;
 	vec2 texture;
 } vsOut;
 
@@ -64,7 +63,6 @@ void main()
     // Position.
     vec4 modelPosition = objectUBO.modelMat * vec4(inPosition, 1.0);
 
-    vsOut.position = modelPosition.xyz / modelPosition.w;
     gl_Position = cameraUBO.cameras[pConst.camIndex].proj * cameraUBO.cameras[pConst.camIndex].viewInv * modelPosition;
 
 

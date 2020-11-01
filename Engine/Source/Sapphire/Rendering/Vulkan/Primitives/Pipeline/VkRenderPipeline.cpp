@@ -337,6 +337,16 @@ namespace Sa
 					VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
 					nullptr															// pImmutableSamplers.
 				});
+
+				// BRDF lookup texture.
+				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					9,																// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// descriptorType.
+					1,																// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
+					nullptr															// pImmutableSamplers.
+				});
 			}
 		}
 	}
@@ -424,7 +434,7 @@ namespace Sa
 				_poolSizes.push_back(VkDescriptorPoolSize
 				{
 					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// type.
-					2,																// descriptorCount.
+					3,																// descriptorCount.
 				});
 			}
 		}
@@ -532,6 +542,9 @@ namespace Sa
 
 				_descriptorInfos.push_back(_infos.skybox->As<VkCubemap>().CreateIrradianceDescriptorImageInfo());
 				_descriptorWrites.push_back(VkCubemap::CreateWriteDescriptorSet(mDescriptorSets[_index], 8));
+
+				_descriptorInfos.push_back(ITexture::brdfLUT->As<VkTexture>().CreateDescriptorImageInfo());
+				_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], 9));
 			}
 		}
 	}

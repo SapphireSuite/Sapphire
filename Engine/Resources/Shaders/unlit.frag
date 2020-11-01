@@ -14,7 +14,6 @@ layout(constant_id = 0) const int alphaModel = 0;
 // In.
 layout(location = 0) in DataBlock
 {
-    vec3 position;
 	vec2 texture;
 } fsIn;
 

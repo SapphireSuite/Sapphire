@@ -8,6 +8,9 @@
 
 namespace Sa
 {
+	// TODO: CLEAN LATER.
+	ITexture* ITexture::brdfLUT = nullptr;
+
 	ITexture* ITexture::CreateInstance(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
 		ITexture* result = nullptr;

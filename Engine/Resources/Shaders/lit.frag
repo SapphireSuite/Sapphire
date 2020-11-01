@@ -120,10 +120,12 @@ layout(binding = 6) buffer SpotLightBuffer
 // IBL.
 layout(binding = 7) uniform samplerCube skybox;
 layout(binding = 8) uniform samplerCube irradianceMap;
+layout(binding = 9) uniform sampler2D lookupTableBRDF;
 
 
 // Constants.
 const float PI = 3.14159265359;
+const float handness = -1.0;
 
 // Flags.
 const int lightingFlag = 1 << 0;
@@ -235,7 +237,7 @@ struct LightData
 	bool bCutOff;
 };
 
-void ComputeIBL(inout IlluminationData _data);
+vec3 ComputeIBL(inout IlluminationData _data);
 void ComputeLights(inout IlluminationData _data);
 
 
@@ -263,7 +265,7 @@ void ComputeIllumination()
 
 		vec3 N = normalize(fsIn.normal);
 		vec3 T = normalize(fsIn.tangent);
-		vec3 B = /*handness */ -1.0 * cross (N, T);
+		vec3 B = handness * cross (N, T);
 		mat3 TBN = mat3(T, B, N);
 		data.vNormal = normalize(TBN * (texture(texSamplers[1], fsIn.texture).rgb * 2.0 - 1.0));
 	}
@@ -280,7 +282,7 @@ void ComputeIllumination()
 
 
 //	if(flags & IBLFlag == 0)
-		ComputeIBL(data);
+		outColor.xyz = ComputeIBL(data);
 
 	ComputeLights(data);
 }
@@ -325,28 +327,41 @@ float ComputeAttenuation(vec3 _lightPosition, float _lightRange)
 	return max(1 - (distance / _lightRange), 0.0);
 }
 
-void ComputeIBL(inout IlluminationData _data)
+vec3 ComputeIBL(inout IlluminationData _data)
 {
-	vec3 irradiance = texture(irradianceMap, _data.vNormal).xyz;
+	//vec3 normal = _data.vNormal;
+	vec3 normal = normalize(fsIn.normal);
+
+	vec3 irradiance = texture(irradianceMap, normal).xyz;
+
+	// === Specular component ===
+	const float MAX_REFLECTION_LOD = 5.0;
+	
+	float cosAlpha = max(dot(_data.vCam, normal), 0.0);
+
+	vec3 kS = Fresnel(_data.f0, cosAlpha, _data.roughness);
+
+	vec3 refl = reflect(-_data.vCam, normal);
+	vec3 prefilteredColor = textureLod(skybox, refl, _data.roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 envBRDF  = texture(lookupTableBRDF, vec2(cosAlpha, _data.roughness)).rg;
+	vec3 specular = prefilteredColor * (kS * envBRDF.x + envBRDF.y);
+
 
 	// === Diffuse component ===
-	vec3 diffuse = irradiance * matConsts.diffuse * _data.albedo;
+	vec3 kD = (1.0 - kS) * (1.0 - _data.metallic);
+	vec3 diffuse = kD * irradiance * matConsts.diffuse * _data.albedo;
 
 
 	// === Ambient component ===
 	float ambiantOccl = texture(texSamplers[5], fsIn.texture).r;
 
-	float cosAlpha = dot(_data.vCam, _data.vNormal);
-	vec3 kS = Fresnel(_data.f0, cosAlpha, _data.roughness);
-	vec3 kD = 1.0 - kS;
-	
-	vec3 ambient = (kD * diffuse) * ambiantOccl;
+	// TODO: CLEAN LATER: missing ao map.
+	if(ambiantOccl == 0.0)
+		ambiantOccl = 1.0;
 
 
-	// === Specular component ===
-
-
-	outColor.xyz = ambient + diffuse;
+	// Output.
+	return (diffuse + specular) * ambiantOccl;
 }
 
 vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lData)
@@ -454,7 +469,7 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 //
 //
 //	//  Output.
-//	return Ra + BRDF;
+//	return rA + BRDF;
 }
 
 
