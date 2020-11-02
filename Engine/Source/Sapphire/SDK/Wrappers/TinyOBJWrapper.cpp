@@ -79,7 +79,7 @@ namespace Sa
 		static tinyobj::callback_t Tiny()
 		{
 			tinyobj::callback_t tinyCB;
-			tinyCB.vertex_cb = Callback::Vertex;
+			tinyCB.vertex_cb = Callback::Position;
 			tinyCB.normal_cb = Callback::Normal;
 			tinyCB.texcoord_cb = Callback::Texture;
 			tinyCB.index_cb = Callback::Index;
@@ -91,7 +91,45 @@ namespace Sa
 			return tinyCB;
 		}
 
-		static void Vertex(void* _userData, float _x, float _y, float _z, float _w)
+		uint32 InsertVertex(tinyobj::index_t& _indice)
+		{
+			uint32 index = 0u;
+			RawMesh& rawMesh = rawMeshes[meshIndex];
+
+			// Apply -1 since OBJ index start at 1 and not 0.
+			Sa::Vertex<Sa::VertexComp::Default> vertex{
+				vertexPos[_indice.vertex_index - 1],
+				vertexNorm[_indice.normal_index - 1],
+				Vec3f::Zero,
+				vertexText[_indice.texcoord_index - 1]
+			};
+
+			auto find = vertexIndexMap.find(vertex);
+
+			// Vertex found.
+			if (find != vertexIndexMap.end())
+			{
+				// Only add vertex index.
+
+				index = find->second;
+				rawMesh.indices.push_back(find->second);
+			}
+			else
+			{
+				// Insert new vertex and index.
+				index = SizeOf(vertexIndexMap); // index start at 0: query before insert.
+
+				rawMesh.indices.push_back(index);
+				rawMesh.vertices.insert(rawMesh.vertices.end(), reinterpret_cast<const char*>(&vertex), reinterpret_cast<const char*>(&vertex) + sizeof(vertex));
+
+				// Save vertex index.
+				vertexIndexMap.insert({ vertex, index });
+			}
+
+			return index;
+		}
+
+		static void Position(void* _userData, float _x, float _y, float _z, float _w)
 		{
 			(void)_w;
 
@@ -117,34 +155,25 @@ namespace Sa
 		{
 			Callback& cb = *reinterpret_cast<Callback*>(_userData);
 
-			RawMesh& rawMesh = cb.rawMeshes[cb.meshIndex];
+			SA_ASSERT(_size == 3 || _size == 4, InvalidParam, SDK_Asset, L"Invalid index size!");
 
-			for (int i = 0; i < _size; ++i)
+			// Insert 0, 1, 2
+			uint32 index0 = cb.InsertVertex(_indices[0]);
+			cb.InsertVertex(_indices[1]);
+			uint32 index2 = cb.InsertVertex(_indices[2]);
+
+			if (_size == 4)
 			{
-				// Apply -1 since OBJ index start at 1 and not 0.
-				Sa::Vertex<Sa::VertexComp::Default> vertex{
-					cb.vertexPos[_indices[i].vertex_index - 1],
-					cb.vertexNorm[_indices[i].normal_index - 1],
-					Vec3f::Zero,
-					cb.vertexText[_indices[i].texcoord_index - 1]
-				};
+				// Insert 0, 2, 3.
+				RawMesh& rawMesh = cb.rawMeshes[cb.meshIndex];
 
-				auto find = cb.vertexIndexMap.find(vertex);
+				//cb.InsertVertex(_indices[0]);
+				rawMesh.indices.push_back(index0); // Optimize: no double edges.
 
-				// Vertex found.
-				if (find != cb.vertexIndexMap.end())
-					rawMesh.indices.push_back(find->second); // Only add vertex index.
-				else
-				{
-					// Insert new vertex and index.
-					uint32 index = SizeOf(cb.vertexIndexMap); // index start at 0: query before insert.
+				//cb.InsertVertex(_indices[2]);
+				rawMesh.indices.push_back(index2); // Optimize: no double edges.
 
-					rawMesh.indices.push_back(index);
-					rawMesh.vertices.insert(rawMesh.vertices.end(), reinterpret_cast<const char*>(&vertex), reinterpret_cast<const char*>(&vertex) + sizeof(vertex));
-
-					// Save vertex index.
-					cb.vertexIndexMap.insert({ vertex, index });
-				}
+				cb.InsertVertex(_indices[3]);
 			}
 		}
 
