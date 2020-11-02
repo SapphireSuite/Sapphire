@@ -690,7 +690,6 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 		ModelAsset& result = resPtr->As<ModelAsset>();
 
 		// meshes
-		//result.meshes[0].ComputeTangents();
 		result.meshes[0].Save(meshAsset);
 		sphereMesh = result.meshes[0].GetResource();
 	}
