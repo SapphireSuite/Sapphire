@@ -15,6 +15,8 @@
 #include <Rendering/Framework/Primitives/Texture/Mipmap.hpp>
 
 #include <SDK/Assets/AssetManager.hpp>
+#include <SDK/Assets/Texture/TextureImportInfos.hpp>
+#include <SDK/Assets/Texture/CubemapImportInfos.hpp>
 
 namespace Sa
 {
@@ -29,7 +31,6 @@ namespace Sa
 		Mipmap::ComputeTotalSize(_rawData.width, _rawData.height, _rawData.mipLevels, infos);
 
 		uint32 offset = 0u;
-		int32 channelSize = static_cast<int32>(_rawData.channel);
 
 		// Flip each mipmap.
 		for (uint32 i = 0; i < _rawData.mipLevels; ++i)
@@ -37,9 +38,9 @@ namespace Sa
 			stbi__vertical_flip(_rawData.data + offset,
 				static_cast<int32>(infos[i].width),
 				static_cast<int32>(infos[i].height),
-				channelSize * bitSize);
+				_rawData.channelNum * bitSize);
 
-			offset += infos[i].width * infos[i].height * channelSize * bitSize;
+			offset += infos[i].width * infos[i].height * _rawData.channelNum * bitSize;
 		}
 
 		delete[] infos;
@@ -57,9 +58,8 @@ namespace Sa
 		stbi_image_free(_data);
 	}
 
-	bool StbiWrapper::Import(const std::string& _resourcePath, TextureAsset& _result)
+	bool StbiWrapper::Import(const std::string& _resourcePath, TextureAsset& _result, const TextureImportInfos& _importInfos)
 	{
-		// TODO: REMOVE LATER.
 		stbi_set_flip_vertically_on_load(true);
 
 		RawTexture rawData;
@@ -68,12 +68,10 @@ namespace Sa
 		rawData.data = reinterpret_cast<char*>(stbi_load(_resourcePath.c_str(),
 			reinterpret_cast<int32*>(&rawData.width),
 			reinterpret_cast<int32*>(&rawData.height),
-			reinterpret_cast<int32*>(&rawData.channel),
-			4 // TODO: USE IMPORT INFOS channel.
+			reinterpret_cast<int32*>(&rawData.channelNum),
+			_importInfos.channelNum
 		));
 
-		// TODO: fix.
-		rawData.channel = TextureChannel::RGBA;
 
 		if (!rawData.data)
 		{
@@ -81,14 +79,25 @@ namespace Sa
 			return false;
 		}
 
+
+		rawData.format = _importInfos.format;
+		rawData.channelNum = _importInfos.channelNum;
+
+
+		if(_importInfos.mipLevels == uint32(-1))
+			rawData.mipLevels = Mipmap::ComputeLevels(rawData.width, rawData.height);
+		else
+			rawData.mipLevels = _importInfos.mipLevels;
+
 		GenerateMipMaps(rawData);
+
 
 		_result = Move(rawData);
 
 		return true;
 	}
 
-	bool StbiWrapper::Import(const CubemapAssetImportInfos& _importInfos, CubemapAsset& _result)
+	bool StbiWrapper::Import(const CubemapAssetImportInfos& _assetImportInfos, CubemapAsset& _result, const CubemapImportInfos& _importInfos)
 	{
 		// TODO: REMOVE LATER.
 		stbi_set_flip_vertically_on_load(true);
@@ -102,11 +111,11 @@ namespace Sa
 		// Load textures.
 		for (uint32 i = 0u; i < 12u; ++i)
 		{
-			data[i] = reinterpret_cast<char*>(stbi_load(_importInfos.pathes[i].c_str(),
+			data[i] = reinterpret_cast<char*>(stbi_load(_assetImportInfos.pathes[i].c_str(),
 				reinterpret_cast<int32*>(&rawData.width),
 				reinterpret_cast<int32*>(&rawData.height),
-				reinterpret_cast<int32*>(&rawData.channel),
-				4 // TODO: USE IMPORT INFOS channel.
+				reinterpret_cast<int32*>(&rawData.channelNum),
+				_importInfos.channelNum
 			));
 
 			if (!data[i])
@@ -114,26 +123,29 @@ namespace Sa
 				SA_LOG("Failed to load texture image!", Error, SDK_Asset);
 				return false;
 			}
+
+
+			rawData.format = _importInfos.format;
+			rawData.channelNum = _importInfos.channelNum;
 		}
 
-		// TODO: fix.
-		rawData.channel = TextureChannel::RGBA;
-
 		// single image size.
-		const uint64 size = rawData.GetMapSize() * bitSize / 6u;
+		const uint64 size = rawData.GetMainSize() * bitSize;
 
-		rawData.cubemapData = reinterpret_cast<char*>(Allocate(6u * size));
+		rawData.data = reinterpret_cast<char*>(Allocate(6u * size));
 		rawData.irradiancemapData = reinterpret_cast<char*>(Allocate(6u * size));
 
 		for (uint32 i = 0u; i < 6u; ++i)
 		{
-			MemMove(data[i], rawData.cubemapData + i * size, size);
+			MemMove(data[i], rawData.data + i * size, size);
 			MemMove(data[i + 6u], rawData.irradiancemapData + i * size, size);
 
 			Free(data[i]);
 			Free(data[i + 6u]);
 		}
 
+		// TODO: FIX LATER.
+		rawData.mipLevels = RawCubemap::maxRoughLevel;
 		//GenerateMipMaps(rawData);
 
 		_result = Move(rawData);
@@ -143,8 +155,6 @@ namespace Sa
 
 	void StbiWrapper::GenerateMipMaps(RawTexture& _rawData)
 	{
-		_rawData.mipLevels = Mipmap::ComputeLevels(_rawData.width, _rawData.height);
-
 		// Can't generate mipMapLevels.
 		if (_rawData.mipLevels <= 1u)
 		{
@@ -152,36 +162,35 @@ namespace Sa
 			return;
 		}
 
-		GenerateMipMaps(_rawData.width, _rawData.height, _rawData.mipLevels, _rawData.data, _rawData.channel);
+		GenerateMipMaps(_rawData.width, _rawData.height, _rawData.mipLevels, _rawData.data, _rawData.channelNum);
 	}
 
 	void StbiWrapper::GenerateMipMaps(RawCubemap& _rawData)
 	{
-		MipMapInfos* mipmapInfos = new MipMapInfos[RawCubemap::mipLevels];
+		MipMapInfos* mipmapInfos = new MipMapInfos[RawCubemap::maxRoughLevel];
 
-		uint32 channelSize = static_cast<uint32>(_rawData.channel);
-		uint64 totalSize = Mipmap::ComputeTotalSize(_rawData.width, _rawData.height, RawCubemap::mipLevels, mipmapInfos) * channelSize * bitSize * 6u;
+		uint64 totalSize = Mipmap::ComputeTotalSize(_rawData.width, _rawData.height, RawCubemap::maxRoughLevel, mipmapInfos) * _rawData.channelNum * bitSize * 6u;
 
-		char* original = _rawData.cubemapData;
-		_rawData.cubemapData = reinterpret_cast<char*>(Allocate(totalSize));
+		char* original = _rawData.data;
+		_rawData.data = reinterpret_cast<char*>(Allocate(totalSize));
 
 		// Move original data.
-		MemMove(original, _rawData.cubemapData, _rawData.width * _rawData.height * bitSize * channelSize * 6u);
+		MemMove(original, _rawData.data, _rawData.width * _rawData.height * bitSize * _rawData.channelNum * 6u);
 		Free(original);
 
-		unsigned char* src = reinterpret_cast<unsigned char*>(_rawData.cubemapData);
+		unsigned char* src = reinterpret_cast<unsigned char*>(_rawData.data);
 
-		for (uint32 i = 1u; i < RawCubemap::mipLevels; ++i)
+		for (uint32 i = 1u; i < RawCubemap::maxRoughLevel; ++i)
 		{
-			uint64 parentOffset = mipmapInfos[i - 1].width * mipmapInfos[i - 1].height * bitSize * channelSize;
-			uint64 offset = mipmapInfos[i].width * mipmapInfos[i].height * bitSize * channelSize;
+			uint64 parentOffset = mipmapInfos[i - 1].width * mipmapInfos[i - 1].height * bitSize * _rawData.channelNum;
+			uint64 offset = mipmapInfos[i].width * mipmapInfos[i].height * bitSize * _rawData.channelNum;
 			unsigned char* dst = src + 6u * parentOffset;
 
 			for (uint32 j = 0u; j < 6u; ++j)
 			{
 				bool res = stbir_resize_uint8(src, mipmapInfos[i - 1].width, mipmapInfos[i - 1].height, 0,
 					dst, mipmapInfos[i].width, mipmapInfos[i].height, 0,
-					channelSize);
+					_rawData.channelNum);
 
 				SA_ASSERT(res, CreationFailed, SDK_Assert, L"Mip map creation failed!");
 				
@@ -193,30 +202,29 @@ namespace Sa
 		delete[] mipmapInfos;
 	}
 
-	void StbiWrapper::GenerateMipMaps(uint32 _width, uint32 _height, uint32 _mipLevels, char*& _data, TextureChannel _channel)
+	void StbiWrapper::GenerateMipMaps(uint32 _width, uint32 _height, uint32 _mipLevels, char*& _data, uint32 _channelNum)
 	{
 		MipMapInfos* mipmapInfos = new MipMapInfos[_mipLevels];
 
-		uint32 channelSize = static_cast<uint32>(_channel);
 		uint64 totalSize = Mipmap::ComputeTotalSize(_width, _height, _mipLevels, mipmapInfos);
 
 		char* original = _data;
-		_data = reinterpret_cast<char*>(Allocate(totalSize * bitSize * channelSize));
+		_data = reinterpret_cast<char*>(Allocate(totalSize * bitSize * _channelNum));
 
 		// Move original data.
-		MemMove(original, _data, _width * _height * bitSize * channelSize);
+		MemMove(original, _data, _width * _height * bitSize * _channelNum);
 		Free(original);
 
 		unsigned char* src = reinterpret_cast<unsigned char*>(_data);
 
 		for (uint32 i = 1u; i < _mipLevels; ++i)
 		{
-			uint32 offset = mipmapInfos[i - 1].width * mipmapInfos[i - 1].height * bitSize * channelSize;
+			uint32 offset = mipmapInfos[i - 1].width * mipmapInfos[i - 1].height * bitSize * _channelNum;
 			unsigned char* dst = src + offset;
 
 			bool res = stbir_resize_uint8(src, mipmapInfos[i - 1].width, mipmapInfos[i - 1].height, 0,
 				dst, mipmapInfos[i].width, mipmapInfos[i].height, 0,
-				channelSize);
+				_channelNum);
 
 			SA_ASSERT(res, CreationFailed, SDK_Assert, L"Mip map creation failed!");
 

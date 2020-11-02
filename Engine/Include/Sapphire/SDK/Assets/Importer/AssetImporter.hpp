@@ -13,6 +13,9 @@
 #include <SDK/Config.hpp>
 #include <SDK/Assets/Importer/CubemapAssetImportInfos.hpp>
 
+// TODO: REMOVE LATER?
+#include <SDK/Assets/Texture/CubemapImportInfos.hpp>
+
 namespace Sa
 {
 	class IAsset;
@@ -23,6 +26,9 @@ namespace Sa
 	class ShaderAsset;
 	class RenderMaterialAsset;
 
+	class IAssetImportInfos;
+	class CubemapImportInfos;
+
 	class AssetImporter
 	{
 		AssetManager& mManager;
@@ -30,16 +36,16 @@ namespace Sa
 		std::string GetResourceExtension(const std::string& _resourcePath);
 		bool ContainExt(const std::string& ext, const char* const* _extensions, uint32 _extensionSize);
 
-		ModelAsset* TryImportModel(const std::string& _resourcePath, const std::string& _extension);
-		TextureAsset* TryImportTexture(const std::string& _resourcePath, const std::string& _extension);
-		ShaderAsset* TryImportShader(const std::string& _resourcePath, const std::string& _extension);
-		RenderMaterialAsset* TryImportRenderMaterial(const std::string& _resourcePath, const std::string& _extension);
+		ModelAsset* TryImportModel(const std::string& _resourcePath, const std::string& _extension, const IAssetImportInfos* _importInfos);
+		TextureAsset* TryImportTexture(const std::string& _resourcePath, const std::string& _extension, const IAssetImportInfos* _importInfos);
+		ShaderAsset* TryImportShader(const std::string& _resourcePath, const std::string& _extension, const IAssetImportInfos* _importInfos);
+		RenderMaterialAsset* TryImportRenderMaterial(const std::string& _resourcePath, const std::string& _extension, const IAssetImportInfos* _importInfos);
 
 	public:
 		AssetImporter(AssetManager& _manager) noexcept;
 
-		SA_ENGINE_API std::unique_ptr<IAsset> Import(const std::string& _resourcePath);
-		SA_ENGINE_API CubemapAsset Import(const CubemapAssetImportInfos& _importInfos);
+		SA_ENGINE_API std::unique_ptr<IAsset> Import(const std::string& _resourcePath, const IAssetImportInfos* _importInfos = nullptr);
+		SA_ENGINE_API CubemapAsset Import(const CubemapAssetImportInfos& _assetImportInfos, const CubemapImportInfos& _importInfos = CubemapImportInfos());
 	};
 }
 

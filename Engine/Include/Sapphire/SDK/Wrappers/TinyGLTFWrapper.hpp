@@ -10,14 +10,15 @@
 namespace Sa
 {
 	class ModelAsset;
+	class ModelImportInfos;
 
 	class TinyGLTFWrapper
 	{
-		static bool Import_Internal(const std::string& _resourcePath, ModelAsset& _result, bool _bIsBinary);
+		static bool Import_Internal(const std::string& _resourcePath, ModelAsset& _result, const ModelImportInfos& _importInfos, bool _bIsBinary);
 
 	public:
-		static bool ImportGLTF(const std::string& _resourcePath, ModelAsset& _result);
-		static bool ImportGLB(const std::string& _resourcePath, ModelAsset& _result);
+		static bool ImportGLTF(const std::string& _resourcePath, ModelAsset& _result, const ModelImportInfos& _importInfos);
+		static bool ImportGLB(const std::string& _resourcePath, ModelAsset& _result, const ModelImportInfos& _importInfos);
 	};
 }
 

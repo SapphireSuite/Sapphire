@@ -2,10 +2,12 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_TEXTURE_CHANNEL_GUARD
-#define SAPPHIRE_RENDERING_TEXTURE_CHANNEL_GUARD
+#ifndef SAPPHIRE_RENDERING_TEXTURE_FORMAT_GUARD
+#define SAPPHIRE_RENDERING_TEXTURE_FORMAT_GUARD
 
 #include <Rendering/Config.hpp>
+
+#include <Core/Types/Int.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -15,20 +17,16 @@
 
 namespace Sa
 {
-	enum class TextureChannel
+	enum class TextureFormat : uint8
 	{
-		Grey = 1,
-
-		GreyA,
-
 		RGB,
 
-		RGBA
+		sRGB
 	};
 
 #if SA_RENDERING_API == SA_VULKAN
 
-	VkFormat API_GetFormat(TextureChannel _channel);
+	VkFormat API_GetFormat(TextureFormat _format, uint32 _channelNum = 4u);
 
 #endif
 }

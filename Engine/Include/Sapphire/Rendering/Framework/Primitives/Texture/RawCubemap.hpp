@@ -7,26 +7,22 @@
 
 #include <Core/Types/Int.hpp>
 
-#include <Rendering/Framework/Primitives/Texture/TextureChannel.hpp>
+#include <Rendering/Framework/Primitives/Texture/RawTexture.hpp>
 
 namespace Sa
 {
-	struct RawCubemap
+	struct RawCubemap : public RawTexture
 	{
-		uint32 width = 0u;
-		uint32 height = 0u;
-
-		char* cubemapData = nullptr;
 		char* irradiancemapData = nullptr;
-	
-		TextureChannel channel = TextureChannel::RGBA;
 
-		static const uint32 mipLevels;
+		// Maximum rough level used for IBL. Generate as much mipmaps.
+		static const uint32 maxRoughLevel;
 
 		// Compute original map size in format unit.
 		uint64 GetMapSize() const noexcept;
 
-		uint64 GetTotalSize() const noexcept;
+		// Compute total map size (including mipmaps) in format unit.
+		uint64 GetTotalMapSize() const noexcept;
 	};
 }
 

@@ -11,6 +11,8 @@
 
 namespace Sa
 {
+	class ShaderImportInfos;
+
 	class ShaderAsset : public IAsset
 	{
 	protected:
@@ -44,7 +46,7 @@ namespace Sa
 		SA_ENGINE_API bool IsValid() const noexcept override final;
 
 		SA_ENGINE_API IShader* Create(const IRenderInstance& _instance) const;
-		SA_ENGINE_API void Import(const std::string& _resourcePath);
+		SA_ENGINE_API void Import(const std::string& _resourcePath, const ShaderImportInfos& _importInfos);
 
 
 		ShaderAsset& operator=(ShaderAsset&& _rhs);

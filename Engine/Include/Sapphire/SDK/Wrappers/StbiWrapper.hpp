@@ -14,18 +14,19 @@
 namespace Sa
 {
 	struct RawTexture;
-	enum class TextureChannel;
 	class TextureAsset;
+	class TextureImportInfos;
 
 	struct RawCubemap;
 	struct CubemapAssetImportInfos;
 	class CubemapAsset;
+	class CubemapImportInfos;
 
 	class StbiWrapper
 	{
 		static void GenerateMipMaps(RawTexture& _rawData);
 		static void GenerateMipMaps(RawCubemap& _rawData);
-		static void GenerateMipMaps(uint32 _width, uint32 _height, uint32 _mipLevels, char*& _data, TextureChannel _channel);
+		static void GenerateMipMaps(uint32 _width, uint32 _height, uint32 _mipLevels, char*& _data, uint32 _channelNum);
 
 	public:
 		static const uint32 bitSize;
@@ -36,10 +37,10 @@ namespace Sa
 		static void Free(void* _data);
 
 		// Import single texture.
-		static bool Import(const std::string& _resourcePath, TextureAsset& _result);
+		static bool Import(const std::string& _resourcePath, TextureAsset& _result, const TextureImportInfos& _importInfos);
 
 		// Import cubemap.
-		static bool Import(const CubemapAssetImportInfos& _importInfos, CubemapAsset& _result);
+		static bool Import(const CubemapAssetImportInfos& _assetImportInfos, CubemapAsset& _result, const CubemapImportInfos& _importInfos);
 	};
 }
 

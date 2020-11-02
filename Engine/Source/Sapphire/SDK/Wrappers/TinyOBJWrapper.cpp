@@ -73,6 +73,7 @@ namespace Sa
 		std::vector<Vec3f> vertexNorm;
 		std::vector<Vec2f> vertexText;
 
+		// TODO: use ModelImportInfos layout.
 		std::unordered_map<Vertex<VertexComp::Default>, uint32> vertexIndexMap;
 
 
@@ -228,7 +229,7 @@ namespace Sa
 	};
 
 
-	bool TinyOBJWrapper::ImportOBJ(const std::string& _resourcePath, ModelAsset& _result)
+	bool TinyOBJWrapper::ImportOBJ(const std::string& _resourcePath, ModelAsset& _result, const ModelImportInfos& _importInfos)
 	{
 		Callback cb;
 		std::string warn; std::string error;
@@ -276,7 +277,7 @@ namespace Sa
 		return true;
 	}
 
-	bool TinyOBJWrapper::ImportMTL(const std::string& _resourcePath, ModelAsset& _result)
+	bool TinyOBJWrapper::ImportMTL(const std::string& _resourcePath, ModelAsset& _result, const RenderMaterialImportInfos& _importInfos)
 	{
 		std::map<std::string, int> matMap;
 		std::vector<tinyobj::material_t> materials;

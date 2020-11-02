@@ -18,6 +18,8 @@
 #include <Sapphire/Rendering/Vulkan/System/VkRenderPass.hpp>
 
 #include <Sapphire/SDK/Assets/AssetManager.hpp>
+#include <Sapphire/SDK/Assets/Texture/TextureImportInfos.hpp>
+#include <Sapphire/SDK/Assets/Texture/CubemapImportInfos.hpp>
 
 using namespace Sa;
 
@@ -26,20 +28,20 @@ using namespace Sa;
 #define LOG(_str) std::cout << _str << std::endl;
 
 // Default
-constexpr const char* litVertShaderAsset = "Bin/Engine/Shaders/lit_VS.spha";
-constexpr const char* litFragShaderAsset = "Bin/Engine/Shaders/lit_FS.spha";
+constexpr const char* litVertShaderAssetPath = "Bin/Engine/Shaders/lit_VS.spha";
+constexpr const char* litFragShaderAssetPath = "Bin/Engine/Shaders/lit_FS.spha";
 
-constexpr const char* unlitVertShaderAsset = "Bin/Engine/Shaders/unlit_VS.spha";
-constexpr const char* unlitFragShaderAsset = "Bin/Engine/Shaders/unlit_FS.spha";
+constexpr const char* unlitVertShaderAssetPath = "Bin/Engine/Shaders/unlit_VS.spha";
+constexpr const char* unlitFragShaderAssetPath = "Bin/Engine/Shaders/unlit_FS.spha";
 
-constexpr const char* missingTextureAsset = "Bin/Engine/Textures/missing_T.spha";
-constexpr const char* BRDFLookUpTableTextureAsset = "Bin/Engine/Textures/brdf_lut_T.spha";
+constexpr const char* missingTextureAssetPath = "Bin/Engine/Textures/missing_T.spha";
+constexpr const char* BRDFLookUpTableTextureAssetPath = "Bin/Engine/Textures/brdf_lut_T.spha";
 
 IMesh* squareMesh = nullptr;
-constexpr const char* squareMeshAsset = "Bin/Meshes/Square_M.spha";
+constexpr const char* squareMeshAssetPath = "Bin/Meshes/Square_M.spha";
 
 IMesh* cubeMesh = nullptr;
-constexpr const char* cubeMeshAsset = "Bin/Meshes/Cube_M.spha";
+constexpr const char* cubeMeshAssetPath = "Bin/Meshes/Cube_M.spha";
 
 
 // Magikarp
@@ -74,110 +76,120 @@ IRenderMaterial** sphereMats = nullptr;
 void CreateDefaultResources(AssetManager& _assetMgr)
 {
 	// Lit Vertex Shader.
-	if (!_assetMgr.shaderMgr.Load(litVertShaderAsset, true)) // Try load.
+	if (!_assetMgr.shaderMgr.Load(litVertShaderAssetPath, true)) // Try load.
 	{
 		// Import on load failed.
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/lit.vert");
-		result->Save(litVertShaderAsset);
+		result->Save(litVertShaderAssetPath);
 	}
 
 
 	// Lit Fragment Shader.
-	if (!_assetMgr.shaderMgr.Load(litFragShaderAsset, true)) // Try load.
+	if (!_assetMgr.shaderMgr.Load(litFragShaderAssetPath, true)) // Try load.
 	{
 		// Import on load failed.
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/lit.frag");
-		result->Save(litFragShaderAsset);
+		result->Save(litFragShaderAssetPath);
 	}
 
 
 	// Unlit Vertex Shader.
-	if (!_assetMgr.shaderMgr.Load(unlitVertShaderAsset, true)) // Try load.
+	if (!_assetMgr.shaderMgr.Load(unlitVertShaderAssetPath, true)) // Try load.
 	{
 		// Import on load failed.
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.vert");
-		result->Save(unlitVertShaderAsset);
+		result->Save(unlitVertShaderAssetPath);
 	}
 
 
 	// Unlit fragment Shader.
-	if (!_assetMgr.shaderMgr.Load(unlitFragShaderAsset, true)) // Try load.
+	if (!_assetMgr.shaderMgr.Load(unlitFragShaderAssetPath, true)) // Try load.
 	{
 		// Import on load failed.
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.frag");
-		result->Save(unlitFragShaderAsset);
+		result->Save(unlitFragShaderAssetPath);
 	}
 
 
 	// Textures
-	if (!_assetMgr.textureMgr.Load(missingTextureAsset, true)) // Try load.
+	if (!_assetMgr.textureMgr.Load(missingTextureAssetPath, true)) // Try load.
 	{
 		// Import on load failed.
-		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/missing_texture.png");
-		result->Save(missingTextureAsset);
+		TextureImportInfos infos; infos.format = TextureFormat::sRGB;
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/missing_texture.png", &infos);
+		result->Save(missingTextureAssetPath);
 	}
-	if (!(ITexture::brdfLUT = _assetMgr.textureMgr.Load(BRDFLookUpTableTextureAsset, true))) // Try load.
+	if (!(ITexture::brdfLUT = _assetMgr.textureMgr.Load(BRDFLookUpTableTextureAssetPath, true))) // Try load.
 	{
 		// Import on load failed.
+		TextureImportInfos infos; infos.mipLevels = 1u;
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/brdf_lut.jpg");
-		result->Save(BRDFLookUpTableTextureAsset);
+		result->Save(BRDFLookUpTableTextureAssetPath);
 		ITexture::brdfLUT = result->AsPtr<TextureAsset>()->GetResource();
 	}
 
 
 
 	// Mesh.
-	squareMesh = _assetMgr.meshMgr.Load(squareMeshAsset);
+	squareMesh = _assetMgr.meshMgr.Load(squareMeshAssetPath);
 
 	if (!squareMesh) // Try load.
 	{
 		// Create on load failed.
 		MeshAsset meshAsset = _assetMgr.meshMgr.Create(Move(RawMesh::SquareMesh<VertexComp::PNTanTex>()));
-		meshAsset.Save(squareMeshAsset);
+		meshAsset.Save(squareMeshAssetPath);
 		squareMesh = meshAsset.GetResource();
 	}
 
-	cubeMesh = _assetMgr.meshMgr.Load(cubeMeshAsset);
+	cubeMesh = _assetMgr.meshMgr.Load(cubeMeshAssetPath);
 
 	if (!cubeMesh) // Try load.
 	{
 		// Create on load failed.
 		MeshAsset meshAsset = _assetMgr.meshMgr.Create(Move(RawMesh::CubeMesh<VertexComp::PNTanTex>()));
-		meshAsset.Save(cubeMeshAsset);
+		meshAsset.Save(cubeMeshAssetPath);
 		cubeMesh = meshAsset.GetResource();
 	}
 }
 
 void CreateMagikarp(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
-	constexpr const char* textureAssets[] = {
+	constexpr const char* textureAssetPaths[] = {
 		"Bin/Magikarp/Body_T.spha",
-		//"Bin/Magikarp/BodyNorm_T.spha",
-		//"Bin/Magikarp/BodyPow_T.spha",
 		"Bin/Magikarp/Eyes_T.spha",
-		//"Bin/Magikarp/EyesNorm_T.spha",
-		//"Bin/Magikarp/EyesPow_T.spha"
+
+		"Bin/Magikarp/BodyNorm_T.spha",
+		"Bin/Magikarp/BodyHeight_T.spha",
+		"Bin/Magikarp/EyesNorm_T.spha",
+		"Bin/Magikarp/EyesHeight_T.spha"
 	};
-	constexpr const char* textureResources[] = {
+	constexpr const char* textureResourcePaths[] = {
 		"../../Samples/Prototype/Resources/Magikarp/Body.png",
-		//"../../Samples/Prototype/Resources/Magikarp/Body_norm.png",
-		//"../../Samples/Prototype/Resources/Magikarp/Body_pow.png",
 		"../../Samples/Prototype/Resources/Magikarp/Eyes.png",
-		//"../../Samples/Prototype/Resources/Magikarp/Eyes_norm.png",
-		//"../../Samples/Prototype/Resources/Magikarp/Eyes_pow.png"
+
+		"../../Samples/Prototype/Resources/Magikarp/Body_norm.png",
+		"../../Samples/Prototype/Resources/Magikarp/Body_pow.png",
+		"../../Samples/Prototype/Resources/Magikarp/Eyes_norm.png",
+		"../../Samples/Prototype/Resources/Magikarp/Eyes_pow.png"
 	};
 
-	constexpr const char* meshAssets[] = { "Bin/Magikarp/Body_M.spha", "Bin/Magikarp/Eyes_M.spha" };
-	constexpr const char* materialAssets[] = { "Bin/Magikarp/Body_Mat.spha", "Bin/Magikarp/Eyes_Mat.spha" };
+	constexpr const char* meshAssetPaths[] = { "Bin/Magikarp/Body_M.spha", "Bin/Magikarp/Eyes_M.spha" };
+	constexpr const char* materialAssetPaths[] = { "Bin/Magikarp/Body_Mat.spha", "Bin/Magikarp/Eyes_Mat.spha" };
 
 
-	for (uint32 i = 0u; i < SizeOf(textureAssets); ++i)
+	// Textures.
+	for (uint32 i = 0u; i < SizeOf(textureAssetPaths); ++i)
 	{
-		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
+		if (!_assetMgr.textureMgr.Load(textureAssetPaths[i], true)) // Try load.
 		{
 			// Import on load failed.
-			auto result = _assetMgr.importer.Import(textureResources[i]);
-			result->Save(textureAssets[i]);
+			TextureImportInfos infos;
+
+			if(i < 2)
+				infos.format = TextureFormat::sRGB;
+
+			auto result = _assetMgr.importer.Import(textureResourcePaths[i], &infos);
+			result->Save(textureAssetPaths[i]);
 		}
 	}
 
@@ -185,11 +197,11 @@ void CreateMagikarp(IRenderInstance& _instance, AssetManager& _assetMgr)
 	// Model.
 	{
 		// Try load.
-		magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssets[0]);
-		magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssets[1]);
+		magikarpBodyMesh = _assetMgr.meshMgr.Load(meshAssetPaths[0]);
+		magikarpEyesMesh = _assetMgr.meshMgr.Load(meshAssetPaths[1]);
 
-		magikarpBodyMat = _assetMgr.renderMatMgr.Load(materialAssets[0]);
-		magikarpEyesMat = _assetMgr.renderMatMgr.Load(materialAssets[1]);
+		magikarpBodyMat = _assetMgr.renderMatMgr.Load(materialAssetPaths[0]);
+		magikarpEyesMat = _assetMgr.renderMatMgr.Load(materialAssetPaths[1]);
 
 		if (!magikarpBodyMesh || !magikarpEyesMesh || !magikarpBodyMat || !magikarpEyesMat)
 		{
@@ -199,29 +211,29 @@ void CreateMagikarp(IRenderInstance& _instance, AssetManager& _assetMgr)
 			
 			// meshes
 			//result.meshes[0].ComputeTangents();
-			result.meshes[0].Save(meshAssets[0]);
+			result.meshes[0].Save(meshAssetPaths[0]);
 			magikarpBodyMesh = result.meshes[0].GetResource();
 
 			//result.meshes[1].ComputeTangents();
-			result.meshes[1].Save(meshAssets[1]);
+			result.meshes[1].Save(meshAssetPaths[1]);
 			magikarpEyesMesh = result.meshes[1].GetResource();
 
 
 			RenderMaterialAsset& bodyRenderMat = result.renderMats[0];
-			bodyRenderMat.vertexShaderPath = litVertShaderAsset;
-			bodyRenderMat.fragmentShaderPath = litFragShaderAsset;
-			bodyRenderMat.texturePaths = { textureAssets[0] };
+			bodyRenderMat.vertexShaderPath = litVertShaderAssetPath;
+			bodyRenderMat.fragmentShaderPath = litFragShaderAssetPath;
+			bodyRenderMat.texturePaths = { textureAssetPaths[0] };
 			bodyRenderMat.mRawData.vertexBindingLayout.meshLayout = magikarpBodyMesh->GetLayout(); // TODO: Clean?
-			bodyRenderMat.Save(materialAssets[0]);
+			bodyRenderMat.Save(materialAssetPaths[0]);
 			magikarpBodyMat = bodyRenderMat.GetResource();
 
 
 			RenderMaterialAsset& eyesRenderMat = result.renderMats[1];
-			eyesRenderMat.vertexShaderPath = litVertShaderAsset;
-			eyesRenderMat.fragmentShaderPath = litFragShaderAsset;
-			eyesRenderMat.texturePaths = { textureAssets[1] };
+			eyesRenderMat.vertexShaderPath = litVertShaderAssetPath;
+			eyesRenderMat.fragmentShaderPath = litFragShaderAssetPath;
+			eyesRenderMat.texturePaths = { textureAssetPaths[1] };
 			eyesRenderMat.mRawData.vertexBindingLayout.meshLayout = magikarpEyesMesh->GetLayout(); // TODO: Clean?
-			eyesRenderMat.Save(materialAssets[1]);
+			eyesRenderMat.Save(materialAssetPaths[1]);
 			magikarpEyesMat = eyesRenderMat.GetResource();
 		}
 
@@ -237,30 +249,30 @@ void CreateMagikarp(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 void CreateGizmo(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
-	constexpr const char* vertShaderAsset = "Bin/Gizmo/Gizmo_VS.spha";
-	constexpr const char* fragShaderAsset = "Bin/Gizmo/Gizmo_FS.spha";
+	constexpr const char* vertShaderAssetPath = "Bin/Gizmo/Gizmo_VS.spha";
+	constexpr const char* fragShaderAssetPath = "Bin/Gizmo/Gizmo_FS.spha";
 
-	constexpr const char* materialAsset = "Bin/Gizmo/Gizmo_Mat.spha";
+	constexpr const char* materialAssetPath = "Bin/Gizmo/Gizmo_Mat.spha";
 
 	// Vertex Shader.
-	if (!_assetMgr.shaderMgr.Load(vertShaderAsset, true)) // Try load.
+	if (!_assetMgr.shaderMgr.Load(vertShaderAssetPath, true)) // Try load.
 	{
 		// Import on load failed.
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/gizmo.vert");
-		result->Save(vertShaderAsset);
+		result->Save(vertShaderAssetPath);
 	}
 
 	// Fragment Shader.
-	if (!_assetMgr.shaderMgr.Load(fragShaderAsset, true)) // Try load.
+	if (!_assetMgr.shaderMgr.Load(fragShaderAssetPath, true)) // Try load.
 	{
 		// Import on load failed.
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/gizmo.frag");
-		result->Save(fragShaderAsset);
+		result->Save(fragShaderAssetPath);
 	}
 
 
 	// Materials.
-	gizmoMat = _assetMgr.renderMatMgr.Load(materialAsset);
+	gizmoMat = _assetMgr.renderMatMgr.Load(materialAssetPath);
 
 	if (!gizmoMat) // Try load.
 	{
@@ -277,9 +289,9 @@ void CreateGizmo(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 		RenderMaterialAsset gizmoMatAsset = _assetMgr.renderMatMgr.Create(Move(gizmoRawMat));
 		
-		gizmoMatAsset.vertexShaderPath = vertShaderAsset;
-		gizmoMatAsset.fragmentShaderPath = fragShaderAsset;
-		gizmoMatAsset.Save(materialAsset);
+		gizmoMatAsset.vertexShaderPath = vertShaderAssetPath;
+		gizmoMatAsset.fragmentShaderPath = fragShaderAssetPath;
+		gizmoMatAsset.Save(materialAssetPath);
 
 		gizmoMat = gizmoMatAsset.GetResource();
 	}
@@ -320,8 +332,8 @@ void CreateHelmet(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 
 			RenderMaterialAsset& bodyRenderMat = result.renderMats[0];
-			bodyRenderMat.vertexShaderPath = litVertShaderAsset;
-			bodyRenderMat.fragmentShaderPath = litFragShaderAsset;
+			bodyRenderMat.vertexShaderPath = litVertShaderAssetPath;
+			bodyRenderMat.fragmentShaderPath = litFragShaderAssetPath;
 			bodyRenderMat.texturePaths = { textureAssets[0] };
 			bodyRenderMat.Save(materialAssets[0]);
 			helmetMat = bodyRenderMat.GetResource();
@@ -331,33 +343,38 @@ void CreateHelmet(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 void CreateBricks(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
-	constexpr const char* textureAssets[] = {
+	constexpr const char* textureAssetPaths[] = {
 	"Bin/Bricks/albedo_T.spha",
 	"Bin/Bricks/normal_T.spha",
 	};
-	constexpr const char* textureResources[] = {
+	constexpr const char* textureResourcePaths[] = {
 		"../../Samples/Prototype/Resources/Bricks/bricks.jpg",
 		"../../Samples/Prototype/Resources/Bricks/bricks_normal.jpg"
 	};
 
-	constexpr const char* matAsset = "Bin/Bricks/brick_Mat.spha";
+	constexpr const char* matAssetPath = "Bin/Bricks/brick_Mat.spha";
 
 
 	// Textures
-	for (uint32 i = 0u; i < SizeOf(textureAssets); ++i)
+	for (uint32 i = 0u; i < SizeOf(textureAssetPaths); ++i)
 	{
-		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
+		if (!_assetMgr.textureMgr.Load(textureAssetPaths[i], true)) // Try load.
 		{
 			// Import on load failed.
-			auto result = _assetMgr.importer.Import(textureResources[i]);
-			result->Save(textureAssets[i]);
+			TextureImportInfos infos;
+
+			if (i < 1)
+				infos.format = TextureFormat::sRGB;
+
+			auto result = _assetMgr.importer.Import(textureResourcePaths[i], &infos);
+			result->Save(textureAssetPaths[i]);
 		}
 	}
 
 
 
 	// Material
-	bricksMat = _assetMgr.renderMatMgr.Load(matAsset);
+	bricksMat = _assetMgr.renderMatMgr.Load(matAssetPath);
 
 	if (!bricksMat)
 	{
@@ -367,11 +384,11 @@ void CreateBricks(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 		renderMatAsset.mRawData.vertexBindingLayout.meshLayout = cubeMesh->GetLayout();
 
-		renderMatAsset.vertexShaderPath = litVertShaderAsset;
-		renderMatAsset.fragmentShaderPath = litFragShaderAsset;
-		renderMatAsset.texturePaths = { textureAssets[0], textureAssets[1] };
+		renderMatAsset.vertexShaderPath = litVertShaderAssetPath;
+		renderMatAsset.fragmentShaderPath = litFragShaderAssetPath;
+		renderMatAsset.texturePaths = { textureAssetPaths[0], textureAssetPaths[1] };
 
-		renderMatAsset.Save(matAsset);
+		renderMatAsset.Save(matAssetPath);
 
 		bricksMat = renderMatAsset.GetResource();
 	}
@@ -386,30 +403,33 @@ void CreateBricks(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 void CreateWindow(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
-	constexpr const char* textureAssets[] = {
+	constexpr const char* textureAssetPaths[] = {
 		"Bin/Window/albedo_T.spha",
 	};
-	constexpr const char* textureResources[] = {
+	constexpr const char* textureResourcePaths[] = {
 		"../../Samples/Prototype/Resources/Window/RedWindow.png",
 	};
 
-	constexpr const char* matAsset = "Bin/Window/RedWindow_Mat.spha";
+	constexpr const char* matAssetPath = "Bin/Window/RedWindow_Mat.spha";
 
 
 	// Textures
-	for (uint32 i = 0u; i < SizeOf(textureAssets); ++i)
+	for (uint32 i = 0u; i < SizeOf(textureAssetPaths); ++i)
 	{
-		if (!_assetMgr.textureMgr.Load(textureAssets[i], true)) // Try load.
+		if (!_assetMgr.textureMgr.Load(textureAssetPaths[i], true)) // Try load.
 		{
 			// Import on load failed.
-			auto result = _assetMgr.importer.Import(textureResources[i]);
-			result->Save(textureAssets[i]);
+			TextureImportInfos infos;
+			infos.format = TextureFormat::sRGB;
+
+			auto result = _assetMgr.importer.Import(textureResourcePaths[i], &infos);
+			result->Save(textureAssetPaths[i]);
 		}
 	}
 
 
 	// Material
-	windowMat = _assetMgr.renderMatMgr.Load(matAsset);
+	windowMat = _assetMgr.renderMatMgr.Load(matAssetPath);
 
 	if (!windowMat)
 	{
@@ -426,11 +446,11 @@ void CreateWindow(IRenderInstance& _instance, AssetManager& _assetMgr)
 		RenderMaterialAsset renderMatAsset = _assetMgr.renderMatMgr.Create(Move(infos));
 
 		renderMatAsset.mRawData.vertexBindingLayout.meshLayout = squareMesh->GetLayout();
-		renderMatAsset.vertexShaderPath = litVertShaderAsset;
-		renderMatAsset.fragmentShaderPath = litFragShaderAsset;
-		renderMatAsset.texturePaths = { textureAssets[0] };
+		renderMatAsset.vertexShaderPath = litVertShaderAssetPath;
+		renderMatAsset.fragmentShaderPath = litFragShaderAssetPath;
+		renderMatAsset.texturePaths = { textureAssetPaths[0] };
 
-		renderMatAsset.Save(matAsset);
+		renderMatAsset.Save(matAssetPath);
 
 		windowMat = renderMatAsset.GetResource();
 	}
@@ -520,7 +540,7 @@ void CreateSkybox(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
-	constexpr const char* meshAsset = "Bin/Spheres/sphere_M.spha";
+	constexpr const char* meshAssetPath = "Bin/Spheres/sphere_M.spha";
 
 	std::vector<std::string> names =
 	{
@@ -539,7 +559,7 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 		"Worn",
 		"WornShiny",
 	};
-	std::vector<std::vector<std::string>> matResourcePathes =
+	std::vector<std::vector<std::string>> matResourcePaths =
 	{
 		{
 			"red-bricks2_albedo",
@@ -650,6 +670,13 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 		}
 	};
 
+	TextureImportInfos textureImpIfos[6];
+	textureImpIfos[0].format = TextureFormat::sRGB; // albedo.
+	textureImpIfos[3].channelNum = 1u; // metallness.
+	textureImpIfos[4].channelNum = 1u; // roughness.
+	textureImpIfos[5].channelNum = 1u; // ambiant occlusion.
+
+
 	sphereMatNum = SizeOf(names);
 	sphereMats = new IRenderMaterial*[sphereMatNum] {};
 
@@ -660,20 +687,20 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 		for (uint32 i = 0u; i < sphereMatNum; ++i)
 		{
-			for (uint32 j = 0u; j < SizeOf(matResourcePathes[i]); ++j)
+			for (uint32 j = 0u; j < SizeOf(matResourcePaths[i]); ++j)
 			{
-				if (matResourcePathes[i][j].empty())
-					sphaPath = missingTextureAsset;
+				if (matResourcePaths[i][j].empty())
+					sphaPath = missingTextureAssetPath;
 				else
 				{
-					sphaPath = "Bin/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".spha";
-					resPath = "../../Samples/Prototype/Resources/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".png";
+					sphaPath = "Bin/Spheres/" + names[i] + '/' + matResourcePaths[i][j] + ".spha";
+					resPath = "../../Samples/Prototype/Resources/Spheres/" + names[i] + '/' + matResourcePaths[i][j] + ".png";
 				}
 
 				if (!_assetMgr.textureMgr.Load(sphaPath, true)) // Try load.
 				{
 					// Import on load failed.
-					auto result = _assetMgr.importer.Import(resPath);
+					auto result = _assetMgr.importer.Import(resPath, &textureImpIfos[j]);
 					result->Save(sphaPath);
 				}
 			}
@@ -681,7 +708,7 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 	}
 
 	// Mesh.
-	sphereMesh = _assetMgr.meshMgr.Load(meshAsset);
+	sphereMesh = _assetMgr.meshMgr.Load(meshAssetPath);
 	
 	if (!sphereMesh)
 	{
@@ -690,7 +717,7 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 		ModelAsset& result = resPtr->As<ModelAsset>();
 
 		// meshes
-		result.meshes[0].Save(meshAsset);
+		result.meshes[0].Save(meshAssetPath);
 		sphereMesh = result.meshes[0].GetResource();
 	}
 
@@ -709,17 +736,17 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 			renderMatAsset.mRawData.vertexBindingLayout.meshLayout = sphereMesh->GetLayout();
 
-			renderMatAsset.vertexShaderPath = litVertShaderAsset;
-			renderMatAsset.fragmentShaderPath = litFragShaderAsset;
+			renderMatAsset.vertexShaderPath = litVertShaderAssetPath;
+			renderMatAsset.fragmentShaderPath = litFragShaderAssetPath;
 
-			renderMatAsset.texturePaths.reserve(matResourcePathes[i].size());
+			renderMatAsset.texturePaths.reserve(matResourcePaths[i].size());
 
-			for (uint32 j = 0u; j < SizeOf(matResourcePathes[i]); ++j)
+			for (uint32 j = 0u; j < SizeOf(matResourcePaths[i]); ++j)
 			{
-				if (matResourcePathes[i][j].empty())
-					renderMatAsset.texturePaths.emplace_back(missingTextureAsset);
+				if (matResourcePaths[i][j].empty())
+					renderMatAsset.texturePaths.emplace_back(missingTextureAssetPath);
 				else
-					renderMatAsset.texturePaths.emplace_back("Bin/Spheres/" + names[i] + '/' + matResourcePathes[i][j] + ".spha");
+					renderMatAsset.texturePaths.emplace_back("Bin/Spheres/" + names[i] + '/' + matResourcePaths[i][j] + ".spha");
 			}
 
 			renderMatAsset.Save(path);

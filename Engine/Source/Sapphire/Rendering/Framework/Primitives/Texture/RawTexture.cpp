@@ -8,11 +8,11 @@ namespace Sa
 {
 	uint64 RawTexture::GetMainSize() const noexcept
 	{
-		return width * height * static_cast<uint32>(channel);
+		return width * height * channelNum;
 	}
 
 	uint64 RawTexture::GetTotalSize() const noexcept
 	{
-		return Mipmap::ComputeTotalSize(width, height, mipLevels) * static_cast<uint32>(channel);
+		return Mipmap::ComputeTotalSize(width, height, mipLevels) * channelNum;
 	}
 }

@@ -12,7 +12,7 @@ namespace Sa
 {
 	void VkTexture::Create(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
-		VkFormat format = API_GetFormat(_rawTexture.channel);
+		VkFormat format = API_GetFormat(_rawTexture.format, _rawTexture.channelNum);
 		uint64 textureSize = _rawTexture.GetTotalSize();
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
@@ -49,7 +49,7 @@ namespace Sa
 
 		mBuffer.CopyBufferToImage(device, stagingBuffer,
 			VkExtent3D{ _rawTexture.width, _rawTexture.height, 1 },
-			static_cast<uint32>(_rawTexture.channel),
+			_rawTexture.channelNum,
 			_rawTexture.mipLevels,
 			imageBufferCreateInfos.layerNum);
 

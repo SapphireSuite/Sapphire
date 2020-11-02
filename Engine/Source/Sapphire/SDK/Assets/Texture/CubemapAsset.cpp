@@ -49,28 +49,33 @@ namespace Sa
 
 	bool CubemapAsset::IsValid() const noexcept
 	{
-		return mRawData.cubemapData/* && mRawData.irradiancemapData*/;
+		return mRawData.data && mRawData.irradiancemapData;
 	}
 
 
 	bool CubemapAsset::Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream)
 	{
 		// Header.
-		if (!(_hStream >> mRawData.width >>
+		if (!(_hStream >>
+			mRawData.width >>
 			mRawData.height >>
-			reinterpret_cast<uint32&>(mRawData.channel)))
+			mRawData.mipLevels >>
+			mRawData.channelNum >>
+			reinterpret_cast<uint32&>(mRawData.format)))
 		{
 			SA_LOG("Can't parse header!", Warning, SDK_Asset);
 			return false;
 		}
 
+		// TODO: Save GetTotalSize;
 		const uint64 dataSize = mRawData.GetMapSize() * StbiWrapper::bitSize;
+		const uint64 irrDataSize = mRawData.GetMapSize() * StbiWrapper::bitSize;
 
-		mRawData.cubemapData = reinterpret_cast<char*>(StbiWrapper::Allocate(dataSize));
-		mRawData.irradiancemapData = reinterpret_cast<char*>(StbiWrapper::Allocate(dataSize));
+		mRawData.data = reinterpret_cast<char*>(StbiWrapper::Allocate(dataSize));
+		mRawData.irradiancemapData = reinterpret_cast<char*>(StbiWrapper::Allocate(irrDataSize));
 
-		_fStream.read(mRawData.cubemapData, dataSize);
-		_fStream.read(mRawData.irradiancemapData, dataSize);
+		_fStream.read(mRawData.data, dataSize);
+		_fStream.read(mRawData.irradiancemapData, irrDataSize);
 
 		return true;
 	}
@@ -79,20 +84,22 @@ namespace Sa
 	{
 		mRawData.width = 0;
 		mRawData.height = 0;
-		mRawData.channel = TextureChannel::RGBA;
+		mRawData.mipLevels = 1u;
+		mRawData.channelNum = 4u;
+		mRawData.format = TextureFormat::RGB;
 
 		if (_bFreeResources)
 		{
 			// Free loaded resource.
 
-			if (mRawData.cubemapData)
-				StbiWrapper::Free(mRawData.cubemapData);
+			if (mRawData.data)
+				StbiWrapper::Free(mRawData.data);
 
 			if (mRawData.irradiancemapData)
 				StbiWrapper::Free(mRawData.irradiancemapData);
 		}
 
-		mRawData.cubemapData = nullptr;
+		mRawData.data = nullptr;
 		mRawData.irradiancemapData = nullptr;
 	}
 
@@ -102,12 +109,16 @@ namespace Sa
 		// Header.
 		_fStream << mRawData.width << ' ';
 		_fStream << mRawData.height << ' ';
-		_fStream << static_cast<uint32>(mRawData.channel) << '\n';
+		_fStream << mRawData.mipLevels << ' ';
+		_fStream << mRawData.channelNum << ' ';
+		_fStream << static_cast<uint32>(mRawData.format) << '\n';
 
+		// TODO: Save GetTotalSize;
 		const uint64 dataSize = mRawData.GetMapSize() * StbiWrapper::bitSize;
+		const uint64 irrDataSize = mRawData.GetMapSize() * StbiWrapper::bitSize;
 
-		_fStream.write(mRawData.cubemapData, dataSize);
-		_fStream.write(mRawData.irradiancemapData, dataSize);
+		_fStream.write(mRawData.data, dataSize);
+		_fStream.write(mRawData.irradiancemapData, irrDataSize);
 	}
 
 

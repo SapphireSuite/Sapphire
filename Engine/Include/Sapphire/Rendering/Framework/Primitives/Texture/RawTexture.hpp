@@ -7,7 +7,7 @@
 
 #include <Core/Types/Int.hpp>
 
-#include <Rendering/Framework/Primitives/Texture/TextureChannel.hpp>
+#include <Rendering/Framework/Primitives/Texture/TextureFormat.hpp>
 
 namespace Sa
 {
@@ -20,7 +20,8 @@ namespace Sa
 
 		char* data = nullptr;
 
-		TextureChannel channel = TextureChannel::RGBA;
+		uint32 channelNum = 4; // RGBA.
+		TextureFormat format = TextureFormat::RGB;
 		
 		// Compute original image size in format unit.
 		uint64 GetMainSize() const noexcept;

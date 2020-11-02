@@ -62,10 +62,12 @@ namespace Sa
 	bool TextureAsset::Load_Internal(std::istringstream&& _hStream, std::fstream& _fStream)
 	{
 		// Header.
-		if (!(_hStream >> mRawData.width >>
+		if (!(_hStream >>
+			mRawData.width >>
 			mRawData.height >>
 			mRawData.mipLevels >>
-			reinterpret_cast<uint32&>(mRawData.channel)))
+			mRawData.channelNum >>
+			reinterpret_cast<uint32&>(mRawData.format)))
 		{
 			SA_LOG("Can't parse header!", Warning, SDK_Asset);
 			return false;
@@ -84,7 +86,8 @@ namespace Sa
 		mRawData.width = 0;
 		mRawData.height = 0;
 		mRawData.mipLevels = 1u;
-		mRawData.channel = TextureChannel::RGBA;
+		mRawData.channelNum = 4u;
+		mRawData.format = TextureFormat::RGB;
 
 		if (mRawData.data && _bFreeResources)
 		{
@@ -104,7 +107,8 @@ namespace Sa
 		_fStream << mRawData.width << ' ';
 		_fStream << mRawData.height << ' ';
 		_fStream << mRawData.mipLevels << ' ';
-		_fStream << static_cast<uint32>(mRawData.channel) << '\n';
+		_fStream << mRawData.channelNum << ' ';
+		_fStream << static_cast<uint32>(mRawData.format) << '\n';
 
 		_fStream.write(mRawData.data, mRawData.GetTotalSize() * StbiWrapper::bitSize);
 	}

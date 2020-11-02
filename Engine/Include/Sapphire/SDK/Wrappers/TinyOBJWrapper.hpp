@@ -10,12 +10,14 @@
 namespace Sa
 {
 	class ModelAsset;
+	class ModelImportInfos;
+	class RenderMaterialImportInfos;
 
 	class TinyOBJWrapper
 	{
 	public:
-		static bool ImportOBJ(const std::string& _resourcePath, ModelAsset& _result);
-		static bool ImportMTL(const std::string& _resourcePath, ModelAsset& _result);
+		static bool ImportOBJ(const std::string& _resourcePath, ModelAsset& _result, const ModelImportInfos& _importInfos);
+		static bool ImportMTL(const std::string& _resourcePath, ModelAsset& _result, const RenderMaterialImportInfos& _importInfos);
 	};
 }
 

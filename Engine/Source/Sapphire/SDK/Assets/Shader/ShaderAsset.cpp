@@ -16,6 +16,7 @@
 #include <Core/Algorithms/SizeOf.hpp>
 
 #include <SDK/Assets/AssetManager.hpp>
+#include <SDK/Assets/Shader/ShaderImportInfos.hpp>
 
 namespace Sa
 {
@@ -83,7 +84,7 @@ namespace Sa
 		if (ShouldCompileShader(mResourcePath, mFilePath)) // Reimport shader.
 		{
 			mHasRecompiled = true;
-			Import(mResourcePath);
+			Import(mResourcePath, ShaderImportInfos()); // TODO: FIX
 		}
 		else
 		{
@@ -114,7 +115,7 @@ namespace Sa
 		_fStream.write(mRawData.data, mRawData.size);
 	}
 
-	void ShaderAsset::Import(const std::string& _resourcePath)
+	void ShaderAsset::Import(const std::string& _resourcePath, const ShaderImportInfos& _importInfos)
 	{
 		std::string tempPath = GenerateTempPath(_resourcePath);
 		CompileShader(_resourcePath, tempPath);

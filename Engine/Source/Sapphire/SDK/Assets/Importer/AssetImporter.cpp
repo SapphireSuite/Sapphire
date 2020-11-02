@@ -8,6 +8,11 @@
 #include <Core/Algorithms/SizeOf.hpp>
 
 #include <SDK/Assets/AssetManager.hpp>
+#include <SDK/Assets/Model/ModelImportInfos.hpp>
+#include <SDK/Assets/Texture/TextureImportInfos.hpp>
+#include <SDK/Assets/Shader/ShaderImportInfos.hpp>
+#include <SDK/Assets/RenderMaterial/RenderMaterialImportInfos.hpp>
+
 #include <SDK/Wrappers/StbiWrapper.hpp>
 #include <SDK/Wrappers/TinyOBJWrapper.hpp>
 #include <SDK/Wrappers/TinyGLTFWrapper.hpp>
@@ -44,22 +49,22 @@ namespace Sa
 		return false;
 	}
 
-	std::unique_ptr<IAsset> AssetImporter::Import(const std::string& _resourcePath)
+	std::unique_ptr<IAsset> AssetImporter::Import(const std::string& _resourcePath, const IAssetImportInfos* _importInfos)
 	{
 		SA_LOG("Import Asset", Infos, SDK_Asset);
 
 		std::string ext = GetResourceExtension(_resourcePath);
 
-		if (ModelAsset* asset = TryImportModel(_resourcePath, ext))
+		if (ModelAsset* asset = TryImportModel(_resourcePath, ext, _importInfos))
 			return std::unique_ptr<IAsset>(asset);
 
-		if (TextureAsset* asset = TryImportTexture(_resourcePath, ext))
+		if (TextureAsset* asset = TryImportTexture(_resourcePath, ext, _importInfos))
 			return std::unique_ptr<IAsset>(asset);
 
-		if (ShaderAsset* asset = TryImportShader(_resourcePath, ext))
+		if (ShaderAsset* asset = TryImportShader(_resourcePath, ext, _importInfos))
 			return std::unique_ptr<IAsset>(asset);
 
-		if (RenderMaterialAsset* asset = TryImportRenderMaterial(_resourcePath, ext))
+		if (RenderMaterialAsset* asset = TryImportRenderMaterial(_resourcePath, ext, _importInfos))
 			return std::unique_ptr<IAsset>(asset);
 
 
@@ -68,32 +73,32 @@ namespace Sa
 		return nullptr;
 	}
 
-	CubemapAsset AssetImporter::Import(const CubemapAssetImportInfos& _importInfos)
+	CubemapAsset AssetImporter::Import(const CubemapAssetImportInfos& _assetImportInfos, const CubemapImportInfos& _importInfos)
 	{
 		CubemapAsset result = CubemapAsset(mManager);
-		std::string ext = GetResourceExtension(_importInfos.pathes[0]);
+		std::string ext = GetResourceExtension(_assetImportInfos.pathes[0]);
 
 		if (!ContainExt(ext, textureExts, SizeOf(textureExts)))
 			return result;
 
-		StbiWrapper::Import(_importInfos, result);
+		StbiWrapper::Import(_assetImportInfos, result, _importInfos);
 
 		return result;
 	}
 
 
-	ModelAsset* AssetImporter::TryImportModel(const std::string& _resourcePath, const std::string& _extension)
+	ModelAsset* AssetImporter::TryImportModel(const std::string& _resourcePath, const std::string& _extension, const IAssetImportInfos* _importInfos)
 	{
 		ModelAsset* result = new ModelAsset(mManager);
 
 		bool importRes = false;
 
 		if (_extension == "obj")
-			importRes = TinyOBJWrapper::ImportOBJ(_resourcePath, *result);
+			importRes = TinyOBJWrapper::ImportOBJ(_resourcePath, *result, _importInfos ? _importInfos->As<ModelImportInfos>() : ModelImportInfos());
 		else if (_extension == "gltf")
-			importRes = TinyGLTFWrapper::ImportGLTF(_resourcePath, *result);
+			importRes = TinyGLTFWrapper::ImportGLTF(_resourcePath, *result, _importInfos ? _importInfos->As<ModelImportInfos>() : ModelImportInfos());
 		else if (_extension == "glb")
-			importRes = TinyGLTFWrapper::ImportGLB(_resourcePath, *result);
+			importRes = TinyGLTFWrapper::ImportGLB(_resourcePath, *result, _importInfos ? _importInfos->As<ModelImportInfos>() : ModelImportInfos());
 
 		if (!importRes)
 		{
@@ -105,14 +110,16 @@ namespace Sa
 	}
 
 
-	TextureAsset* AssetImporter::TryImportTexture(const std::string& _resourcePath, const std::string& _extension)
+	TextureAsset* AssetImporter::TryImportTexture(const std::string& _resourcePath, const std::string& _extension, const IAssetImportInfos* _importInfos)
 	{
 		if (!ContainExt(_extension, textureExts, SizeOf(textureExts)))
 			return nullptr;
 
+		const TextureImportInfos& textureImpInfos = _importInfos ? _importInfos->As<TextureImportInfos>() : TextureImportInfos();
+
 		TextureAsset* result = new TextureAsset(mManager);
 
-		if (!StbiWrapper::Import(_resourcePath, *result))
+		if (!StbiWrapper::Import(_resourcePath, *result, textureImpInfos))
 		{
 			delete result;
 			return nullptr;
@@ -122,20 +129,23 @@ namespace Sa
 	}
 
 
-	ShaderAsset* AssetImporter::TryImportShader(const std::string& _resourcePath, const std::string& _extension)
+	ShaderAsset* AssetImporter::TryImportShader(const std::string& _resourcePath, const std::string& _extension, const IAssetImportInfos* _importInfos)
 	{
 		if (!ContainExt(_extension, shaderExts, SizeOf(shaderExts)))
 			return nullptr;
 
+		const ShaderImportInfos& shaderImpInfos = _importInfos ? _importInfos->As<ShaderImportInfos>() : ShaderImportInfos();
+
+
 		ShaderAsset* asset = new ShaderAsset(mManager);
 
-		asset->Import(_resourcePath);
+		asset->Import(_resourcePath, shaderImpInfos);
 
 		return asset;
 	}
 
 
-	RenderMaterialAsset* AssetImporter::TryImportRenderMaterial(const std::string& _resourcePath, const std::string& _extension)
+	RenderMaterialAsset* AssetImporter::TryImportRenderMaterial(const std::string& _resourcePath, const std::string& _extension, const IAssetImportInfos* _importInfos)
 	{
 		RenderMaterialAsset* result = new RenderMaterialAsset(mManager);
 
@@ -143,7 +153,7 @@ namespace Sa
 
 		// TODO: FIX.
 		//if (_extension == "mtl")
-		//	importRes = TinyOBJWrapper::ImportMTL(_resourcePath, *result);
+		//	importRes = TinyOBJWrapper::ImportMTL(_resourcePath, *result, _importInfos);
 
 		if (!importRes)
 		{

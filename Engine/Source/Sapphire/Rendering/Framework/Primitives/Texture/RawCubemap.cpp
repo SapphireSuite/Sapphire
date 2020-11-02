@@ -2,19 +2,17 @@
 
 #include <Rendering/Framework/Primitives/Texture/RawCubemap.hpp>
 
-#include <Rendering/Framework/Primitives/Texture/Mipmap.hpp>
-
 namespace Sa
 {
-	const uint32 RawCubemap::mipLevels = 5u;
+	const uint32 RawCubemap::maxRoughLevel = 5u;
 
 	uint64 RawCubemap::GetMapSize() const noexcept
 	{
-		return width * height * static_cast<uint32>(channel) * 6u;
+		return GetMainSize() * 6u;
 	}
 
-	uint64 RawCubemap::GetTotalSize() const noexcept
+	uint64 RawCubemap::GetTotalMapSize() const noexcept
 	{
-		return Mipmap::ComputeTotalSize(width, height, mipLevels) * static_cast<uint32>(channel) * 6u;
+		return GetTotalSize() * 6u;
 	}
 }
