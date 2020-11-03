@@ -8,7 +8,6 @@
 #include <Rendering/Config.hpp>
 
 #include <Rendering/Framework/Primitives/Material/IRenderMaterial.hpp>
-#include <Rendering/Vulkan/Primitives/Pipeline/VkRenderPipeline.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
