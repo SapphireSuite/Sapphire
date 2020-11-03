@@ -40,7 +40,7 @@ namespace Sa
 		mIndexBuffer.Destroy(device);
 	}
 
-	void VkMesh::Draw(const IRenderFrame& _frame) const
+	void VkMesh::Draw(const IRenderFrame& _frame, const MeshDrawInfos& _infos) const
 	{
 		const VkRenderFrame& vkFrame = _frame.As<VkRenderFrame>();
 
@@ -50,7 +50,7 @@ namespace Sa
 
 		vkCmdBindIndexBuffer(vkFrame.framebuffer->GetCommandBuffer(), mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdDrawIndexed(vkFrame.framebuffer->GetCommandBuffer(), mIndicesSize, 1, 0, 0, 0);
+		vkCmdDrawIndexed(vkFrame.framebuffer->GetCommandBuffer(), mIndicesSize, _infos.instanceNum, 0, 0, 0);
 	}
 }
 

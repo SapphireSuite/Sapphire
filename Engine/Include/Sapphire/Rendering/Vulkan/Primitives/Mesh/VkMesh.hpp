@@ -27,7 +27,7 @@ namespace Sa
 	public:
 		void Destroy(const IRenderInstance& _instance) override final;
 
-		void Draw(const IRenderFrame& _frame) const override final;
+		void Draw(const IRenderFrame& _frame, const MeshDrawInfos& _infos) const override final;
 	};
 }
 

@@ -7,6 +7,7 @@
 
 #include <Rendering/Framework/Primitives/IRenderPrimitive.hpp>
 #include <Rendering/Framework/Primitives/Mesh/RawMesh.hpp>
+#include <Rendering/Framework/Primitives/Mesh/MeshDrawInfos.hpp>
 
 namespace Sa
 {
@@ -29,7 +30,7 @@ namespace Sa
 		
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 
-		virtual void Draw(const IRenderFrame& _frame) const = 0;
+		virtual void Draw(const IRenderFrame& _frame, const MeshDrawInfos& _infos = MeshDrawInfos()) const = 0;
 	};
 }
 

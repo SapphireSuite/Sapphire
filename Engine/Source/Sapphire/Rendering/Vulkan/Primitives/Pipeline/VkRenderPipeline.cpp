@@ -287,22 +287,22 @@ namespace Sa
 		};
 	}
 
-	VkPipelineVertexInputStateCreateInfo VkRenderPipeline::CreateVertexInputInfos(const PipelineCreateInfos& _infos)
-	{
-		//auto bindingDescriptions = _infos.vertexBindingLayout.GetBindingDescription();
-		//auto attributeDescriptions = _infos.vertexBindingLayout.GetAttributeDescriptions();
+	//VkPipelineVertexInputStateCreateInfo VkRenderPipeline::CreateVertexInputInfos(const PipelineCreateInfos& _infos)
+	//{
+	//	auto bindingDescriptions = _infos.vertexBindingLayout.GetBindingDescription();
+	//	auto attributeDescriptions = _infos.vertexBindingLayout.GetAttributeDescriptions();
 
-		//return VkPipelineVertexInputStateCreateInfo
-		//{
-		//	VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,				// sType.
-		//	nullptr,																// pNext.
-		//	0,																		// flags.
-		//	_infos.vertexBindingLayout.GetBindingDescriptionNum(),					// vertexBindingDescriptionCount.
-		//	bindingDescriptions.get(),												// pVertexBindingDescriptions.
-		//	_infos.vertexBindingLayout.GetAttributeDescriptionNum(),				// vertexAttributeDescriptionCount.
-		//	attributeDescriptions.get()												// pVertexAttributeDescriptions.
-		//};
-	}
+	//	return VkPipelineVertexInputStateCreateInfo
+	//	{
+	//		VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,				// sType.
+	//		nullptr,																// pNext.
+	//		0,																		// flags.
+	//		_infos.vertexBindingLayout.GetBindingDescriptionNum(),					// vertexBindingDescriptionCount.
+	//		bindingDescriptions.get(),												// pVertexBindingDescriptions.
+	//		_infos.vertexBindingLayout.GetAttributeDescriptionNum(),				// vertexAttributeDescriptionCount.
+	//		attributeDescriptions.get()												// pVertexAttributeDescriptions.
+	//	};
+	//}
 
 	VkPipelineRasterizationStateCreateInfo VkRenderPipeline::CreateRasterizationInfos(const PipelineCreateInfos& _infos)
 	{
