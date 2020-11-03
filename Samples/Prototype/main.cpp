@@ -122,7 +122,7 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!(ITexture::brdfLUT = _assetMgr.textureMgr.Load(BRDFLookUpTableTextureAssetPath, true))) // Try load.
 	{
 		// Import on load failed.
-		TextureImportInfos infos; infos.mipLevels = 1u;
+		TextureImportInfos infos; infos.mipLevels = 1u; infos.channelNum = 2;
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/brdf_lut.jpg");
 		result->Save(BRDFLookUpTableTextureAssetPath);
 		ITexture::brdfLUT = result->AsPtr<TextureAsset>()->GetResource();
