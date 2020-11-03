@@ -10,13 +10,15 @@
 #include <Core/Types/Variadics/Pair.hpp>
 
 
-#include <Rendering/Framework/Primitives/Light/LightInfos.hpp>
+#include <Rendering/Framework/Primitives/Camera/Camera.hpp>
+#include <Rendering/Framework/Primitives/Light/PointLight.hpp>
+#include <Rendering/Framework/Primitives/Light/DirectionnalLight.hpp>
+#include <Rendering/Framework/Primitives/Light/SpotLight.hpp>
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
 #include <Rendering/Vulkan/System/VkRenderSurface.hpp>
 #include <Rendering/Vulkan/Buffer/VkStorageBuffer.hpp>
-#include <Rendering/Vulkan/Primitives/Camera/VkCamera.hpp>
 
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -33,13 +35,10 @@ namespace Sa
 	public:
 		std::vector<Pair<const IWindow*, VkRenderSurface>> mSurfacePairs;
 
-		VkStorageBuffer<VkCamera> mCameras;
-
-	public: // TODO: REMOVE LATER.
-		VkGPUStorageBuffer<PLightInfos> mPointLightBuffer;
-		VkGPUStorageBuffer<DLightInfos> mDirectionnalLightBuffer;
-		VkGPUStorageBuffer<SLightInfos> mSpotLightBuffer;
-
+		VkStorageBuffer<Camera> mCameras;
+		VkStorageBuffer<PointLight> mPointLights;
+		VkStorageBuffer<DirectionnalLight> mDirectionnalLights;
+		VkStorageBuffer<SpotLight> mSpotLights;
 
 #if SA_VK_VALIDATION_LAYERS
 
@@ -64,9 +63,9 @@ namespace Sa
 
 		const VkGPUStorageBuffer<Camera_GPU>& GetGPUCameraBuffer() const noexcept;
 
-		const VkGPUStorageBuffer<PLightInfos>& GetPointLightBuffer() const noexcept;
-		const VkGPUStorageBuffer<DLightInfos>& GetDirectionnalLightBuffer() const noexcept;
-		const VkGPUStorageBuffer<SLightInfos>& GetSpotLightBuffer() const noexcept;
+		const VkGPUStorageBuffer<PointLight_GPU>& GetGPUPointLightBuffer() const noexcept;
+		const VkGPUStorageBuffer<DirectionnalLight_GPU>& GetGPUDirectionnalLightBuffer() const noexcept;
+		const VkGPUStorageBuffer<SpotLight_GPU>& GetGPUSpotLightBuffer() const noexcept;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Create() override final;
@@ -80,24 +79,24 @@ namespace Sa
 
 
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API ICamera& InstantiateCamera() override final;
+		SA_ENGINE_API Camera& InstantiateCamera() override final;
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void DestroyCamera(const ICamera& _camera) override final;
+		SA_ENGINE_API void DestroyCamera(const Camera& _camera) override final;
 
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API uint32 InstantiatePointLight(const PLightInfos& _infos) override final;
+		SA_ENGINE_API PointLight& InstantiatePointLight() override final;
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void DestroyPointLight(uint32 _id) override final;
+		SA_ENGINE_API void DestroyPointLight(const PointLight& _pLight) override final;
 
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API uint32 InstantiateDirectionnalLight(const DLightInfos& _infos) override final;
+		SA_ENGINE_API DirectionnalLight& InstantiateDirectionnalLight() override final;
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void DestroyDirectionnalLight(uint32 _id) override final;
+		SA_ENGINE_API void DestroyDirectionnalLight(const DirectionnalLight& _dLight) override final;
 
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API uint32 InstantiateSpotLight(const SLightInfos& _infos) override final;
+		SA_ENGINE_API SpotLight& InstantiateSpotLight() override final;
 		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void DestroySpotLight(uint32 _id) override final;
+		SA_ENGINE_API void DestroySpotLight(const SpotLight& _sLight) override final;
 
 
 		// TODO: Remove SA_ENGINE_API.

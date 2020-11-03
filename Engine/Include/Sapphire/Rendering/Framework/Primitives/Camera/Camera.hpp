@@ -5,8 +5,6 @@
 #ifndef SAPPHIRE_RENDERING_ICAMERA_GUARD
 #define SAPPHIRE_RENDERING_ICAMERA_GUARD
 
-#include <Core/Types/IInterface.hpp>
-
 #include <Maths/Space/Transform.hpp>
 
 #include <Rendering/Framework/Primitives/Camera/Camera_GPU.hpp>
@@ -15,7 +13,7 @@ namespace Sa
 {
 	class IRenderInstance;
 
-	class ICamera : public IInterface
+	class Camera
 	{
 		TransffPRS mTransf;
 		
@@ -36,9 +34,9 @@ namespace Sa
 		// Camera storage buffer ID.
 		const uint32 ID = 0;
 
-		ICamera(uint32 _ID);
-		ICamera(ICamera&&) = default;
-		ICamera(const ICamera&) = default;
+		Camera(uint32 _ID);
+		Camera(Camera&&) = default;
+		Camera(const Camera&) = default;
 
 		const Vec3f& GetPosition() const noexcept;
 		const Quatf& GetRotation() const noexcept;
@@ -68,13 +66,13 @@ namespace Sa
 		Mat4f ComputeInvViewMatrix() noexcept;
 		Mat4f ComputeProjMatrix() noexcept;
 
-		virtual void Update(const IRenderInstance& _instance, void* _gpuBuffer) = 0;
+		void Update(const IRenderInstance& _instance, void* _gpuBuffer);
 
-		ICamera& operator=(ICamera&&) noexcept;
-		ICamera& operator=(const ICamera& _rhs) noexcept;
+		Camera& operator=(Camera&& _rhs) noexcept;
+		Camera& operator=(const Camera& _rhs) noexcept;
 
-		bool operator==(const ICamera& _rhs) const noexcept;
-		bool operator!=(const ICamera& _rhs) const noexcept;
+		bool operator==(const Camera& _rhs) const noexcept;
+		bool operator!=(const Camera& _rhs) const noexcept;
 	};
 }
 

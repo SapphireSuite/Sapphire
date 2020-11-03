@@ -14,11 +14,11 @@ namespace Sa
 	class IWindow;
 	class IRenderSurface;
 	
-	class ICamera;
+	class Camera;
 
-	struct PLightInfos;
-	struct DLightInfos;
-	struct SLightInfos;
+	class PointLight;
+	class DirectionnalLight;
+	class SpotLight;
 
 	class IRenderInstance : public IInterface
 	{
@@ -37,17 +37,17 @@ namespace Sa
 		virtual void DestroyRenderSurface(const IWindow& _window) = 0;
 
 		
-		virtual ICamera& InstantiateCamera() = 0;
-		virtual void DestroyCamera(const ICamera& _camera) = 0;
+		virtual Camera& InstantiateCamera() = 0;
+		virtual void DestroyCamera(const Camera& _camera) = 0;
 
-		virtual uint32 InstantiatePointLight(const PLightInfos& _infos) = 0;
-		virtual void DestroyPointLight(uint32 _id) = 0;
+		virtual PointLight& InstantiatePointLight() = 0;
+		virtual void DestroyPointLight(const PointLight& _pLight) = 0;
 
-		virtual uint32 InstantiateDirectionnalLight(const DLightInfos& _infos) = 0;
-		virtual void DestroyDirectionnalLight(uint32 _id) = 0;
+		virtual DirectionnalLight& InstantiateDirectionnalLight() = 0;
+		virtual void DestroyDirectionnalLight(const DirectionnalLight& _dLight) = 0;
 		
-		virtual uint32 InstantiateSpotLight(const SLightInfos& _infos) = 0;
-		virtual void DestroySpotLight(uint32 _id) = 0;
+		virtual SpotLight& InstantiateSpotLight() = 0;
+		virtual void DestroySpotLight(const SpotLight& _sLight) = 0;
 
 
 		virtual void Update() = 0;

@@ -2,6 +2,7 @@
 
 #include <Rendering/Vulkan/Primitives/Pipeline/VkGraphicRenderPipeline.hpp>
 
+#include <Rendering/Framework/Primitives/Light/LightType.hpp>
 #include <Rendering/Framework/Primitives/Material/RawMaterial.hpp>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
@@ -313,13 +314,13 @@ namespace Sa
 
 
 			// Directionnal light buffer bindigs.
-			const VkGPUStorageBuffer<DLightInfos>& dLightBuffer = _instance.GetDirectionnalLightBuffer();
+			const VkGPUStorageBuffer<DirectionnalLight_GPU>& dLightBuffer = _instance.GetGPUDirectionnalLightBuffer();
 
 			_descriptorInfos.push_back(dLightBuffer.CreateDescriptorBufferInfo());
 			_descriptorWrites.push_back(dLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 4));
 
 			// Point light buffer bindigs.
-			const VkGPUStorageBuffer<PLightInfos>& pLightBuffer = _instance.GetPointLightBuffer();
+			const VkGPUStorageBuffer<PointLight_GPU>& pLightBuffer = _instance.GetGPUPointLightBuffer();
 
 			_descriptorInfos.push_back(pLightBuffer.CreateDescriptorBufferInfo());
 			_descriptorWrites.push_back(pLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 5));
@@ -327,7 +328,7 @@ namespace Sa
 
 
 			// Spot light buffer bindigs.
-			const VkGPUStorageBuffer<SLightInfos>& sLightBuffer = _instance.GetSpotLightBuffer();
+			const VkGPUStorageBuffer<SpotLight_GPU>& sLightBuffer = _instance.GetGPUSpotLightBuffer();
 
 			_descriptorInfos.push_back(sLightBuffer.CreateDescriptorBufferInfo());
 			_descriptorWrites.push_back(sLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 6));

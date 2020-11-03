@@ -53,9 +53,9 @@ namespace Sa
 	{
 		mCameras.Create(mDevice);
 
-		mPointLightBuffer.Create(mDevice);
-		mDirectionnalLightBuffer.Create(mDevice);
-		mSpotLightBuffer.Create(mDevice);
+		mPointLights.Create(mDevice);
+		mDirectionnalLights.Create(mDevice);
+		mSpotLights.Create(mDevice);
 	}
 
 	std::vector<const char*> VkRenderInstance::GetRequiredExtensions() noexcept
@@ -96,19 +96,19 @@ namespace Sa
 		return mCameras.GetGPUBuffer();
 	}
 
-	const VkGPUStorageBuffer<PLightInfos>& VkRenderInstance::GetPointLightBuffer() const noexcept
+	const VkGPUStorageBuffer<PointLight_GPU>& VkRenderInstance::GetGPUPointLightBuffer() const noexcept
 	{
-		return mPointLightBuffer;
+		return mPointLights.GetGPUBuffer();
 	}
 
-	const VkGPUStorageBuffer<DLightInfos>& VkRenderInstance::GetDirectionnalLightBuffer() const noexcept
+	const VkGPUStorageBuffer<DirectionnalLight_GPU>& VkRenderInstance::GetGPUDirectionnalLightBuffer() const noexcept
 	{
-		return mDirectionnalLightBuffer;
+		return mDirectionnalLights.GetGPUBuffer();
 	}
 
-	const VkGPUStorageBuffer<SLightInfos>& VkRenderInstance::GetSpotLightBuffer() const noexcept
+	const VkGPUStorageBuffer<SpotLight_GPU>& VkRenderInstance::GetGPUSpotLightBuffer() const noexcept
 	{
-		return mSpotLightBuffer;
+		return mSpotLights.GetGPUBuffer();
 	}
 
 
@@ -180,9 +180,9 @@ namespace Sa
 	{
 		mCameras.Destroy(mDevice);
 
-		mPointLightBuffer.Destroy(mDevice);
-		mDirectionnalLightBuffer.Destroy(mDevice);
-		mSpotLightBuffer.Destroy(mDevice);
+		mPointLights.Destroy(mDevice);
+		mDirectionnalLights.Destroy(mDevice);
+		mSpotLights.Destroy(mDevice);
 
 		// Destroy system.
 		mDevice.Destroy();
@@ -269,51 +269,55 @@ namespace Sa
 	}
 
 
-	ICamera& VkRenderInstance::InstantiateCamera()
+	Camera& VkRenderInstance::InstantiateCamera()
 	{
 		return mCameras.Add(mDevice);
 	}
 
-	void VkRenderInstance::DestroyCamera(const ICamera& _camera)
+	void VkRenderInstance::DestroyCamera(const Camera& _camera)
 	{
-		return mCameras.Remove(mDevice, _camera.As<VkCamera>());
+		return mCameras.Remove(mDevice, _camera);
 	}
 
 
-	uint32 VkRenderInstance::InstantiatePointLight(const PLightInfos& _infos)
+	PointLight& VkRenderInstance::InstantiatePointLight()
 	{
-		return mPointLightBuffer.Add(mDevice, _infos);
+		return mPointLights.Add(mDevice);
 	}
 
-	void VkRenderInstance::DestroyPointLight(uint32 _id)
+	void VkRenderInstance::DestroyPointLight(const PointLight& _pLight)
 	{
-		mPointLightBuffer.Remove(mDevice, _id);
+		mPointLights.Remove(mDevice, _pLight);
 	}
 
-	uint32 VkRenderInstance::InstantiateDirectionnalLight(const DLightInfos& _infos)
+	DirectionnalLight& VkRenderInstance::InstantiateDirectionnalLight()
 	{
-		return mDirectionnalLightBuffer.Add(mDevice, _infos);
+		return mDirectionnalLights.Add(mDevice);
 	}
 
-	void VkRenderInstance::DestroyDirectionnalLight(uint32 _id)
+	void VkRenderInstance::DestroyDirectionnalLight(const DirectionnalLight& _dLight)
 	{
-		mDirectionnalLightBuffer.Remove(mDevice, _id);
+		mDirectionnalLights.Remove(mDevice, _dLight);
 	}
 
-	uint32 VkRenderInstance::InstantiateSpotLight(const SLightInfos& _infos)
+	SpotLight& VkRenderInstance::InstantiateSpotLight()
 	{
-		return mSpotLightBuffer.Add(mDevice, _infos);
+		return mSpotLights.Add(mDevice);
 	}
 
-	void VkRenderInstance::DestroySpotLight(uint32 _id)
+	void VkRenderInstance::DestroySpotLight(const SpotLight& _sLight)
 	{
-		mSpotLightBuffer.Remove(mDevice, _id);
+		mSpotLights.Remove(mDevice, _sLight);
 	}
 
 
 	void VkRenderInstance::Update()
 	{
 		mCameras.Update(*this);
+
+		mPointLights.Update(*this);
+		mDirectionnalLights.Update(*this);
+		mSpotLights.Update(*this);
 	}
 
 

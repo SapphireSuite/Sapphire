@@ -827,7 +827,7 @@ int main()
 
 	surface.CreateRenderPass(instance, mainRenderPassInfos);
 
-	ICamera& mainCamera = instance.InstantiateCamera();
+	Camera& mainCamera = instance.InstantiateCamera();
 	mainCamera.SetPosition(Vec3f(-2.0f, 2.0f, 5.0f));
 	TransffPRS camTr = mainCamera.GetTransform();
 
@@ -839,26 +839,20 @@ int main()
 
 
 	// Create Lights.
-	PLightInfos pLight1;
-	pLight1.position = API_ConvertCoordinateSystem(Vec3f(-1.0f, 2.0f, 0.0f));
-	//pLight1.color = Vec3f(0.9f, 0.7f, 0.3f);
-	pLight1.intensity = 5.0f;
+	PointLight& pLight1 = instance.InstantiatePointLight();
+	pLight1.SetPosition(Vec3f(-1.0f, 2.0f, 0.0f));
+	pLight1.SetIntensity(5.0f);
+	//pLight1.SetColor(Vec3f(0.9f, 0.7f, 0.3f));
+	
+	//PointLight& pLight2 = instance.InstantiatePointLight();
+	//pLight2.SetPosition(Vec3f(2.0f, 2.0f, -2.0f));
+	//pLight2.SetIntensity(5.0f);
+	//pLight1.SetColor(Vec3f(0.9f, 0.7f, 0.3f));
 
-	uint32 pLight1ID = uint32(-1);
-	//pLight1ID = instance.InstantiatePointLight(pLight1);
-
-	//PLightInfos pLight2;
-	//pLight2.position = API_ConvertCoordinateSystem(Vec3f(2.0f, 2.0f, -2.0f));
-	//pLight2.color = Vec3f(0.9f, 0.7f, 0.3f);
-	//pLight2.range = 5.0f;
-	//pLight2.intensity = 5.0f;
-
-	//uint32 pLight2ID = instance.InstantiatePointLight(pLight2);
-
-	//{
-	//	Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.position, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-	//	gizmoMat->InitVariable(instance, &modelMat, sizeof(Mat4f));
-	//}
+	{
+		Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.GetPosition(), Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+		gizmoMat->InitVariable(instance, &modelMat, sizeof(Mat4f));
+	}
 
 
 	//const float r = 1.0f;
@@ -876,7 +870,7 @@ int main()
 	//	-(r + l) / (r - l), -(t + b) / (t - b), -(f + n) / (f - n), 1
 	//));
 
-	Vec3f pL1Pos = API_ConvertCoordinateSystem(pLight1.position);
+	Vec3f pL1Pos = pLight1.GetPosition();
 
 	Chrono chrono;
 	float time = 0.0f;
@@ -899,18 +893,15 @@ int main()
 
 		mainCamera.SetTransform(camTr);
 
-		if(pLight1ID != uint32(-1))
+		if (gizmoMat)
 		{
-			if (gizmoMat)
-			{
-				Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
-				gizmoMat->UpdateVariable(instance, frame, &modelMat, sizeof(Mat4f));
-			}
-
-			vkDeviceWaitIdle(instance.GetDevice());
-			pLight1.position = API_ConvertCoordinateSystem(pL1Pos);
-			instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1ID, pLight1);
+			Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pL1Pos, Quatf::Identity, Vec3f::One * 0.5f).Matrix());
+			gizmoMat->UpdateVariable(instance, frame, &modelMat, sizeof(Mat4f));
 		}
+
+		vkDeviceWaitIdle(instance.GetDevice());
+		pLight1.SetPosition(pL1Pos);
+
 
 		// Draw Magikarp.
 		if (magikarpBodyMat)
