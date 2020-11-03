@@ -189,7 +189,7 @@ namespace Sa
 	void VkRenderSurface::End(const VkDevice& _device)
 	{
 		//mSwapChain.GetRenderFrame().framebuffer->Next();
-		mEditor->Draw(mSwapChain.GetRenderFrame());
+		//mEditor->Draw(mSwapChain.GetRenderFrame());
 
 		mEditor->EndFrame();
 		mSwapChain.End(_device);
