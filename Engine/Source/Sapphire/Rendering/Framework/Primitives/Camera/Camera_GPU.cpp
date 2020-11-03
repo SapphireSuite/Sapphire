@@ -1,12 +1,12 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Framework/Primitives/Camera/CameraBuffer.hpp>
+#include <Rendering/Framework/Primitives/Camera/Camera_GPU.hpp>
 
 #include <Core/Algorithms/Move.hpp>
 
 namespace Sa
 {
-	CameraBuffer::CameraBuffer(Mat4f&& _projMat, Mat4f&& _viewInvMat, Vec3f&& _viewPosition) noexcept :
+	Camera_GPU::Camera_GPU(Mat4f&& _projMat, Mat4f&& _viewInvMat, Vec3f&& _viewPosition) noexcept :
 		projMat{ Move(_projMat) },
 		viewInfos
 		{
@@ -16,7 +16,7 @@ namespace Sa
 	{
 	}
 
-	CameraBuffer::CameraBuffer(const Mat4f& _projMat, const Mat4f& _viewInvMat, const Vec3f& _viewPosition) noexcept :
+	Camera_GPU::Camera_GPU(const Mat4f& _projMat, const Mat4f& _viewInvMat, const Vec3f& _viewPosition) noexcept :
 		projMat{ _projMat },
 		viewInfos
 		{

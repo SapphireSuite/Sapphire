@@ -2,50 +2,39 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_VK_STORAGE_BUFFER_GUARD
-#define SAPPHIRE_VK_STORAGE_BUFFER_GUARD
+#ifndef SAPPHIRE_RENDERING_VK_STORAGE_BUFFER_GUARD
+#define SAPPHIRE_RENDERING_VK_STORAGE_BUFFER_GUARD
 
-#include <Collections/Debug>
-
-#include <Rendering/Vulkan/Buffer/VkBuffer.hpp>
-
-#if SA_RENDERING_API == SA_VULKAN
+#include <Rendering/Vulkan/Buffer/VkGPUStorageBuffer.hpp>
 
 namespace Sa
 {
-	class VkDevice;
-
-	template <typename T>
+	/**
+	*	CPU_T must have "uint32 ID" member.
+	*	GPU_T must have "bool bEnabled" member.
+	*/
+	template <typename CPU_T, typename GPU_T = typename CPU_T::GPU_T>
 	class VkStorageBuffer
 	{
-		VkBuffer mHandle;
+		// CPU-side buffer.
+		std::vector<CPU_T> mCPUBuffer;
 
-		// Buffer size on device.
-		uint32 mDeviceSize = 0u;
-
-		std::vector<uint32> mFreeIndices;
-
-		void InitNewObjects(const VkDevice& _device, uint32 _prevSize, uint32 _newSize);
+		// GPU-side buffer.
+		VkGPUStorageBuffer<GPU_T> mGPUBuffer;
 
 	public:
-		uint32 Size() const noexcept;
-
-		uint32 Add(const VkDevice& _device, const T& _object = T());
-		void Remove(const VkDevice& _device, uint32 _id);
+		const VkGPUStorageBuffer<GPU_T>& GetGPUBuffer() const noexcept;
 
 		void Create(const VkDevice& _device, uint32 _capacity = 5u);
 		void Destroy(const VkDevice& _device);
 
-		void UpdateData(const VkDevice& _device, uint32 _id, void* _data, uint32 _size, uint32 _offset);
-		void UpdateObject(const VkDevice& _device, uint32 _id, const T& _object);
+		CPU_T& Add(const VkDevice& _device, const GPU_T& _object = GPU_T());
+		void Remove(const VkDevice& _device, const CPU_T& _object);
 
-		VkDescriptorBufferInfo CreateDescriptorBufferInfo() const noexcept;
-		static VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding) noexcept;
+		void Update(const IRenderInstance& _instance);
 	};
 }
 
 #include <Rendering/Vulkan/Buffer/VkStorageBuffer.inl>
-
-#endif
 
 #endif // GUARD

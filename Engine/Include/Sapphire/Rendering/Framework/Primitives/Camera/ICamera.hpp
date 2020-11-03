@@ -5,46 +5,76 @@
 #ifndef SAPPHIRE_RENDERING_ICAMERA_GUARD
 #define SAPPHIRE_RENDERING_ICAMERA_GUARD
 
-#include <Core/Types/Variadics/Event.hpp>
 #include <Core/Types/IInterface.hpp>
 
-#include <Rendering/Image/ImageViewExtent.hpp>
+#include <Maths/Space/Transform.hpp>
+
+#include <Rendering/Framework/Primitives/Camera/Camera_GPU.hpp>
 
 namespace Sa
 {
 	class IRenderInstance;
-	class IRenderSurface;
 
 	class ICamera : public IInterface
 	{
-		ImageViewExtent mViewport;
-		ImageViewExtent mScissor;
+		TransffPRS mTransf;
+		
+		float mFOV = 90.0f;
+		float mNear = 0.35f;
+		float mFar = 25.0f;
+
+		bool mViewDirty = true;
+		bool mProjDirty = true;
+
+	protected:
+		bool IsViewDirty() const noexcept;
+		bool IsProjDirty() const noexcept;
 
 	public:
-		Event<void(ICamera&, ImageViewExtent)> onViewportChange;
-		Event<void(ICamera&, ImageViewExtent)> onScissorChange;
+		using GPU_T = Camera_GPU;
 
-		ICamera() = default;
-		SA_ENGINE_API ICamera(const ImageViewExtent& _viewport, const ImageViewExtent& _scissor) noexcept;
-		SA_ENGINE_API ICamera(const ImageViewExtent& _viewportScissor) noexcept;
-		virtual ~ICamera() = default;
+		// Camera storage buffer ID.
+		const uint32 ID = 0;
 
-		const ImageViewExtent& GetViewport() const;
-		const ImageViewExtent& GetScissor() const;
+		ICamera(uint32 _ID);
+		ICamera(ICamera&&) = default;
+		ICamera(const ICamera&) = default;
 
-		void SetViewport(ImageViewExtent _viewport);
-		void SetScissor(ImageViewExtent _scissor);
+		const Vec3f& GetPosition() const noexcept;
+		const Quatf& GetRotation() const noexcept;
+		const Vec3f& GetScale() const noexcept;
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API const TransffPRS& GetTransform() const noexcept;
 
-		virtual void Create(const IRenderInstance& _instance, const IRenderSurface& _surface) = 0;
-		virtual void Destroy(const IRenderInstance& _instance) = 0;
+		float GetFOV() const noexcept;
+		float GetNear() const noexcept;
+		float GetFar() const noexcept;
 
-#if SA_RENDERING_API == SA_VULKAN
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API void SetPosition(const Vec3f& _position);
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API void SetRotation(const Quatf& _rotation);
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API void SetScale(const Vec3f& _scale);
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API void SetTransform(const TransffPRS& _tr);
 
-		VkViewport GetVkViewport() const;
+		void SetFOV(float _fov);
+		void SetNear(float _near);
+		void SetFar(float _far);
 
-		VkRect2D GetVkScissor() const;
+		Vec3f ComputeViewPosition() const noexcept;
 
-#endif
+		Mat4f ComputeInvViewMatrix() noexcept;
+		Mat4f ComputeProjMatrix() noexcept;
+
+		virtual void Update(const IRenderInstance& _instance, void* _gpuBuffer) = 0;
+
+		ICamera& operator=(ICamera&&) noexcept;
+		ICamera& operator=(const ICamera& _rhs) noexcept;
+
+		bool operator==(const ICamera& _rhs) const noexcept;
+		bool operator!=(const ICamera& _rhs) const noexcept;
 	};
 }
 

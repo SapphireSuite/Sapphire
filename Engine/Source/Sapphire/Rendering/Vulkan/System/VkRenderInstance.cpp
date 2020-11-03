@@ -51,7 +51,7 @@ namespace Sa
 
 	void VkRenderInstance::OnDeviceCreated()
 	{
-		mCameraBuffer.Create(mDevice);
+		mCameras.Create(mDevice);
 
 		mPointLightBuffer.Create(mDevice);
 		mDirectionnalLightBuffer.Create(mDevice);
@@ -91,22 +91,22 @@ namespace Sa
 		return mSurfacePairs[0].second;
 	}
 
-	const VkStorageBuffer<CameraBuffer>& VkRenderInstance::GetCameraBuffer() const noexcept
+	const VkGPUStorageBuffer<Camera_GPU>& VkRenderInstance::GetGPUCameraBuffer() const noexcept
 	{
-		return mCameraBuffer;
+		return mCameras.GetGPUBuffer();
 	}
 
-	const VkStorageBuffer<PLightInfos>& VkRenderInstance::GetPointLightBuffer() const noexcept
+	const VkGPUStorageBuffer<PLightInfos>& VkRenderInstance::GetPointLightBuffer() const noexcept
 	{
 		return mPointLightBuffer;
 	}
 
-	const VkStorageBuffer<DLightInfos>& VkRenderInstance::GetDirectionnalLightBuffer() const noexcept
+	const VkGPUStorageBuffer<DLightInfos>& VkRenderInstance::GetDirectionnalLightBuffer() const noexcept
 	{
 		return mDirectionnalLightBuffer;
 	}
 
-	const VkStorageBuffer<SLightInfos>& VkRenderInstance::GetSpotLightBuffer() const noexcept
+	const VkGPUStorageBuffer<SLightInfos>& VkRenderInstance::GetSpotLightBuffer() const noexcept
 	{
 		return mSpotLightBuffer;
 	}
@@ -178,7 +178,7 @@ namespace Sa
 
 	void VkRenderInstance::Destroy()
 	{
-		mCameraBuffer.Destroy(mDevice);
+		mCameras.Destroy(mDevice);
 
 		mPointLightBuffer.Destroy(mDevice);
 		mDirectionnalLightBuffer.Destroy(mDevice);
@@ -269,19 +269,14 @@ namespace Sa
 	}
 
 
-	Camera& VkRenderInstance::InstantiateCamera()
+	ICamera& VkRenderInstance::InstantiateCamera()
 	{
-		uint32 id = mCameraBuffer.Add(mDevice);
-		
-		return mCameras.emplace_back(id);
+		return mCameras.Add(mDevice);
 	}
 
-	void VkRenderInstance::DestroyCamera(const Camera& _camera)
+	void VkRenderInstance::DestroyCamera(const ICamera& _camera)
 	{
-		mCameraBuffer.Remove(mDevice, _camera.ID);
-
-		// O(1) access.
-		mCameras.erase(mCameras.begin() + (&_camera - mCameras.data()));
+		return mCameras.Remove(mDevice, _camera.As<VkCamera>());
 	}
 
 
@@ -316,48 +311,9 @@ namespace Sa
 	}
 
 
-	void VkRenderInstance::UpdateCameras()
-	{
-		for (auto it = mCameras.begin(); it != mCameras.end(); ++it)
-		{
-			if (it->IsViewDirty())
-			{
-				if (it->IsProjDirty())
-				{
-					// Update whole buffer.
-
-					CameraBuffer buffer{
-						it->ComputeProjMatrix(),
-						it->ComputeViewMatrix().GetInversed(),
-						it->ComputeViewPosition()
-					};
-
-					mCameraBuffer.UpdateObject(mDevice, it->ID, buffer);
-				}
-				else
-				{
-					// Update only view matrix.
-					CameraBuffer::ViewInfos viewInfos{
-						it->ComputeViewMatrix().GetInversed(),
-						it->ComputeViewPosition()
-					};
-
-					mCameraBuffer.UpdateData(mDevice, it->ID, &viewInfos, sizeof(CameraBuffer::ViewInfos), __cameraBufferViewOffset);
-				}
-			}
-			else
-			{
-				// Update only proj matrix.
-
-				Mat4f projMat = it->ComputeProjMatrix();
-				mCameraBuffer.UpdateData(mDevice, it->ID, &projMat, sizeof(Mat4f), __cameraBufferProjMatOffset);
-			}
-		}
-	}
-
 	void VkRenderInstance::Update()
 	{
-		UpdateCameras();
+		mCameras.Update(*this);
 	}
 
 

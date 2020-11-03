@@ -2,79 +2,183 @@
 
 #include <Rendering/Framework/Primitives/Camera/ICamera.hpp>
 
+#include <Rendering/Misc/APISpecific.hpp>
+
 namespace Sa
 {
-	ICamera::ICamera(const ImageViewExtent& _viewport, const ImageViewExtent& _scissor) noexcept :
-		mViewport{ _viewport },
-		mScissor{ _scissor }
+	ICamera::ICamera(uint32 _ID) : ID{ _ID }
 	{
 	}
 
-	ICamera::ICamera(const ImageViewExtent& _viewportScissor) noexcept :
-		mViewport{ _viewportScissor },
-		mScissor{ _viewportScissor }
+
+	bool ICamera::IsViewDirty() const noexcept
 	{
+		return mViewDirty;
+	}
+	
+	bool ICamera::IsProjDirty() const noexcept
+	{
+		return mProjDirty;
 	}
 
-	const ImageViewExtent& ICamera::GetViewport() const
+
+	const Vec3f& ICamera::GetPosition() const noexcept
 	{
-		return mViewport;
+		return mTransf.position;
+	}
+	
+	const Quatf& ICamera::GetRotation() const noexcept
+	{
+		return mTransf.rotation;
+	}
+	
+	const Vec3f& ICamera::GetScale() const noexcept
+	{
+		return mTransf.scale;
 	}
 
-	const ImageViewExtent& ICamera::GetScissor() const
+	const TransffPRS& ICamera::GetTransform() const noexcept
 	{
-		return mScissor;
+		return mTransf;
 	}
 
-	void ICamera::SetViewport(ImageViewExtent _viewport)
+
+	float ICamera::GetFOV() const noexcept
 	{
-		if (mViewport == _viewport)
+		return mFOV;
+	}
+
+	float ICamera::GetNear() const noexcept
+	{
+		return mNear;
+	}
+
+	float ICamera::GetFar() const noexcept
+	{
+		return mFar;
+	}
+
+
+	void ICamera::SetPosition(const Vec3f& _position)
+	{
+		if (mTransf.position == _position)
 			return;
 
-		mViewport = _viewport;
-
-		onViewportChange(*this, mViewport);
+		mViewDirty = true;
+		mTransf.position = _position;
 	}
-
-	void ICamera::SetScissor(ImageViewExtent _scissor)
+	
+	void ICamera::SetRotation(const Quatf& _rotation)
 	{
-		if (mScissor == _scissor)
+		if (mTransf.rotation == _rotation)
 			return;
 
-		mScissor = _scissor;
-
-		onScissorChange(*this, mScissor);
+		mViewDirty = true;
+		mTransf.rotation = _rotation;
 	}
-
-
-#if SA_RENDERING_API == SA_VULKAN
-
-	VkViewport ICamera::GetVkViewport() const
+	
+	void ICamera::SetScale(const Vec3f& _scale)
 	{
-		return VkViewport
-		{
-			static_cast<float>(mViewport.offset.x),								// x.
-			static_cast<float>(mViewport.offset.y),								// y.
-			static_cast<float>(mViewport.extent.width),							// width.
-			static_cast<float>(mViewport.extent.height),						// height.
-			0.0f,																// minDepth.
-			1.0f,																// maxDepth.
-		};
-	}
+		if (mTransf.scale == _scale)
+			return;
 
-	VkRect2D ICamera::GetVkScissor() const
+		mViewDirty = true;
+		mTransf.scale = _scale;
+	}
+	
+	void ICamera::SetTransform(const TransffPRS& _tr)
 	{
-		return VkRect2D
-		{
-			VkOffset2D															// offset.
-			{
-				static_cast<int32>(mScissor.offset.x),
-				static_cast<int32>(mScissor.offset.y)
-			},
+		if (mTransf == _tr)
+			return;
 
-			mScissor.extent, 													// extent.
-		};
+		mViewDirty = true;
+		mTransf = _tr;
 	}
 
-#endif
+
+	void ICamera::SetFOV(float _fov)
+	{
+		if (Maths::Equals(mFOV, _fov))
+			return;
+
+		mProjDirty = true;
+		mFOV = _fov;
+	}
+
+	void ICamera::SetNear(float _near)
+	{
+		if (Maths::Equals(mNear, _near))
+			return;
+
+		mProjDirty = true;
+		mNear = _near;
+	}
+
+	void ICamera::SetFar(float _far)
+	{
+		if (Maths::Equals(mFar, _far))
+			return;
+
+		mProjDirty = true;
+		mFar = _far;
+	}
+
+
+	Vec3f ICamera::ComputeViewPosition() const noexcept
+	{
+		return API_ConvertCoordinateSystem(mTransf.position);
+	}
+
+	Mat4f ICamera::ComputeInvViewMatrix() noexcept
+	{
+		mViewDirty = false;
+
+		return API_ConvertCoordinateSystem(mTransf.Matrix()).GetInversed();
+	}
+
+	Mat4f ICamera::ComputeProjMatrix() noexcept
+	{
+		mProjDirty = false;
+
+		// TODO: ADD ASPECT.
+		return API_ConvertCoordinateSystem(Mat4f::MakePerspective(mFOV, 1200.0f / 800.0f, mNear, mFar));
+	}
+
+
+	ICamera& ICamera::operator=(ICamera&& _rhs) noexcept
+	{
+		mTransf = Move(_rhs.mTransf);
+		mFOV = _rhs.mFOV;
+		mNear = _rhs.mNear;
+		mFar = _rhs.mFar;
+
+		mViewDirty = true;
+		mProjDirty = true;
+
+		return *this;
+	}
+
+	ICamera& ICamera::operator=(const ICamera& _rhs) noexcept
+	{
+		mTransf = _rhs.mTransf;
+		mFOV = _rhs.mFOV;
+		mNear = _rhs.mNear;
+		mFar = _rhs.mFar;
+
+		mViewDirty = true;
+		mProjDirty = true;
+
+		return *this;
+	}
+
+
+	bool ICamera::operator==(const ICamera& _rhs) const noexcept
+	{
+		return ID == _rhs.ID;
+	}
+
+	bool ICamera::operator!=(const ICamera& _rhs) const noexcept
+	{
+		return !(*this == _rhs);
+	}
 }

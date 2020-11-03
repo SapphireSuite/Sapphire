@@ -269,7 +269,7 @@ namespace Sa
 		std::vector<VkWriteDescriptorSet>& _descriptorWrites) const noexcept
 	{
 		// Camera UBO binding.
-		const VkStorageBuffer<CameraBuffer>& cameraBuffer = _instance.GetCameraBuffer();
+		const VkGPUStorageBuffer<Camera_GPU>& cameraBuffer = _instance.GetGPUCameraBuffer();
 
 		_descriptorInfos.push_back(cameraBuffer.CreateDescriptorBufferInfo());
 		_descriptorWrites.push_back(cameraBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 0));
@@ -313,13 +313,13 @@ namespace Sa
 
 
 			// Directionnal light buffer bindigs.
-			const VkStorageBuffer<DLightInfos>& dLightBuffer = _instance.GetDirectionnalLightBuffer();
+			const VkGPUStorageBuffer<DLightInfos>& dLightBuffer = _instance.GetDirectionnalLightBuffer();
 
 			_descriptorInfos.push_back(dLightBuffer.CreateDescriptorBufferInfo());
 			_descriptorWrites.push_back(dLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 4));
 
 			// Point light buffer bindigs.
-			const VkStorageBuffer<PLightInfos>& pLightBuffer = _instance.GetPointLightBuffer();
+			const VkGPUStorageBuffer<PLightInfos>& pLightBuffer = _instance.GetPointLightBuffer();
 
 			_descriptorInfos.push_back(pLightBuffer.CreateDescriptorBufferInfo());
 			_descriptorWrites.push_back(pLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 5));
@@ -327,7 +327,7 @@ namespace Sa
 
 
 			// Spot light buffer bindigs.
-			const VkStorageBuffer<SLightInfos>& sLightBuffer = _instance.GetSpotLightBuffer();
+			const VkGPUStorageBuffer<SLightInfos>& sLightBuffer = _instance.GetSpotLightBuffer();
 
 			_descriptorInfos.push_back(sLightBuffer.CreateDescriptorBufferInfo());
 			_descriptorWrites.push_back(sLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 6));

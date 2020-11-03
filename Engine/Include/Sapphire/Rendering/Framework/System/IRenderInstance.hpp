@@ -14,7 +14,7 @@ namespace Sa
 	class IWindow;
 	class IRenderSurface;
 	
-	class Camera;
+	class ICamera;
 
 	struct PLightInfos;
 	struct DLightInfos;
@@ -37,8 +37,8 @@ namespace Sa
 		virtual void DestroyRenderSurface(const IWindow& _window) = 0;
 
 		
-		virtual Camera& InstantiateCamera() = 0;
-		virtual void DestroyCamera(const Camera& _camera) = 0;
+		virtual ICamera& InstantiateCamera() = 0;
+		virtual void DestroyCamera(const ICamera& _camera) = 0;
 
 		virtual uint32 InstantiatePointLight(const PLightInfos& _infos) = 0;
 		virtual void DestroyPointLight(uint32 _id) = 0;

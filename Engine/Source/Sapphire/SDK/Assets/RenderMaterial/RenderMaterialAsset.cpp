@@ -15,7 +15,6 @@
 
 // TODO: REMOVE LATER.
 #include <Rendering/Framework/System/RenderPass/IRenderPass.hpp>
-#include <Rendering/Framework/Primitives/Camera/ICamera.hpp>
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 
 

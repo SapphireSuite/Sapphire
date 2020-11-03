@@ -25,7 +25,6 @@ namespace Sa
 	class ITexture;
 	class ICubemap;
 
-	class ICamera;
 	class IRenderPass;
 
 	struct RawMaterial

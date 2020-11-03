@@ -827,7 +827,7 @@ int main()
 
 	surface.CreateRenderPass(instance, mainRenderPassInfos);
 
-	Camera& mainCamera = instance.InstantiateCamera();
+	ICamera& mainCamera = instance.InstantiateCamera();
 	mainCamera.SetPosition(Vec3f(-2.0f, 2.0f, 5.0f));
 	TransffPRS camTr = mainCamera.GetTransform();
 
