@@ -4,10 +4,6 @@
 
 #include <Rendering/Misc/APISpecific.hpp>
 
-// TODO: REMOVE.
-#include <Rendering/Vulkan/System/VkRenderInstance.hpp>
-#include <Rendering/Vulkan/Buffer/VkGPUStorageBuffer.hpp>
-
 namespace Sa
 {
 	const Vec3f& DirectionnalLight::GetDirection() const noexcept
@@ -24,19 +20,15 @@ namespace Sa
 		mDirection = _direction;
 	}
 
-	void DirectionnalLight::Update(const IRenderInstance& _instance, void* _gpuBuffer)
+	void DirectionnalLight::Update(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer)
 	{
 		Update_Internal<GPU_T>(_instance, _gpuBuffer);
-
-		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
-
-		auto& vkGPUBuffer = *reinterpret_cast<VkGPUStorageBuffer<GPU_T>*>(_gpuBuffer);
 
 		if (mDirectionDirty)
 		{
 			mDirectionDirty = false;
 			Vec3f convertedDir = API_ConvertCoordinateSystem(mDirection);
-			vkGPUBuffer.UpdateData(device, ID, &convertedDir, sizeof(Vec3f), offsetof(GPU_T, direction));
+			_gpuBuffer.UpdateData(_instance, ID, &convertedDir, sizeof(Vec3f), offsetof(GPU_T, direction));
 		}
 	}
 

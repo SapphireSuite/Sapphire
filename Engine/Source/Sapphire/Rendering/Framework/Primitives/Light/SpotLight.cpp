@@ -4,10 +4,6 @@
 
 #include <Rendering/Misc/APISpecific.hpp>
 
-// TODO: REMOVE.
-#include <Rendering/Vulkan/System/VkRenderInstance.hpp>
-#include <Rendering/Vulkan/Buffer/VkGPUStorageBuffer.hpp>
-
 namespace Sa
 {
 	const Vec3f& SpotLight::GetPosition() const noexcept
@@ -84,34 +80,30 @@ namespace Sa
 	}
 
 
-	void SpotLight::Update(const IRenderInstance& _instance, void* _gpuBuffer)
+	void SpotLight::Update(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer)
 	{
 		Update_Internal<SpotLight_GPU>(_instance, _gpuBuffer);
-
-		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
-
-		auto& vkGPUBuffer = *reinterpret_cast<VkGPUStorageBuffer<GPU_T>*>(_gpuBuffer);
 
 		if (mTransfDirty)
 		{
 			mTransfDirty = false;
 			Vec3f convertedPos = API_ConvertCoordinateSystem(mTransf.position);
-			vkGPUBuffer.UpdateData(device, ID, &convertedPos, sizeof(Vec3f), offsetof(GPU_T, position));
+			_gpuBuffer.UpdateData(_instance, ID, &convertedPos, sizeof(Vec3f), offsetof(GPU_T, position));
 
 			Vec3f dir = API_ConvertCoordinateSystem(mTransf.rotation.ForwardVector());
-			vkGPUBuffer.UpdateData(device, ID, &dir, sizeof(Vec3f), offsetof(GPU_T, direction));
+			_gpuBuffer.UpdateData(_instance, ID, &dir, sizeof(Vec3f), offsetof(GPU_T, direction));
 		}
 
 		if (mRangeDirty)
 		{
 			mRangeDirty = false;
-			vkGPUBuffer.UpdateData(device, ID, &mRange, sizeof(float), offsetof(GPU_T, range));
+			_gpuBuffer.UpdateData(_instance, ID, &mRange, sizeof(float), offsetof(GPU_T, range));
 		}
 
 		if (mCutOffDirty)
 		{
 			mCutOffDirty = false;
-			vkGPUBuffer.UpdateData(device, ID, &mCutOff, sizeof(float), offsetof(GPU_T, cutOff));
+			_gpuBuffer.UpdateData(_instance, ID, &mCutOff, sizeof(float), offsetof(GPU_T, cutOff));
 		}
 	}
 

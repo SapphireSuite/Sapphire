@@ -48,7 +48,7 @@ namespace Sa
 		void SetCutOff(float _cutOff);
 
 
-		void Update(const IRenderInstance& _instance, void* _gpuBuffer) override final;
+		void Update(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer) override final;
 
 
 		SpotLight& operator=(SpotLight&& _rhs) noexcept;

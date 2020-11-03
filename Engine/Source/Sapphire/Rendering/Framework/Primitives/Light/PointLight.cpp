@@ -4,10 +4,6 @@
 
 #include <Rendering/Misc/APISpecific.hpp>
 
-// TODO: REMOVE.
-#include <Rendering/Vulkan/System/VkRenderInstance.hpp>
-#include <Rendering/Vulkan/Buffer/VkGPUStorageBuffer.hpp>
-
 namespace Sa
 {
 	const Vec3f& PointLight::GetPosition() const noexcept
@@ -40,25 +36,21 @@ namespace Sa
 	}
 
 
-	void PointLight::Update(const IRenderInstance& _instance, void* _gpuBuffer)
+	void PointLight::Update(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer)
 	{
 		Update_Internal<GPU_T>(_instance, _gpuBuffer);
-
-		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
-
-		auto& vkGPUBuffer = *reinterpret_cast<VkGPUStorageBuffer<GPU_T>*>(_gpuBuffer);
 
 		if (mPositionDirty)
 		{
 			mPositionDirty = false;
 			Vec3f convertedPos = API_ConvertCoordinateSystem(mPosition);
-			vkGPUBuffer.UpdateData(device, ID, &convertedPos, sizeof(Vec3f), offsetof(GPU_T, position));
+			_gpuBuffer.UpdateData(_instance, ID, &convertedPos, sizeof(Vec3f), offsetof(GPU_T, position));
 		}
 
 		if (mRangeDirty)
 		{
 			mRangeDirty = false;
-			vkGPUBuffer.UpdateData(device, ID, &mRange, sizeof(float), offsetof(GPU_T, range));
+			_gpuBuffer.UpdateData(_instance, ID, &mRange, sizeof(float), offsetof(GPU_T, range));
 		}
 	}
 

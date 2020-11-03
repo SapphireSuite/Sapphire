@@ -39,7 +39,7 @@ namespace Sa
 		void SetRange(float _range);
 
 
-		void Update(const IRenderInstance& _instance, void* _gpuBuffer) override final;
+		void Update(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer) override final;
 
 
 		PointLight& operator=(PointLight&& _rhs) noexcept;

@@ -29,14 +29,17 @@ namespace Sa
 			const void* _data = nullptr);
 
 	public:
-		bool IsValid() const noexcept;
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API bool IsValid() const noexcept;
 		
-		void Create(const VkDevice& _device,
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void Create(const VkDevice& _device,
 			uint64 _size,
 			VkBufferUsageFlags _usage,
 			VkMemoryPropertyFlags _properties,
 			const void* _data = nullptr);
-		void Destroy(const VkDevice& _device);
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API void Destroy(const VkDevice& _device);
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void UpdateData(const VkDevice& _device, const void* _data, uint32 _size, uint32 _offset = 0);
@@ -45,7 +48,8 @@ namespace Sa
 		static VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, VkDescriptorType _type, 
 			uint32 _binding, uint32 _arrayElem = 0u) noexcept;
 
-		static void Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint64 _size);
+		// TODO: Remove SA_ENGINE_API.
+		SA_ENGINE_API static void Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint64 _size);
 		static uint32 FindMemoryType(const VkDevice& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties);
 
 		operator ::VkBuffer() const noexcept;

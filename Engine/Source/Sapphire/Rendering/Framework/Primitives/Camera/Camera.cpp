@@ -1,13 +1,9 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
 #include <Rendering/Framework/Primitives/Camera/Camera.hpp>
+#include <Rendering/Framework/Misc/GPUStorageBuffer.hpp>
 
 #include <Rendering/Misc/APISpecific.hpp>
-
-// TODO: REMOVE.
-#include <Rendering/Vulkan/System/VkRenderInstance.hpp>
-#include <Rendering/Vulkan/Buffer/VkGPUStorageBuffer.hpp>
-
 
 namespace Sa
 {
@@ -149,12 +145,8 @@ namespace Sa
 		return API_ConvertCoordinateSystem(Mat4f::MakePerspective(mFOV, 1200.0f / 800.0f, mNear, mFar));
 	}
 
-	void Camera::Update(const IRenderInstance& _instance, void* _gpuBuffer)
+	void Camera::Update(const IRenderInstance& _instance, GPUStorageBuffer<GPU_T>& _gpuBuffer)
 	{
-		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
-
-		auto& vkGPUBuffer = *reinterpret_cast<VkGPUStorageBuffer<Camera_GPU>*>(_gpuBuffer);
-
 		if (IsViewDirty())
 		{
 			if (IsProjDirty())
@@ -167,7 +159,7 @@ namespace Sa
 					ComputeViewPosition()
 				};
 
-				vkGPUBuffer.UpdateObject(device, ID, gpuObject);
+				_gpuBuffer.UpdateObject(_instance, ID, gpuObject);
 			}
 			else
 			{
@@ -177,7 +169,7 @@ namespace Sa
 					ComputeViewPosition()
 				};
 
-				vkGPUBuffer.UpdateData(device, ID, &viewInfos, sizeof(Camera_GPU::ViewInfos), __cameraGPUViewOffset);
+				_gpuBuffer.UpdateData(_instance, ID, &viewInfos, sizeof(Camera_GPU::ViewInfos), __cameraGPUViewOffset);
 			}
 		}
 		else
@@ -185,7 +177,7 @@ namespace Sa
 			// Update only proj matrix.
 
 			Mat4f projMat = ComputeProjMatrix();
-			vkGPUBuffer.UpdateData(device, ID, &projMat, sizeof(Mat4f), __cameraGPUProjMatOffset);
+			_gpuBuffer.UpdateData(_instance, ID, &projMat, sizeof(Mat4f), __cameraGPUProjMatOffset);
 		}
 	}
 

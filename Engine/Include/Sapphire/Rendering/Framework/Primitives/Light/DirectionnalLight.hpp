@@ -29,7 +29,7 @@ namespace Sa
 
 		void SetDirection(const Vec3f& _direction);
 
-		void Update(const IRenderInstance& _instance, void* _gpuBuffer) override final;
+		void Update(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer) override final;
 
 		DirectionnalLight& operator=(DirectionnalLight&& _rhs) noexcept;
 		DirectionnalLight& operator=(const DirectionnalLight& _rhs) noexcept;

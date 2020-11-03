@@ -9,6 +9,8 @@
 
 #include <Maths/Space/Vector3.hpp>
 
+#include <Rendering/Framework/Misc/GPUStorageBufferBase.hpp>
+
 namespace Sa
 {
 	class IRenderInstance;
@@ -28,7 +30,7 @@ namespace Sa
 
 	protected:
 		template <typename GPU_T>
-		void Update_Internal(const IRenderInstance& _instance, void* _gpuBuffer);
+		void Update_Internal(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer);
 
 	public:
 		// Storage buffer ID.
@@ -60,7 +62,7 @@ namespace Sa
 		void SetSpecular(float _specular);
 		void SetLightComponents(const Vec3f& _lightComps);
 
-		virtual void Update(const IRenderInstance& _instance, void* _gpuBuffer) = 0;
+		virtual void Update(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer) = 0;
 
 		ILight& operator=(ILight&& _rhs) noexcept;
 		ILight& operator=(const ILight& _rhs) noexcept;

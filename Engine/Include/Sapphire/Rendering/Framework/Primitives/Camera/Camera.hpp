@@ -13,6 +13,9 @@ namespace Sa
 {
 	class IRenderInstance;
 
+	template <typename T>
+	class GPUStorageBuffer;
+
 	class Camera
 	{
 		TransffPRS mTransf;
@@ -66,7 +69,7 @@ namespace Sa
 		Mat4f ComputeInvViewMatrix() noexcept;
 		Mat4f ComputeProjMatrix() noexcept;
 
-		void Update(const IRenderInstance& _instance, void* _gpuBuffer);
+		void Update(const IRenderInstance& _instance, GPUStorageBuffer<GPU_T>& _gpuBuffer);
 
 		Camera& operator=(Camera&& _rhs) noexcept;
 		Camera& operator=(const Camera& _rhs) noexcept;

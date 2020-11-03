@@ -51,11 +51,11 @@ namespace Sa
 
 	void VkRenderInstance::OnDeviceCreated()
 	{
-		mCameras.Create(mDevice);
+		mCameras.Create(*this);
 
-		mPointLights.Create(mDevice);
-		mDirectionnalLights.Create(mDevice);
-		mSpotLights.Create(mDevice);
+		mPointLights.Create(*this);
+		mDirectionnalLights.Create(*this);
+		mSpotLights.Create(*this);
 	}
 
 	std::vector<const char*> VkRenderInstance::GetRequiredExtensions() noexcept
@@ -178,11 +178,11 @@ namespace Sa
 
 	void VkRenderInstance::Destroy()
 	{
-		mCameras.Destroy(mDevice);
+		mCameras.Destroy(*this);
 
-		mPointLights.Destroy(mDevice);
-		mDirectionnalLights.Destroy(mDevice);
-		mSpotLights.Destroy(mDevice);
+		mPointLights.Destroy(*this);
+		mDirectionnalLights.Destroy(*this);
+		mSpotLights.Destroy(*this);
 
 		// Destroy system.
 		mDevice.Destroy();
@@ -271,43 +271,43 @@ namespace Sa
 
 	Camera& VkRenderInstance::InstantiateCamera()
 	{
-		return mCameras.Add(mDevice);
+		return mCameras.Add(*this);
 	}
 
 	void VkRenderInstance::DestroyCamera(const Camera& _camera)
 	{
-		return mCameras.Remove(mDevice, _camera);
+		return mCameras.Remove(*this, _camera);
 	}
 
 
 	PointLight& VkRenderInstance::InstantiatePointLight()
 	{
-		return mPointLights.Add(mDevice);
+		return mPointLights.Add(*this);
 	}
 
 	void VkRenderInstance::DestroyPointLight(const PointLight& _pLight)
 	{
-		mPointLights.Remove(mDevice, _pLight);
+		mPointLights.Remove(*this, _pLight);
 	}
 
 	DirectionnalLight& VkRenderInstance::InstantiateDirectionnalLight()
 	{
-		return mDirectionnalLights.Add(mDevice);
+		return mDirectionnalLights.Add(*this);
 	}
 
 	void VkRenderInstance::DestroyDirectionnalLight(const DirectionnalLight& _dLight)
 	{
-		mDirectionnalLights.Remove(mDevice, _dLight);
+		mDirectionnalLights.Remove(*this, _dLight);
 	}
 
 	SpotLight& VkRenderInstance::InstantiateSpotLight()
 	{
-		return mSpotLights.Add(mDevice);
+		return mSpotLights.Add(*this);
 	}
 
 	void VkRenderInstance::DestroySpotLight(const SpotLight& _sLight)
 	{
-		mSpotLights.Remove(mDevice, _sLight);
+		mSpotLights.Remove(*this, _sLight);
 	}
 
 
