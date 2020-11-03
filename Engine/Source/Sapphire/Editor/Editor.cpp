@@ -20,7 +20,7 @@ namespace Sa::edtr
 		throw std::runtime_error("VkResult " + std::to_string((int)err));
 	}
 
-	Editor::Editor(const GLFWWindowT& _window, const VkRenderInstance& _renderInstance)
+	Editor::Editor(const GLFWWindowT& _window, const VkRenderInstance& _renderInstance, const RenderPass& _renderPass)
 	{
 		{
 			// TODO Aurel: temporary, create better descriptor pool management
@@ -85,11 +85,10 @@ namespace Sa::edtr
 		init_info.Allocator = VK_NULL_HANDLE;
 		init_info.MinImageCount = 3; // Sure ?
 		init_info.ImageCount = 3; // TODO Aurel: change hardcoded images number
-		init_info.MSAASamples = 
-			static_cast<VkSampleCountFlagBits>(_renderInstance.mSurfacePairs.begin()->second.mRenderPasses[0].GetSampleBits());
 		init_info.CheckVkResultFn = check_vk_result;
+		init_info.MSAASamples = static_cast<VkSampleCountFlagBits>(_renderPass.GetSampleBits());
 		// TODO Aurel: change renderPass handling
-		ImGui_ImplVulkan_Init(&init_info, _renderInstance.mSurfacePairs.begin()->second.mRenderPasses[0].Get());
+		ImGui_ImplVulkan_Init(&init_info, _renderPass.Get());
 
 		// Load Fonts
 		// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.

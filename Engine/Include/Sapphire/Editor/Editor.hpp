@@ -11,6 +11,7 @@ namespace Sa
 	class GLFWWindowT;
 	class VkRenderInstance;
 	class VkRenderFrame;
+	class RenderPass;
 
 	namespace edtr
 	{
@@ -20,7 +21,7 @@ namespace Sa
 
 		public:
 			SA_ENGINE_API Editor() = default;
-			SA_ENGINE_API Editor(const GLFWWindowT& _window, const VkRenderInstance& _renderInstance);
+			SA_ENGINE_API Editor(const GLFWWindowT& _window, const VkRenderInstance& _renderInstance, const RenderPass& _renderPass);
 			SA_ENGINE_API ~Editor();
 
 			SA_ENGINE_API void StartFrame();

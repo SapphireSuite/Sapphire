@@ -268,7 +268,7 @@ namespace Sa
 		auto it = _instance.As<VkRenderInstance>().mSurfacePairs.begin();
 		
 		// TODO: Remove later.
-		mRawData.renderPass = &it->second.mRenderPasses[0];
+		mRawData.renderPass = it->second.mRenderPasses[0];
 		mRawData.bDynamicViewport = false;
 		mRawData.skybox = ICubemap::main;
 

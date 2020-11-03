@@ -821,14 +821,17 @@ int main()
 	mainRenderPassInfos.sampling = SampleBits::Sample8Bits;
 	mainRenderPassInfos.extent = surface.ChooseSwapExtent();
 	mainRenderPassInfos.format = surface.ChooseSwapSurfaceFormat().format;
+	mainRenderPassInfos.bClear = true;
+	mainRenderPassInfos.bDepthBuffer = true;
+	mainRenderPassInfos.bPresent = true;
 
-	Sa::RenderPass& mainRenderPass = surface.CreateRenderPass(instance, mainRenderPassInfos).As<Sa::RenderPass>();
+	surface.CreateRenderPass(instance, mainRenderPassInfos);
 
 	Camera& mainCamera = instance.InstantiateCamera();
 	mainCamera.SetPosition(Vec3f(-2.0f, 2.0f, 5.0f));
 	TransffPRS camTr = mainCamera.GetTransform();
 
-	surface.Create(instance.GetDevice(), instance.GetDevice().GetQueueFamilyIndices(), mainRenderPass);
+	surface.Create(instance.GetDevice(), instance.GetDevice().GetQueueFamilyIndices());
 	surface.CreateEditor(window, instance);
 
 	AssetManager assetMgr(instance);

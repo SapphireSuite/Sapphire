@@ -29,7 +29,7 @@ namespace Sa
 		edtr::Editor* mEditor = nullptr;
 		//TODO aurel: Temporary..
 	public:
-		std::vector<RenderPass> mRenderPasses;
+		std::vector<RenderPass*> mRenderPasses;
 	private:
 		struct SupportDetails
 		{
@@ -58,12 +58,12 @@ namespace Sa
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API const VkSwapChain& GetSwapChain() const;
 
-		SA_ENGINE_API void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass);
+		SA_ENGINE_API void Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices);
 		void Destroy(const VkDevice& _device);
 
-		SA_ENGINE_API IRenderPass& CreateRenderPass(const IRenderInstance& _instance, 
+		SA_ENGINE_API IRenderPass* CreateRenderPass(const IRenderInstance& _instance, 
 													const RenderPassCreateInfos& _createInfos) override final;
-		SA_ENGINE_API void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) override final;
+		//SA_ENGINE_API void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) override final;
 
 		SA_ENGINE_API void CreateEditor(const IWindow& _window, const IRenderInstance& _renderInstance);
 		

@@ -27,8 +27,8 @@ namespace Sa
 
 		//virtual const ImageExtent& GetImageExtent() const noexcept = 0;
 
-		virtual IRenderPass& CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) = 0;
-		virtual void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) = 0;
+		virtual IRenderPass* CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) = 0;
+		//virtual void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) = 0;
 	};
 }
 

@@ -24,9 +24,9 @@ namespace Sa
 	public:
 		uint32 index = 0u;
 
-		const vk::Framebuffer* framebuffer;
+		vk::Framebuffer* framebuffer;
 
-		VkRenderFrame(const uint32 _index, const vk::Framebuffer* _framebuffer) : index{ _index }, framebuffer{ _framebuffer } {}
+		VkRenderFrame(const uint32 _index, vk::Framebuffer* _framebuffer) : index{ _index }, framebuffer{ _framebuffer } {}
 	};
 }
 

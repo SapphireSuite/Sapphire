@@ -24,13 +24,15 @@ namespace Sa
 		class Framebuffer
 		{
 			std::vector<VkImageBuffer> mBuffers;
-			const RenderPass* mRenderPass;
+			std::vector<const RenderPass*> mRenderPass;
 			CommandBuffer mPrimaryCommandBuffer;
 
 			VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
 
 			const ImageExtent mExtent; // const for the moment, might change whith the resize's rework
 			std::vector<VkClearValue> mClearValues;
+
+			uint16 mRenderPassIndex = 0;
 
 		public:
 			// We can't create a framebuffer without a renderPass
@@ -45,16 +47,19 @@ namespace Sa
 			// Should clean his data
 			SA_ENGINE_API ~Framebuffer();
 		
+			SA_ENGINE_API void AddRenderPass(const RenderPass* _renderPass);
+
 		private:
 			void Create_Internal();
 
 		public:
 			const CommandBuffer& GetCommandBuffer() const;
 
-			// return command buffer to record
-			void Begin() const;
-			// return command buffer for swapchain compability
-			void End() const;
+			void Begin();
+
+			void Next();
+
+			void End();
 		};
 	}
 }

@@ -45,13 +45,15 @@ namespace Sa
 								const VkQueueFamilyIndices& _queueFamilyIndices);
 		void DestroySwapChainKHR(const VkDevice& _device);
 
-		void CreateFrames(const VkDevice& _device, const RenderPass& _renderPass);
+		void CreateFrames(const VkDevice& _device, const VkRenderSurface& _renderPass);
 		void DestroyFrames(const VkDevice& _device);
 
 		void CreateSynchronisation(const VkDevice& _device);
 		void DestroySynchronisation(const VkDevice& _device);
-
+	
 	public:
+		void AddRenderPass(const RenderPass* _renderPass);
+
 		uint32 GetImageNum() const noexcept;
 		VkFormat GetImageFormat() const noexcept;
 
@@ -59,8 +61,7 @@ namespace Sa
 
 		SA_ENGINE_API const VkRenderFrame GetRenderFrame() const noexcept;
 
-		void Create(const VkDevice& _device, const VkRenderSurface& _surface, 
-					const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass);
+		void Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
 		void Destroy(const VkDevice& _device);
 
 		// Optimized re-creation.

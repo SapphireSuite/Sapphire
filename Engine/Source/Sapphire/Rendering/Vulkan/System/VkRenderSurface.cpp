@@ -125,12 +125,12 @@ namespace Sa
 		return mSwapChain;
 	}
 
-	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass)
+	void VkRenderSurface::Create(const VkDevice& _device, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
-		mSwapChain.Create(_device, *this, _queueFamilyIndices, _renderPass);
+		mSwapChain.Create(_device, *this, _queueFamilyIndices);
 	}
 
 	void VkRenderSurface::Destroy(const VkDevice& _device)
@@ -143,42 +143,56 @@ namespace Sa
 		delete mEditor;
 
 		mSwapChain.Destroy(_device);
+
+		for (size_t i = 0; i < mRenderPasses.size(); ++i)
+			delete mRenderPasses[i];
 	}
 
-	IRenderPass& VkRenderSurface::CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos)
+	IRenderPass* VkRenderSurface::CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos)
 	{
-		RenderPass& renderPass = mRenderPasses.emplace_back(); // TODO THIS BREAK REFERENCES.
-		renderPass.Create(_instance, _createInfos);
+		RenderPass* renderPass = mRenderPasses.emplace_back(new RenderPass{}); // TODO THIS BREAK REFERENCES.
+		renderPass->Create(_instance, _createInfos);
 
 		return renderPass;
 	}
 
-	void VkRenderSurface::DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass)
+	/*void VkRenderSurface::DestroyRenderPass(const IRenderInstance& _instance, IRenderPass* _renderPass)
 	{
 		SA_ASSERT(&_renderPass >= mRenderPasses.data() && &_renderPass < mRenderPasses.data() + mRenderPasses.size(),
 			OutOfRange, reinterpret_cast<uint64>(&_renderPass), reinterpret_cast<uint64>(mRenderPasses.data()),
 			reinterpret_cast<uint64>(mRenderPasses.data() + mRenderPasses.size()));
 
-		_renderPass.Destroy(_instance);
-		mRenderPasses.erase(mRenderPasses.begin() + (&_renderPass - static_cast<IRenderPass*>(mRenderPasses.data()))); // TODO THIS BREAK REFERENCES.
-	}
+		_renderPass->Destroy(_instance);
+		//mRenderPasses.erase(mRenderPasses.begin() + (&_renderPass - static_cast<IRenderPass**>(mRenderPasses.data()))); // TODO THIS BREAK REFERENCES.
+	}*/
 
 	void VkRenderSurface::CreateEditor(const IWindow& _window, const IRenderInstance& _renderInstance)
 	{
-		mEditor = new edtr::Editor(_window.As<GLFWWindowT>(), _renderInstance.As<VkRenderInstance>());
+		RenderPassCreateInfos _createInfo{};
+		_createInfo.bClear = false;
+		_createInfo.bDepthBuffer = true;
+		_createInfo.sampling = SampleBits::Sample8Bits;
+		_createInfo.extent = mSwapChain.GetImageExtent();
+		_createInfo.format = mSwapChain.GetImageFormat();
+		_createInfo.bPresent = true;
+
+		mEditor = new edtr::Editor(_window.As<GLFWWindowT>(), _renderInstance.As<VkRenderInstance>(), *mRenderPasses[0]);
+		//mSwapChain.AddRenderPass(mRenderPasses[1]);
 	}
 
 	void VkRenderSurface::Begin(const VkDevice& _device)
 	{
-		mEditor->StartFrame();
 		mSwapChain.Begin(_device);
+		mEditor->StartFrame();
 	}
 
 	void VkRenderSurface::End(const VkDevice& _device)
 	{
+		//mSwapChain.GetRenderFrame().framebuffer->Next();
 		mEditor->Draw(mSwapChain.GetRenderFrame());
-		mSwapChain.End(_device);
+
 		mEditor->EndFrame();
+		mSwapChain.End(_device);
 	}
 
 	void VkRenderSurface::ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height)

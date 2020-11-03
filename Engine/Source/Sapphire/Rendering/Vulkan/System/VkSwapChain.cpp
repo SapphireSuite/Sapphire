@@ -38,11 +38,10 @@ namespace Sa
 		return VkRenderFrame{ mImageIndex, mFrames[mImageIndex] };
 	}
 
-	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface,
-								const VkQueueFamilyIndices& _queueFamilyIndices, const RenderPass& _renderPass)
+	void VkSwapChain::Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		CreateSwapChainKHR(_device, _surface, _queueFamilyIndices);
-		CreateFrames(_device, _renderPass);
+		CreateFrames(_device, _surface);
 		CreateSynchronisation(_device);
 	}
 	void VkSwapChain::Destroy(const VkDevice& _device)
@@ -176,7 +175,7 @@ namespace Sa
 		mHandle = VK_NULL_HANDLE;
 	}
 
-	void VkSwapChain::CreateFrames(const VkDevice& _device, const RenderPass& _renderPass)
+	void VkSwapChain::CreateFrames(const VkDevice& _device, const VkRenderSurface& _surface)
 	{
 		// Create images.
 		uint32_t imageNum;
@@ -188,7 +187,7 @@ namespace Sa
 		for (size_t i = 0; i < imgs.size(); i++)
 		{
 			VkImageBufferCreateInfos colorBufferCreateInfos{};
-			colorBufferCreateInfos.format = _renderPass.GetColorFormat();
+			colorBufferCreateInfos.format = GetImageFormat();
 			colorBufferCreateInfos.extent = mExtent;
 			colorBufferCreateInfos.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 			colorBufferCreateInfos.mipMapLevels = 1;
@@ -197,7 +196,7 @@ namespace Sa
 
 			VkImageBuffer imageBuffer{};
 			imageBuffer.CreateFromImage(_device, colorBufferCreateInfos, imgs[i]);
-			mFrames.emplace_back(new vk::Framebuffer{ &_renderPass, mExtent, imageBuffer });
+			mFrames.emplace_back(new vk::Framebuffer{ _surface.mRenderPasses[0], mExtent, imageBuffer });
 		}
 	}
 
@@ -247,6 +246,12 @@ namespace Sa
 			vkDestroySemaphore(_device, mFramesSynchronisation[i].presentSemaphore, nullptr);
 			vkDestroyFence(_device, mFramesSynchronisation[i].fence, nullptr);
 		}
+	}
+
+	void VkSwapChain::AddRenderPass(const RenderPass* _renderPass)
+	{
+		for (size_t i = 0; i < mFrames.size(); ++i)
+			mFrames[i]->AddRenderPass(_renderPass);
 	}
 }
 

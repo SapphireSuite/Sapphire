@@ -11,8 +11,10 @@
 namespace Sa::vk
 {
 	Framebuffer::Framebuffer(const RenderPass* _renderPass, const ImageExtent& _extent)
-		: mRenderPass{ _renderPass }, mExtent { _extent }
+		: mExtent { _extent }
 	{
+		AddRenderPass(_renderPass);
+
 		VkDevice device = VkRenderInstance::GetInstance()->AsPtr<VkRenderInstance>()->GetDevice();
 
 		// hardcoded values for now
@@ -26,8 +28,10 @@ namespace Sa::vk
 	}
 
 	Framebuffer::Framebuffer(const RenderPass* _renderPass, const ImageExtent& _extent, VkImageBuffer& _colorBuffer)
-		: mRenderPass{ _renderPass }, mExtent{ _extent }
+		: mExtent{ _extent }
 	{
+		AddRenderPass(_renderPass);
+
 		VkDevice device = VkRenderInstance::GetInstance()->AsPtr<VkRenderInstance>()->GetDevice();
 
 		// hardcoded values for now
@@ -66,7 +70,7 @@ namespace Sa::vk
 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferCreateInfo.pNext = nullptr;
 		framebufferCreateInfo.flags = 0;
-		framebufferCreateInfo.renderPass = mRenderPass->Get();
+		framebufferCreateInfo.renderPass = mRenderPass[0]->Get();
 		framebufferCreateInfo.attachmentCount = SizeOf(attachements);
 		framebufferCreateInfo.pAttachments = attachements.data();
 		framebufferCreateInfo.width = mExtent.width;
@@ -87,13 +91,20 @@ namespace Sa::vk
 			CreationFailed, Rendering, L"Failed to allocate command buffers!");
 	}
 
+	void Framebuffer::AddRenderPass(const RenderPass* _renderPass)
+	{
+		mRenderPass.emplace_back(_renderPass);
+	}
+
 	const CommandBuffer& Framebuffer::GetCommandBuffer() const
 	{
 		return mPrimaryCommandBuffer;
 	}
 
-	void Framebuffer::Begin() const
+	void Framebuffer::Begin()
 	{
+		SA_ASSERT(mRenderPassIndex == 0, OutOfRange, Rendering)
+
 		vkResetCommandBuffer(mPrimaryCommandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
 
 		VkCommandBufferBeginInfo commandBufferBeginInfo{};
@@ -104,17 +115,6 @@ namespace Sa::vk
 
 		SA_VK_ASSERT(vkBeginCommandBuffer(mPrimaryCommandBuffer, &commandBufferBeginInfo),
 			LibCommandFailed, Rendering, L"Failed to begin command buffer!");
-
-		VkRenderPassBeginInfo renderPassBeginInfo{};
-		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassBeginInfo.pNext = nullptr;
-		renderPassBeginInfo.renderPass = mRenderPass->Get();
-		renderPassBeginInfo.framebuffer = mFramebuffer;
-		renderPassBeginInfo.renderArea = VkRect2D{ VkOffset2D{}, mExtent };
-		renderPassBeginInfo.clearValueCount = SizeOf(mClearValues);
-		renderPassBeginInfo.pClearValues = mClearValues.data();
-		
-		vkCmdBeginRenderPass(mPrimaryCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		VkViewport viewport = {};
 		viewport.width = mExtent.width;
@@ -127,13 +127,40 @@ namespace Sa::vk
 		scissor.offset = { 0,0 };
 		scissor.extent = { mExtent.width, mExtent.height };
 		vkCmdSetScissor(mPrimaryCommandBuffer, 0, 1, &scissor);
+
+		Next();
 	}
 
-	void Framebuffer::End() const
+	void Framebuffer::Next()
+	{
+		SA_ASSERT(mRenderPassIndex < mRenderPass.size(), OutOfRange, Rendering)
+
+		if(mRenderPassIndex != 0)
+			vkCmdEndRenderPass(mPrimaryCommandBuffer);
+
+		VkRenderPassBeginInfo renderPassBeginInfo{};
+		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassBeginInfo.pNext = nullptr;
+		renderPassBeginInfo.renderPass = mRenderPass[mRenderPassIndex]->Get();
+		renderPassBeginInfo.framebuffer = mFramebuffer;
+		renderPassBeginInfo.renderArea = VkRect2D{ VkOffset2D{}, mExtent };
+		renderPassBeginInfo.clearValueCount = SizeOf(mClearValues);
+		renderPassBeginInfo.pClearValues = mClearValues.data();
+
+		//vkCmdPipelineBarrier(mPrimaryCommandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0, VK_NULL_HANDLE, 0, VK_NULL_HANDLE, 0, VK_NULL_HANDLE);
+
+		vkCmdBeginRenderPass(mPrimaryCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		++mRenderPassIndex;
+	}
+
+	void Framebuffer::End()
 	{
 		vkCmdEndRenderPass(mPrimaryCommandBuffer);
 
 		SA_VK_ASSERT(vkEndCommandBuffer(mPrimaryCommandBuffer),
 			LibCommandFailed, Rendering, L"Failed to end command buffer!");
+
+		mRenderPassIndex = 0;
 	}
 }

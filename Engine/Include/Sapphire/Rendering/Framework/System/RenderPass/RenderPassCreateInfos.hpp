@@ -32,7 +32,9 @@ namespace Sa
 
 		SampleBits sampling = SampleBits::Sample1Bit;
 
-		//bool bDepthBuffer = true;
+		bool bPresent = false;
+		bool bDepthBuffer = true;
+		bool bClear = true;
 
 		std::vector<SubPassCreateInfos> subPassCreateInfos;
 	};

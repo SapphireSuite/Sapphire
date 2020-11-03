@@ -43,13 +43,13 @@ namespace Sa
 
 		imageBuffer.Create(_device, imageBufferCreateInfos);
 
-		// TODO Aurel: Don't think it's necessary
+		/*// TODO Aurel: Don't think it's necessary
 		VkTransitionImageInfos depthTransitionInfos{};
 		depthTransitionInfos.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		depthTransitionInfos.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		depthTransitionInfos.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-		imageBuffer.TransitionImageLayout(_device, depthTransitionInfos);
+		imageBuffer.TransitionImageLayout(_device, depthTransitionInfos);*/
 
 		return imageBuffer;
 	}
