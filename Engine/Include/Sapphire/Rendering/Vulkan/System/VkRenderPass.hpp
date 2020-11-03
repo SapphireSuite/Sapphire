@@ -14,63 +14,26 @@
 #if SA_RENDERING_API == SA_VULKAN
 
 #include <vulkan/vulkan.h>
+#include <vector>
 
 namespace Sa
 {
 	class IRenderSurface;
 
-	class VkSwapChain;
-
-	class VkRenderPass : public IRenderPass
+	class RenderPass : public IRenderPass
 	{
-		::VkRenderPass mHandle = VK_NULL_HANDLE;
-
-		ImageExtent mExtent;
-
-		VkImageBuffer mDepthBuffer;
-		std::vector<VkFramebuffer> mFrameBuffers;
-
-		VkImageBuffer mColorMultisamplingBuffer;
-
-		SampleBits mSampleBits = SampleBits::Sample1Bit;
-
-		std::vector<VkClearValue> mClearValues;
-
-		void SetSampleCount(const VkDevice& _device, SampleBits _desiredSampling);
-
-		void CreateDepthBuffer(const VkDevice& _device, const VkSwapChain& _swapChain);
-		void DestroyDepthBuffer(const VkDevice& _device);
-
-		void CreateColorMultisamplingBuffer(const VkDevice& _device, const VkSwapChain& _swapChain);
-		void DestroyColorMultisamplingBuffer(const VkDevice& _device);
-
-		void CreateFrameBuffers(const VkDevice& _device, const VkSwapChain& _swapChain);
-		void DestroyFrameBuffers(const VkDevice& _device);
+		VkRenderPass	mRenderPass		= VK_NULL_HANDLE;
+		VkFormat		mColorFormat	= VK_FORMAT_UNDEFINED;
+		SampleBits		mSampleBits		= SampleBits::Sample1Bit;
 
 	public:
-		// Same as SwapChain image num.
-		uint32 GetImageNum() const noexcept;
+		VkRenderPass	Get() const noexcept;
+		VkFormat		GetColorFormat() const noexcept;
+		SampleBits		GetSampleBits() const noexcept;
 
-		SampleBits GetSampleBits() const noexcept;
-
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API VkUniformBuffer& GetUniformBuffer(uint32 _index);
-		const std::vector<VkUniformBuffer>& GetStaticUniformBuffers() const;
-
-		void SetClearColor(const Color& _color) override final;
-
-		void Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const RenderPassCreateInfos& _createInfos) override final;
+		// TODO Aurel: check to use constructor & destructor instead
+		void Create(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
-
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void Begin(const IRenderFrame& _frame) override final;
-		// TODO: Remove SA_ENGINE_API.
-		SA_ENGINE_API void End(const IRenderFrame& _frame) override final;
-
-		//// Optimized re-creation.
-		//void ReCreate(const IRenderInstance& _instance, const IRenderSurface& _surface);
-
-		operator ::VkRenderPass() const noexcept;
 	};
 }
 

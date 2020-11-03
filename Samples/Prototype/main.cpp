@@ -21,6 +21,8 @@
 #include <Sapphire/SDK/Assets/Texture/TextureImportInfos.hpp>
 #include <Sapphire/SDK/Assets/Texture/CubemapImportInfos.hpp>
 
+#include <Sapphire/Editor/Editor.hpp>
+
 using namespace Sa;
 
 #define __SA_ALWAYS_REIMPORT 0
@@ -810,20 +812,27 @@ int main()
 	VkRenderInstance instance;
 	instance.Create();
 
-	GLFWWindow window;
+	GLFWWindowT window;
 	window.Create(1200u, 800u);
 
 	VkRenderSurface& surface = const_cast<VkRenderSurface&>(static_cast<const VkRenderSurface&>(instance.CreateRenderSurface(window)));
 
 	RenderPassCreateInfos mainRenderPassInfos;
 	mainRenderPassInfos.sampling = SampleBits::Sample8Bits;
+	mainRenderPassInfos.extent = surface.ChooseSwapExtent();
+	mainRenderPassInfos.format = surface.ChooseSwapSurfaceFormat().format;
+	mainRenderPassInfos.bClear = true;
+	mainRenderPassInfos.bDepthBuffer = true;
+	mainRenderPassInfos.bPresent = true;
 
-	Sa::VkRenderPass& mainRenderPass = surface.CreateRenderPass(instance, mainRenderPassInfos).As<Sa::VkRenderPass>();
-	IRenderPass::main = &mainRenderPass;
+	surface.CreateRenderPass(instance, mainRenderPassInfos);
 
 	Camera& mainCamera = instance.InstantiateCamera();
 	mainCamera.SetPosition(Vec3f(-2.0f, 2.0f, 5.0f));
 	TransffPRS camTr = mainCamera.GetTransform();
+
+	surface.Create(instance.GetDevice(), instance.GetDevice().GetQueueFamilyIndices());
+	surface.CreateEditor(window, instance);
 
 	AssetManager assetMgr(instance);
 	CreateResources(instance, assetMgr);
@@ -879,11 +888,12 @@ int main()
 		float deltaTime = chrono.Restart() * 0.00005f;
 		time += deltaTime;
 
+		surface.Begin(instance.GetDevice());
+
 		window.Update();
 		instance.Update();
 
-		VkRenderFrame frame = surface.GetSwapChain().Begin(instance.GetDevice());
-
+		VkRenderFrame frame = surface.GetSwapChain().GetRenderFrame();
 
 		window.TEST(camTr, pL1Pos, speed * deltaTime);
 
@@ -901,10 +911,6 @@ int main()
 			pLight1.position = API_ConvertCoordinateSystem(pL1Pos);
 			instance.mPointLightBuffer.UpdateObject(instance.GetDevice(), pLight1ID, pLight1);
 		}
-
-
-		mainRenderPass.Begin(frame);
-
 
 		// Draw Magikarp.
 		if (magikarpBodyMat)
@@ -958,11 +964,7 @@ int main()
 			squareMesh->Draw(frame);
 		}
 
-
-		mainRenderPass.End(frame);
-
-
-		surface.GetSwapChain().End(instance.GetDevice());
+		surface.End(instance.GetDevice());
 	}
 
 

@@ -6,6 +6,13 @@
 
 namespace Sa
 {
+	IRenderInstance* IRenderInstance::mInstance = nullptr;
+
+	const IRenderInstance* IRenderInstance::GetInstance()
+	{
+		return mInstance;
+	}
+
 	void IRenderInstance::Init()
 	{
 #if SA_RENDERING_API == SA_VULKAN

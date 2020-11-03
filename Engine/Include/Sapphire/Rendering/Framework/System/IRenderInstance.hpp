@@ -22,6 +22,13 @@ namespace Sa
 
 	class IRenderInstance : public IInterface
 	{
+	protected:
+		// TODO Aurel: check if it's okay
+		static IRenderInstance* mInstance;
+
+	public:
+		SA_ENGINE_API static const IRenderInstance* GetInstance();
+
 	public:
 		virtual void Create() = 0;
 		virtual void Destroy() = 0;

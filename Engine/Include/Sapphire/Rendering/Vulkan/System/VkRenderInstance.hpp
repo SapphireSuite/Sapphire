@@ -30,6 +30,8 @@ namespace Sa
 
 		VkInstance mHandle = VK_NULL_HANDLE;
 
+		//TODO Aurel: Temporary
+	public:
 		std::vector<Pair<const IWindow*, VkRenderSurface>> mSurfacePairs;
 
 		

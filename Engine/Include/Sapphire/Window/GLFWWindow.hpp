@@ -14,13 +14,16 @@
 
 #if SA_WINDOW_API == SA_GLFW
 
+struct GLFWwindow;
+
 namespace Sa
 {
-	class GLFWWindow : public IWindow
+
+	class GLFWWindowT : public IWindow
 	{
 		static uint32 sInitCount;
 
-		struct GLFWwindow* mHandle = nullptr;
+		GLFWwindow* mHandle = nullptr;
 
 		static void ResizeCallback(GLFWwindow* _handle, int32 _width, int32 _height);
 
@@ -31,6 +34,8 @@ namespace Sa
 #endif
 
 	public:
+		inline GLFWwindow* Get() const noexcept { return mHandle; }
+
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void Create(uint32 _width, uint32 _height, const char* _name = "Main Window") override final;
 		// TODO: Remove SA_ENGINE_API.

@@ -26,10 +26,10 @@ namespace Sa
 	{
 		const VkRenderInstance& vkInstance = _instance.As<VkRenderInstance>();
 		const VkDevice& device = vkInstance.GetDevice();
-		const VkRenderPass& vkRenderPass = _infos.renderPass->As<VkRenderPass>();
+		const RenderPass& vkRenderPass = _infos.renderPass->As<RenderPass>();
 
 		if(_infos.uniformBufferSize > 0u)
-			CreateUniformBuffers(device, _infos, vkRenderPass.GetImageNum());
+			CreateUniformBuffers(device, _infos, 3); // TODO Aurel: destroy image numbers
 
 		CreateDescriptors(vkInstance, _infos);
 
@@ -132,8 +132,8 @@ namespace Sa
 			VK_BLEND_FACTOR_SRC_ALPHA,												// srcColorBlendFactor.
 			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,									// dstColorBlendFactor.
 			VK_BLEND_OP_ADD,														// colorBlendOp.
-			VK_BLEND_FACTOR_ONE,													// srcAlphaBlendFactor.
-			VK_BLEND_FACTOR_ZERO,													// dstAlphaBlendFactor.
+			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,												// srcAlphaBlendFactor.
+			VK_BLEND_FACTOR_ZERO,									// dstAlphaBlendFactor.
 			VK_BLEND_OP_ADD,														// alphaBlendOp.
 
 			VK_COLOR_COMPONENT_R_BIT |												// colorWriteMask.
@@ -192,7 +192,7 @@ namespace Sa
 			&colorBlendingCreateInfo,												// pColorBlendState.
 			_infos.bDynamicViewport ? &DynamiCreateInfo : nullptr,					// pDynamicState.
 			mPipelineLayout,														// layout.
-			vkRenderPass,															// renderPass.
+			vkRenderPass.Get(),															// renderPass.
 			0,																		// subpass.
 			VK_NULL_HANDLE,															// basePipelineHandle.
 			-1																		// basePipelineIndex.
@@ -382,8 +382,8 @@ namespace Sa
 		// Static UBO binding.
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
-			VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,										// type.
-			_imageNum,																// descriptorCount.
+			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,										// type.
+			_imageNum * 100,																// descriptorCount.
 		});
 
 
@@ -393,7 +393,7 @@ namespace Sa
 			_poolSizes.push_back(VkDescriptorPoolSize
 			{
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-				_imageNum,															// descriptorCount.
+				_imageNum * 100															// descriptorCount.
 			});
 		}
 
@@ -402,7 +402,7 @@ namespace Sa
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,								// type.
-			1,																		// descriptorCount.
+			1 * 100,																		// descriptorCount.
 		});
 
 
@@ -413,7 +413,7 @@ namespace Sa
 			_poolSizes.push_back(VkDescriptorPoolSize
 			{
 				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-				1,																	// descriptorCount.
+				1 * 100,																	// descriptorCount.
 			});
 
 
@@ -674,7 +674,7 @@ namespace Sa
 	{
 		CreateDescriptorSetLayout(_instance, _infos);
 
-		const uint32 imageNum = _infos.renderPass->As<VkRenderPass>().GetImageNum();
+		const uint32 imageNum = 3; // TODO Aurel: Remove hardcoded image number
 
 		CreateDescriptorPool(_instance, _infos, imageNum);
 		CreateDescriptorSets(_instance, _infos, imageNum);
@@ -749,9 +749,9 @@ namespace Sa
 	{
 		const VkRenderFrame& vkFrame = _frame.As<VkRenderFrame>();
 
-		vkCmdBindPipeline(vkFrame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mHandle);
+		vkCmdBindPipeline(vkFrame.framebuffer->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, mHandle);
 
-		vkCmdBindDescriptorSets(vkFrame.graphicsCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout,
+		vkCmdBindDescriptorSets(vkFrame.framebuffer->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout,
 			0, 1, &mDescriptorSets[vkFrame.index], 0, nullptr);
 	}
 

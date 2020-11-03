@@ -16,7 +16,7 @@ namespace Sa
 	class VkDevice;
 	class VkQueue;
 
-	class VkCommandBuffer
+	class CommandBuffer
 	{
 		::VkCommandBuffer mHandle;
 
@@ -24,8 +24,11 @@ namespace Sa
 		void EndSingleTimeCommands_Internal(const VkDevice& _device, const VkQueue& _queue);
 
 	public:
-		static VkCommandBuffer BeginSingleTimeCommands(const VkDevice& _device, const VkQueue& _queue);
-		static void EndSingleTimeCommands(const VkDevice& _device, VkCommandBuffer _commandBuffer, const VkQueue& _queue);
+		static CommandBuffer BeginSingleTimeCommands(const VkDevice& _device, const VkQueue& _queue);
+		static void EndSingleTimeCommands(const VkDevice& _device, CommandBuffer _commandBuffer, const VkQueue& _queue);
+
+		const ::VkCommandBuffer& Get() const;
+		::VkCommandBuffer& Get();
 
 		operator ::VkCommandBuffer() const;
 	};

@@ -33,7 +33,7 @@ namespace Sa
 		const VkQueue& GetGraphicsQueue() const noexcept;
 		const VkQueue& GetTransferQueue() const noexcept;
 
-		const VkQueueFamilyIndices& GetQueueFamilyIndices() const;
+		SA_ENGINE_API const VkQueueFamilyIndices& GetQueueFamilyIndices() const;
 
 		bool IsValid() const noexcept;
 

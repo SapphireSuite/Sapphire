@@ -11,6 +11,8 @@
 
 #include <Rendering/Vulkan/Buffer/VkUniformBuffer.hpp>
 
+#include <Rendering/Vulkan/System/Framebuffer.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 #include <vulkan/vulkan.h>
@@ -22,15 +24,9 @@ namespace Sa
 	public:
 		uint32 index = 0u;
 
-		VkImage image;
-		VkImageView imageView;
+		vk::Framebuffer* framebuffer;
 
-		VkCommandBuffer graphicsCommandBuffer;
-
-		VkRenderFrame(uint32 _index,
-			VkImage _image,
-			VkImageView _imageView,
-			VkCommandBuffer _graphicsCommandBuffer) noexcept;
+		VkRenderFrame(const uint32 _index, vk::Framebuffer* _framebuffer) : index{ _index }, framebuffer{ _framebuffer } {}
 	};
 }
 

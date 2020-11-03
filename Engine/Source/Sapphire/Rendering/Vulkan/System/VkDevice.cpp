@@ -6,6 +6,7 @@
 #include <Rendering/Vulkan/System/VkValidationLayers.hpp>
 
 #include <Rendering/Vulkan/System/VkSwapChain.hpp>
+#include <Rendering/Vulkan/System/VkRenderSurface.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -208,7 +209,8 @@ namespace Sa
 			_queueFamilyIndices.AddFamily(_device, _surface, queueFamilies[i], i);
 	}
 
-	bool VkDevice::IsPhysicalDeviceSuitable(VkPhysicalDevice _device, const VkRenderSurface& _surface, VkQueueFamilyIndices& _queueFamilyIndices)
+	bool VkDevice::IsPhysicalDeviceSuitable(VkPhysicalDevice _device, const VkRenderSurface& _surface,
+												VkQueueFamilyIndices& _queueFamilyIndices)
 	{
 		// Check requiered extensions.
 		if (!CheckExtensionSupport(_device))
@@ -223,7 +225,7 @@ namespace Sa
 
 
 		// Graphics SwapChain support.
-		if (!VkSwapChain::CheckSupport(_device, _surface))
+		if (!_surface.CheckSupport(_device))
 			return false;
 
 

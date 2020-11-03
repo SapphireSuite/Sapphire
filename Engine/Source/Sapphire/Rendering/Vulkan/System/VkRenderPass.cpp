@@ -6,50 +6,33 @@
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkDevice.hpp>
-#include <Rendering/Vulkan/System/VkSwapChain.hpp>
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa
 {
-	// TODO: CLEAN LATER.
-	IRenderPass* IRenderPass::main = nullptr;
-
-	uint32 VkRenderPass::GetImageNum() const noexcept
+	VkRenderPass RenderPass::Get() const noexcept
 	{
-		return SizeOf(mFrameBuffers);
+		return mRenderPass;
 	}
 
-	SampleBits VkRenderPass::GetSampleBits() const noexcept
+	VkFormat RenderPass::GetColorFormat() const noexcept
+	{
+		return mColorFormat;
+	}
+
+	SampleBits RenderPass::GetSampleBits() const noexcept
 	{
 		return mSampleBits;
 	}
 
-	void VkRenderPass::SetClearColor(const Color& _color)
-	{
-		if (mClearValues.size() == 0u)
-		{
-			mClearValues.reserve(3);
-			mClearValues.resize(1);
-		}
-
-		mClearValues[0] = VkClearValue{ _color.r, _color.g, _color.b, _color.a };
-
-		// Multisampling clear value.
-		if (mClearValues.size() == 3)
-			mClearValues[1] = mClearValues[0];
-	}
-
-	void VkRenderPass::Create(const IRenderInstance& _instance, const IRenderSurface& _surface, const RenderPassCreateInfos& _createInfos)
+	void RenderPass::Create(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
-		const VkSwapChain& swapChain = _surface.As<VkRenderSurface>().GetSwapChain();
 
-		SetClearColor(_createInfos.clearColor);
-
-		SetSampleCount(device, _createInfos.sampling);
-		//bool bDepthBuffer = _createInfos.subPassCreateInfos.bDepthBuffer;
+		mSampleBits = _createInfos.sampling;
+		mColorFormat = _createInfos.format;
 
 		// Color Attachement.
 		const VkImageLayout finalLayout = mSampleBits > SampleBits::Sample1Bit ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -57,14 +40,14 @@ namespace Sa
 		const VkAttachmentDescription colorAttachment
 		{
 			0,														// flags.
-			swapChain.GetImageFormat(),								// format.
+			_createInfos.format,									// format.
 			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
-			VK_ATTACHMENT_LOAD_OP_CLEAR,							// loadOp.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,							// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
-			VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
-			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
-			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
-			finalLayout												// finalLayout.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
+			VK_ATTACHMENT_STORE_OP_STORE,						// stencilStoreOp.
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,				// initialLayout.
+			_createInfos.bPresent ? finalLayout : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL												// finalLayout.
 		};
 
 		const VkAttachmentReference colorAttachmentRef
@@ -78,14 +61,14 @@ namespace Sa
 		const VkAttachmentDescription colorAttachmentResolve
 		{
 			0,														// flags.
-			swapChain.GetImageFormat(),								// format.
+			_createInfos.format,								// format.
 			VK_SAMPLE_COUNT_1_BIT,									// samples.
 			VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
 			VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
 			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
 			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
-			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR							// finalLayout.
+			_createInfos.bPresent ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR	: VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL						// finalLayout.
 		};
 
 		const VkAttachmentReference colorAttachmentResolveRef
@@ -101,9 +84,9 @@ namespace Sa
 			0,														// flags.
 			VK_FORMAT_D32_SFLOAT,									// format.
 			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
-			VK_ATTACHMENT_LOAD_OP_CLEAR,							// loadOp.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
-			VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
 			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
 			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL		// finalLayout.
@@ -118,7 +101,8 @@ namespace Sa
 
 
 		const VkAttachmentReference* resolveAttachments = mSampleBits > SampleBits::Sample1Bit ? &colorAttachmentResolveRef : nullptr;
-		
+		const VkAttachmentReference* depthAttachmentRefPtr = _createInfos.bDepthBuffer ? &depthAttachmentRef : nullptr;
+
 		const VkSubpassDescription subpass
 		{
 			0,														// flags.
@@ -128,24 +112,30 @@ namespace Sa
 			1,														// colorAttachmentCount.
 			&colorAttachmentRef,									// pColorAttachments.
 			resolveAttachments,										// pResolveAttachments.
-			&depthAttachmentRef,									// pDepthStencilAttachment.
-			//bDepthBuffer ? &depthAttachmentRef : nullptr,			// pDepthStencilAttachment.
+			depthAttachmentRefPtr,									// pDepthStencilAttachment.
 			0,														// preserveAttachmentCount.
 			nullptr													// pPreserveAttachments.
 
 		};
 
-		const VkSubpassDependency subpassDependency
-		{
-			VK_SUBPASS_EXTERNAL,									// srcSubpass.
-			0,														// dstSubpass.
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,			// srcStageMask.
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,			// dstStageMask.
-			0,														// srcAccessMask.
-			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,					// dstAccessMask.
-			0														// dependencyFlags.
-		};
+		// Use subpass dependencies for layout transitions
+		VkSubpassDependency dependencies[2];
 
+		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[0].dstSubpass = 0;
+		dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+		dependencies[1].srcSubpass = 0;
+		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 		std::vector<VkAttachmentDescription> attachements; //{ colorAttachment, colorAttachmentResolve, depthAttachment };
 		attachements.reserve(3);
@@ -155,7 +145,8 @@ namespace Sa
 		if(mSampleBits > SampleBits::Sample1Bit)
 			attachements.push_back(colorAttachmentResolve);
 		
-		attachements.push_back(depthAttachment);
+		if(_createInfos.bDepthBuffer)
+			attachements.push_back(depthAttachment);
 
 		const VkRenderPassCreateInfo renderPassCreateInfo
 		{
@@ -166,32 +157,19 @@ namespace Sa
 			attachements.data(),									// pAttachments.
 			1,														// subpassCount.
 			&subpass,												// pSubpasses.
-			1,														// dependencyCount.
-			&subpassDependency										// pDependencies.
+			2,														// dependencyCount.
+			dependencies											// pDependencies.
 		};
 
-		SA_VK_ASSERT(vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &mHandle),
+		SA_VK_ASSERT(vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &mRenderPass),
 			CreationFailed, Rendering, L"Failed to create render pass!");
-
-		mExtent = _createInfos.extent.IsValid() ? _createInfos.extent : swapChain.GetImageExtent();
-
-		if (mSampleBits > SampleBits::Sample1Bit)
-			CreateColorMultisamplingBuffer(device, swapChain);
-
-		CreateDepthBuffer(device, swapChain);
-		CreateFrameBuffers(device, swapChain);
 	}
 	
-	void VkRenderPass::Destroy(const IRenderInstance& _instance)
+	void RenderPass::Destroy(const IRenderInstance& _instance)
 	{
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
-		DestroyFrameBuffers(device);
-		DestroyDepthBuffer(device);
-
-		DestroyColorMultisamplingBuffer(device);
-
-		vkDestroyRenderPass(device, mHandle, nullptr);
+		vkDestroyRenderPass(device, mRenderPass, nullptr);
 	}
 
 	//void VkRenderPass::ReCreate(const IRenderInstance& _instance, const IRenderSurface& _surface)
@@ -201,150 +179,7 @@ namespace Sa
 	//	Create(_instance, _surface);
 	//}
 
-	void VkRenderPass::CreateDepthBuffer(const VkDevice& _device, const VkSwapChain& _swapChain)
-	{
-		//if (!_createInfos.subPassCreateInfos.bDepthBuffer)
-		//	return;
-
-		// Depth clear value.
-		mClearValues.emplace_back(VkClearValue{ 1.0f, 0 });
-
-
-		const VkImageBufferCreateInfos imageBufferCreateInfos
-		{
-			VK_FORMAT_D32_SFLOAT,								// format.
-			mExtent,											// extent.
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,		// usage.
-			
-			1,													// mipMapLevels.
-			static_cast<VkSampleCountFlagBits>(mSampleBits),	// sampleCount.
-
-			VK_IMAGE_ASPECT_DEPTH_BIT,							// aspectFlags
-		};
-
-		mDepthBuffer.Create(_device, imageBufferCreateInfos);
-
-		
-		const VkTransitionImageInfos depthTransitionInfos
-		{
-			VK_IMAGE_LAYOUT_UNDEFINED,
-			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-
-			1u, 1u,
-			VK_IMAGE_ASPECT_DEPTH_BIT
-		};
-
-		mDepthBuffer.TransitionImageLayout(_device, depthTransitionInfos);
-	}
-	
-	void VkRenderPass::DestroyDepthBuffer(const VkDevice& _device)
-	{
-		if(mDepthBuffer.IsValid())
-			mDepthBuffer.Destroy(_device);
-	}
-
-
-	void VkRenderPass::CreateColorMultisamplingBuffer(const VkDevice& _device, const VkSwapChain& _swapChain)
-	{
-		// Duplicate color value.
-		mClearValues.emplace_back(mClearValues[0]);
-
-		const VkImageBufferCreateInfos colorBufferCreateInfos
-		{
-			_swapChain.GetImageFormat(),						// format.
-			mExtent,											// extent.
-
-			 VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |			// usage.
-			 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-
-			1,													// mipMapLevels.
-			static_cast<VkSampleCountFlagBits>(mSampleBits),	// sampleCount.
-
-			VK_IMAGE_ASPECT_COLOR_BIT							// aspectFlags.
-		};
-
-		mColorMultisamplingBuffer.Create(_device, colorBufferCreateInfos);
-	}
-
-	void VkRenderPass::DestroyColorMultisamplingBuffer(const VkDevice& _device)
-	{
-		mColorMultisamplingBuffer.Destroy(_device);
-	}
-
-
-	void VkRenderPass::CreateFrameBuffers(const VkDevice& _device, const VkSwapChain& _swapChain)
-	{
-		mFrameBuffers.resize(_swapChain.GetImageNum());
-
-		std::vector<VkImageView> attachements; // { mColorMultisamplingBuffer, _swapChain.GetImageView(i), mDepthBuffer }
-		attachements.reserve(3);
-
-		if (mSampleBits > SampleBits::Sample1Bit)
-			attachements.push_back(mColorMultisamplingBuffer);
-
-		// Swapchain image view.
-		VkImageView& swapChainView = attachements.emplace_back(VkImageView{});
-
-		// if(bDepthBuffer)
-			attachements.push_back(mDepthBuffer);
-
-		for (uint32 i = 0u; i < mFrameBuffers.size(); ++i)
-		{
-			swapChainView = _swapChain.GetImageView(i);
-
-			const VkFramebufferCreateInfo framebufferCreateInfo
-			{
-				VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,			// sType.
-				nullptr,											// pNext.
-				0,													// flags.
-				mHandle,											// renderPass.
-				SizeOf(attachements),								// attachmentCount.
-				attachements.data(),								// pAttachments.
-				mExtent.width,										// width.
-				mExtent.height,										// height.
-				1													// layers.
-
-			};
-
-			SA_VK_ASSERT(vkCreateFramebuffer(_device, &framebufferCreateInfo, nullptr, &mFrameBuffers[i]),
-				CreationFailed, Rendering, L"Failed to create framebuffer!");
-		}
-	}
-
-	void VkRenderPass::DestroyFrameBuffers(const VkDevice& _device)
-	{
-		for (uint32 i = 0u; i < mFrameBuffers.size(); ++i)
-			vkDestroyFramebuffer(_device, mFrameBuffers[i], nullptr);
-
-		mFrameBuffers.clear();
-	}
-
-	void VkRenderPass::Begin(const IRenderFrame& _frame)
-	{
-		const VkRenderFrame& vkFrame = _frame.As<VkRenderFrame>();
-
-		const VkRenderPassBeginInfo renderPassBeginInfo
-		{
-			VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,							// sType.
-			nullptr,															// pNext.
-			mHandle,															// renderPass.
-			mFrameBuffers[vkFrame.index],										// framebuffer
-			VkRect2D{ VkOffset2D{}, mExtent },									// renderArea.
-			SizeOf(mClearValues),												// clearValueCount.
-			mClearValues.data()													// pClearValues.
-		};
-
-		vkCmdBeginRenderPass(vkFrame.graphicsCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-	}
-
-	void VkRenderPass::End(const IRenderFrame& _frame)
-	{
-		const VkRenderFrame& vkFrame = _frame.As<VkRenderFrame>();
-
-		vkCmdEndRenderPass(vkFrame.graphicsCommandBuffer);
-	}
-
-	void VkRenderPass::SetSampleCount(const VkDevice& _device, SampleBits _desiredSampling)
+	/*void RenderPass::SetSampleCount(const VkDevice& _device, SampleBits _desiredSampling)
 	{
 		VkPhysicalDeviceProperties physicalDeviceProperties;
 		vkGetPhysicalDeviceProperties(_device, &physicalDeviceProperties);
@@ -367,12 +202,7 @@ namespace Sa
 		}
 
 		mSampleBits = SampleBits::Sample1Bit;
-	}
-
-	VkRenderPass::operator ::VkRenderPass() const noexcept
-	{
-		return mHandle;
-	}
+	}*/
 }
 
 #endif

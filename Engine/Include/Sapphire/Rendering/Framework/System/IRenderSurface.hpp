@@ -25,10 +25,10 @@ namespace Sa
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API virtual void ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height);
 
-		virtual const ImageExtent& GetImageExtent() const noexcept = 0;
+		//virtual const ImageExtent& GetImageExtent() const noexcept = 0;
 
-		virtual IRenderPass& CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) = 0;
-		virtual void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) = 0;
+		virtual IRenderPass* CreateRenderPass(const IRenderInstance& _instance, const RenderPassCreateInfos& _createInfos) = 0;
+		//virtual void DestroyRenderPass(const IRenderInstance& _instance, IRenderPass& _renderPass) = 0;
 	};
 }
 

@@ -18,11 +18,18 @@ namespace Sa
 {
 	class VkDevice;
 	class VkRenderSurface;
-	class VkRenderPass;
+	class RenderPass;
 	class VkQueueFamilyIndices;
 
 	class VkSwapChain
 	{
+		struct Synchronisation
+		{
+			VkSemaphore acquireSemaphore	= VK_NULL_HANDLE;
+			VkSemaphore presentSemaphore	= VK_NULL_HANDLE;
+			VkFence		fence				= VK_NULL_HANDLE;
+		};
+
 		VkSwapchainKHR mHandle = VK_NULL_HANDLE;
 
 		ImageExtent mExtent;
@@ -31,51 +38,28 @@ namespace Sa
 		uint32 mFrameIndex = 0u;
 		uint32 mImageIndex = 0u;
 
-		std::vector<VkImage> mImages;
-		std::vector<VkImageView> mImageViews;
+		std::vector<vk::Framebuffer*> mFrames;
+		std::vector<Synchronisation> mFramesSynchronisation;
 
-		std::vector<VkCommandBuffer> mGraphicsCommandBuffers;
-
-		std::vector<VkSemaphore> mAcquireSemaphores;
-		std::vector<VkSemaphore> mPresentSemaphores;
-
-		std::vector<VkFence> mMainFences;
-
-		struct SupportDetails
-		{
-			VkSurfaceCapabilitiesKHR capabilities;
-			std::vector<VkSurfaceFormatKHR> formats;
-			std::vector<VkPresentModeKHR> presentModes;
-		};
-
-		static SupportDetails QuerySupportDetails(VkPhysicalDevice _device, const VkRenderSurface& _surface);
-		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-		ImageExtent ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-
-		uint32 CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
+		void CreateSwapChainKHR(const VkDevice& _device, const VkRenderSurface& _surface,
+								const VkQueueFamilyIndices& _queueFamilyIndices);
 		void DestroySwapChainKHR(const VkDevice& _device);
 
-		void CreateImageView(const VkDevice& _device, uint32 _imageNum);
-		void DestroyImageView(const VkDevice& _device);
+		void CreateFrames(const VkDevice& _device, const VkRenderSurface& _renderPass);
+		void DestroyFrames(const VkDevice& _device);
 
-		void CreateCommandBuffers(const VkDevice& _device, uint32 _imageNum);
-		void DestroyCommandBuffers(const VkDevice& _device);
-
-		void CreateSemaphores(const VkDevice& _device, uint32 _imageNum);
-		void DestroySemaphores(const VkDevice& _device);
-
-		void CreateFences(const VkDevice& _device, uint32 _imageNum);
-		void DestroyFences(const VkDevice& _device);
-
+		void CreateSynchronisation(const VkDevice& _device);
+		void DestroySynchronisation(const VkDevice& _device);
+	
 	public:
+		void AddRenderPass(const RenderPass* _renderPass);
+
 		uint32 GetImageNum() const noexcept;
 		VkFormat GetImageFormat() const noexcept;
 
-		VkImageView GetImageView(uint32 _index) const noexcept;
 		const ImageExtent& GetImageExtent() const noexcept;
 
-		VkRenderFrame GetRenderFrame() const noexcept;
+		SA_ENGINE_API const VkRenderFrame GetRenderFrame() const noexcept;
 
 		void Create(const VkDevice& _device, const VkRenderSurface& _surface, const VkQueueFamilyIndices& _queueFamilyIndices);
 		void Destroy(const VkDevice& _device);
@@ -87,8 +71,6 @@ namespace Sa
 		SA_ENGINE_API VkRenderFrame Begin(const VkDevice& _device);
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API void End(const VkDevice& _device);
-
-		static bool CheckSupport(VkPhysicalDevice _device, const VkRenderSurface& _surface);
 	};
 }
 

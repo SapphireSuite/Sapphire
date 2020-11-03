@@ -25,12 +25,16 @@ namespace Sa
 	struct RenderPassCreateInfos
 	{
 		ImageExtent extent;
+		// TODO Aurel: Move it somewhere appriopriate or create Sa::Format
+		VkFormat	format;
 
 		Color clearColor = Color::defaultClearColor;
 
 		SampleBits sampling = SampleBits::Sample1Bit;
 
-		//bool bDepthBuffer = true;
+		bool bPresent = false;
+		bool bDepthBuffer = true;
+		bool bClear = true;
 
 		std::vector<SubPassCreateInfos> subPassCreateInfos;
 	};

@@ -12,6 +12,48 @@
 
 namespace Sa
 {
+	VkImageBuffer VkImageBuffer::CreateColorBuffer(const VkDevice& _device, const ImageExtent& _extent,
+														const VkFormat _format, SampleBits _sampleBits)
+	{
+		VkImageBuffer imageBuffer{};
+
+		VkImageBufferCreateInfos colorBufferCreateInfos{};
+		colorBufferCreateInfos.format		= _format;
+		colorBufferCreateInfos.extent		= _extent;
+		colorBufferCreateInfos.usage		= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+		colorBufferCreateInfos.mipMapLevels = 1;
+		colorBufferCreateInfos.sampleCount	= static_cast<VkSampleCountFlagBits>(_sampleBits);
+		colorBufferCreateInfos.aspectFlags	= VK_IMAGE_ASPECT_COLOR_BIT;
+
+		imageBuffer.Create(_device, colorBufferCreateInfos);
+		return imageBuffer;
+	}
+
+	VkImageBuffer VkImageBuffer::CreateDepthBuffer(const VkDevice& _device, const ImageExtent& _extent,
+														SampleBits _sampleBits)
+	{
+		VkImageBuffer imageBuffer{};
+
+		VkImageBufferCreateInfos imageBufferCreateInfos{};
+		imageBufferCreateInfos.format		= VK_FORMAT_D32_SFLOAT;
+		imageBufferCreateInfos.extent		= _extent;
+		imageBufferCreateInfos.usage		= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		imageBufferCreateInfos.sampleCount	= static_cast<VkSampleCountFlagBits>(_sampleBits);
+		imageBufferCreateInfos.aspectFlags	= VK_IMAGE_ASPECT_DEPTH_BIT;
+
+		imageBuffer.Create(_device, imageBufferCreateInfos);
+
+		/*// TODO Aurel: Don't think it's necessary
+		VkTransitionImageInfos depthTransitionInfos{};
+		depthTransitionInfos.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthTransitionInfos.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		depthTransitionInfos.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+		imageBuffer.TransitionImageLayout(_device, depthTransitionInfos);*/
+
+		return imageBuffer;
+	}
+
 	bool VkImageBuffer::IsValid()
 	{
 		return mImage != VK_NULL_HANDLE && mImageMemory != VK_NULL_HANDLE && mImageView != VK_NULL_HANDLE;
@@ -65,7 +107,12 @@ namespace Sa
 
 		vkBindImageMemory(_device, mImage, mImageMemory, 0);
 
+		CreateFromImage(_device, _createInfos, mImage);
+	}
 
+	void VkImageBuffer::CreateFromImage(const VkDevice& _device, const VkImageBufferCreateInfos& _createInfos, VkImage& _image)
+	{
+		mImage = _image;
 
 		// Create image view.
 		const VkImageViewCreateInfo imageViewCreateInfo
@@ -103,16 +150,20 @@ namespace Sa
 		vkDestroyImageView(_device, mImageView, nullptr);
 		mImageView = VK_NULL_HANDLE;
 
-		vkDestroyImage(_device, mImage, nullptr);
-		mImage = VK_NULL_HANDLE;
+		// In case, the image was given to the buffer
+		if (mImageMemory != VK_NULL_HANDLE)
+		{
+			vkDestroyImage(_device, mImage, nullptr);
+			mImage = VK_NULL_HANDLE;
 
-		vkFreeMemory(_device, mImageMemory, nullptr) ;// Free memory after destroying image: memory no more used.
-		mImageMemory = VK_NULL_HANDLE;
+			vkFreeMemory(_device, mImageMemory, nullptr) ;// Free memory after destroying image: memory no more used.
+			mImageMemory = VK_NULL_HANDLE;
+		}
 	}
 
 	void VkImageBuffer::TransitionImageLayout(const Sa::VkDevice& _device, const VkTransitionImageInfos& _infos)
 	{
-		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
+		Sa::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
 
 
 		VkImageMemoryBarrier barrier
@@ -175,12 +226,12 @@ namespace Sa
 
 		vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
+		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
 	void VkImageBuffer::CopyBufferToImage(const VkDevice& _device, VkBuffer _buffer, VkExtent3D _extent, uint32 _channel, uint32 _mipLevels, uint32 _layerCount)
 	{
-		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
+		Sa::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands(_device, _device.GetTransferQueue());
 
 		uint64 offset = 0u;
 
@@ -218,7 +269,7 @@ namespace Sa
 		vkCmdCopyBufferToImage(commandBuffer, _buffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, SizeOf(bufferImageCopies), bufferImageCopies.data());
 
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
+		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetTransferQueue());
 	}
 
 
@@ -233,7 +284,7 @@ namespace Sa
 			NotSupported, Rendering, L"Texture image format does not support linear blitting!");
 #endif
 
-		Sa::VkCommandBuffer commandBuffer = VkCommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
+		Sa::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands(_device, _device.GetGraphicsQueue());
 
 		VkImageMemoryBarrier barrier
 		{
@@ -345,7 +396,7 @@ namespace Sa
 			0, nullptr,
 			1, &barrier);
 
-		VkCommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
+		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer, _device.GetGraphicsQueue());
 	}
 
 
