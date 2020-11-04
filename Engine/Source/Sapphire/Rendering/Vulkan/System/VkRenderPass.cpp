@@ -46,7 +46,7 @@ namespace Sa
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
 			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,						// stencilStoreOp.
-			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,				// initialLayout.
+			VK_IMAGE_LAYOUT_UNDEFINED,				// initialLayout.
 			_createInfos.bPresent ? finalLayout : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL												// finalLayout.
 		};
 
@@ -77,8 +77,46 @@ namespace Sa
 			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,				// layout.
 		};
 
+		// Setup G-buffer
+		const VkAttachmentDescription positionAttachment
+		{
+			0,														// flags.
+			_createInfos.format,									// format.
+			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
+			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
+			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
+			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL			// finalLayout.
+		};
 
-		// Depth Attachement.
+		const VkAttachmentDescription normalAttachment
+		{
+			0,														// flags.
+			_createInfos.format,									// format.
+			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
+			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
+			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
+			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL			// finalLayout.
+		};
+
+		const VkAttachmentDescription albedoAttachment
+		{
+			0,														// flags.
+			_createInfos.format,									// format.
+			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
+			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
+			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
+			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL			// finalLayout.
+		};
+
 		const VkAttachmentDescription depthAttachment
 		{
 			0,														// flags.
@@ -92,34 +130,61 @@ namespace Sa
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL		// finalLayout.
 		};
 
-
 		const VkAttachmentReference depthAttachmentRef
 		{
-			mSampleBits > SampleBits::Sample1Bit ? 2u : 1u,			// attachment.
+			4,			// attachment.
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,		// layout.
 		};
-
 
 		const VkAttachmentReference* resolveAttachments = mSampleBits > SampleBits::Sample1Bit ? &colorAttachmentResolveRef : nullptr;
 		const VkAttachmentReference* depthAttachmentRefPtr = _createInfos.bDepthBuffer ? &depthAttachmentRef : nullptr;
 
-		const VkSubpassDescription subpass
-		{
-			0,														// flags.
-			VK_PIPELINE_BIND_POINT_GRAPHICS,						// pipelineBindPoint.
-			0,														// inputAttachmentCount.
-			nullptr,												// pInputAttachments.
-			1,														// colorAttachmentCount.
-			&colorAttachmentRef,									// pColorAttachments.
-			resolveAttachments,										// pResolveAttachments.
-			depthAttachmentRefPtr,									// pDepthStencilAttachment.
-			0,														// preserveAttachmentCount.
-			nullptr													// pPreserveAttachments.
+		// FILL G-BUFFER
+		VkAttachmentReference colorReferences[4];
+		colorReferences[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		colorReferences[1] = { 1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		colorReferences[2] = { 2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		colorReferences[3] = { 3, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 
-		};
+		VkSubpassDescription fillSubpass{};
+		fillSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		fillSubpass.colorAttachmentCount = 4;
+		fillSubpass.pColorAttachments = colorReferences;
+		fillSubpass.pDepthStencilAttachment = depthAttachmentRefPtr;
+
+		// COMPOSITION G-BUFFER
+		VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+
+		VkAttachmentReference inputReferences[3];
+		inputReferences[0] = { 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		inputReferences[1] = { 2, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		inputReferences[2] = { 3, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+
+		uint32_t preserveAttachmentIndex = 1;
+
+		VkSubpassDescription compositionSubpass{};
+		compositionSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		compositionSubpass.colorAttachmentCount = 1;
+		compositionSubpass.pColorAttachments = &colorReference;
+		compositionSubpass.pDepthStencilAttachment = depthAttachmentRefPtr;
+		compositionSubpass.inputAttachmentCount = 3;
+		compositionSubpass.pInputAttachments = inputReferences;
+
+		// FORWARD TRANSPARENCY
+		colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+
+		inputReferences[0] = { 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+
+		VkSubpassDescription forwardTransparencySubpass{};
+		forwardTransparencySubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		forwardTransparencySubpass.colorAttachmentCount = 1;
+		forwardTransparencySubpass.pColorAttachments = &colorReference;
+		forwardTransparencySubpass.inputAttachmentCount = 1;
+		forwardTransparencySubpass.pInputAttachments = inputReferences;
+
 
 		// Use subpass dependencies for layout transitions
-		VkSubpassDependency dependencies[2];
+		VkSubpassDependency dependencies[4];
 
 		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependencies[0].dstSubpass = 0;
@@ -130,12 +195,28 @@ namespace Sa
 		dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 		dependencies[1].srcSubpass = 0;
-		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[1].dstSubpass = 1;
 		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+		dependencies[2].srcSubpass = 1;
+		dependencies[2].dstSubpass = 2;
+		dependencies[2].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[2].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[2].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		dependencies[2].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+		dependencies[3].srcSubpass = 0;
+		dependencies[3].dstSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[3].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[3].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		dependencies[3].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[3].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		dependencies[3].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 		std::vector<VkAttachmentDescription> attachements; //{ colorAttachment, colorAttachmentResolve, depthAttachment };
 		attachements.reserve(3);

@@ -182,17 +182,18 @@ namespace Sa
 
 	void VkRenderSurface::Begin(const VkDevice& _device)
 	{
-		mSwapChain.Begin(_device);
 		mEditor->StartFrame();
+		mSwapChain.Begin(_device);
+
 	}
 
 	void VkRenderSurface::End(const VkDevice& _device)
 	{
 		//mSwapChain.GetRenderFrame().framebuffer->Next();
-		//mEditor->Draw(mSwapChain.GetRenderFrame());
+		mEditor->Draw(mSwapChain.GetRenderFrame());
 
-		mEditor->EndFrame();
 		mSwapChain.End(_device);
+		mEditor->EndFrame();
 	}
 
 	void VkRenderSurface::ResizeCallback(const IRenderInstance& _instance, uint32 _width, uint32 _height)
