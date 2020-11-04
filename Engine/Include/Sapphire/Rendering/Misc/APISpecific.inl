@@ -53,28 +53,7 @@ namespace Sa
 
 
 	template <typename T>
-	Mat4<T> API_ConvertCoordinateSystem(const Mat4<T>& _matrix) noexcept
-	{
-		Mat4<T> result = _matrix;
-
-#if SA_RENDERING_API == SA_VULKAN
-
-#if SA_MATRIX_ROW_MAJOR
-
-		result.Transpose();
-
-#endif
-
-		// Invert Y axis.
-		result.data[13] *= -1;
-
-#endif
-
-		return result;
-	}
-
-	template <typename T>
-	Mat4<T>&& API_ConvertCoordinateSystem(Mat4<T>&& _matrix) noexcept
+	Mat4<T>& API_ConvertCoordinateSystem(Mat4<T>& _matrix) noexcept
 	{
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -85,10 +64,20 @@ namespace Sa
 #endif
 
 		// Invert Y axis.
-		_matrix.data[13] *= -1;
+		_matrix.e13 *= -1;
 
 #endif
 
-		return Move(_matrix);
+		return _matrix;
+	}
+
+	template <typename T>
+	Mat4<T> API_ConvertCoordinateSystem(const Mat4<T>& _matrix) noexcept
+	{
+		Mat4<T> result = _matrix;
+
+		API_ConvertCoordinateSystem(result);
+
+		return result;
 	}
 }

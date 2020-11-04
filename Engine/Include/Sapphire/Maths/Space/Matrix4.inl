@@ -23,46 +23,35 @@ namespace Sa
 
 	template <typename T>
 	constexpr Mat4<T>::Mat4(
-		T _00, T _01, T _02, T _03,
-		T _10, T _11, T _12, T _13,
-		T _20, T _21, T _22, T _23,
-		T _30, T _31, T _32, T _33
+		T _e00, T _e01, T _e02, T _e03,
+		T _e10, T _e11, T _e12, T _e13,
+		T _e20, T _e21, T _e22, T _e23,
+		T _e30, T _e31, T _e32, T _e33
 	) noexcept :
-
-#if SA_MATRIX_ROW_MAJOR
-
-		data
-	{
-		_00, _01, _02, _03,
-		_10, _11, _12, _13,
-		_20, _21, _22, _23,
-		_30, _31, _32, _33
-	}
-
-#else
-
-		data
-	{
-		_00, _10, _20, _30,
-		_01, _11, _21, _31,
-		_02, _12, _22, _32,
-		_03, _13, _23, _33
-	}
-
-#endif
+		e00{ _e00 }, e01{ _e01 }, e02{ _e02 }, e03{ _e03 },
+		e10{ _e10 }, e11{ _e11 }, e12{ _e12 }, e13{ _e13 },
+		e20{ _e20 }, e21{ _e21 }, e22{ _e22 }, e23{ _e23 },
+		e30{ _e30 }, e31{ _e31 }, e32{ _e32 }, e33{ _e33 }
 	{
 	}
 
 	template <typename T>
 	template <typename TIn>
 	constexpr Mat4<T>::Mat4(const Mat4<TIn>& _other) noexcept :
-		data // Allows constexpr.
+		e00{ static_cast<T>(_other.e00) }, e01{ static_cast<T>(_other.e01) }, e02{ static_cast<T>(_other.e02) }, e03{ static_cast<T>(_other.e03) },
+		e10{ static_cast<T>(_other.e10) }, e11{ static_cast<T>(_other.e11) }, e12{ static_cast<T>(_other.e12) }, e13{ static_cast<T>(_other.e13) },
+		e20{ static_cast<T>(_other.e20) }, e21{ static_cast<T>(_other.e21) }, e22{ static_cast<T>(_other.e22) }, e23{ static_cast<T>(_other.e23) },
+		e30{ static_cast<T>(_other.e30) }, e31{ static_cast<T>(_other.e31) }, e32{ static_cast<T>(_other.e32) }, e33{ static_cast<T>(_other.e33) }
 	{
-		static_cast<T>(_other.data[0]), static_cast<T>(_other.data[1]), static_cast<T>(_other.data[2]), static_cast<T>(_other.data[3]),
-		static_cast<T>(_other.data[4]), static_cast<T>(_other.data[5]), static_cast<T>(_other.data[6]), static_cast<T>(_other.data[7]),
-		static_cast<T>(_other.data[8]), static_cast<T>(_other.data[9]), static_cast<T>(_other.data[10]), static_cast<T>(_other.data[11]),
-		static_cast<T>(_other.data[12]), static_cast<T>(_other.data[13]), static_cast<T>(_other.data[14]), static_cast<T>(_other.data[15])
 	}
+
+	template <typename T>
+	template <typename TIn>
+	constexpr Mat4<T>::Mat4(const Mat3<TIn>& _other) noexcept :
+		e00{ static_cast<T>(_other.e00) }, e01{ static_cast<T>(_other.e01) }, e02{ static_cast<T>(_other.e02) }, e03{ T(0) },
+		e10{ static_cast<T>(_other.e10) }, e11{ static_cast<T>(_other.e11) }, e12{ static_cast<T>(_other.e12) }, e13{ T(0) },
+		e20{ static_cast<T>(_other.e20) }, e21{ static_cast<T>(_other.e21) }, e22{ static_cast<T>(_other.e22) }, e23{ T(0) },
+		e30{ T(0) }, e31{ T(0) }, e32{ T(0) }, e33{ T(0) }
 	{
 	}
 
@@ -73,10 +62,10 @@ namespace Sa
 		// Allows constexpr.
 
 		return
-			Maths::Equals0(data[0]) && Maths::Equals0(data[1]) && Maths::Equals0(data[2]) && Maths::Equals0(data[3]) &&
-			Maths::Equals0(data[4]) && Maths::Equals0(data[5]) && Maths::Equals0(data[6]) && Maths::Equals0(data[7]) &&
-			Maths::Equals0(data[8]) && Maths::Equals0(data[9]) && Maths::Equals0(data[10]) && Maths::Equals0(data[11]) &&
-			Maths::Equals0(data[12]) && Maths::Equals0(data[13]) && Maths::Equals0(data[14]) && Maths::Equals0(data[15]);
+			Maths::Equals0(e00) && Maths::Equals0(e01) && Maths::Equals0(e02) && Maths::Equals0(e03) &&
+			Maths::Equals0(e10) && Maths::Equals0(e11) && Maths::Equals0(e12) && Maths::Equals0(e13) &&
+			Maths::Equals0(e20) && Maths::Equals0(e21) && Maths::Equals0(e22) && Maths::Equals0(e23) &&
+			Maths::Equals0(e30) && Maths::Equals0(e31) && Maths::Equals0(e32) && Maths::Equals0(e33);
 	}
 
 	template <typename T>
@@ -85,10 +74,10 @@ namespace Sa
 		// Allows constexpr.
 
 		return
-			Maths::Equals1(data[0]) && Maths::Equals0(data[1]) && Maths::Equals0(data[2]) && Maths::Equals0(data[3]) &&
-			Maths::Equals0(data[4]) && Maths::Equals1(data[5]) && Maths::Equals0(data[6]) && Maths::Equals0(data[7]) &&
-			Maths::Equals0(data[8]) && Maths::Equals0(data[9]) && Maths::Equals1(data[10]) && Maths::Equals0(data[11]) &&
-			Maths::Equals0(data[12]) && Maths::Equals0(data[13]) && Maths::Equals0(data[14]) && Maths::Equals1(data[15]);
+			Maths::Equals1(e00) && Maths::Equals0(e01) && Maths::Equals0(e02) && Maths::Equals0(e03) &&
+			Maths::Equals0(e10) && Maths::Equals1(e11) && Maths::Equals0(e12) && Maths::Equals0(e13) &&
+			Maths::Equals0(e20) && Maths::Equals0(e21) && Maths::Equals1(e22) && Maths::Equals0(e23) &&
+			Maths::Equals0(e30) && Maths::Equals0(e31) && Maths::Equals0(e32) && Maths::Equals1(e33);
 	}
 
 	template <typename T>
@@ -97,34 +86,34 @@ namespace Sa
 		// Allows constexpr.
 
 		return
-			Maths::Equals(data[0], _other.data[0], _threshold) &&
-			Maths::Equals(data[1], _other.data[1], _threshold) &&
-			Maths::Equals(data[2], _other.data[2], _threshold) &&
-			Maths::Equals(data[3], _other.data[3], _threshold) &&
-			Maths::Equals(data[4], _other.data[4], _threshold) &&
-			Maths::Equals(data[5], _other.data[5], _threshold) &&
-			Maths::Equals(data[6], _other.data[6], _threshold) &&
-			Maths::Equals(data[7], _other.data[7], _threshold) &&
-			Maths::Equals(data[8], _other.data[8], _threshold) &&
-			Maths::Equals(data[9], _other.data[9], _threshold) &&
-			Maths::Equals(data[10], _other.data[10], _threshold) &&
-			Maths::Equals(data[11], _other.data[11], _threshold) &&
-			Maths::Equals(data[12], _other.data[12], _threshold) &&
-			Maths::Equals(data[13], _other.data[13], _threshold) &&
-			Maths::Equals(data[14], _other.data[14], _threshold) &&
-			Maths::Equals(data[15], _other.data[15], _threshold);
+			Maths::Equals(e00, _other.e00, _threshold) &&
+			Maths::Equals(e01, _other.e01, _threshold) &&
+			Maths::Equals(e02, _other.e02, _threshold) &&
+			Maths::Equals(e03, _other.e03, _threshold) &&
+			Maths::Equals(e10, _other.e10, _threshold) &&
+			Maths::Equals(e11, _other.e11, _threshold) &&
+			Maths::Equals(e12, _other.e12, _threshold) &&
+			Maths::Equals(e13, _other.e13, _threshold) &&
+			Maths::Equals(e20, _other.e20, _threshold) &&
+			Maths::Equals(e21, _other.e21, _threshold) &&
+			Maths::Equals(e22, _other.e22, _threshold) &&
+			Maths::Equals(e23, _other.e23, _threshold) &&
+			Maths::Equals(e30, _other.e30, _threshold) &&
+			Maths::Equals(e31, _other.e31, _threshold) &&
+			Maths::Equals(e32, _other.e32, _threshold) &&
+			Maths::Equals(e33, _other.e33, _threshold);
 	}
 
 	template <typename T>
 	T* Mat4<T>::Data() noexcept
 	{
-		return data;
+		return &e00;
 	}
 
 	template <typename T>
 	const T* Mat4<T>::Data() const noexcept
 	{
-		return data;
+		return &e00;
 	}
 
 	template <typename T>
@@ -132,14 +121,7 @@ namespace Sa
 	{
 		SA_ASSERT(_index < 16u, OutOfRange, Maths, _index, 0u, 15u);
 
-#if SA_MATRIX_ROW_MAJOR
-	
-		return data[_index];
-
-#else
-
-		return data[(_index * 4u) % 15u];
-#endif
+		return Data()[_index];
 
 	}
 
@@ -148,14 +130,7 @@ namespace Sa
 	{
 		SA_ASSERT(_index < 16u, OutOfRange, Maths, _index, 0u, 15u);
 
-#if SA_MATRIX_ROW_MAJOR
-
-		return data[_index];
-
-#else
-
-		return data[(_index * 4u) % 15u];
-#endif
+		return Data()[_index];
 	}
 
 	template <typename T>
@@ -164,15 +139,7 @@ namespace Sa
 		SA_ASSERT(_x < 4u, OutOfRange, Maths, _x, 0u, 3u);
 		SA_ASSERT(_y < 4u, OutOfRange, Maths, _x, 0u, 3u);
 
-#if SA_MATRIX_ROW_MAJOR
-
-		return data[_x * 4u + _y];
-
-#else
-
-		return data[_x + _y * 4u];
-
-#endif
+		return Data()[_x * 4u + _y];
 	}
 
 	template <typename T>
@@ -181,20 +148,14 @@ namespace Sa
 		SA_ASSERT(_x < 4u, OutOfRange, Maths, _x, 0u, 3u);
 		SA_ASSERT(_y < 4u, OutOfRange, Maths, _x, 0u, 3u);
 
-#if SA_MATRIX_ROW_MAJOR
-
-		return data[_x * 4u + _y];
-
-#else
-
-		return data[_x + _y * 4u];
-
-#endif
+		return Data()[_x * 4u + _y];
 	}
 
 	template <typename T>
 	Mat4<T>& Mat4<T>::Scale(T _scale) noexcept
 	{
+		T* const data = Data();
+
 		for (uint32 i = 0; i < 16u; ++i)
 			data[i] *= _scale;
 
@@ -206,31 +167,20 @@ namespace Sa
 	{
 		// Allows constexpr
 
-#if SA_MATRIX_ROW_MAJOR
-
 		return Mat4(
-			data[0] * _scale, data[1] * _scale, data[2] * _scale, data[3] * _scale,
-			data[4] * _scale, data[5] * _scale, data[6] * _scale, data[7] * _scale,
-			data[8] * _scale, data[9] * _scale, data[10] * _scale, data[11] * _scale,
-			data[12] * _scale, data[13] * _scale, data[14] * _scale, data[15] * _scale
+			e00 * _scale, e01 * _scale, e02 * _scale, e03 * _scale,
+			e10 * _scale, e11 * _scale, e12 * _scale, e13 * _scale,
+			e20 * _scale, e21 * _scale, e22 * _scale, e23 * _scale,
+			e30 * _scale, e31 * _scale, e32 * _scale, e33 * _scale
 		);
-
-#else
-
-		return Mat4(
-			data[0] * _scale, data[4] * _scale, data[8] * _scale, data[12] * _scale,
-			data[1] * _scale, data[5] * _scale, data[9] * _scale, data[13] * _scale,
-			data[2] * _scale, data[6] * _scale, data[10] * _scale, data[14] * _scale,
-			data[3] * _scale, data[7] * _scale, data[11] * _scale, data[15] * _scale
-		);
-
-#endif
 	}
 
 	template <typename T>
 	Mat4<T>& Mat4<T>::UnScale(T _scale)
 	{
 		SA_ASSERT(!Maths::Equals0(_scale), DivisionBy0, Maths, L"Unscale matrix by 0!");
+
+		T* const data = Data();
 
 		for (uint32 i = 0; i < 16u; ++i)
 			data[i] /= _scale;
@@ -245,38 +195,25 @@ namespace Sa
 
 		// Allows constexpr
 
-#if SA_MATRIX_ROW_MAJOR
-
 		return Mat4(
-			data[0] / _scale, data[1] / _scale, data[2] / _scale, data[3] / _scale,
-			data[4] / _scale, data[5] / _scale, data[6] / _scale, data[7] / _scale,
-			data[8] / _scale, data[9] / _scale, data[10] / _scale, data[11] / _scale,
-			data[12] / _scale, data[13] / _scale, data[14] / _scale, data[15] / _scale
+			e00 / _scale, e01 / _scale, e02 / _scale, e03 / _scale,
+			e10 / _scale, e11 / _scale, e12 / _scale, e13 / _scale,
+			e20 / _scale, e21 / _scale, e22 / _scale, e23 / _scale,
+			e30 / _scale, e31 / _scale, e32 / _scale, e33 / _scale
 		);
-
-#else
-
-		return Mat4(
-			data[0] / _scale, data[4] / _scale, data[8] / _scale, data[12] / _scale,
-			data[1] / _scale, data[5] / _scale, data[9] / _scale, data[13] / _scale,
-			data[2] / _scale, data[6] / _scale, data[10] / _scale, data[14] / _scale,
-			data[3] / _scale, data[7] / _scale, data[11] / _scale, data[15] / _scale
-		);
-
-#endif
 	}
 
 	template <typename T>
 	Mat4<T>& Mat4<T>::Transpose() noexcept
 	{
-		Swap(data[1], data[4]);
-		Swap(data[2], data[8]);
-		Swap(data[3], data[12]);
+		Swap(e01, e10);
+		Swap(e02, e20);
+		Swap(e03, e30);
 
-		Swap(data[6], data[9]);
-		Swap(data[7], data[13]);
+		Swap(e12, e21);
+		Swap(e13, e31);
 
-		Swap(data[11], data[14]);
+		Swap(e23, e32);
 
 		return *this;
 	}
@@ -286,53 +223,29 @@ namespace Sa
 	{
 		// Allows constexpr.
 
-#if SA_MATRIX_ROW_MAJOR
-
 		return Mat4(
-			data[0], data[4], data[8], data[12],
-			data[1], data[5], data[9], data[13],
-			data[2], data[6], data[10], data[14],
-			data[3], data[7], data[11], data[15]
+			e00, e10, e20, e30,
+			e01, e11, e21, e31,
+			e02, e12, e22, e32,
+			e03, e13, e23, e33
 		);
-
-#else
-
-		return Mat4(
-			data[0], data[1], data[2], data[3],
-			data[4], data[5], data[6], data[7],
-			data[8], data[9], data[10], data[11],
-			data[12], data[13], data[14], data[15]
-		);
-
-#endif
 	}
 
 	template <typename T>
 	T Mat4<T>::Determinant() const noexcept
 	{
-		// m22 * m33 - m23 * m32
-		const float det22_33_23_32 = data[10] * data[15] - data[14] * data[11];
-
-		// m12 * m33 - m13 * m32
-		const float det12_33_13_32 = data[6] * data[15] - data[14] * data[7];
-
-		// m12 * m23 - m13 * m22
-		const float det12_23_13_22 = data[6] * data[11] - data[10] * data[7];
-
-		// m02 * m33 - m03 * m32
-		const float det02_33_03_32 = data[2] * data[15] - data[3] * data[14];
-
-		// m02 * m23 - m03 * m22
-		const float det02_23_03_22 = data[2] * data[11] - data[3] * data[10];
-
-		// m02 * m13 - m03 * m12
-		const float det02_13_03_12 = data[2] * data[7] - data[3] * data[6];
+		const float det22_33_23_32 = e22 * e33 - e23 * e32;
+		const float det12_33_13_32 = e12 * e33 - e13 * e32;
+		const float det12_23_13_22 = e12 * e23 - e13 * e22;
+		const float det02_33_03_32 = e02 * e33 - e03 * e32;
+		const float det02_23_03_22 = e02 * e23 - e03 * e22;
+		const float det02_13_03_12 = e02 * e13 - e03 * e12;
 
 		return
-			data[0] * (data[5] * det22_33_23_32 - data[9] * det12_33_13_32 + data[13] * det12_23_13_22) -
-			data[4] * (data[1] * det22_33_23_32 - data[9] * det02_33_03_32 + data[13] * det02_23_03_22) +
-			data[8] * (data[1] * det12_33_13_32 - data[5] * det02_33_03_32 + data[13] * det02_13_03_12) -
-			data[12] * (data[1] * det12_23_13_22 - data[5] * det02_23_03_22 + data[9] * det02_13_03_12);
+			e00 * (e11 * det22_33_23_32 - e21 * det12_33_13_32 + e31 * det12_23_13_22) -
+			e10 * (e01 * det22_33_23_32 - e21 * det02_33_03_32 + e31 * det02_23_03_22) +
+			e20 * (e01 * det12_33_13_32 - e11 * det02_33_03_32 + e31 * det02_13_03_12) -
+			e30 * (e01 * det12_23_13_22 - e11 * det02_23_03_22 + e21 * det02_13_03_12);
 	}
 
 	template <typename T>
@@ -350,185 +263,185 @@ namespace Sa
 
 		Mat4 result;
 
-		const T _01x12 = data[1] * data[6];
-		const T _01x13 = data[1] * data[7];
-		const T _01x22 = data[1] * data[10];
-		const T _01x23 = data[1] * data[11];
-		const T _01x32 = data[1] * data[14];
-		const T _01x33 = data[1] * data[15];
+		const T _01x12 = e01 * e12;
+		const T _01x13 = e01 * e13;
+		const T _01x22 = e01 * e22;
+		const T _01x23 = e01 * e23;
+		const T _01x32 = e01 * e32;
+		const T _01x33 = e01 * e33;
 
-		const T _02x11 = data[2] * data[5];
-		const T _02x13 = data[2] * data[7];
-		const T _02x21 = data[2] * data[9];
-		const T _02x23 = data[2] * data[11];
-		const T _02x31 = data[2] * data[13];
-		const T _02x33 = data[2] * data[15];
+		const T _02x11 = e02 * e11;
+		const T _02x13 = e02 * e13;
+		const T _02x21 = e02 * e21;
+		const T _02x23 = e02 * e23;
+		const T _02x31 = e02 * e31;
+		const T _02x33 = e02 * e33;
 
-		const T _03x11 = data[3] * data[5];
-		const T _03x12 = data[3] * data[6];
-		const T _03x21 = data[3] * data[9];
-		const T _03x22 = data[3] * data[10];
-		const T _03x31 = data[3] * data[13];
-		const T _03x32 = data[3] * data[14];
+		const T _03x11 = e03 * e11;
+		const T _03x12 = e03 * e12;
+		const T _03x21 = e03 * e21;
+		const T _03x22 = e03 * e22;
+		const T _03x31 = e03 * e31;
+		const T _03x32 = e03 * e32;
 
-		const T _11x22 = data[5] * data[10];
-		const T _11x23 = data[5] * data[11];
-		const T _11x32 = data[5] * data[14];
-		const T _11x33 = data[5] * data[15];
+		const T _11x22 = e11 * e22;
+		const T _11x23 = e11 * e23;
+		const T _11x32 = e11 * e32;
+		const T _11x33 = e11 * e33;
 
-		const T _12x21 = data[6] * data[9];
-		const T _12x23 = data[6] * data[11];
-		const T _12x31 = data[6] * data[13];
-		const T _12x33 = data[6] * data[15];
+		const T _12x21 = e12 * e21;
+		const T _12x23 = e12 * e23;
+		const T _12x31 = e12 * e31;
+		const T _12x33 = e12 * e33;
 
-		const T _13x21 = data[7] * data[9];
-		const T _13x22 = data[7] * data[10];
-		const T _13x31 = data[7] * data[13];
-		const T _13x32 = data[7] * data[14];
+		const T _13x21 = e13 * e21;
+		const T _13x22 = e13 * e22;
+		const T _13x31 = e13 * e31;
+		const T _13x32 = e13 * e32;
 
-		const T _21x32 = data[9] * data[14];
-		const T _21x33 = data[9] * data[15];
+		const T _21x32 = e21 * e32;
+		const T _21x33 = e21 * e33;
 
-		const T _22x31 = data[10] * data[13];
-		const T _22x33 = data[10] * data[15];
+		const T _22x31 = e22 * e31;
+		const T _22x33 = e22 * e33;
 
-		const T _23x31 = data[11] * data[13];
-		const T _23x32 = data[11] * data[14];
+		const T _23x31 = e23 * e31;
+		const T _23x32 = e23 * e32;
 
 		// Row 0.
-		result.data[0] =
-			data[5] * _22x33 -
-			data[5] * _23x32 -
-			data[9] * _12x33 +
-			data[9] * _13x32 +
-			data[13] * _12x23 -
-			data[13] * _13x22;
+		result.e00 =
+			e11 * _22x33 -
+			e11 * _23x32 -
+			e21 * _12x33 +
+			e21 * _13x32 +
+			e31 * _12x23 -
+			e31 * _13x22;
 
-		result.data[1] =
-			-data[1] * _22x33 +
-			data[1] * _23x32 +
-			data[9] * _02x33 -
-			data[9] * _03x32 -
-			data[13] * _02x23 +
-			data[13] * _03x22;
+		result.e01 =
+			-e01 * _22x33 +
+			e01 * _23x32 +
+			e21 * _02x33 -
+			e21 * _03x32 -
+			e31 * _02x23 +
+			e31 * _03x22;
 
-		result.data[2] =
-			data[1] * _12x33 -
-			data[1] * _13x32 -
-			data[5] * _02x33 +
-			data[5] * _03x32 +
-			data[13] * _02x13 -
-			data[13] * _03x12;
+		result.e02 =
+			e01 * _12x33 -
+			e01 * _13x32 -
+			e11 * _02x33 +
+			e11 * _03x32 +
+			e31 * _02x13 -
+			e31 * _03x12;
 
-		result.data[3] =
-			-data[1] * _12x23 +
-			data[1] * _13x22 +
-			data[5] * _02x23 -
-			data[5] * _03x22 -
-			data[9] * _02x13 +
-			data[9] * _03x12;
+		result.e03 =
+			-e01 * _12x23 +
+			e01 * _13x22 +
+			e11 * _02x23 -
+			e11 * _03x22 -
+			e21 * _02x13 +
+			e21 * _03x12;
 
 
 		// Row 1
-		result.data[4] =
-			-data[4] * _22x33 +
-			data[4] * _23x32 +
-			data[8] * _12x33 -
-			data[8] * _13x32 -
-			data[12] * _12x23 +
-			data[12] * _13x22;
+		result.e10 =
+			-e10 * _22x33 +
+			e10 * _23x32 +
+			e20 * _12x33 -
+			e20 * _13x32 -
+			e30 * _12x23 +
+			e30 * _13x22;
 
-		result.data[5] =
-			data[0] * _22x33 -
-			data[0] * _23x32 -
-			data[8] * _02x33 +
-			data[8] * _03x32 +
-			data[12] * _02x23 -
-			data[12] * _03x22;
+		result.e11 =
+			e00 * _22x33 -
+			e00 * _23x32 -
+			e20 * _02x33 +
+			e20 * _03x32 +
+			e30 * _02x23 -
+			e30 * _03x22;
 
-		result.data[6] =
-			-data[0] * _12x33 +
-			data[0] * _13x32 +
-			data[4] * _02x33 -
-			data[4] * _03x32 -
-			data[12] * _02x13 +
-			data[12] * _03x12;
+		result.e12 =
+			-e00 * _12x33 +
+			e00 * _13x32 +
+			e10 * _02x33 -
+			e10 * _03x32 -
+			e30 * _02x13 +
+			e30 * _03x12;
 
-		result.data[7] =
-			data[0] * _12x23 -
-			data[0] * _13x22 -
-			data[4] * _02x23 +
-			data[4] * _03x22 +
-			data[8] * _02x13 -
-			data[8] * _03x12;
+		result.e13 =
+			e00 * _12x23 -
+			e00 * _13x22 -
+			e10 * _02x23 +
+			e10 * _03x22 +
+			e20 * _02x13 -
+			e20 * _03x12;
 
 
 		// Row 2.
-		result.data[8] =
-			data[4] * _21x33 -
-			data[4] * _23x31 -
-			data[8] * _11x33 +
-			data[8] * _13x31 +
-			data[12] * _11x23 -
-			data[12] * _13x21;
+		result.e20 =
+			e10 * _21x33 -
+			e10 * _23x31 -
+			e20 * _11x33 +
+			e20 * _13x31 +
+			e30 * _11x23 -
+			e30 * _13x21;
 
-		result.data[9] =
-			-data[0] * _21x33 +
-			data[0] * _23x31 +
-			data[8] * _01x33 -
-			data[8] * _03x31 -
-			data[12] * _01x23 +
-			data[12] * _03x21;
+		result.e21 =
+			-e00 * _21x33 +
+			e00 * _23x31 +
+			e20 * _01x33 -
+			e20 * _03x31 -
+			e30 * _01x23 +
+			e30 * _03x21;
 
-		result.data[10] =
-			data[0] * _11x33 -
-			data[0] * _13x31 -
-			data[4] * _01x33 +
-			data[4] * _03x31 +
-			data[12] * _01x13 -
-			data[12] * _03x11;
+		result.e22 =
+			e00 * _11x33 -
+			e00 * _13x31 -
+			e10 * _01x33 +
+			e10 * _03x31 +
+			e30 * _01x13 -
+			e30 * _03x11;
 
-		result.data[11] =
-			-data[0] * _11x23 +
-			data[0] * _13x21 +
-			data[4] * _01x23 -
-			data[4] * _03x21 -
-			data[8] * _01x13 +
-			data[8] * _03x11;
+		result.e23 =
+			-e00 * _11x23 +
+			e00 * _13x21 +
+			e10 * _01x23 -
+			e10 * _03x21 -
+			e20 * _01x13 +
+			e20 * _03x11;
 
 
 		// Row 3.
-		result.data[12] =
-			-data[4] * _21x32 +
-			data[4] * _22x31 +
-			data[8] * _11x32 -
-			data[8] * _12x31 -
-			data[12] * _11x22 +
-			data[12] * _12x21;
+		result.e30 =
+			-e10 * _21x32 +
+			e10 * _22x31 +
+			e20 * _11x32 -
+			e20 * _12x31 -
+			e30 * _11x22 +
+			e30 * _12x21;
 
-		result.data[13] =
-			data[0] * _21x32 -
-			data[0] * _22x31 -
-			data[8] * _01x32 +
-			data[8] * _02x31 +
-			data[12] * _01x22 -
-			data[12] * _02x21;
+		result.e31 =
+			e00 * _21x32 -
+			e00 * _22x31 -
+			e20 * _01x32 +
+			e20 * _02x31 +
+			e30 * _01x22 -
+			e30 * _02x21;
 
-		result.data[14] =
-			-data[0] * _11x32 +
-			data[0] * _12x31 +
-			data[4] * _01x32 -
-			data[4] * _02x31 -
-			data[12] * _01x12 +
-			data[12] * _02x11;
+		result.e32 =
+			-e00 * _11x32 +
+			e00 * _12x31 +
+			e10 * _01x32 -
+			e10 * _02x31 -
+			e30 * _01x12 +
+			e30 * _02x11;
 
-		result.data[15] =
-			data[0] * _11x22 -
-			data[0] * _12x21 -
-			data[4] * _01x22 +
-			data[4] * _02x21 +
-			data[8] * _01x12 -
-			data[8] * _02x11;
+		result.e33 =
+			e00 * _11x22 -
+			e00 * _12x21 -
+			e10 * _01x22 +
+			e10 * _02x21 +
+			e20 * _01x12 -
+			e20 * _02x11;
 
 
 		result /= det;
@@ -542,19 +455,9 @@ namespace Sa
 	{
 		Mat4 result = Mat4::Identity;
 
-#if SA_MATRIX_ROW_MAJOR
-
-		result.data[3] = _transl.x;
-		result.data[7] = _transl.x;
-		result.data[11] = _transl.x;
-
-#else
-
-		result.data[12] = _transl.x;
-		result.data[13] = _transl.x;
-		result.data[14] = _transl.x;
-
-#endif
+		result.e03 = _transl.x;
+		result.e13 = _transl.y;
+		result.e23 = _transl.z;
 
 		return result;
 	}
@@ -593,9 +496,9 @@ namespace Sa
 	{
 		Mat4 result = Mat4::Identity;
 
-		result.data[0] = _scale.x;
-		result.data[5] = _scale.y;
-		result.data[10] = _scale.z;
+		result.e00 = _scale.x;
+		result.e11 = _scale.y;
+		result.e22 = _scale.z;
 
 		return result;
 	}
@@ -606,20 +509,9 @@ namespace Sa
 		Mat4<T> result = MakeRotation(_rotation);
 
 		// Apply position.
-
-#if SA_MATRIX_ROW_MAJOR
-
-		result.data[3] = _transl.x;
-		result.data[7] = _transl.y;
-		result.data[11] = _transl.z;
-
-#else
-
-		result.data[12] = _transl.x;
-		result.data[13] = _transl.y;
-		result.data[14] = _transl.z;
-
-#endif
+		result.e03 = _transl.x;
+		result.e13 = _transl.y;
+		result.e23 = _transl.z;
 
 		return result;
 	}
@@ -630,20 +522,9 @@ namespace Sa
 		Mat4<T> result = MakeScale(_scale);
 
 		// Apply position.
-
-#if SA_MATRIX_ROW_MAJOR
-
-		result.data[3] = _transl.x;
-		result.data[7] = _transl.y;
-		result.data[11] = _transl.z;
-
-#else
-
-		result.data[12] = _transl.x;
-		result.data[13] = _transl.y;
-		result.data[14] = _transl.z;
-
-#endif
+		result.e03 = _transl.x;
+		result.e13 = _transl.y;
+		result.e23 = _transl.z;
 
 		return result;
 	}
@@ -660,20 +541,9 @@ namespace Sa
 		Mat4<T> result = MakeScale(_scale) * MakeRotation(_rotation);
 
 		// Apply position.
-
-#if SA_MATRIX_ROW_MAJOR
-
-		result.data[3] = _transl.x;
-		result.data[7] = _transl.y;
-		result.data[11] = _transl.z;
-
-#else
-
-		result.data[12] = _transl.x;
-		result.data[13] = _transl.y;
-		result.data[14] = _transl.z;
-
-#endif
+		result.e03 = _transl.x;
+		result.e13 = _transl.y;
+		result.e23 = _transl.z;
 
 		return result;
 	}
@@ -684,8 +554,7 @@ namespace Sa
 		//const float scale = 1.f / tanf((_fov / 2.f) * Maths::DegToRad);
 		float tan_half_angle = std::tan(Maths::DegToRad * _fov / 2);
 
-		return Mat4<T>
-		(
+		return Mat4(
 			1 / (_aspect * tan_half_angle), 0, 0, 0,
 			0, 1 / (tan_half_angle), 0, 0,
 			0, 0, -_far / (_far - _near), -(2 * _far * _near) / (_far - _near),
@@ -698,25 +567,12 @@ namespace Sa
 	{
 		// Allows constexpr
 
-#if SA_MATRIX_ROW_MAJOR
-
 		return Mat4(
-			-data[0], -data[1], -data[2], -data[3],
-			-data[4], -data[5], -data[6], -data[7],
-			-data[8], -data[9], -data[10], -data[11],
-			-data[12], -data[13], -data[14], -data[15]
+			-e00, -e01, -e02, -e03,
+			-e10, -e11, -e12, -e13,
+			-e20, -e21, -e22, -e23,
+			-e30, -e31, -e32, -e33
 		);
-
-#else
-
-		return Mat4(
-			-data[0], -data[4], -data[8], -data[12],
-			-data[1], -data[5], -data[9], -data[13],
-			-data[2], -data[6], -data[10], -data[14],
-			-data[3], -data[7], -data[11], -data[15]
-		);
-
-#endif
 	}
 
 	template <typename T>
@@ -736,49 +592,12 @@ namespace Sa
 	{
 		// Allows constexpr.
 
-#if SA_MATRIX_ROW_MAJOR
-
 		return Mat4(
-			data[0] + _rhs.data[0],
-			data[1] + _rhs.data[1],
-			data[2] + _rhs.data[2],
-			data[3] + _rhs.data[3],
-			data[4] + _rhs.data[4],
-			data[5] + _rhs.data[5],
-			data[6] + _rhs.data[6],
-			data[7] + _rhs.data[7],
-			data[8] + _rhs.data[8],
-			data[9] + _rhs.data[9],
-			data[10] + _rhs.data[10],
-			data[11] + _rhs.data[11],
-			data[12] + _rhs.data[12],
-			data[13] + _rhs.data[13],
-			data[14] + _rhs.data[14],
-			data[15] + _rhs.data[15]
+			e00 + _rhs.e00, e01 + _rhs.e01, e02 + _rhs.e02, e03 + _rhs.e03,
+			e10 + _rhs.e10, e11 + _rhs.e11, e12 + _rhs.e12, e13 + _rhs.e13,
+			e20 + _rhs.e20, e21 + _rhs.e21, e22 + _rhs.e22, e23 + _rhs.e23,
+			e30 + _rhs.e30, e31 + _rhs.e31, e32 + _rhs.e32, e33 + _rhs.e33
 		);
-
-#else
-
-		return Mat4(
-			data[0] + _rhs.data[0],
-			data[4] + _rhs.data[4],
-			data[8] + _rhs.data[8],
-			data[12] + _rhs.data[12],
-			data[1] + _rhs.data[1],
-			data[5] + _rhs.data[5],
-			data[9] + _rhs.data[9],
-			data[13] + _rhs.data[13],
-			data[2] + _rhs.data[2],
-			data[6] + _rhs.data[6],
-			data[10] + _rhs.data[10],
-			data[14] + _rhs.data[14],
-			data[3] + _rhs.data[3],
-			data[7] + _rhs.data[7],
-			data[11] + _rhs.data[11],
-			data[15] + _rhs.data[15]
-		);
-
-#endif
 	}
 
 	template <typename T>
@@ -786,49 +605,12 @@ namespace Sa
 	{
 		// Allows constexpr.
 
-#if SA_MATRIX_ROW_MAJOR
-
 		return Mat4(
-			data[0] - _rhs.data[0],
-			data[1] - _rhs.data[1],
-			data[2] - _rhs.data[2],
-			data[3] - _rhs.data[3],
-			data[4] - _rhs.data[4],
-			data[5] - _rhs.data[5],
-			data[6] - _rhs.data[6],
-			data[7] - _rhs.data[7],
-			data[8] - _rhs.data[8],
-			data[9] - _rhs.data[9],
-			data[10] - _rhs.data[10],
-			data[11] - _rhs.data[11],
-			data[12] - _rhs.data[12],
-			data[13] - _rhs.data[13],
-			data[14] - _rhs.data[14],
-			data[15] - _rhs.data[15]
+			e00 - _rhs.e00, e01 - _rhs.e01, e02 - _rhs.e02, e03 - _rhs.e03,
+			e10 - _rhs.e10, e11 - _rhs.e11, e12 - _rhs.e12, e13 - _rhs.e13,
+			e20 - _rhs.e20, e21 - _rhs.e21, e22 - _rhs.e22, e23 - _rhs.e23,
+			e30 - _rhs.e30, e31 - _rhs.e31, e32 - _rhs.e32, e33 - _rhs.e33
 		);
-
-#else
-
-		return Mat4(
-			data[0] - _rhs.data[0],
-			data[4] - _rhs.data[4],
-			data[8] - _rhs.data[8],
-			data[12] - _rhs.data[12],
-			data[1] - _rhs.data[1],
-			data[5] - _rhs.data[5],
-			data[9] - _rhs.data[9],
-			data[13] - _rhs.data[13],
-			data[2] - _rhs.data[2],
-			data[6] - _rhs.data[6],
-			data[10] - _rhs.data[10],
-			data[14] - _rhs.data[14],
-			data[3] - _rhs.data[3],
-			data[7] - _rhs.data[7],
-			data[11] - _rhs.data[11],
-			data[15] - _rhs.data[15]
-		);
-
-#endif
 	}
 
 	template <typename T>
@@ -836,55 +618,27 @@ namespace Sa
 	{
 		// Allows constexpr.
 
-#if SA_MATRIX_ROW_MAJOR
-
 		return Mat4<T>(
-			data[0] * _rhs.data[0] + data[1] * _rhs.data[4] + data[2] * _rhs.data[8] + data[3] * _rhs.data[12],
-			data[0] * _rhs.data[1] + data[1] * _rhs.data[5] + data[2] * _rhs.data[9] + data[3] * _rhs.data[13],
-			data[0] * _rhs.data[2] + data[1] * _rhs.data[6] + data[2] * _rhs.data[10] + data[3] * _rhs.data[14],
-			data[0] * _rhs.data[3] + data[1] * _rhs.data[7] + data[2] * _rhs.data[11] + data[3] * _rhs.data[15],
+			e00 * _rhs.e00 + e01 * _rhs.e10 + e02 * _rhs.e20 + e03 * _rhs.e03,
+			e00 * _rhs.e01 + e01 * _rhs.e11 + e02 * _rhs.e21 + e03 * _rhs.e13,
+			e00 * _rhs.e02 + e01 * _rhs.e12 + e02 * _rhs.e22 + e03 * _rhs.e23,
+			e00 * _rhs.e03 + e01 * _rhs.e13 + e02 * _rhs.e23 + e03 * _rhs.e33,
 
-			data[4] * _rhs.data[0] + data[5] * _rhs.data[4] + data[6] * _rhs.data[8] + data[7] * _rhs.data[12],
-			data[4] * _rhs.data[1] + data[5] * _rhs.data[5] + data[6] * _rhs.data[9] + data[7] * _rhs.data[13],
-			data[4] * _rhs.data[2] + data[5] * _rhs.data[6] + data[6] * _rhs.data[10] + data[7] * _rhs.data[14],
-			data[4] * _rhs.data[3] + data[5] * _rhs.data[7] + data[6] * _rhs.data[11] + data[7] * _rhs.data[15],
+			e10 * _rhs.e00 + e11 * _rhs.e10 + e12 * _rhs.e20 + e13 * _rhs.e03,
+			e10 * _rhs.e01 + e11 * _rhs.e11 + e12 * _rhs.e21 + e13 * _rhs.e13,
+			e10 * _rhs.e02 + e11 * _rhs.e12 + e12 * _rhs.e22 + e13 * _rhs.e23,
+			e10 * _rhs.e03 + e11 * _rhs.e13 + e12 * _rhs.e23 + e13 * _rhs.e33,
 
-			data[8] * _rhs.data[0] + data[9] * _rhs.data[4] + data[10] * _rhs.data[8] + data[11] * _rhs.data[12],
-			data[8] * _rhs.data[1] + data[9] * _rhs.data[5] + data[10] * _rhs.data[9] + data[11] * _rhs.data[13],
-			data[8] * _rhs.data[2] + data[9] * _rhs.data[6] + data[10] * _rhs.data[10] + data[11] * _rhs.data[14],
-			data[8] * _rhs.data[3] + data[9] * _rhs.data[7] + data[10] * _rhs.data[11] + data[11] * _rhs.data[15],
+			e20 * _rhs.e00 + e21 * _rhs.e10 + e22 * _rhs.e20 + e23 * _rhs.e03,
+			e20 * _rhs.e01 + e21 * _rhs.e11 + e22 * _rhs.e21 + e23 * _rhs.e13,
+			e20 * _rhs.e02 + e21 * _rhs.e12 + e22 * _rhs.e22 + e23 * _rhs.e23,
+			e20 * _rhs.e03 + e21 * _rhs.e13 + e22 * _rhs.e23 + e23 * _rhs.e33,
 
-			data[12] * _rhs.data[0] + data[13] * _rhs.data[4] + data[14] * _rhs.data[8] + data[15] * _rhs.data[12],
-			data[12] * _rhs.data[1] + data[13] * _rhs.data[5] + data[14] * _rhs.data[9] + data[15] * _rhs.data[13],
-			data[12] * _rhs.data[2] + data[13] * _rhs.data[6] + data[14] * _rhs.data[10] + data[15] * _rhs.data[14],
-			data[12] * _rhs.data[3] + data[13] * _rhs.data[7] + data[14] * _rhs.data[11] + data[15] * _rhs.data[15]
-			);
-
-#else
-
-		return Mat4<T>(
-			data[0] * _rhs.data[0] + data[1] * _rhs.data[4] + data[2] * _rhs.data[8] + data[3] * _rhs.data[12],
-			data[4] * _rhs.data[0] + data[5] * _rhs.data[4] + data[6] * _rhs.data[8] + data[7] * _rhs.data[12],
-			data[8] * _rhs.data[0] + data[9] * _rhs.data[4] + data[10] * _rhs.data[8] + data[11] * _rhs.data[12],
-			data[12] * _rhs.data[0] + data[13] * _rhs.data[4] + data[14] * _rhs.data[8] + data[15] * _rhs.data[12],
-
-			data[0] * _rhs.data[1] + data[1] * _rhs.data[5] + data[2] * _rhs.data[9] + data[3] * _rhs.data[13],
-			data[4] * _rhs.data[1] + data[5] * _rhs.data[5] + data[6] * _rhs.data[9] + data[7] * _rhs.data[13],
-			data[8] * _rhs.data[1] + data[9] * _rhs.data[5] + data[10] * _rhs.data[9] + data[11] * _rhs.data[13],
-			data[12] * _rhs.data[1] + data[13] * _rhs.data[5] + data[14] * _rhs.data[9] + data[15] * _rhs.data[13],
-
-			data[0] * _rhs.data[2] + data[1] * _rhs.data[6] + data[2] * _rhs.data[10] + data[3] * _rhs.data[14],
-			data[4] * _rhs.data[2] + data[5] * _rhs.data[6] + data[6] * _rhs.data[10] + data[7] * _rhs.data[14],
-			data[8] * _rhs.data[2] + data[9] * _rhs.data[6] + data[10] * _rhs.data[10] + data[11] * _rhs.data[14],
-			data[12] * _rhs.data[2] + data[13] * _rhs.data[6] + data[14] * _rhs.data[10] + data[15] * _rhs.data[14],
-
-			data[0] * _rhs.data[3] + data[1] * _rhs.data[7] + data[2] * _rhs.data[11] + data[3] * _rhs.data[15],
-			data[4] * _rhs.data[3] + data[5] * _rhs.data[7] + data[6] * _rhs.data[11] + data[7] * _rhs.data[15],
-			data[8] * _rhs.data[3] + data[9] * _rhs.data[7] + data[10] * _rhs.data[11] + data[11] * _rhs.data[15],
-			data[12] * _rhs.data[3] + data[13] * _rhs.data[7] + data[14] * _rhs.data[11] + data[15] * _rhs.data[15]
-			);
-
-#endif
+			e03 * _rhs.e00 + e13 * _rhs.e10 + e23 * _rhs.e20 + e33 * _rhs.e03,
+			e03 * _rhs.e01 + e13 * _rhs.e11 + e23 * _rhs.e21 + e33 * _rhs.e13,
+			e03 * _rhs.e02 + e13 * _rhs.e12 + e23 * _rhs.e22 + e33 * _rhs.e23,
+			e03 * _rhs.e03 + e13 * _rhs.e13 + e23 * _rhs.e23 + e33 * _rhs.e33
+		);
 	}
 
 	template <typename T>
@@ -912,15 +666,21 @@ namespace Sa
 	template <typename T>
 	Mat4<T>& Mat4<T>::operator+=(const Mat4& _rhs) noexcept
 	{
+		T* const data = Data();
+		const T* const rhsData = _rhs.Data();
+
 		for (uint32 i = 0; i < 16u; ++i)
-			data[i] += _rhs.data[i];
+			data[i] += rhsData[i];
 	}
 
 	template <typename T>
 	Mat4<T>& Mat4<T>::operator-=(const Mat4& _rhs) noexcept
 	{
+		T* const data = Data();
+		const T* const rhsData = _rhs.Data();
+
 		for (uint32 i = 0; i < 16u; ++i)
-			data[i] -= _rhs.data[i];
+			data[i] -= rhsData[i];
 	}
 
 	template <typename T>
@@ -983,43 +743,28 @@ namespace Sa
 	{
 		// Allows constexpr.
 
-		float* data = _rhs.Data();
+		SA_ASSERT(!Maths::Equals0(_rhs.e00), DivisionBy0, Maths, L"Inverse scale matrix [0] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e01), DivisionBy0, Maths, L"Inverse scale matrix [1] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e02), DivisionBy0, Maths, L"Inverse scale matrix [2] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e03), DivisionBy0, Maths, L"Inverse scale matrix [3] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e10), DivisionBy0, Maths, L"Inverse scale matrix [4] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e11), DivisionBy0, Maths, L"Inverse scale matrix [5] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e12), DivisionBy0, Maths, L"Inverse scale matrix [6] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e13), DivisionBy0, Maths, L"Inverse scale matrix [7] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e20), DivisionBy0, Maths, L"Inverse scale matrix [8] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e21), DivisionBy0, Maths, L"Inverse scale matrix [9] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e22), DivisionBy0, Maths, L"Inverse scale matrix [10] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e23), DivisionBy0, Maths, L"Inverse scale matrix [11] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e30), DivisionBy0, Maths, L"Inverse scale matrix [12] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e31), DivisionBy0, Maths, L"Inverse scale matrix [13] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e32), DivisionBy0, Maths, L"Inverse scale matrix [14] == 0!");
+		SA_ASSERT(!Maths::Equals0(_rhs.e33), DivisionBy0, Maths, L"Inverse scale matrix [15] == 0!");
 
-		SA_ASSERT(!Maths::Equals0(data[0]), DivisionBy0, Maths, L"Inverse scale matrix [0] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[1]), DivisionBy0, Maths, L"Inverse scale matrix [1] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[2]), DivisionBy0, Maths, L"Inverse scale matrix [2] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[3]), DivisionBy0, Maths, L"Inverse scale matrix [3] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[4]), DivisionBy0, Maths, L"Inverse scale matrix [4] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[5]), DivisionBy0, Maths, L"Inverse scale matrix [5] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[6]), DivisionBy0, Maths, L"Inverse scale matrix [6] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[7]), DivisionBy0, Maths, L"Inverse scale matrix [7] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[8]), DivisionBy0, Maths, L"Inverse scale matrix [8] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[9]), DivisionBy0, Maths, L"Inverse scale matrix [9] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[10]), DivisionBy0, Maths, L"Inverse scale matrix [10] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[11]), DivisionBy0, Maths, L"Inverse scale matrix [11] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[12]), DivisionBy0, Maths, L"Inverse scale matrix [12] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[13]), DivisionBy0, Maths, L"Inverse scale matrix [13] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[14]), DivisionBy0, Maths, L"Inverse scale matrix [14] == 0!");
-		SA_ASSERT(!Maths::Equals0(data[15]), DivisionBy0, Maths, L"Inverse scale matrix [15] == 0!");
-
-#if SA_MATRIX_ROW_MAJOR
-
-		return Mat4(
-			_lhs / data[0], _lhs / data[1], _lhs / data[2], _lhs / data[3],
-			_lhs / data[4], _lhs / data[5], _lhs / data[6], _lhs / data[7],
-			_lhs / data[8], _lhs / data[9], _lhs / data[10], _lhs / data[11],
-			_lhs / data[12], _lhs / data[13], _lhs / data[14], _lhs / data[15]
+		return Mat4<T>(
+			_lhs / _rhs.e00, _lhs / _rhs.e01, _lhs / _rhs.e02, _lhs / _rhs.e03,
+			_lhs / _rhs.e10, _lhs / _rhs.e11, _lhs / _rhs.e12, _lhs / _rhs.e13,
+			_lhs / _rhs.e20, _lhs / _rhs.e21, _lhs / _rhs.e22, _lhs / _rhs.e23,
+			_lhs / _rhs.e30, _lhs / _rhs.e31, _lhs / _rhs.e32, _lhs / _rhs.e33
 		);
-
-#else
-
-		return Mat4(
-			_lhs / data[0], _lhs / data[4], _lhs / data[8], _lhs / data[12],
-			_lhs / data[1], _lhs / data[5], _lhs / data[9], _lhs / data[13],
-			_lhs / data[2], _lhs / data[6], _lhs / data[10], _lhs / data[14],
-			_lhs / data[3], _lhs / data[7], _lhs / data[11], _lhs / data[15]
-		);
-
-#endif
 	}
 }

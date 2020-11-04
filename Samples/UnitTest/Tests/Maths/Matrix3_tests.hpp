@@ -8,19 +8,19 @@
 #include "../../UnitTest.hpp"
 
 #include <Sapphire/Core/Misc/Random.hpp>
-#include <Sapphire/Maths/Space/Matrix4.hpp>
+#include <Sapphire/Maths/Space/Matrix3.hpp>
 
 #define LOG_V(_q) LOG(#_q ": " << _q)
 
 namespace Sa
 {
-	std::ostream& operator<<(std::ostream& _stream, const Mat4d& _mat)
+	std::ostream& operator<<(std::ostream& _stream, const Mat3d& _mat)
 	{
-		_stream << "Mat4(\n";
+		_stream << "Mat3(\n";
 
-		for (uint32 i = 0; i < 4u; ++i)
+		for (uint32 i = 0; i < 3u; ++i)
 		{
-			for (uint32 j = 0; j < 4u; ++j)
+			for (uint32 j = 0; j < 3u; ++j)
 				_stream << _mat.At(i, j) << ", \t";
 
 			_stream << '\n';
@@ -31,16 +31,9 @@ namespace Sa
 		return _stream;
 	}
 
-	Mat4d GenerateRandMat()
+	Mat3d GenerateRandMat()
 	{
-		return Mat4d(Random<double>::Value(-100.0, 100.0),
-			Random<double>::Value(-100.0, 100.0),
-			Random<double>::Value(-100.0, 100.0),
-			Random<double>::Value(-100.0, 100.0),
-			Random<double>::Value(-100.0, 100.0),
-			Random<double>::Value(-100.0, 100.0),
-			Random<double>::Value(-100.0, 100.0),
-			Random<double>::Value(-100.0, 100.0),
+		return Mat3d(Random<double>::Value(-100.0, 100.0),
 			Random<double>::Value(-100.0, 100.0),
 			Random<double>::Value(-100.0, 100.0),
 			Random<double>::Value(-100.0, 100.0),
@@ -68,13 +61,13 @@ namespace Sa
 
 		LOG("\n=== Inverse ===");
 		{
-			Mat4d m = GenerateRandMat();
+			Mat3d m = GenerateRandMat();
 			std::cout << "Mat: " << m << std::endl;
 
-			Mat4d invM = m.GetInversed();
+			Mat3d invM = m.GetInversed();
 			std::cout << "InvMat: " << invM << std::endl;
 
-			Mat4d result = invM * m;
+			Mat3d result = invM * m;
 			std::cout << "Mult: " << result << std::endl;
 		}
 	}

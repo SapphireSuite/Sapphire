@@ -38,20 +38,20 @@ namespace Sa
 	*
 	*	\param[in] _matrix	Transformation matrix to convert.
 	*
-	*	\result Converted transformed matrix.
+	*	\result self converted transformed matrix.
 	*/
 	template <typename T>
-	Mat4<T> API_ConvertCoordinateSystem(const Mat4<T>& _matrix) noexcept;
+	Mat4<T>& API_ConvertCoordinateSystem(Mat4<T>& _matrix) noexcept;
 
 	/**
 	*	Convert coordinates from Sapphire's to API's system or from API's to Sapphire's.
 	*
 	*	\param[in] _matrix	Transformation matrix to convert.
 	*
-	*	\result Converted transformed matrix.
+	*	\result New converted transformed matrix.
 	*/
 	template <typename T>
-	Mat4<T>&& API_ConvertCoordinateSystem(Mat4<T>&& _matrix) noexcept;
+	Mat4<T> API_ConvertCoordinateSystem(const Mat4<T>& _matrix) noexcept;
 }
 
 #include <Rendering/Misc/APISpecific.inl>

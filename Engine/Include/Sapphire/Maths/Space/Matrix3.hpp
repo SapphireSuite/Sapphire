@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_MATHS_MATRIX4_GUARD
-#define SAPPHIRE_MATHS_MATRIX4_GUARD
+#ifndef SAPPHIRE_MATHS_MATRIX3_GUARD
+#define SAPPHIRE_MATHS_MATRIX3_GUARD
 
 #include <Core/Algorithms/Swap.hpp>
 
@@ -14,97 +14,81 @@
 namespace Sa
 {
 	/**
-	*	\file Matrix4.hpp
+	*	\file Matrix3.hpp
 	*
-	*	\brief \b Definition of Sapphire's \b Matrix 4x4 type.
+	*	\brief \b Definition of Sapphire's \b Matrix 3x3 type.
 	*
 	*	\ingroup Maths
 	*	\{
 	*/
 
-
 	template <typename T>
-	struct Mat3;
+	struct Mat4;
 
 
 	/**
-	*	\brief \e Matrix 4x4 Sapphire's class.
+	*	\brief \e Matrix 3x3 Sapphire's class.
 	*
 	*	\tparam T	Type of the matrix.
 	*/
 	template <typename T>
-	struct Mat4
+	struct Mat3
 	{
 		/// Matrix components.
 #if SA_MATRIX_ROW_MAJOR
 
-		T e00{ 0.0f }; T e01{ 0.0f }; T e02{ 0.0f }; T e03{ 0.0f };
-		T e10{ 0.0f }; T e11{ 0.0f }; T e12{ 0.0f }; T e13{ 0.0f };
-		T e20{ 0.0f }; T e21{ 0.0f }; T e22{ 0.0f }; T e23{ 0.0f };
-		T e30{ 0.0f }; T e31{ 0.0f }; T e32{ 0.0f }; T e33{ 0.0f };
+		T e00{ 0.0f }; T e01{ 0.0f }; T e02{ 0.0f };
+		T e10{ 0.0f }; T e11{ 0.0f }; T e12{ 0.0f };
+		T e20{ 0.0f }; T e21{ 0.0f }; T e22{ 0.0f };
 
 #else
 
-		T e00{ 0.0f }; T e10{ 0.0f }; T e20{ 0.0f }; T e30{ 0.0f };
-		T e01{ 0.0f }; T e11{ 0.0f }; T e21{ 0.0f }; T e31{ 0.0f };
-		T e02{ 0.0f }; T e12{ 0.0f }; T e22{ 0.0f }; T e32{ 0.0f };
-		T e03{ 0.0f }; T e13{ 0.0f }; T e23{ 0.0f }; T e33{ 0.0f };
+		T e00{ 0.0f }; T e10{ 0.0f }; T e20{ 0.0f };
+		T e01{ 0.0f }; T e11{ 0.0f }; T e21{ 0.0f };
+		T e02{ 0.0f }; T e12{ 0.0f }; T e22{ 0.0f };
 
 #endif
 
 		/**
-		*	Zero Mat4 constant
-		*	{0, 0, 0, 0}
-		*	{0, 0, 0, 0}
-		*	{0, 0, 0, 0}
-		*	{0, 0, 0, 0}
+		*	Zero Mat3 constant
+		*	{0, 0, 0}
+		*	{0, 0, 0}
+		*	{0, 0, 0}
 		*/
-		static const Mat4 Zero;
+		static const Mat3 Zero;
 
 		/**
-		*	Identity Mat4 constant
-		*	{1, 0, 0, 0}
-		*	{0, 1, 0, 0}
-		*	{0, 0, 1, 0}
-		*	{0, 0, 0, 1}
+		*	Identity Mat3 constant
+		*	{1, 0, 0}
+		*	{0, 1, 0}
+		*	{0, 0, 1}
 		*/
-		static const Mat4 Identity;
+		static const Mat3 Identity;
 
 		/**
 		*	\brief \e Default constructor.
 		*/
-		Mat4() = default;
+		Mat3() = default;
 
 		/**
 		*	\brief \e Default move constructor.
 		*/
-		Mat4(Mat4&&) = default;
+		Mat3(Mat3&&) = default;
 
 		/**
 		*	\brief \e Default copy constructor.
 		*/
-		Mat4(const Mat4&) = default;
+		Mat3(const Mat3&) = default;
 
 		/**
 		*	\brief \e Value constructor.
 		*
 		*/
-		constexpr Mat4(
-			T _00, T _01, T _02, T _03,
-			T _10, T _11, T _12, T _13,
-			T _20, T _21, T _22, T _23,
-			T _30, T _31, T _32, T _33
+		constexpr Mat3(
+			T _e00, T _e01, T _e02,
+			T _e10, T _e11, T _e12,
+			T _e20, T _e21, T _e22
 		) noexcept;
-
-		/**
-		*	\brief \e Value constructor from another Mat4 type.
-		*
-		*	\tparam TIn			Type of the input Mat4.
-		*
-		*	\param[in] _other	Mat4 to construct from.
-		*/
-		template <typename TIn>
-		constexpr explicit Mat4(const Mat4<TIn>& _other) noexcept;
 
 		/**
 		*	\brief \e Value constructor from another Mat3 type.
@@ -114,7 +98,17 @@ namespace Sa
 		*	\param[in] _other	Mat3 to construct from.
 		*/
 		template <typename TIn>
-		constexpr explicit Mat4(const Mat3<TIn>& _other) noexcept;
+		constexpr explicit Mat3(const Mat3<TIn>& _other) noexcept;
+
+		/**
+		*	\brief \e Value constructor from another Mat4 type.
+		*
+		*	\tparam TIn			Type of the input Mat4.
+		*
+		*	\param[in] _other	Mat4 to construct from.
+		*/
+		template <typename TIn>
+		constexpr explicit Mat3(const Mat4<TIn>& _other) noexcept;
 
 
 		/**
@@ -140,7 +134,7 @@ namespace Sa
 		*
 		*	\return Whether this and _other are equal.
 		*/
-		constexpr bool Equals(const Mat4& _other, T _threshold = Limits<T>::epsilon) const noexcept;
+		constexpr bool Equals(const Mat3& _other, T _threshold = Limits<T>::epsilon) const noexcept;
 
 		/**
 		*	\brief \e Getter of matrix data
@@ -201,7 +195,7 @@ namespace Sa
 		*
 		*	\return self matrix scaled.
 		*/
-		Mat4& Scale(T _scale) noexcept;
+		Mat3& Scale(T _scale) noexcept;
 
 		/**
 		*	\brief \b Scale (multiply) each matrix components by _scale.
@@ -210,7 +204,7 @@ namespace Sa
 		*
 		*	\return new scaled matrix.
 		*/
-		constexpr Mat4 GetScaled(T _scale) const noexcept;
+		constexpr Mat3 GetScaled(T _scale) const noexcept;
 
 		/**
 		*	\brief <b> Un-Scale </b> (divide) each matrix components by _scale.
@@ -219,7 +213,7 @@ namespace Sa
 		*
 		*	\return self matrix unscaled.
 		*/
-		Mat4& UnScale(T _scale);
+		Mat3& UnScale(T _scale);
 
 		/**
 		*	\brief <b> Un-Scale </b> (divide) each matrix components by _scale.
@@ -228,21 +222,21 @@ namespace Sa
 		*
 		*	\return new unscaled matrix.
 		*/
-		constexpr Mat4 GetUnScaled(T _scale) const;
+		constexpr Mat3 GetUnScaled(T _scale) const;
 
 		/**
 		*	\brief \b Transpose this matrix.
 		*
 		*	\return self transposed matrix.
 		*/
-		Mat4& Transpose() noexcept;
+		Mat3& Transpose() noexcept;
 
 		/**
 		*	\brief \b Transpose this matrix.
 		*
 		*	\return new transposed matrix.
 		*/
-		constexpr Mat4 GetTransposed() const noexcept;
+		constexpr Mat3 GetTransposed() const noexcept;
 
 		/**
 		*	\brief \e Compute the determinant of the matrix.
@@ -256,25 +250,15 @@ namespace Sa
 		*
 		*	\return self inversed matrix.
 		*/
-		Mat4& Inverse();
+		Mat3& Inverse();
 
 		/**
 		*	\brief \b Inverse this matrix.
 		*
 		*	\return new inversed matrix.
 		*/
-		Mat4 GetInversed() const;
+		Mat3 GetInversed() const;
 
-
-		/**
-		*	\brief Make <b> translation matrix </b> from vector3.
-		*
-		*	\param[in] _transl	Vector to translate
-		*	\param[in] _bAPIConvert	Should convert matrix to Rendering API coordinate system.
-		*
-		*	\return translation matrix.
-		*/
-		static Mat4 MakeTranslation(const Vec3<T>& _transl);
 
 		/**
 		*	\brief Make <b> rotation matrix </b> from quaternion.
@@ -284,7 +268,7 @@ namespace Sa
 		*
 		*	\return rotation matrix.
 		*/
-		static Mat4 MakeRotation(const Quat<T>& _rotation);
+		static Mat3 MakeRotation(const Quat<T>& _rotation);
 
 		/**
 		*	\brief Make <b> scale matrix </b> from vector3.
@@ -294,28 +278,7 @@ namespace Sa
 		*
 		*	\return scale matrix.
 		*/
-		static Mat4 MakeScale(const Vec3<T>& _scale);
-
-		/**
-		*	\brief Make <b> transform matrix </b>.
-		*
-		*	\param[in] _transl		Vector for translation.
-		*	\param[in] _rotation	Quaternion for rotation.
-		*
-		*	\return transform matrix.
-		*/
-		static Mat4 MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation);
-
-		/**
-		*	\brief Make <b> transform matrix </b>.
-		*
-		*	\param[in] _transl		Vector for translation.
-		*	\param[in] _scale		Vector for scale.
-		*	\param[in] _bAPIConvert	Should convert matrix to Rendering API coordinate system.
-		*
-		*	\return transform matrix.
-		*/
-		static Mat4 MakeTransform(const Vec3<T>& _transl, const Vec3<T>& _scale);
+		static Mat3 MakeScale(const Vec3<T>& _scale);
 
 		/**
 		*	\brief Make <b> transform matrix </b>.
@@ -325,42 +288,17 @@ namespace Sa
 		*
 		*	\return transform matrix.
 		*/
-		static Mat4 MakeTransform(const Quat<T>& _rotation, const Vec3<T>& _scale);
-
-		/**
-		*	\brief Make <b> transform matrix </b>.
-		*
-		*	\param[in] _transl		Vector for translation.
-		*	\param[in] _rotation	Quaternion for rotation.
-		*	\param[in] _scale		Vector for scale.
-		*
-		*	\return transform matrix.
-		*/
-		static Mat4 MakeTransform(const Vec3<T>& _transl, const Quat<T>& _rotation, const Vec3<T>& _scale);
-
-
-		/**
-		*	\brief Make <b> perspective matrix </b>.
-		*
-		*	\param[in] _fov			Perspective FOV.
-		*	\param[in] _aspect		Aspect ratio (width/height).
-		*	\param[in] _near		Near frustum.
-		*	\param[in] _far			Far frustum.
-		*
-		*	\return perspective matrix.
-		*/
-		static Mat4 MakePerspective(T _fov = T(90.0), T _aspect = T(1.0), T _near = T(0.35), T _far = T(10.0));
-
+		static Mat3 MakeTransform(const Quat<T>& _rotation, const Vec3<T>& _scale);
 
 		/**
 		*	\brief \e Default move assignement.
 		*/
-		Mat4& operator=(Mat4&&) = default;
+		Mat3& operator=(Mat3&&) = default;
 
 		/**
 		*	\brief \e Default copy assignement.
 		*/
-		Mat4& operator=(const Mat4&) = default;
+		Mat3& operator=(const Mat3&) = default;
 
 
 		/**
@@ -368,7 +306,7 @@ namespace Sa
 		*
 		*	\return new opposite signed matrix.
 		*/
-		constexpr Mat4 operator-() const noexcept;
+		constexpr Mat3 operator-() const noexcept;
 
 		/**
 		*	\brief \b Scale each matrix component by _scale.
@@ -377,7 +315,7 @@ namespace Sa
 		*
 		*	\return new matrix scaled.
 		*/
-		constexpr Mat4 operator*(T _scale) const noexcept;
+		constexpr Mat3 operator*(T _scale) const noexcept;
 
 		/**
 		*	\brief <b> Inverse Scale </b> each matrix component by _scale.
@@ -386,7 +324,7 @@ namespace Sa
 		*
 		*	\return new matrix inverse-scaled.
 		*/
-		constexpr Mat4 operator/(T _scale) const;
+		constexpr Mat3 operator/(T _scale) const;
 
 		/**
 		*	\brief \b Add term by term matrix values.
@@ -395,7 +333,7 @@ namespace Sa
 		*
 		*	\return new matrix result.
 		*/
-		constexpr Mat4 operator+(const Mat4& _rhs) const noexcept;
+		constexpr Mat3 operator+(const Mat3& _rhs) const noexcept;
 
 		/**
 		*	\brief \b Subtract term by term matrix values.
@@ -404,7 +342,7 @@ namespace Sa
 		*
 		*	\return new matrix result.
 		*/
-		constexpr Mat4 operator-(const Mat4& _rhs) const noexcept;
+		constexpr Mat3 operator-(const Mat3& _rhs) const noexcept;
 
 		/**
 		*	\brief \b Multiply matrices.
@@ -413,7 +351,7 @@ namespace Sa
 		*
 		*	\return new matrix result.
 		*/
-		constexpr Mat4 operator*(const Mat4& _rhs) const noexcept;
+		constexpr Mat3 operator*(const Mat3& _rhs) const noexcept;
 
 		/**
 		*	\brief \b Inverse multiply matrices.
@@ -422,7 +360,7 @@ namespace Sa
 		*
 		*	\return new matrix result.
 		*/
-		constexpr Mat4 operator/(const Mat4& _rhs) const noexcept;
+		constexpr Mat3 operator/(const Mat3& _rhs) const noexcept;
 
 		/**
 		*	\brief \b Scale each matrix component by _scale.
@@ -431,7 +369,7 @@ namespace Sa
 		*
 		*	\return self matrix scaled.
 		*/
-		Mat4& operator*=(T _scale) noexcept;
+		Mat3& operator*=(T _scale) noexcept;
 
 		/**
 		*	\brief <b> Inverse Scale </b> each matrix component by _scale.
@@ -440,7 +378,7 @@ namespace Sa
 		*
 		*	\return self matrix inverse-scaled.
 		*/
-		Mat4& operator/=(T _scale);
+		Mat3& operator/=(T _scale);
 
 		/**
 		*	\brief \b Add term by term matrix values.
@@ -449,7 +387,7 @@ namespace Sa
 		*
 		*	\return self matrix result.
 		*/
-		Mat4& operator+=(const Mat4& _rhs) noexcept;
+		Mat3& operator+=(const Mat3& _rhs) noexcept;
 
 		/**
 		*	\brief \b Subtract term by term matrix values.
@@ -458,7 +396,7 @@ namespace Sa
 		*
 		*	\return self matrix result.
 		*/
-		Mat4& operator-=(const Mat4& _rhs) noexcept;
+		Mat3& operator-=(const Mat3& _rhs) noexcept;
 
 		/**
 		*	\brief \b Multiply matrices.
@@ -467,7 +405,7 @@ namespace Sa
 		*
 		*	\return self matrix result.
 		*/
-		Mat4& operator*=(const Mat4& _rhs) noexcept;
+		Mat3& operator*=(const Mat3& _rhs) noexcept;
 
 		/**
 		*	\brief \b Inverse multiply matrices.
@@ -476,7 +414,7 @@ namespace Sa
 		*
 		*	\return self matrix result.
 		*/
-		Mat4& operator/=(const Mat4& _rhs) noexcept;
+		Mat3& operator/=(const Mat3& _rhs) noexcept;
 
 		/**
 		*	\brief \e Compare 2 matrix equality.
@@ -485,7 +423,7 @@ namespace Sa
 		*
 		*	\return Whether this and _rhs are equal.
 		*/
-		constexpr bool operator==(const Mat4& _rhs) noexcept;
+		constexpr bool operator==(const Mat3& _rhs) noexcept;
 
 		/**
 		*	\brief \e Compare 2 matrix inequality.
@@ -494,7 +432,7 @@ namespace Sa
 		*
 		*	\return Whether this and _rhs are non-equal.
 		*/
-		constexpr bool operator!=(const Mat4& _rhs) noexcept;
+		constexpr bool operator!=(const Mat3& _rhs) noexcept;
 
 		/**
 		*	\brief \e Access operator by index.
@@ -516,14 +454,14 @@ namespace Sa
 
 
 		/**
-		*	\brief \e Cast operator into other Mat4 type.
+		*	\brief \e Cast operator into other Mat3 type.
 		*
 		*	\tparam TIn		Type of the casted matrix.
 		*
 		*	\return \e Casted result.
 		*/
 		template <typename TIn>
-		constexpr operator Mat4<TIn>() const noexcept;
+		constexpr operator Mat3<TIn>() const noexcept;
 	};
 
 
@@ -536,7 +474,7 @@ namespace Sa
 	*	\return new matrix scaled.
 	*/
 	template <typename T>
-	constexpr Mat4<T> operator*(T _lhs, const Mat4<T>& _rhs) noexcept;
+	constexpr Mat3<T> operator*(T _lhs, const Mat3<T>& _rhs) noexcept;
 
 	/**
 	*	\brief <b> Inverse Scale </b> each matrix components by _lhs.
@@ -547,36 +485,36 @@ namespace Sa
 	*	\return new matrix inverse-scaled.
 	*/
 	template <typename T>
-	constexpr Mat4<T> operator/(T _lhs, const Mat4<T>& _rhs);
+	constexpr Mat3<T> operator/(T _lhs, const Mat3<T>& _rhs);
 
 
-	/// Alias for int32 Mat4.
-	using Mat4i = Mat4<int32>;
+	/// Alias for int32 Mat3.
+	using Mat3i = Mat3<int32>;
 
-	/// Alias for float Mat4.
-	using Mat4f = Mat4<float>;
+	/// Alias for float Mat3.
+	using Mat3f = Mat3<float>;
 
-	/// Alias for double Mat4.
-	using Mat4d = Mat4<double>;
+	/// Alias for double Mat3.
+	using Mat3d = Mat3<double>;
 
 
-	/// Template alias of Mat4
+	/// Template alias of Mat3
 	template <typename T>
-	using Matrix4 = Mat4<T>;
+	using Matrix3 = Mat3<T>;
 
-	/// Alias for int32 Matrix4.
-	using Matrix4i = Matrix4<int32>;
+	/// Alias for int32 Matrix3.
+	using Matrix3i = Matrix3<int32>;
 
-	/// Alias for float Matrix4.
-	using Matrix4f = Matrix4<float>;
+	/// Alias for float Matrix3.
+	using Matrix3f = Matrix3<float>;
 
-	/// Alias for double Matrix4.
-	using Matrix4d = Matrix4<double>;
+	/// Alias for double Matrix3.
+	using Matrix3d = Matrix3<double>;
 
 
 	/** \} */
 }
 
-#include <Maths/Space/Matrix4.inl>
+#include <Maths/Space/Matrix3.inl>
 
 #endif // GUARD
