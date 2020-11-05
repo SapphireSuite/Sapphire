@@ -81,7 +81,7 @@ namespace Sa
 		const VkAttachmentDescription positionAttachment
 		{
 			0,														// flags.
-			_createInfos.format,									// format.
+			VK_FORMAT_R8G8B8A8_UNORM,									// format.
 			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
 			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
@@ -94,7 +94,7 @@ namespace Sa
 		const VkAttachmentDescription normalAttachment
 		{
 			0,														// flags.
-			_createInfos.format,									// format.
+			VK_FORMAT_R8G8B8A8_UNORM,									// format.
 			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
 			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
@@ -107,7 +107,46 @@ namespace Sa
 		const VkAttachmentDescription albedoAttachment
 		{
 			0,														// flags.
-			_createInfos.format,									// format.
+			VK_FORMAT_R8G8B8_SRGB,									// format.
+			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
+			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
+			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
+			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL			// finalLayout.
+		};
+
+		const VkAttachmentDescription metallicAttachment
+		{
+			0,														// flags.
+			VK_FORMAT_R8_UNORM,									// format.
+			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
+			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
+			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
+			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL			// finalLayout.
+		};
+
+		const VkAttachmentDescription roughnessAttachment
+		{
+			0,														// flags.
+			VK_FORMAT_R8_UNORM,									// format.
+			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
+			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
+			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,						// stencilLoadOp.
+			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
+			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL			// finalLayout.
+		};
+
+		const VkAttachmentDescription aoAttachment
+		{
+			0,														// flags.
+			VK_FORMAT_R8_UNORM,									// format.
 			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
 			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
@@ -140,25 +179,31 @@ namespace Sa
 		const VkAttachmentReference* depthAttachmentRefPtr = _createInfos.bDepthBuffer ? &depthAttachmentRef : nullptr;
 
 		// FILL G-BUFFER
-		VkAttachmentReference colorReferences[4];
+		VkAttachmentReference colorReferences[7];
 		colorReferences[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 		colorReferences[1] = { 1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 		colorReferences[2] = { 2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 		colorReferences[3] = { 3, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		colorReferences[4] = { 4, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		colorReferences[5] = { 5, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		colorReferences[6] = { 5, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 
 		VkSubpassDescription fillSubpass{};
 		fillSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		fillSubpass.colorAttachmentCount = 4;
+		fillSubpass.colorAttachmentCount = 7;
 		fillSubpass.pColorAttachments = colorReferences;
 		fillSubpass.pDepthStencilAttachment = depthAttachmentRefPtr;
 
 		// COMPOSITION G-BUFFER
 		VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 
-		VkAttachmentReference inputReferences[3];
+		VkAttachmentReference inputReferences[6];
 		inputReferences[0] = { 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		inputReferences[1] = { 2, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		inputReferences[2] = { 3, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		inputReferences[3] = { 3, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		inputReferences[4] = { 4, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		inputReferences[5] = { 5, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
 		uint32_t preserveAttachmentIndex = 1;
 
@@ -167,7 +212,7 @@ namespace Sa
 		compositionSubpass.colorAttachmentCount = 1;
 		compositionSubpass.pColorAttachments = &colorReference;
 		compositionSubpass.pDepthStencilAttachment = depthAttachmentRefPtr;
-		compositionSubpass.inputAttachmentCount = 3;
+		compositionSubpass.inputAttachmentCount = 6;
 		compositionSubpass.pInputAttachments = inputReferences;
 
 		// FORWARD TRANSPARENCY
@@ -181,6 +226,7 @@ namespace Sa
 		forwardTransparencySubpass.pColorAttachments = &colorReference;
 		forwardTransparencySubpass.inputAttachmentCount = 1;
 		forwardTransparencySubpass.pInputAttachments = inputReferences;
+		forwardTransparencySubpass.pResolveAttachments = resolveAttachments;
 
 
 		// Use subpass dependencies for layout transitions
@@ -218,16 +264,30 @@ namespace Sa
 		dependencies[3].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 		dependencies[3].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-		std::vector<VkAttachmentDescription> attachements; //{ colorAttachment, colorAttachmentResolve, depthAttachment };
-		attachements.reserve(3);
+
+		std::vector<VkAttachmentDescription> attachements;
+		attachements.reserve(9);
 
 		attachements.push_back(colorAttachment);
+		attachements.push_back(positionAttachment);
+		attachements.push_back(normalAttachment);
+		attachements.push_back(albedoAttachment);
+		attachements.push_back(metallicAttachment);
+		attachements.push_back(roughnessAttachment);
+		attachements.push_back(aoAttachment);
 
 		if(mSampleBits > SampleBits::Sample1Bit)
 			attachements.push_back(colorAttachmentResolve);
 		
 		if(_createInfos.bDepthBuffer)
 			attachements.push_back(depthAttachment);
+
+		std::vector<VkSubpassDescription> subpassDesc;
+		subpassDesc.reserve(3);
+
+		subpassDesc.push_back(fillSubpass);
+		subpassDesc.push_back(compositionSubpass);
+		subpassDesc.push_back(forwardTransparencySubpass);
 
 		const VkRenderPassCreateInfo renderPassCreateInfo
 		{
@@ -236,9 +296,9 @@ namespace Sa
 			VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM,				// flags.
 			SizeOf(attachements),									// attachmentCount.
 			attachements.data(),									// pAttachments.
-			1,														// subpassCount.
-			&subpass,												// pSubpasses.
-			2,														// dependencyCount.
+			SizeOf(subpassDesc),									// subpassCount.
+			subpassDesc.data(),										// pSubpasses.
+			4,														// dependencyCount.
 			dependencies											// pDependencies.
 		};
 
