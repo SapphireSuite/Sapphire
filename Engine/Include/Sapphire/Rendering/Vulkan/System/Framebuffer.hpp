@@ -53,7 +53,8 @@ namespace Sa
 			void Create_Internal();
 
 		public:
-			const CommandBuffer& GetCommandBuffer() const;
+			// TODO: Exception used for the swapchain.. 
+			SA_ENGINE_API const CommandBuffer& GetCommandBuffer() const;
 
 			void Begin();
 

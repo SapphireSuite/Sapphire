@@ -16,6 +16,9 @@
 
 #include <Sapphire/Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Sapphire/Rendering/Vulkan/System/VkRenderPass.hpp>
+#include <Sapphire/Rendering/Vulkan/Primitives/Pipeline/VkShadowCubemapPipeline.hpp>
+#include <Sapphire/Rendering/Framework/Primitives/Light/LightViewInfos.hpp>
+#include <Sapphire/Rendering/Vulkan/Primitives/Mesh/VkMesh.hpp>
 
 #include <Sapphire/SDK/Assets/AssetManager.hpp>
 #include <Sapphire/SDK/Assets/Texture/TextureImportInfos.hpp>
@@ -36,6 +39,10 @@ constexpr const char* litFragShaderAssetPath = "Bin/Engine/Shaders/lit_FS.spha";
 constexpr const char* unlitVertShaderAssetPath = "Bin/Engine/Shaders/unlit_VS.spha";
 constexpr const char* unlitFragShaderAssetPath = "Bin/Engine/Shaders/unlit_FS.spha";
 
+constexpr const char* shadowCubemapVertShaderAssetPath = "Bin/Engine/Shaders/Shadow/shadowCubemap_VS.spha";
+constexpr const char* shadowCubemapGeomShaderAssetPath = "Bin/Engine/Shaders/Shadow/shadowCubemap_GS.spha";
+constexpr const char* shadowCubemapFragShaderAssetPath = "Bin/Engine/Shaders/Shadow/shadowCubemap_FS.spha";
+
 constexpr const char* missingTextureAssetPath = "Bin/Engine/Textures/missing_T.spha";
 constexpr const char* BRDFLookUpTableTextureAssetPath = "Bin/Engine/Textures/brdf_lut_T.spha";
 
@@ -44,6 +51,8 @@ constexpr const char* squareMeshAssetPath = "Bin/Meshes/Square_M.spha";
 
 IMesh* cubeMesh = nullptr;
 constexpr const char* cubeMeshAssetPath = "Bin/Meshes/Cube_M.spha";
+
+VkShadowCubemapPipeline l1Shadow;
 
 
 // Magikarp
@@ -110,6 +119,28 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 		// Import on load failed.
 		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/unlit.frag");
 		result->Save(unlitFragShaderAssetPath);
+	}
+
+	// Shadow vertex Shader.
+	if (!_assetMgr.shaderMgr.Load(shadowCubemapVertShaderAssetPath, true)) // Try load.
+	{
+		// Import on load failed.
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/Shadow/shadowCubemap.vert");
+		result->Save(shadowCubemapVertShaderAssetPath);
+	}
+	// Shadow geometry Shader.
+	if (!_assetMgr.shaderMgr.Load(shadowCubemapGeomShaderAssetPath, true)) // Try load.
+	{
+		// Import on load failed.
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/Shadow/shadowCubemap.geom");
+		result->Save(shadowCubemapGeomShaderAssetPath);
+	}
+	// Shadow fragment Shader.
+	if (!_assetMgr.shaderMgr.Load(shadowCubemapFragShaderAssetPath, true)) // Try load.
+	{
+		// Import on load failed.
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Shaders/Shadow/shadowCubemap.frag");
+		result->Save(shadowCubemapFragShaderAssetPath);
 	}
 
 
@@ -769,6 +800,8 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 		sphereMats[i]->InitVariable(_instance, &ubo, sizeof(ubo));
 
+		l1Shadow.mModelUniformBuffer.Add(_instance, ubo.modelMat);
+
 		y = (y + 1) % 3;
 
 		if (y == 0)
@@ -842,7 +875,9 @@ int main()
 	pLight1.SetPosition(Vec3f(-1.0f, 2.0f, 0.0f));
 	pLight1.SetIntensity(5.0f);
 	//pLight1.SetColor(Vec3f(0.9f, 0.7f, 0.3f));
-	
+	l1Shadow.mModelUniformBuffer.Create(instance, 15u);
+
+
 	//PointLight& pLight2 = instance.InstantiatePointLight();
 	//pLight2.SetPosition(Vec3f(2.0f, 2.0f, -2.0f));
 	//pLight2.SetIntensity(5.0f);
@@ -850,6 +885,20 @@ int main()
 
 	AssetManager assetMgr(instance);
 	CreateResources(instance, assetMgr);
+
+	{
+		PipelineCreateInfos shadowInfos;
+		shadowInfos.vertexBindingLayout.desiredLayout = std::shared_ptr<VertexLayout>(new VertexLayoutSpec<VertexComp::Position>());
+
+		shadowInfos.shaders.push_back(MaterialShaderInfos{ assetMgr.shaderMgr.Load(shadowCubemapVertShaderAssetPath), SpecConstantInfos(), ShaderType::Vertex });
+		shadowInfos.shaders.push_back(MaterialShaderInfos{ assetMgr.shaderMgr.Load(shadowCubemapGeomShaderAssetPath), SpecConstantInfos(), ShaderType::Geometry });
+		shadowInfos.shaders.push_back(MaterialShaderInfos{ assetMgr.shaderMgr.Load(shadowCubemapFragShaderAssetPath), SpecConstantInfos(), ShaderType::Fragment });
+
+		l1Shadow.Create(instance, shadowInfos);
+
+		LightViewInfos lView{ Mat4f::MakePerspective(), pLight1.GetPosition(), pLight1.GetRange() };
+		l1Shadow.mLightViewUniformBuffer.UpdateData(instance.GetDevice(), &lView, sizeof(LightViewInfos));
+	}
 
 	{
 		Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.GetPosition(), Quatf::Identity, Vec3f::One * 0.5f).Matrix());
@@ -893,6 +942,8 @@ int main()
 
 		window.TEST(camTr, pL1Pos, speed * deltaTime);
 
+		l1Shadow.mLightViewUniformBuffer.UpdateData(instance.GetDevice(), &pL1Pos, sizeof(Vec3f), offsetof(LightViewInfos, position));
+
 		mainCamera.SetTransform(camTr);
 
 		if (gizmoMat)
@@ -903,6 +954,32 @@ int main()
 
 		vkDeviceWaitIdle(instance.GetDevice());
 		pLight1.SetPosition(pL1Pos);
+
+
+		// Generate ShadowCubemap.
+		{
+			l1Shadow.Begin();
+
+			const CommandBuffer& commandBuffer = l1Shadow.mPrimaryCommandBuffer;
+
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, l1Shadow);
+
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, l1Shadow,
+				0, 1, &l1Shadow.mDescriptorSets[0], 0, nullptr);
+
+			// Draw spheres
+			VkDeviceSize offsets[] = { 0 };
+			::VkBuffer vkHandleVertexBuffer = sphereMesh->As<VkMesh>().mVertexBuffer;
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vkHandleVertexBuffer, offsets);
+
+			vkCmdBindIndexBuffer(commandBuffer, sphereMesh->As<VkMesh>().mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+			vkCmdDrawIndexed(commandBuffer, sphereMesh->As<VkMesh>().mIndicesSize, sphereMatNum, 0, 0, 0);
+
+			l1Shadow.End();
+		}
+
+
 
 
 		// Draw Magikarp.

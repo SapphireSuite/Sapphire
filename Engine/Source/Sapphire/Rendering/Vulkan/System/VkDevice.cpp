@@ -124,6 +124,7 @@ namespace Sa
 		VkPhysicalDeviceFeatures physicalDeviceFeatures
 		{
 		};
+		physicalDeviceFeatures.geometryShader = VK_TRUE;
 		physicalDeviceFeatures.sampleRateShading = VK_TRUE;
 		physicalDeviceFeatures.samplerAnisotropy = VK_TRUE;
 

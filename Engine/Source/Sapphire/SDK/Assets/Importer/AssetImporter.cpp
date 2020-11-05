@@ -20,7 +20,7 @@
 namespace Sa
 {
 	// Supported extensions.
-	constexpr const char* shaderExts[]{ "vert", "frag" };
+	constexpr const char* shaderExts[]{ "vert", "frag", "geom", "comp" };
 	constexpr const char* textureExts[]{ "png", "jpg", "jpeg", "bmp", "tga" };
 
 	AssetImporter::AssetImporter(AssetManager& _manager) noexcept : mManager{ _manager }

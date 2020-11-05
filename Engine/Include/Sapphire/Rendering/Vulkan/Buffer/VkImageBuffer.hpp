@@ -66,7 +66,7 @@ namespace Sa
 		static VkImageBuffer CreateColorBuffer(const VkDevice& _device, const ImageExtent& _extent,
 									const VkFormat _format, const SampleBits _sampleBits = SampleBits::Sample1Bit);
 		static VkImageBuffer CreateDepthBuffer(const VkDevice& _device, const ImageExtent& _extent,
-									const SampleBits _sampleBits = SampleBits::Sample1Bit);
+									const SampleBits _sampleBits = SampleBits::Sample1Bit, VkImageType _imageType = VK_IMAGE_TYPE_2D);
 
 	public:
 		bool IsValid();

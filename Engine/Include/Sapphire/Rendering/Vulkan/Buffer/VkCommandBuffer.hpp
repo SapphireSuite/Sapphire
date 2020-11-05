@@ -30,7 +30,8 @@ namespace Sa
 		const ::VkCommandBuffer& Get() const;
 		::VkCommandBuffer& Get();
 
-		operator ::VkCommandBuffer() const;
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API operator ::VkCommandBuffer() const;
 	};
 }
 

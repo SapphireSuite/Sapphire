@@ -30,13 +30,14 @@ namespace Sa
 	}
 
 	VkImageBuffer VkImageBuffer::CreateDepthBuffer(const VkDevice& _device, const ImageExtent& _extent,
-														SampleBits _sampleBits)
+														SampleBits _sampleBits, VkImageType _imageType)
 	{
 		VkImageBuffer imageBuffer{};
 
 		VkImageBufferCreateInfos imageBufferCreateInfos{};
 		imageBufferCreateInfos.format		= VK_FORMAT_D32_SFLOAT;
 		imageBufferCreateInfos.extent		= _extent;
+		imageBufferCreateInfos.imageType	= _imageType;
 		imageBufferCreateInfos.usage		= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		imageBufferCreateInfos.sampleCount	= static_cast<VkSampleCountFlagBits>(_sampleBits);
 		imageBufferCreateInfos.aspectFlags	= VK_IMAGE_ASPECT_DEPTH_BIT;

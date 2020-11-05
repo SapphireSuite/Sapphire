@@ -17,6 +17,7 @@ namespace Sa
 
 	class VkMesh : public IMesh
 	{
+	public:// TODO: REMOVE LATER
 		VkBuffer mVertexBuffer;
 		VkBuffer mIndexBuffer;
 

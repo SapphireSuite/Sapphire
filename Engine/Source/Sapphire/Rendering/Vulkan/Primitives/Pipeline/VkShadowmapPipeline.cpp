@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Vulkan/Primitives/Pipeline/VkShadowRenderPipeline.hpp>
+#include <Rendering/Vulkan/Primitives/Pipeline/VkShadowmapPipeline.hpp>
 
 #include <Rendering/Framework/Primitives/Material/RawMaterial.hpp>
 
@@ -9,7 +9,7 @@
 
 namespace Sa
 {
-	void VkShadowRenderPipeline::CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages,
+	void VkShadowmapPipeline::CreateShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& _shaderStages,
 		std::vector<VkSpecConstantRange>& _specConstRanges, const PipelineCreateInfos& _infos)
 	{
 		_shaderStages.emplace_back(VkPipelineShaderStageCreateInfo

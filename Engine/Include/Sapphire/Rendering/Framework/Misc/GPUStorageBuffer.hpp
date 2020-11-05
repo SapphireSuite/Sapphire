@@ -34,6 +34,7 @@ namespace Sa
 	public:
 		Event<void(uint32)> onRemove;
 
+		uint32 Size() const noexcept;
 		virtual bool IsValid() const noexcept = 0;
 
 		uint32 Add(const IRenderInstance& _instance, const T& _object = T());

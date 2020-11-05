@@ -3,6 +3,12 @@
 namespace Sa
 {
 	template <typename T>
+	uint32 GPUStorageBuffer<T>::Size() const noexcept
+	{
+		return mDeviceSize;
+	}
+
+	template <typename T>
 	uint32 GPUStorageBuffer<T>::Add_Internal(const IRenderInstance& _instance, const T& _object)
 	{
 		const uint32 id = mDeviceSize++;

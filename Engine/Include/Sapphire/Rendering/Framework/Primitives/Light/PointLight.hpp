@@ -30,7 +30,8 @@ namespace Sa
 		// TODO: REMOVE SA_ENGINE_API
 		SA_ENGINE_API const Vec3f& GetPosition() const noexcept;
 
-		float GetRange() const noexcept;
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API float GetRange() const noexcept;
 
 
 		// TODO: REMOVE SA_ENGINE_API

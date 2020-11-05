@@ -52,7 +52,8 @@ namespace Sa
 		SA_ENGINE_API static void Copy(const VkDevice& _device, const VkBuffer& _src, const VkBuffer& _dst, uint64 _size);
 		static uint32 FindMemoryType(const VkDevice& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties);
 
-		operator ::VkBuffer() const noexcept;
+		// TODO: REMOVE SA_ENGINE_API
+		SA_ENGINE_API operator ::VkBuffer() const noexcept;
 
 		// TODO: Remove SA_ENGINE_API.
 		SA_ENGINE_API operator VkDeviceMemory() const noexcept;

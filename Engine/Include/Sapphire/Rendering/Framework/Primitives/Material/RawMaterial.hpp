@@ -37,7 +37,7 @@ namespace Sa
 
 		VertexBindingLayout vertexBindingLayout;
 		
-		MaterialShaders shaders = MaterialShaders::defaultT;
+		MaterialShaders shaders;
 		MaterialTextures textures;
 		MaterialConstants matConstants;
 
