@@ -24,6 +24,14 @@ namespace Sa::vk
 		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, _renderPass->GetColorFormat()));
 		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent, _renderPass->GetSampleBits()));
 
+		// G-Buffer
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8G8B8A8_UNORM)); // Position
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8G8B8A8_UNORM)); // Normal
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8G8B8_UNORM)); // Albedo
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8_UNORM)); // Metallic
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8_UNORM)); // Roughness
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8_UNORM)); // AO
+
 		Create_Internal();
 	}
 
@@ -40,6 +48,14 @@ namespace Sa::vk
 																	_renderPass->GetSampleBits()));
 		mBuffers.emplace_back(_colorBuffer);
 		mBuffers.emplace_back(VkImageBuffer::CreateDepthBuffer(device, _extent, _renderPass->GetSampleBits()));
+
+		// G-Buffer
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8G8B8A8_UNORM)); // Position
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8G8B8A8_UNORM)); // Normal
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8G8B8_UNORM)); // Albedo
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8_UNORM)); // Metallic
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8_UNORM)); // Roughness
+		mBuffers.emplace_back(VkImageBuffer::CreateColorBuffer(device, _extent, VK_FORMAT_R8_UNORM)); // AO
 
 		Create_Internal();
 	}

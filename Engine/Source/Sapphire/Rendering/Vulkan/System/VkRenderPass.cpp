@@ -107,7 +107,7 @@ namespace Sa
 		const VkAttachmentDescription albedoAttachment
 		{
 			0,														// flags.
-			VK_FORMAT_R8G8B8_SRGB,									// format.
+			VK_FORMAT_R8G8B8_UNORM,									// format.
 			static_cast<VkSampleCountFlagBits>(mSampleBits),		// samples.
 			_createInfos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,							// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
@@ -269,18 +269,19 @@ namespace Sa
 		attachements.reserve(9);
 
 		attachements.push_back(colorAttachment);
-		attachements.push_back(positionAttachment);
-		attachements.push_back(normalAttachment);
-		attachements.push_back(albedoAttachment);
-		attachements.push_back(metallicAttachment);
-		attachements.push_back(roughnessAttachment);
-		attachements.push_back(aoAttachment);
 
 		if(mSampleBits > SampleBits::Sample1Bit)
 			attachements.push_back(colorAttachmentResolve);
 		
 		if(_createInfos.bDepthBuffer)
 			attachements.push_back(depthAttachment);
+
+		attachements.push_back(positionAttachment);
+		attachements.push_back(normalAttachment);
+		attachements.push_back(albedoAttachment);
+		attachements.push_back(metallicAttachment);
+		attachements.push_back(roughnessAttachment);
+		attachements.push_back(aoAttachment);
 
 		std::vector<VkSubpassDescription> subpassDesc;
 		subpassDesc.reserve(3);
