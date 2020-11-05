@@ -18,6 +18,9 @@ namespace Sa
 
 	class Camera
 	{
+		// Storage buffer ID.
+		uint32 mID = 0;
+
 		TransffPRS mTransf;
 		
 		float mFOV = 90.0f;
@@ -34,12 +37,11 @@ namespace Sa
 	public:
 		using GPU_T = Camera_GPU;
 
-		// Camera storage buffer ID.
-		const uint32 ID = 0;
-
 		Camera(uint32 _ID);
 		Camera(Camera&&) = default;
 		Camera(const Camera&) = default;
+
+		uint32 ID() const noexcept;
 
 		const Vec3f& GetPosition() const noexcept;
 		const Quatf& GetRotation() const noexcept;
@@ -70,6 +72,8 @@ namespace Sa
 		Mat4f ComputeProjMatrix() noexcept;
 
 		void Update(const IRenderInstance& _instance, GPUStorageBuffer<GPU_T>& _gpuBuffer);
+
+		void OnGPUObjectRemoved(uint32 _removedID);
 
 		Camera& operator=(Camera&& _rhs) noexcept;
 		Camera& operator=(const Camera& _rhs) noexcept;

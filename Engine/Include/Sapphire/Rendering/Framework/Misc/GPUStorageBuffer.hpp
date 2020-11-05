@@ -8,6 +8,7 @@
 #include <Collections/Debug>
 
 #include <Core/Algorithms/SizeOf.hpp>
+#include <Core/Types/Variadics/Event.hpp>
 
 #include <Rendering/Framework/Misc/GPUStorageBufferBase.hpp>
 
@@ -17,25 +18,33 @@ namespace Sa
 	class GPUStorageBuffer : public GPUStorageBufferBase
 	{
 	protected:
-		// Buffer size on device.
+		// Buffer bound size.
 		uint32 mDeviceSize = 0u;
 
-		std::vector<uint32> mFreeIndices;
+		// Buffer capacity on device.
+		uint32 mDeviceCapacity = 0u;
 
-		virtual void ReAllocate(const IRenderInstance& _instance) = 0;
-		virtual void InitNewObjects(const IRenderInstance& _instance, uint32 _prevSize, uint32 _newSize);
+		virtual void ReAllocate(const IRenderInstance& _instance, uint32 _newCapacity);
+		virtual void InitNewObjects(const IRenderInstance& _instance) = 0;
+
+		virtual uint32 Add_Internal(const IRenderInstance& _instance, const T& _object);
+
+		virtual void UpdateDescriptors() = 0;
 
 	public:
+		Event<void(uint32)> onRemove;
+
 		virtual bool IsValid() const noexcept = 0;
-		uint32 Size() const noexcept;
 
 		uint32 Add(const IRenderInstance& _instance, const T& _object = T());
 		virtual void Remove(const IRenderInstance& _instance, uint32 _id);
 
-		virtual void Create(const IRenderInstance& _instance, uint32 _capacity = 5u) = 0;
+		void Resize(const IRenderInstance& _instance, uint32 _size, const T& _object = T());
+		void Reserve(const IRenderInstance& _instance, uint32 _capacity);
+
+		virtual void Create(const IRenderInstance& _instance, uint32 _capacity = 5u);
 		virtual void Destroy(const IRenderInstance& _instance);
 
-		virtual void UpdateData(const IRenderInstance& _instance, uint32 _id, void* _data, uint32 _size, uint32 _offset) = 0;
 		virtual void UpdateObject(const IRenderInstance& _instance, uint32 _id, const T& _object) = 0;
 	};
 }

@@ -13,19 +13,17 @@ namespace Sa
 	template <typename T>
 	void VkGPUStorageBuffer<T>::Remove(const IRenderInstance& _instance, uint32 _id)
 	{
-		Base::Remove(_instance, _id);
-
 		const VkDevice device = _instance.As<VkRenderInstance>().GetDevice();
 
+		// Move data.
 		void* bufferData = nullptr;
+		vkMapMemory(device, mHandle, sizeof(T) * _id, sizeof(T) * (Base::mDeviceSize - _id), 0, &bufferData);
 
-		// Disable at index.
-		vkMapMemory(device, mHandle, sizeof(T) * _id + offsetof(T, bEnabled), sizeof(bool), 0, &bufferData);
-
-		bool enabled = false;
-		memcpy(bufferData, &enabled, sizeof(bool));
+		memmove(bufferData, reinterpret_cast<char*>(bufferData) + sizeof(T), sizeof(T) * (Base::mDeviceSize - _id - 1));
 
 		vkUnmapMemory(device, mHandle);
+
+		Base::Remove(_instance, _id);
 	}
 
 	template <typename T>
@@ -37,7 +35,8 @@ namespace Sa
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-		InitNewObjects(_instance, 0, _capacity);
+
+		Base::Create(_instance, _capacity);
 	}
 
 	template <typename T>
@@ -72,42 +71,35 @@ namespace Sa
 	}
 
 	template <typename T>
-	void VkGPUStorageBuffer<T>::ReAllocate(const IRenderInstance& _instance)
+	void VkGPUStorageBuffer<T>::ReAllocate(const IRenderInstance& _instance, uint32 _newCapacity)
 	{
 		const VkDevice device = _instance.As<VkRenderInstance>().GetDevice();
 
 		VkBuffer stagingBuffer;
-		stagingBuffer.Create(device, mDeviceSize * 2 * sizeof(T),
+		stagingBuffer.Create(device, _newCapacity * sizeof(T),
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-		VkBuffer::Copy(device, mHandle, stagingBuffer, mDeviceSize * sizeof(T));
+		VkBuffer::Copy(device, mHandle, stagingBuffer, Base::mDeviceCapacity * sizeof(T));
 
 		// Destroy old buffer.
 		mHandle.Destroy(device);
 
 		mHandle = stagingBuffer;
+
+
+		Base::ReAllocate(_instance, _newCapacity);
 	}
 
 	template <typename T>
-	void VkGPUStorageBuffer<T>::InitNewObjects(const IRenderInstance& _instance, uint32 _prevSize, uint32 _newSize)
+	void VkGPUStorageBuffer<T>::InitNewObjects(const IRenderInstance& _instance)
 	{
-		Base::InitNewObjects(_instance, _prevSize, _newSize);
+	}
 
-		const VkDevice device = _instance.As<VkRenderInstance>().GetDevice();
-
-		void* bufferData = nullptr;
-
-		// Disable at index.
-		vkMapMemory(device, mHandle, sizeof(T) * _prevSize, sizeof(T) * _newSize, 0, &bufferData);
-
-		bool enabled = false;
-		
-		// Set bool bEnabled = false for each new object.
-		for (uint32 i = _prevSize; i < _newSize; ++i)
-			memcpy(static_cast<char*>(bufferData) + i * sizeof(T) + offsetof(T, bEnabled), &enabled, sizeof(bool));
-
-		vkUnmapMemory(device, mHandle);
+	template <typename T>
+	void VkGPUStorageBuffer<T>::UpdateDescriptors()
+	{
+		// TODO: Implement.
 	}
 
 

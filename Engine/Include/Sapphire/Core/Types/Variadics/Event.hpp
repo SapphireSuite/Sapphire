@@ -43,13 +43,13 @@ namespace Sa
 			void Remove(R(*_func)(Args...));
 
 			template <typename C>
-			void Remove(C* _caller, R(C::* _func)(Args...));
+			void Remove(const C* _caller, R(C::* _func)(Args...));
 
 
 			void RRemove(R(*_func)(Args...));
 
 			template <typename C>
-			void RRemove(C* _caller, R(C::* _func)(Args...));
+			void RRemove(const C* _caller, R(C::* _func)(Args...));
 
 
 			void Execute(const Args&... _args);

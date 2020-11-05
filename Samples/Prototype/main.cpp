@@ -834,8 +834,7 @@ int main()
 	surface.Create(instance.GetDevice(), instance.GetDevice().GetQueueFamilyIndices());
 	surface.CreateEditor(window, instance);
 
-	AssetManager assetMgr(instance);
-	CreateResources(instance, assetMgr);
+
 
 
 	// Create Lights.
@@ -848,6 +847,9 @@ int main()
 	//pLight2.SetPosition(Vec3f(2.0f, 2.0f, -2.0f));
 	//pLight2.SetIntensity(5.0f);
 	//pLight1.SetColor(Vec3f(0.9f, 0.7f, 0.3f));
+
+	AssetManager assetMgr(instance);
+	CreateResources(instance, assetMgr);
 
 	{
 		Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.GetPosition(), Quatf::Identity, Vec3f::One * 0.5f).Matrix());

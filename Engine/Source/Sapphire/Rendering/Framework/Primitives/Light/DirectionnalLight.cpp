@@ -28,7 +28,7 @@ namespace Sa
 		{
 			mDirectionDirty = false;
 			Vec3f convertedDir = API_ConvertCoordinateSystem(mDirection);
-			_gpuBuffer.UpdateData(_instance, ID, &convertedDir, sizeof(Vec3f), offsetof(GPU_T, direction));
+			_gpuBuffer.UpdateData(_instance, ID(), &convertedDir, sizeof(Vec3f), offsetof(GPU_T, direction));
 		}
 	}
 

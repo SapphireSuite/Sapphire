@@ -88,22 +88,22 @@ namespace Sa
 		{
 			mTransfDirty = false;
 			Vec3f convertedPos = API_ConvertCoordinateSystem(mTransf.position);
-			_gpuBuffer.UpdateData(_instance, ID, &convertedPos, sizeof(Vec3f), offsetof(GPU_T, position));
+			_gpuBuffer.UpdateData(_instance, ID(), &convertedPos, sizeof(Vec3f), offsetof(GPU_T, position));
 
 			Vec3f dir = API_ConvertCoordinateSystem(mTransf.rotation.ForwardVector());
-			_gpuBuffer.UpdateData(_instance, ID, &dir, sizeof(Vec3f), offsetof(GPU_T, direction));
+			_gpuBuffer.UpdateData(_instance, ID(), &dir, sizeof(Vec3f), offsetof(GPU_T, direction));
 		}
 
 		if (mRangeDirty)
 		{
 			mRangeDirty = false;
-			_gpuBuffer.UpdateData(_instance, ID, &mRange, sizeof(float), offsetof(GPU_T, range));
+			_gpuBuffer.UpdateData(_instance, ID(), &mRange, sizeof(float), offsetof(GPU_T, range));
 		}
 
 		if (mCutOffDirty)
 		{
 			mCutOffDirty = false;
-			_gpuBuffer.UpdateData(_instance, ID, &mCutOff, sizeof(float), offsetof(GPU_T, cutOff));
+			_gpuBuffer.UpdateData(_instance, ID(), &mCutOff, sizeof(float), offsetof(GPU_T, cutOff));
 		}
 	}
 

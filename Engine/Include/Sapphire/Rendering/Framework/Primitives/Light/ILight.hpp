@@ -17,6 +17,9 @@ namespace Sa
 
 	class ILight : public IInterface
 	{
+		// Storage buffer ID.
+		uint32 mID = 0;
+
 		Vec3f mColor = Vec3f::One;
 
 		float mIntensity = 1.0f;
@@ -33,13 +36,13 @@ namespace Sa
 		void Update_Internal(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer);
 
 	public:
-		// Storage buffer ID.
-		const uint32 ID = 0;
 
 		ILight(uint32 _ID);
 		ILight(ILight&&) = default;
 		ILight(const ILight&) = default;
 
+
+		uint32 ID() const noexcept;
 
 		const Vec3f& GetColor() const noexcept;
 
@@ -62,6 +65,8 @@ namespace Sa
 		void SetSpecular(float _specular);
 		void SetLightComponents(const Vec3f& _lightComps);
 
+		void OnGPUObjectRemoved(uint32 _removedID);
+		
 		virtual void Update(const IRenderInstance& _instance, GPUStorageBufferBase& _gpuBuffer) = 0;
 
 		ILight& operator=(ILight&& _rhs) noexcept;

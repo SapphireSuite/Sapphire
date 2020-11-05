@@ -8,19 +8,19 @@ namespace Sa
 		if (mColorDirty)
 		{
 			mColorDirty = false;
-			_gpuBuffer.UpdateData(_instance, ID, &mColor, sizeof(Vec3f), offsetof(GPU_T, color));
+			_gpuBuffer.UpdateData(_instance, mID, &mColor, sizeof(Vec3f), offsetof(GPU_T, color));
 		}
 
 		if (mIntensityDirty)
 		{
 			mIntensityDirty = false;
-			_gpuBuffer.UpdateData(_instance, ID, &mIntensity, sizeof(float), offsetof(GPU_T, intensity));
+			_gpuBuffer.UpdateData(_instance, mID, &mIntensity, sizeof(float), offsetof(GPU_T, intensity));
 		}
 
 		if (mLightCompsDirty)
 		{
 			mLightCompsDirty = false;
-			_gpuBuffer.UpdateData(_instance, ID, &mLightComps, sizeof(Vec3f), offsetof(GPU_T, ambient));
+			_gpuBuffer.UpdateData(_instance, mID, &mLightComps, sizeof(Vec3f), offsetof(GPU_T, ambient));
 		}
 	}
 }

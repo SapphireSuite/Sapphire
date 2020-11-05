@@ -3,9 +3,13 @@
 namespace Sa
 {
 	template <typename T>
-	uint32 GPUStorageBuffer<T>::Size() const noexcept
+	uint32 GPUStorageBuffer<T>::Add_Internal(const IRenderInstance& _instance, const T& _object)
 	{
-		return mDeviceSize - SizeOf(mFreeIndices);
+		const uint32 id = mDeviceSize++;
+
+		UpdateDescriptors();
+
+		return id;
 	}
 
 	template <typename T>
@@ -14,57 +18,69 @@ namespace Sa
 		// Buffer not created yet.
 		if (!IsValid())
 			Create(_instance);
-		else if (SizeOf(mFreeIndices) != 0)		// Free indices.
-		{
-			uint32 id = mFreeIndices.back();
-			mFreeIndices.pop_back();
+		else if(mDeviceSize >= mDeviceCapacity) // Need to re-allocate buffer.
+			ReAllocate(_instance, mDeviceCapacity * 2u);
 
-			// Update new object.
-			UpdateObject(_instance, id, _object);
-
-			return id;
-		}
-
-
-		// Need to re-allocate buffer.
-		ReAllocate(_instance);
-
-		uint32 id = mDeviceSize;
-
-		// mDeviceSize + 1: new object will already be updated.
-		InitNewObjects(_instance, mDeviceSize + 1, mDeviceSize * 2);
-
-		// Update new object.
-		UpdateObject(_instance, id, _object);
-
-		// TODO: Add descriptor callback event.
-		
-		return id;
+		return Add_Internal(_instance, _object);
 	}
 
 	template <typename T>
 	void GPUStorageBuffer<T>::Remove(const IRenderInstance& _instance, uint32 _id)
 	{
-		SA_ASSERT(_id < Size(), OutOfRange, Rendering, _id, 0u, Size());
+		SA_ASSERT(_id < mDeviceSize, OutOfRange, Rendering, _id, 0u, mDeviceSize);
 
-		// Add free index.
-		mFreeIndices.push_back(_id);
+		onRemove(_id);
+
+		--mDeviceSize;
+		UpdateDescriptors();
+
+		// Child memmove implementation.
+	}
+
+
+	template <typename T>
+	void GPUStorageBuffer<T>::Resize(const IRenderInstance& _instance, uint32 _size, const T& _object)
+	{
+		// Buffer not created yet.
+		if (!IsValid())
+			Create(_instance);
+		else if(_size > mDeviceCapacity)
+			ReAllocate(_instance, _size);
+
+		for (uint32 i = 0; i < _size; ++i)
+			Add_Internal(_instance, _object);
+	}
+
+	template <typename T>
+	void GPUStorageBuffer<T>::Reserve(const IRenderInstance& _instance, uint32 _capacity)
+	{
+		if (mDeviceCapacity >= _capacity)
+			return;
+
+		ReAllocate(_instance, _capacity);
+	}
+
+
+	template <typename T>
+	void GPUStorageBuffer<T>::ReAllocate(const IRenderInstance& _instance, uint32 _newCapacity)
+	{
+		mDeviceCapacity = _newCapacity;
+
+		InitNewObjects(_instance);
+	}
+
+
+	template <typename T>
+	void GPUStorageBuffer<T>::Create(const IRenderInstance& _instance, uint32 _capacity)
+	{
+		mDeviceCapacity = _capacity;
+
+		InitNewObjects(_instance);
 	}
 
 	template <typename T>
 	void GPUStorageBuffer<T>::Destroy(const IRenderInstance& _instance)
 	{
-		mDeviceSize = 0u;
-		mFreeIndices.clear();
-	}
-
-	template <typename T>
-	void GPUStorageBuffer<T>::InitNewObjects(const IRenderInstance& _instance, uint32 _prevSize, uint32 _newSize)
-	{
-		mDeviceSize = _newSize;
-
-		// Add free indices from last to first.
-		for (uint32 i = _prevSize; i < _newSize; ++i)
-			mFreeIndices.push_back(_newSize - 1 - i);
+		mDeviceCapacity = mDeviceSize = 0u;
 	}
 }

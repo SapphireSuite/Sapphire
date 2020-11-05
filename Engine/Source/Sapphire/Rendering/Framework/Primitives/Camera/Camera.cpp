@@ -7,10 +7,15 @@
 
 namespace Sa
 {
-	Camera::Camera(uint32 _ID) : ID{ _ID }
+	Camera::Camera(uint32 _ID) : mID{ _ID }
 	{
 	}
 
+
+	uint32 Camera::ID() const noexcept
+	{
+		return mID;
+	}
 
 	bool Camera::IsViewDirty() const noexcept
 	{
@@ -159,7 +164,7 @@ namespace Sa
 					ComputeViewPosition()
 				};
 
-				_gpuBuffer.UpdateObject(_instance, ID, gpuObject);
+				_gpuBuffer.UpdateObject(_instance, mID, gpuObject);
 			}
 			else
 			{
@@ -169,7 +174,7 @@ namespace Sa
 					ComputeViewPosition()
 				};
 
-				_gpuBuffer.UpdateData(_instance, ID, &viewInfos, sizeof(Camera_GPU::ViewInfos), __cameraGPUViewOffset);
+				_gpuBuffer.UpdateData(_instance, mID, &viewInfos, sizeof(Camera_GPU::ViewInfos), __cameraGPUViewOffset);
 			}
 		}
 		else
@@ -177,8 +182,16 @@ namespace Sa
 			// Update only proj matrix.
 
 			Mat4f projMat = ComputeProjMatrix();
-			_gpuBuffer.UpdateData(_instance, ID, &projMat, sizeof(Mat4f), __cameraGPUProjMatOffset);
+			_gpuBuffer.UpdateData(_instance, mID, &projMat, sizeof(Mat4f), __cameraGPUProjMatOffset);
 		}
+	}
+
+
+	void Camera::OnGPUObjectRemoved(uint32 _removedID)
+	{
+		// Should decrement ID.
+		if (mID > _removedID)
+			--mID;
 	}
 
 
@@ -211,7 +224,7 @@ namespace Sa
 
 	bool Camera::operator==(const Camera& _rhs) const noexcept
 	{
-		return ID == _rhs.ID;
+		return mID == _rhs.mID;
 	}
 
 	bool Camera::operator!=(const Camera& _rhs) const noexcept

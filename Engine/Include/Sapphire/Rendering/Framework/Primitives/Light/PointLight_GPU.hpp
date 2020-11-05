@@ -17,13 +17,11 @@ namespace Sa
 	{
 		Vec3f position;
 
-		bool bEnabled = true;
+		float intensity = 1.0f;
 
 		// Lighting color.
 		alignas(16) Vec3f color = Vec3f::One;
 
-
-		float intensity = 1.0f;
 
 		// Max range.
 		float range = 10.0f;

@@ -29,13 +29,18 @@ namespace Sa
 	{
 		uint32 id = mGPUBuffer.Add(_instance, _object);
 
-		return mCPUBuffer.emplace_back(id);
+		CPU_T& result = mCPUBuffer.emplace_back(id);
+
+		mGPUBuffer.onRemove.Add<CPU_T>(&result, &CPU_T::OnGPUObjectRemoved);
+
+		return result;
 	}
 
 	template <typename CPU_T, template<typename> typename GPU_BufferT, typename GPU_T>
 	void StorageBuffer<CPU_T, GPU_BufferT, GPU_T>::Remove(const IRenderInstance& _instance, const CPU_T& _object)
 	{
-		mGPUBuffer.Remove(_instance, _object.ID);
+		mGPUBuffer.onRemove.Remove<CPU_T>(&_object, &CPU_T::OnGPUObjectRemoved); // Unbind before removing.
+		mGPUBuffer.Remove(_instance, _object.ID());
 
 		// O(1) access.
 		mCPUBuffer.erase(mCPUBuffer.begin() + (&_object - mCPUBuffer.data()));

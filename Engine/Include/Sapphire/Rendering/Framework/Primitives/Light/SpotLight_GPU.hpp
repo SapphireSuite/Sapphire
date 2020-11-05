@@ -15,22 +15,17 @@ namespace Sa
 {
 	struct SpotLight_GPU
 	{
-		Vec3f position;
-
-		bool bEnabled = true;
-
-		alignas(16) Vec3f direction = Vec3f::Forward;
-
-		float cutOff = 60.0f;
-
-		// Lighting color.
-		alignas(16) Vec3f color = Vec3f::One;
-
+		alignas(16) Vec3f position;
 
 		float intensity = 1.0f;
 
+		alignas(16) Vec3f direction = Vec3f::Forward;
+
 		// Max range.
 		float range = 10.0f;
+
+		// Lighting color.
+		alignas(16) Vec3f color = Vec3f::One;
 
 
 		// Lighting components.
@@ -39,6 +34,9 @@ namespace Sa
 		float diffuse = 0.64f;
 
 		float specular = 0.35f;
+
+
+		float cutOff = 60.0f;
 	};
 }
 

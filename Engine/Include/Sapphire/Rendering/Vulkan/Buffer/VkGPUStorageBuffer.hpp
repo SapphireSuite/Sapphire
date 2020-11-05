@@ -21,8 +21,10 @@ namespace Sa
 	{
 		VkBuffer mHandle;
 
-		void ReAllocate(const IRenderInstance& _instance) override final;
-		void InitNewObjects(const IRenderInstance& _instance, uint32 _prevSize, uint32 _newSize) override final;
+		void ReAllocate(const IRenderInstance& _instance, uint32 _newCapacity) override final;
+		void InitNewObjects(const IRenderInstance& _instance) override final;
+
+		void UpdateDescriptors() override final;
 
 	public:
 		using Base = GPUStorageBuffer<T>;

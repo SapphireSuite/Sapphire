@@ -44,13 +44,13 @@ namespace Sa
 		{
 			mPositionDirty = false;
 			Vec3f convertedPos = API_ConvertCoordinateSystem(mPosition);
-			_gpuBuffer.UpdateData(_instance, ID, &convertedPos, sizeof(Vec3f), offsetof(GPU_T, position));
+			_gpuBuffer.UpdateData(_instance, ID(), &convertedPos, sizeof(Vec3f), offsetof(GPU_T, position));
 		}
 
 		if (mRangeDirty)
 		{
 			mRangeDirty = false;
-			_gpuBuffer.UpdateData(_instance, ID, &mRange, sizeof(float), offsetof(GPU_T, range));
+			_gpuBuffer.UpdateData(_instance, ID(), &mRange, sizeof(float), offsetof(GPU_T, range));
 		}
 	}
 

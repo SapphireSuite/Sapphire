@@ -50,11 +50,9 @@ struct DirectionnalLight
 {
 	vec3 direction;
 
-	bool bEnabled;
+	float intensity;
 
 	vec3 color;
-	
-	float intensity;
 
 	float ambient;
 	float diffuse;
@@ -71,12 +69,10 @@ layout(binding = 4) buffer DirectionnalLightBuffer
 struct PointLight
 {
 	vec3 position;
-
-	bool bEnabled;
-
-	vec3 color;
 	
 	float intensity;
+
+	vec3 color;
 
 	float range;
 
@@ -96,21 +92,19 @@ struct SpotLight
 {
 	vec3 position;
 
-	bool bEnabled;
+	float intensity;
 
 	vec3 direction;
 
-	float cutOff;
+	float range;
 
 	vec3 color;
-	
-	float intensity;
-
-	float range;
 
 	float ambient;
 	float diffuse;
 	float specular;
+
+	float cutOff;
 };
 
 layout(binding = 6) buffer SpotLightBuffer
@@ -548,23 +542,14 @@ void ComputeLights(inout IlluminationData _data)
 {
 	// Directionnal Lights.
 	for(int i = 0; i < dLightBuffer.lights.length(); ++i)
-	{
-		if(dLightBuffer.lights[i].bEnabled)
-			outColor.xyz += ComputeDirectionnalLight(dLightBuffer.lights[i], _data);
-	}
+		outColor.xyz += ComputeDirectionnalLight(dLightBuffer.lights[i], _data);
 
 	// Point Lights.
 	for(int i = 0; i < pLightBuffer.lights.length(); ++i)
-	{
-		if(pLightBuffer.lights[i].bEnabled)
-			outColor.xyz += ComputePointLight(pLightBuffer.lights[i], _data);
-	}
+		outColor.xyz += ComputePointLight(pLightBuffer.lights[i], _data);
 
 
 	// Spot Lights.
 	for(int i = 0; i < sLightBuffer.lights.length(); ++i)
-	{
-		if(sLightBuffer.lights[i].bEnabled)
-			outColor.xyz += ComputeSpotLight(sLightBuffer.lights[i], _data);
-	}
+		outColor.xyz += ComputeSpotLight(sLightBuffer.lights[i], _data);
 }

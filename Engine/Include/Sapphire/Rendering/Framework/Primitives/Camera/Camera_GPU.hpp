@@ -24,8 +24,6 @@ namespace Sa
 
 		} viewInfos;
 
-		bool bEnabled = true;
-
 		Camera_GPU() = default;
 		Camera_GPU(Mat4f&& _projMat, Mat4f&& _viewInvMat, Vec3f&& _viewPosition) noexcept;
 		Camera_GPU(const Mat4f& _projMat, const Mat4f& _viewInvMat, const Vec3f& _viewPosition) noexcept;

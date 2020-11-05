@@ -8,10 +8,15 @@
 
 namespace Sa
 {
-	ILight::ILight(uint32 _ID) : ID{ _ID }
+	ILight::ILight(uint32 _ID) : mID{ _ID }
 	{
 	}
 
+
+	uint32 ILight::ID() const noexcept
+	{
+		return mID;
+	}
 
 	const Vec3f& ILight::GetColor() const noexcept
 	{
@@ -96,6 +101,13 @@ namespace Sa
 
 		mLightCompsDirty = true;
 		mLightComps = _lightComps;
+	}
+
+	void ILight::OnGPUObjectRemoved(uint32 _removedID)
+	{
+		// Should decrement ID.
+		if (mID > _removedID)
+			--mID;
 	}
 
 
