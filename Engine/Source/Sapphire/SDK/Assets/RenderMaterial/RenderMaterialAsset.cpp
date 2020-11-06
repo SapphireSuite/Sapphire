@@ -272,10 +272,10 @@ namespace Sa
 		mRawData.skybox = ICubemap::main;
 
 		// Shaders.
-		mRawData.shaders[0].shader = mManager.shaderMgr.Load(vertexShaderPath);
+		mRawData.shaders.push_back(MaterialShaderInfos{ mManager.shaderMgr.Load(vertexShaderPath), SpecConstantInfos::defaultVertex, ShaderType::Vertex });
 		SA_ASSERT(mRawData.shaders[0].shader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
 
-		mRawData.shaders[1].shader = mManager.shaderMgr.Load(fragmentShaderPath);
+		mRawData.shaders.push_back(MaterialShaderInfos{ mManager.shaderMgr.Load(fragmentShaderPath), SpecConstantInfos::defaultFragment, ShaderType::Fragment });
 		SA_ASSERT(mRawData.shaders[1].shader, Nullptr, SDK_Asset, L"Shader asset nulltpr! Path invalid");
 
 
