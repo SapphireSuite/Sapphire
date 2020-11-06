@@ -27,10 +27,14 @@ namespace Sa
 
 		// TODO: CLEAN.
 		VkImageBuffer mDepthCubemap;
+		VkSampler mSampler = VK_NULL_HANDLE;
 		VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
 		CommandBuffer mPrimaryCommandBuffer;
 
 		VkRenderPass mRenderPass = VK_NULL_HANDLE;
+
+		// TODO: REMOVE LATER.
+		SA_ENGINE_API static VkShadowCubemapPipeline* instance;
 
 		// TODO: REMOVE SA_ENGINE_API
 		SA_ENGINE_API void Begin();

@@ -30,7 +30,8 @@ namespace Sa
 
 	public:
 		const VkQueue& GetPresentQueue() const noexcept;
-		const VkQueue& GetGraphicsQueue() const noexcept;
+		// TODO: REMOVE LATER.
+		SA_ENGINE_API const VkQueue& GetGraphicsQueue() const noexcept;
 		const VkQueue& GetTransferQueue() const noexcept;
 
 		SA_ENGINE_API const VkQueueFamilyIndices& GetQueueFamilyIndices() const;

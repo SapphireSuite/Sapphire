@@ -8,6 +8,7 @@
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
 #include <Rendering/Vulkan/Primitives/Texture/VkCubemap.hpp>
+#include <Rendering/Vulkan/Primitives/Pipeline/VkShadowCubemapPipeline.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -147,6 +148,16 @@ namespace Sa
 					nullptr															// pImmutableSamplers.
 				});
 			}
+
+			// Shadow.
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				10,																// binding.
+				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// descriptorType.
+				1,																// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
+				nullptr															// pImmutableSamplers.
+			});
 		}
 	}
 
@@ -314,10 +325,10 @@ namespace Sa
 
 
 			// Directionnal light buffer bindigs.
-			const VkGPUStorageBuffer<DirectionnalLight_GPU>& dLightBuffer = _instance.GetGPUDirectionnalLightBuffer();
+			//const VkGPUStorageBuffer<DirectionnalLight_GPU>& dLightBuffer = _instance.GetGPUDirectionnalLightBuffer();
 
-			_descriptorInfos.push_back(dLightBuffer.CreateDescriptorBufferInfo());
-			_descriptorWrites.push_back(dLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 4));
+			//_descriptorInfos.push_back(dLightBuffer.CreateDescriptorBufferInfo());
+			//_descriptorWrites.push_back(dLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 4));
 
 			// Point light buffer bindigs.
 			const VkGPUStorageBuffer<PointLight_GPU>& pLightBuffer = _instance.GetGPUPointLightBuffer();
@@ -328,10 +339,10 @@ namespace Sa
 
 
 			// Spot light buffer bindigs.
-			const VkGPUStorageBuffer<SpotLight_GPU>& sLightBuffer = _instance.GetGPUSpotLightBuffer();
+			//const VkGPUStorageBuffer<SpotLight_GPU>& sLightBuffer = _instance.GetGPUSpotLightBuffer();
 
-			_descriptorInfos.push_back(sLightBuffer.CreateDescriptorBufferInfo());
-			_descriptorWrites.push_back(sLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 6));
+			//_descriptorInfos.push_back(sLightBuffer.CreateDescriptorBufferInfo());
+			//_descriptorWrites.push_back(sLightBuffer.CreateWriteDescriptorSet(mDescriptorSets[_index], 6));
 
 
 			if (_infos.pipelineFlags & PipelineFlag::IBL && _infos.skybox)
@@ -344,6 +355,34 @@ namespace Sa
 
 				_descriptorInfos.push_back(ITexture::brdfLUT->As<VkTexture>().CreateDescriptorImageInfo());
 				_descriptorWrites.push_back(VkTexture::CreateWriteDescriptorSet(mDescriptorSets[_index], 9));
+			}
+
+			// Shadow.
+			if(VkShadowCubemapPipeline::instance)
+			{
+				VkDescriptorImageInfo shadowDescriptor
+				{
+					VkShadowCubemapPipeline::instance->mSampler,											// sampler.
+					VkShadowCubemapPipeline::instance->mDepthCubemap,											// imageView.
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL			// imageLayout.
+				};
+
+				VkWriteDescriptorSet shadowWriteDescriptor
+				{
+					VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,				// sType.
+					nullptr,											// pNext.
+					mDescriptorSets[_index],										// dstSet.
+					10,											// dstBinding.
+					0,											// dstArrayElement.
+					1,													// descriptorCount.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,			// descriptorType.
+					&shadowDescriptor,											// pImageInfo.			// Will be set in pipeline.
+					nullptr,											// pBufferInfo.
+					nullptr												// pTexelBufferView.
+				};
+
+				_descriptorInfos.push_back(shadowDescriptor);
+				_descriptorWrites.push_back(shadowWriteDescriptor);
 			}
 		}
 	}

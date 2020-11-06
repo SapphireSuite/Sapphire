@@ -155,8 +155,8 @@ void CreateDefaultResources(AssetManager& _assetMgr)
 	if (!(ITexture::brdfLUT = _assetMgr.textureMgr.Load(BRDFLookUpTableTextureAssetPath, true))) // Try load.
 	{
 		// Import on load failed.
-		TextureImportInfos infos; infos.mipLevels = 1u; infos.channelNum = 2;
-		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/brdf_lut.jpg");
+		TextureImportInfos infos; infos.mipLevels = 1u; infos.channelNum = 4;
+		auto result = _assetMgr.importer.Import("../../Engine/Resources/Textures/brdf_lut.jpg", &infos);
 		result->Save(BRDFLookUpTableTextureAssetPath);
 		ITexture::brdfLUT = result->AsPtr<TextureAsset>()->GetResource();
 	}
@@ -800,7 +800,7 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 		sphereMats[i]->InitVariable(_instance, &ubo, sizeof(ubo));
 
-		l1Shadow.mModelUniformBuffer.Add(_instance, ubo.modelMat);
+		l1Shadow.mModelUniformBuffer.UpdateObject(_instance, i, ubo.modelMat);
 
 		y = (y + 1) % 3;
 
@@ -811,7 +811,7 @@ void CreateSpheres(IRenderInstance& _instance, AssetManager& _assetMgr)
 
 void CreateResources(IRenderInstance& _instance, AssetManager& _assetMgr)
 {
-	CreateDefaultResources(_assetMgr);
+	//CreateDefaultResources(_assetMgr);
 
 	CreateSkybox(_instance, _assetMgr);
 
@@ -875,7 +875,7 @@ int main()
 	pLight1.SetPosition(Vec3f(-1.0f, 2.0f, 0.0f));
 	pLight1.SetIntensity(5.0f);
 	//pLight1.SetColor(Vec3f(0.9f, 0.7f, 0.3f));
-	l1Shadow.mModelUniformBuffer.Create(instance, 15u);
+	VkShadowCubemapPipeline::instance = &l1Shadow;
 
 
 	//PointLight& pLight2 = instance.InstantiatePointLight();
@@ -884,9 +884,14 @@ int main()
 	//pLight1.SetColor(Vec3f(0.9f, 0.7f, 0.3f));
 
 	AssetManager assetMgr(instance);
-	CreateResources(instance, assetMgr);
+	CreateDefaultResources(assetMgr);
 
 	{
+		l1Shadow.mModelUniformBuffer.Create(instance, 15u);
+
+		for(uint32 i = 0u; i < 15u; ++i)
+			l1Shadow.mModelUniformBuffer.Add(instance, Mat4f::Identity);
+
 		PipelineCreateInfos shadowInfos;
 		shadowInfos.vertexBindingLayout.desiredLayout = std::shared_ptr<VertexLayout>(new VertexLayoutSpec<VertexComp::Position>());
 
@@ -900,11 +905,12 @@ int main()
 		l1Shadow.mLightViewUniformBuffer.UpdateData(instance.GetDevice(), &lView, sizeof(LightViewInfos));
 	}
 
+	CreateResources(instance, assetMgr);
+
 	{
 		Mat4f modelMat = API_ConvertCoordinateSystem(TransffPRS(pLight1.GetPosition(), Quatf::Identity, Vec3f::One * 0.5f).Matrix());
 		gizmoMat->InitVariable(instance, &modelMat, sizeof(Mat4f));
 	}
-
 
 	//const float r = 1.0f;
 	//const float l = -1.0f;
@@ -957,6 +963,7 @@ int main()
 
 
 		// Generate ShadowCubemap.
+		if(VkShadowCubemapPipeline::instance)
 		{
 			l1Shadow.Begin();
 
@@ -977,6 +984,22 @@ int main()
 			vkCmdDrawIndexed(commandBuffer, sphereMesh->As<VkMesh>().mIndicesSize, sphereMatNum, 0, 0, 0);
 
 			l1Shadow.End();
+
+			const VkSubmitInfo submitInfo
+			{
+				VK_STRUCTURE_TYPE_SUBMIT_INFO,						// sType.
+				nullptr,											// pNext.
+				0,													// waitSemaphoreCount.
+				nullptr,					// pWaitSemaphores.
+				nullptr,										// pWaitDstStageMask.
+				1,													// commandBufferCount.
+				&commandBuffer.Get(),					// pCommandBuffers.
+				0,													// signalSemaphoreCount.
+				nullptr,					// pSignalSemaphores.
+			};
+
+			SA_VK_ASSERT(vkQueueSubmit(instance.GetDevice().GetGraphicsQueue(), 1, &submitInfo, 0),
+				LibCommandFailed, Rendering, L"Failed to submit graphics queue!");
 		}
 
 

@@ -23,7 +23,8 @@ namespace Sa
 
 		const VkCommandPool& GetCommandPool() const noexcept;
 
-		operator ::VkQueue() const noexcept;
+		// TODO: REMOVE LATER.
+		SA_ENGINE_API operator ::VkQueue() const noexcept;
 	};
 }
 

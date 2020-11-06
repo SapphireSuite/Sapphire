@@ -119,6 +119,12 @@ layout(binding = 8) uniform samplerCube irradianceMap;
 layout(binding = 9) uniform sampler2D lookupTableBRDF;
 
 
+// Shadowmap
+layout(binding = 10) uniform samplerCube shadowMap;
+const float farPlane = 10.0f;
+
+
+
 // Constants.
 const float PI = 3.14159265359;
 
@@ -208,6 +214,8 @@ struct IlluminationData
 
 	// Fresnel reflectance.
 	vec3 f0;
+
+	float shadow;
 };
 
 struct LightData
@@ -234,7 +242,7 @@ struct LightData
 
 vec3 ComputeIBL(inout IlluminationData _data);
 void ComputeLights(inout IlluminationData _data);
-
+float ComputeShadow(vec3 _lightPos);
 
 void ComputeIllumination()
 {
@@ -406,7 +414,7 @@ vec3 ComputeIlluminationModel(inout IlluminationData _data, inout LightData _lDa
 	}
 
 	//  === Output ===
-	vec3 result = rA + BRDF;
+	vec3 result = rA + (1.0 - _data.shadow) * BRDF;
 
 	// Apply attenuation.
 	if(_lData.bAttenuation)
@@ -503,6 +511,8 @@ vec3 ComputePointLight(PointLight _light, inout IlluminationData _data)
 
 	lData.bCutOff = false;
 
+	_data.shadow = ComputeShadow(_light.position);
+
 	return ComputeIlluminationModel(_data, lData);
 }
 
@@ -540,16 +550,30 @@ vec3 ComputeSpotLight(SpotLight _light, inout IlluminationData _data)
 
 void ComputeLights(inout IlluminationData _data)
 {
-	// Directionnal Lights.
-	for(int i = 0; i < dLightBuffer.lights.length(); ++i)
-		outColor.xyz += ComputeDirectionnalLight(dLightBuffer.lights[i], _data);
+//	// Directionnal Lights.
+//	for(int i = 0; i < dLightBuffer.lights.length(); ++i)
+//		outColor.xyz += ComputeDirectionnalLight(dLightBuffer.lights[i], _data);
 
 	// Point Lights.
 	for(int i = 0; i < pLightBuffer.lights.length(); ++i)
 		outColor.xyz += ComputePointLight(pLightBuffer.lights[i], _data);
 
 
-	// Spot Lights.
-	for(int i = 0; i < sLightBuffer.lights.length(); ++i)
-		outColor.xyz += ComputeSpotLight(sLightBuffer.lights[i], _data);
+//	// Spot Lights.
+//	for(int i = 0; i < sLightBuffer.lights.length(); ++i)
+//		outColor.xyz += ComputeSpotLight(sLightBuffer.lights[i], _data);
+}
+
+float ComputeShadow(vec3 _lightPos)
+{
+	vec3 vLight = fsIn.position - _lightPos; // Non normalized.
+	float closestDepth = texture(shadowMap, vLight).r;
+
+	closestDepth *= farPlane;
+	float currentDepth = length(vLight);
+
+	float bias = 0.05;
+	float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
+
+	return shadow;
 }

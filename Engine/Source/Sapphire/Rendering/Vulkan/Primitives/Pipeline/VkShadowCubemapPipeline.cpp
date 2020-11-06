@@ -11,36 +11,72 @@
 
 namespace Sa
 {
+	VkShadowCubemapPipeline* VkShadowCubemapPipeline::instance = nullptr;
+
+
 	void VkShadowCubemapPipeline::Create_Internal(const IRenderInstance& _instance, const PipelineCreateInfos& _infos)
 	{
 		CreateUniformBuffers(_instance);
 
 		const VkDevice& device = _instance.As<VkRenderInstance>().GetDevice();
 
-		ImageExtent extent{ 1200u, 800u };
-		VkImageBufferCreateInfos depthImageInfos;
-		depthImageInfos.format = VK_FORMAT_D32_SFLOAT;
-		depthImageInfos.extent = extent;
-		//depthImageInfos.imageType = VK_IMAGE_TYPE_3D;
-		//depthImageInfos.imageFlags = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-		depthImageInfos.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		depthImageInfos.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
-		depthImageInfos.layerNum = 6u;
+		ImageExtent extent{ 1200u, 1200u };
 
-		mDepthCubemap.Create(_instance.As<VkRenderInstance>().GetDevice(), depthImageInfos);
+		// Depth buffer.
+		{
+			VkImageBufferCreateInfos depthImageInfos;
+			depthImageInfos.format = VK_FORMAT_D32_SFLOAT;
+			depthImageInfos.extent = extent;
+			depthImageInfos.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			depthImageInfos.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+			depthImageInfos.layerNum = 6u;
+			depthImageInfos.imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
+			depthImageInfos.imageFlags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
+			mDepthCubemap.Create(_instance.As<VkRenderInstance>().GetDevice(), depthImageInfos);
+		}
+
+
+		// CreateTextureSampler. // TODO: Sampler is not link to 1 image: Use 1 for multiple image!
+		const VkSamplerCreateInfo samplerCreateInfo
+		{
+			VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,						// sType.
+			nullptr,													// pNext.
+			0,															// flags.
+			VK_FILTER_LINEAR,											// magFilter.
+			VK_FILTER_LINEAR,											// minFilter.
+			VK_SAMPLER_MIPMAP_MODE_LINEAR,								// mipmapMode.
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,								// addressModeU.
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,								// addressModeV.
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,								// addressModeW.
+			0.0f,														// mipLodBias.
+			VK_TRUE,													// anisotropyEnable.
+			16.0f,														// maxAnisotropy.
+			VK_FALSE,													// compareEnable.
+			VK_COMPARE_OP_ALWAYS,										// compareOp.
+			0.0f,														// minLod.
+			1.0f,														// maxLod.
+			VK_BORDER_COLOR_INT_OPAQUE_BLACK,							// borderColor
+			VK_FALSE,													// unnormalizedCoordinates.
+		};
+
+		SA_VK_ASSERT(vkCreateSampler(device, &samplerCreateInfo, nullptr, &mSampler),
+			CreationFailed, Rendering, L"Failed to create texture sampler!");
+
+
 
 		// Depth Attachement.
 		const VkAttachmentDescription depthAttachment
 		{
 			0,														// flags.
 			VK_FORMAT_D32_SFLOAT,									// format.
-			static_cast<VkSampleCountFlagBits>(SampleBits::Sample1Bit),		// samples.
+			VK_SAMPLE_COUNT_1_BIT,		// samples.
 			VK_ATTACHMENT_LOAD_OP_CLEAR,							// loadOp.
 			VK_ATTACHMENT_STORE_OP_STORE,							// storeOp.
 			VK_ATTACHMENT_LOAD_OP_CLEAR,							// stencilLoadOp.
 			VK_ATTACHMENT_STORE_OP_DONT_CARE,						// stencilStoreOp.
 			VK_IMAGE_LAYOUT_UNDEFINED,								// initialLayout.
-			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL		// finalLayout.
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL		// finalLayout.
 		};
 
 
@@ -66,16 +102,6 @@ namespace Sa
 
 		};
 
-		const VkSubpassDependency subpassDependency
-		{
-			VK_SUBPASS_EXTERNAL,									// srcSubpass.
-			0,														// dstSubpass.
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,			// srcStageMask.
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,			// dstStageMask.
-			0,														// srcAccessMask.
-			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,					// dstAccessMask.
-			0														// dependencyFlags.
-		};
 
 		VkAttachmentDescription attachements[]{ depthAttachment };
 
@@ -88,8 +114,8 @@ namespace Sa
 			attachements,									// pAttachments.
 			1,														// subpassCount.
 			&subpass,												// pSubpasses.
-			1,														// dependencyCount.
-			&subpassDependency											// pDependencies.
+			0,														// dependencyCount.
+			nullptr											// pDependencies.
 		};
 
 		SA_VK_ASSERT(vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &mRenderPass),
