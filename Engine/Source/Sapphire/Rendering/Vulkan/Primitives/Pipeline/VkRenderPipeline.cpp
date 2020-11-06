@@ -132,8 +132,8 @@ namespace Sa
 			VK_BLEND_FACTOR_SRC_ALPHA,												// srcColorBlendFactor.
 			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,									// dstColorBlendFactor.
 			VK_BLEND_OP_ADD,														// colorBlendOp.
-			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,												// srcAlphaBlendFactor.
-			VK_BLEND_FACTOR_ZERO,									// dstAlphaBlendFactor.
+			VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,									// srcAlphaBlendFactor.
+			VK_BLEND_FACTOR_ZERO,													// dstAlphaBlendFactor.
 			VK_BLEND_OP_ADD,														// alphaBlendOp.
 
 			VK_COLOR_COMPONENT_R_BIT |												// colorWriteMask.
@@ -351,6 +351,178 @@ namespace Sa
 		}
 	}
 
+	void VkRenderPipeline::CreateDescriptorSetLayoutBindingsGBUFFER(const PipelineCreateInfos& _infos,
+		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings)
+	{
+		// Static UBO binding.
+		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				0,																		// binding.
+				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,										// descriptorType.
+				1,																		// descriptorCount.
+				VK_SHADER_STAGE_VERTEX_BIT,												// stageFlags.
+				nullptr																	// pImmutableSamplers.
+			});
+
+
+		// Object UBO binding.
+		if (_infos.uniformBufferSize > 0u)
+		{
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					1,																	// binding.
+					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
+					1,																	// descriptorCount.
+					VK_SHADER_STAGE_VERTEX_BIT,											// stageFlags.
+					nullptr																// pImmutableSamplers.
+				});
+		}
+
+
+		// Texture bindings.
+		if (_infos.textures.GetTextureNum() == 0)  // TODO: CLEAN LATER.
+		{
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					2,																	// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
+					1,																	// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+					nullptr																// pImmutableSamplers.
+				});
+		}
+		else
+		{
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					2,																	// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,							// descriptorType.
+					_infos.textures.GetTextureNum(),									// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+					nullptr																// pImmutableSamplers.
+				});
+		}
+	}
+
+	void VkRenderPipeline::CreateDescriptorSetLayoutBindingsLIGHTING(const PipelineCreateInfos& _infos,
+		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings)
+	{
+		// GBUFFER - Pos
+		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				0,																	// binding.
+				VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,								// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
+			});
+		// GBUFFER - Normal
+		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				1,																	// binding.
+				VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,								// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
+			});
+		// GBUFFER - Albedo
+		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				2,																	// binding.
+				VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,								// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
+			});
+		// GBUFFER - Metallic
+		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				3,																	// binding.
+				VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,								// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
+			});
+		// GBUFFER - Roughness
+		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				4,																	// binding.
+				VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,								// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
+			});
+		// GBUFFER - AO
+		_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+			{
+				5,																	// binding.
+				VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,								// descriptorType.
+				1,																	// descriptorCount.
+				VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+				nullptr																// pImmutableSamplers.
+			});
+
+			// Material UBO bindings.
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					6,																	// binding.
+					VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// descriptorType.
+					1,																	// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,										// stageFlags.
+					nullptr																// pImmutableSamplers.
+				});
+
+
+			// Light buffers binding.
+			for (uint32 i = 0u; i < static_cast<uint32>(LightType::Max); ++i)
+			{
+				_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+					{
+						7 + i,															// binding.
+						VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,								// descriptorType.
+						1,																// descriptorCount.
+						VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
+						nullptr															// pImmutableSamplers.
+					});
+			}
+
+			// Skybox.
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					10,																// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// descriptorType.
+					1,																// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
+					nullptr															// pImmutableSamplers.
+				});
+
+			// Irradiance map.
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					11,																// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// descriptorType.
+					1,																// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
+					nullptr															// pImmutableSamplers.
+				});
+
+			// BRDF lookup texture.
+			_layoutBindings.push_back(VkDescriptorSetLayoutBinding
+				{
+					12,																// binding.
+					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// descriptorType.
+					1,																// descriptorCount.
+					VK_SHADER_STAGE_FRAGMENT_BIT,									// stageFlags.
+					nullptr															// pImmutableSamplers.
+				});
+	}
+
+	void VkRenderPipeline::CreateDescriptorSetLayoutBindingsTRANSP(const PipelineCreateInfos& _infos,
+		std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings)
+	{
+		// TRANSPARENCY IS NOT SUPPORTED FOR NOW
+	}
+
 	void VkRenderPipeline::CreateDescriptorSetLayout(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos)
 	{
 		std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
@@ -358,7 +530,7 @@ namespace Sa
 
 
 		// Populate bindings.
-		CreateDescriptorSetLayoutBindings(_infos, layoutBindings);
+		CreateDescriptorSetLayoutBindingsGBUFFER(_infos, layoutBindings);
 
 
 		// Create DescriptorSetLayout.
@@ -386,18 +558,6 @@ namespace Sa
 			_imageNum * 100,																// descriptorCount.
 		});
 
-
-		// Object UBO binding.
-		if (_infos.uniformBufferSize > 0u)
-		{
-			_poolSizes.push_back(VkDescriptorPoolSize
-			{
-				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-				_imageNum * 100															// descriptorCount.
-			});
-		}
-
-
 		// Texture bindings.
 		_poolSizes.push_back(VkDescriptorPoolSize
 		{
@@ -405,39 +565,21 @@ namespace Sa
 			1 * 100,																		// descriptorCount.
 		});
 
-
-		// Light bindings.
-		if (_infos.pipelineFlags & PipelineFlag::Lighting)
-		{
-			// Material UBO bindigs.
-			_poolSizes.push_back(VkDescriptorPoolSize
+		// Light buffers binding.
+		_poolSizes.push_back(VkDescriptorPoolSize
 			{
-				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,									// type.
-				1 * 100,																	// descriptorCount.
-			});
-
-
-			// Light buffers binding.
-			_poolSizes.insert(_poolSizes.end(),
-				static_cast<uint8>(LightType::Max),
-				VkDescriptorPoolSize
-				{
-					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,								// type.
-					1,																// descriptorCount.
-				}
-			);
-
-
-			// Skybox binding (IBL).
-			if (_infos.pipelineFlags & PipelineFlag::IBL)
-			{
-				_poolSizes.push_back(VkDescriptorPoolSize
-				{
-					VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,						// type.
-					3,																// descriptorCount.
-				});
+				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,								// type.
+				1 * 100,																// descriptorCount.
 			}
-		}
+		);
+
+		// Light buffers binding.
+		_poolSizes.push_back(VkDescriptorPoolSize
+			{
+				VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,								// type.
+				1 * 100,																// descriptorCount.
+			}
+		);
 	}
 
 	void VkRenderPipeline::CreateDescriptorPool(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos, uint32 _imageNum)

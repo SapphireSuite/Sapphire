@@ -48,6 +48,13 @@ namespace Sa
 		void CreateDescriptorSetLayout(const VkRenderInstance& _instance, const PipelineCreateInfos& _infos);
 
 
+		void CreateDescriptorSetLayoutBindingsGBUFFER(const PipelineCreateInfos& _infos,
+			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings);
+		void CreateDescriptorSetLayoutBindingsLIGHTING(const PipelineCreateInfos& _infos,
+			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings);
+		void CreateDescriptorSetLayoutBindingsTRANSP(const PipelineCreateInfos& _infos,
+			std::vector<VkDescriptorSetLayoutBinding>& _layoutBindings);
+
 		virtual void CreateDescriptorPoolSize(const PipelineCreateInfos& _infos, uint32 _imageNum,
 			std::vector<VkDescriptorPoolSize>& _poolSizes) const noexcept;
 

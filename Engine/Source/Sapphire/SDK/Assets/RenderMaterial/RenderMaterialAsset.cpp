@@ -161,7 +161,6 @@ namespace Sa
 		{
 			_fStream.read(reinterpret_cast<char*>(&mRawData.bDynamicViewport), sizeof(bool));
 
-
 			uint32 shaderSize = 0u;
 			_fStream.read(reinterpret_cast<char*>(&shaderSize), sizeof(uint32));
 

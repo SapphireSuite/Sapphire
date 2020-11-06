@@ -78,6 +78,14 @@ namespace Sa::vk
 		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 0.7f, 0.f });
 		mClearValues.emplace_back(VkClearValue{ 1.f, 0.f });
 
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 0.7f, 0.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 0.7f, 0.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 0.7f, 0.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 0.7f, 0.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 0.7f, 0.f });
+		mClearValues.emplace_back(VkClearValue{ 0.1f, 0.1f, 0.7f, 0.f });
+
+
 		std::vector<VkImageView> attachements(mBuffers.size());
 		for (size_t i = 0; i < mBuffers.size(); ++i)
 			attachements[i] = mBuffers[i];
