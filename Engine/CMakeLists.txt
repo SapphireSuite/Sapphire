@@ -28,18 +28,20 @@ target_include_directories(Engine PUBLIC Include/Sapphire)
 # === Input Libs ===
 
 # Vulkan.
-#find_package(Vulkan REQUIRED FATAL_ERROR)
-#target_link_libraries(Engine Vulkan::Vulkan)
+# TODO: Add if vulkan compilation.
+find_package(Vulkan REQUIRED FATAL_ERROR)
+target_link_libraries(Engine Vulkan::Vulkan)
 
 
 # GLFW.
-#target_link_libraries(Engine ${PROJECT_SOURCE_DIR}/ThirdParty/Libs/glfw-3.3/lib-vc2019/glfw3.lib)
-#target_include_directories(Engine PRIVATE ThirdParty/Libs/glfw-3.3/include)
+# TODO: Add if GLFW compilation.
+target_link_libraries(Engine ${PROJECT_SOURCE_DIR}/ThirdParty/Libs/glfw-3.3/lib-vc2019/glfw3.lib)
+target_include_directories(Engine PRIVATE ThirdParty/Libs/glfw-3.3/include)
 
 
 # tiny header libs.
-#target_include_directories(Engine PRIVATE ThirdParty/Libs/tiny)
-#target_include_directories(Engine PRIVATE ThirdParty/Libs/stbi)
+target_include_directories(Engine PRIVATE ThirdParty/Libs/tiny)
+target_include_directories(Engine PRIVATE ThirdParty/Libs/stbi)
 
 # imgui.
 #add_subdirectory(ThirdParty/Libs/imgui)
