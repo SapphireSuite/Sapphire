@@ -28,21 +28,22 @@ target_include_directories(Engine PUBLIC Include/Sapphire)
 # === Input Libs ===
 
 # Vulkan.
-find_package(Vulkan REQUIRED FATAL_ERROR)
-target_link_libraries(Engine Vulkan::Vulkan)
+#find_package(Vulkan REQUIRED FATAL_ERROR)
+#target_link_libraries(Engine Vulkan::Vulkan)
 
 
 # GLFW.
-target_link_libraries(Engine ${PROJECT_SOURCE_DIR}/ThirdParty/Libs/glfw-3.3/lib-vc2019/glfw3.lib)
-target_include_directories(Engine PRIVATE ThirdParty/Libs/glfw-3.3/include)
+#target_link_libraries(Engine ${PROJECT_SOURCE_DIR}/ThirdParty/Libs/glfw-3.3/lib-vc2019/glfw3.lib)
+#target_include_directories(Engine PRIVATE ThirdParty/Libs/glfw-3.3/include)
 
 
 # tiny header libs.
-target_include_directories(Engine PRIVATE ThirdParty/Libs/tiny)
+#target_include_directories(Engine PRIVATE ThirdParty/Libs/tiny)
+#target_include_directories(Engine PRIVATE ThirdParty/Libs/stbi)
 
 # imgui.
-add_subdirectory(ThirdParty/Libs/imgui)
-target_link_libraries(Engine imgui)
+#add_subdirectory(ThirdParty/Libs/imgui)
+#target_link_libraries(Engine imgui)
 
 
 # === Dependencies ===
@@ -94,7 +95,11 @@ endif()
 # Advanced MSVC preprocessor required for Core::Debug
 # https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview
 if(MSVC AND NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")  # Not allowed on Clang-cl for Visual Studio.
-	target_compile_options(Engine PUBLIC /experimental:preprocessor)
+	if(${MSVC_TOOLSET_VERSION} LESS 142)
+		target_compile_options(Engine PUBLIC /experimental:preprocessor)
+	else()
+		target_compile_options(Engine PUBLIC /Zc:preprocessor)
+	endif()
 endif()
 
 

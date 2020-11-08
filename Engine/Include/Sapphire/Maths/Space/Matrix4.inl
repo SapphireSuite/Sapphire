@@ -234,12 +234,12 @@ namespace Sa
 	template <typename T>
 	T Mat4<T>::Determinant() const noexcept
 	{
-		const float det22_33_23_32 = e22 * e33 - e23 * e32;
-		const float det12_33_13_32 = e12 * e33 - e13 * e32;
-		const float det12_23_13_22 = e12 * e23 - e13 * e22;
-		const float det02_33_03_32 = e02 * e33 - e03 * e32;
-		const float det02_23_03_22 = e02 * e23 - e03 * e22;
-		const float det02_13_03_12 = e02 * e13 - e03 * e12;
+		const T det22_33_23_32 = e22 * e33 - e23 * e32;
+		const T det12_33_13_32 = e12 * e33 - e13 * e32;
+		const T det12_23_13_22 = e12 * e23 - e13 * e22;
+		const T det02_33_03_32 = e02 * e33 - e03 * e32;
+		const T det02_23_03_22 = e02 * e23 - e03 * e22;
+		const T det02_13_03_12 = e02 * e13 - e03 * e12;
 
 		return
 			e00 * (e11 * det22_33_23_32 - e21 * det12_33_13_32 + e31 * det12_23_13_22) -

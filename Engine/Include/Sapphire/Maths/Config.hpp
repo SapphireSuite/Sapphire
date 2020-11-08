@@ -6,7 +6,7 @@
 #define SAPPHIRE_MATHS_CONFIG_GUARD
 
 #include <Core/Config.hpp>
-#include <Rendering/Config.hpp>
+//#include <Rendering/Config.hpp>
 
 /**
 *	\file Maths/Config.hpp
