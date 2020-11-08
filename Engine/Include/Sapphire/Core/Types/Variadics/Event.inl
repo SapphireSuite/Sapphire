@@ -80,7 +80,7 @@ namespace Sa
 
 		template <typename FuncHandle, typename FuncMemberHandle, typename R, typename... Args>
 		template <typename C>
-		void EventBase<FuncHandle, FuncMemberHandle, R, Args...>::Remove(C* _caller, R(C::* _func)(Args...))
+		void EventBase<FuncHandle, FuncMemberHandle, R, Args...>::Remove(const C* _caller, R(C::* _func)(Args...))
 		{
 			SA_ASSERT(_caller, Nullptr, Tools, L"Remove nullptr caller!");
 			SA_ASSERT(_func, Nullptr, Tools, L"Remove nullptr function!");
@@ -119,7 +119,7 @@ namespace Sa
 
 		template <typename FuncHandle, typename FuncMemberHandle, typename R, typename... Args>
 		template <typename C>
-		void EventBase<FuncHandle, FuncMemberHandle, R, Args...>::RRemove(C* _caller, R(C::* _func)(Args...))
+		void EventBase<FuncHandle, FuncMemberHandle, R, Args...>::RRemove(const C* _caller, R(C::* _func)(Args...))
 		{
 			SA_ASSERT(_caller, Nullptr, Tools, L"RRemove nullptr caller!");
 			SA_ASSERT(_func, Nullptr, Tools, L"RRemove nullptr function!");
