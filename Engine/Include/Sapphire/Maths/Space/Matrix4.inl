@@ -21,6 +21,10 @@ namespace Sa
 	};
 
 
+#if SA_MATRIX_COLUMN_MAJOR
+	SA_PRAGMA_SDWARN_GNU("-Wreorder-ctor")
+#endif
+
 	template <typename T>
 	constexpr Mat4<T>::Mat4(
 		T _e00, T _e01, T _e02, T _e03,
@@ -54,6 +58,10 @@ namespace Sa
 		e30{ T(0) }, e31{ T(0) }, e32{ T(0) }, e33{ T(0) }
 	{
 	}
+
+#if SA_MATRIX_COLUMN_MAJOR
+	SA_PRAGMA_EDWARN()
+#endif
 
 
 	template <typename T>

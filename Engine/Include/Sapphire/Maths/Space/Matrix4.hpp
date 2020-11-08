@@ -5,6 +5,7 @@
 #ifndef SAPPHIRE_MATHS_MATRIX4_GUARD
 #define SAPPHIRE_MATHS_MATRIX4_GUARD
 
+#include <Core/Support/Pragma.hpp>
 #include <Core/Algorithms/Swap.hpp>
 
 #include <Maths/Misc/Maths.hpp>
