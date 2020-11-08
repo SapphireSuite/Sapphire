@@ -2,7 +2,6 @@
 
 #include <string>
 #include <iostream>
-#include <filesystem>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 using namespace Sa;
