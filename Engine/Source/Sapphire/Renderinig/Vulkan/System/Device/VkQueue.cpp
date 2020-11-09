@@ -2,33 +2,55 @@
 
 #include <Rendering/Vulkan/System/Device/VkQueue.hpp>
 
+#include <Collections/Debug>
+#include <Core/Algorithms/SizeOf.hpp>
+
 #include <Rendering/Vulkan/System/Device/VkDevice.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa::Vk
 {
-	void Queue::Create(const Device& _device, uint32 _queueFamilyIndex)
+	uint32 Queue::GetFamilyIndex() const noexcept
 	{
-		vkGetDeviceQueue(_device, _queueFamilyIndex, 0, &mHandle);
-
-		mCommandPool.Create(_device, _queueFamilyIndex);
+		return mFamilyIndex;
 	}
+
+	bool Queue::IsValid() const noexcept
+	{
+		return mFamilyIndex != uint32(-1);
+	}
+
+
+	void Queue::Create(const Device& _device, uint32 _queueFamilyIndex, uint32 _queueNum)
+	{
+		SA_ASSERT(_queueNum >= 1u, InvalidParam, Rendering, L"Invalid queue number!");
+		SA_ASSERT(_queueFamilyIndex != uint32(-1), InvalidParam, Rendering, L"Invalid queue family index: -1");
+
+		mFamilyIndex = _queueFamilyIndex;
+		mHandles.resize(_queueNum);
+		mCommandPools.resize(_queueNum);
+
+		for (uint32 i = 0u; i < _queueNum; ++i)
+		{
+			vkGetDeviceQueue(_device, _queueFamilyIndex, 0, &mHandles[i]);
+			SA_ASSERT(mHandles[i] != VK_NULL_HANDLE, LibCommandFailed, Rendering, L"vkGetDeviceQueue failed!");
+
+			mCommandPools[i].Create(_device, _queueFamilyIndex);
+		}
+	}
+
 	void Queue::Destroy(const Device& _device)
 	{
-		mHandle = VK_NULL_HANDLE;
+		SA_ASSERT(IsValid(), Nullptr, Rendering, L"Try to destroy null Queue!");
 
-		mCommandPool.Destroy(_device);
-	}
+		mFamilyIndex = uint32(-1);
 
-	const CommandPool& Queue::GetCommandPool() const noexcept
-	{
-		return mCommandPool;
-	}
+		for (auto it = mCommandPools.begin(); it != mCommandPools.end(); ++it)
+			it->Destroy(_device);
 
-	Queue::operator VkQueue() const noexcept
-	{
-		return mHandle;
+		mHandles.clear();
+		mCommandPools.clear();
 	}
 }
 

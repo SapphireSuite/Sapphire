@@ -7,22 +7,32 @@
 
 #include <Rendering/Config.hpp>
 
-#include <Rendering/Vulkan/System/Device/VkQueue.hpp>
-#include <Rendering/Vulkan/System/Device/VkQueueFamilyIndices.hpp>
+#include <Rendering/Vulkan/System/Device/VkQueueManager.hpp>
+#include <Rendering/Vulkan/System/Device/VkQueueFamilyType.hpp>
+#include <Rendering/Vulkan/System/Device/VkPhysicalDeviceInfos.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa::Vk
 {
+	class RenderInstance;
+	class RenderSurface;
+
 	class Device
 	{
 	protected:
 		VkDevice mLogicalDevice = VK_NULL_HANDLE;
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 
+		QueueManager mQueueMgr;
+
 	public:
-		void Create(VkPhysicalDevice _device, QueueFamilyIndices& _queueFamilyIndices);
+		bool IsValid() const noexcept;
+
+		void Create(const PhysicalDeviceInfos& _infos);
 		void Destroy();
+
+		static std::vector<PhysicalDeviceInfos> QuerySuitableDevices(const RenderInstance& _instance, QueueFamilyType _requiredFamilies, const RenderSurface* _surface = nullptr);
 
 		operator VkDevice() const noexcept;
 		operator VkPhysicalDevice() const noexcept;

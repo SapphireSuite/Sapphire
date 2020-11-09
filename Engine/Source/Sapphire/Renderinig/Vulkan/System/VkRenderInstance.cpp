@@ -27,13 +27,15 @@ namespace Sa::Vk
 	}
 
 
-	void RenderInstance::Init()
+	void RenderInstance::SelectDevice(QueueFamilyType _requiredFamilies, const RenderSurface* _surface)
 	{
-		SA_ASSERT(ValidationLayers::CheckValidationSupport(), NotSupported, Rendering, L"Validation Layer not supported!")
-	}
+		std::vector<PhysicalDeviceInfos> deviceInfos = Device::QuerySuitableDevices(*this, _requiredFamilies, _surface);
 
-	void RenderInstance::UnInit()
-	{
+		// Select first suitable device.
+		// TODO: Add score: https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families
+		mDevice.Create(deviceInfos[0]);
+
+		SA_ASSERT(mDevice.IsValid(), NotSupported, Rendering, L"No suitable GPU found!");
 	}
 
 
@@ -90,6 +92,10 @@ namespace Sa::Vk
 
 	void RenderInstance::Destroy()
 	{
+		if(mDevice.IsValid())
+			mDevice.Destroy();
+
+
 #if SA_VK_VALIDATION_LAYERS
 
 		auto destroyDebugFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mHandle, "vkDestroyDebugUtilsMessengerEXT");
@@ -100,6 +106,22 @@ namespace Sa::Vk
 
 		vkDestroyInstance(mHandle, nullptr);
 		mHandle = VK_NULL_HANDLE;
+	}
+
+
+	void RenderInstance::Init()
+	{
+		SA_ASSERT(ValidationLayers::CheckValidationSupport(), NotSupported, Rendering, L"Validation Layer not supported!")
+	}
+
+	void RenderInstance::UnInit()
+	{
+	}
+
+
+	RenderInstance::operator VkInstance() const noexcept
+	{
+		return mHandle;
 	}
 }
 

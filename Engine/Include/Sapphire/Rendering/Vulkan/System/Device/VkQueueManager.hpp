@@ -1,0 +1,40 @@
+// Copyright 2020 Sapphire development team. All Rights Reserved.
+
+#pragma once
+
+#ifndef SAPPHIRE_RENDERING_VK_QUEUE_MANAGER_GUARD
+#define SAPPHIRE_RENDERING_VK_QUEUE_MANAGER_GUARD
+
+#include <Rendering/Vulkan/System/Device/VkQueue.hpp>
+
+namespace Sa::Vk
+{
+	struct PhysicalDeviceInfos;
+
+	class QueueManager
+	{
+		Queue mGraphicsQueue;
+		Queue mComputeQueue;
+		Queue mTransferQueue;
+		Queue mPresentQueue;
+
+	public:
+		Queue& GetGraphicsQueue() noexcept;
+		const Queue& GetGraphicsQueue() const noexcept;
+
+		Queue& GetComputeQueue() noexcept;
+		const Queue& GetComputeQueue() const noexcept;
+		
+		Queue& GetTransferQueue() noexcept;
+		const Queue& GetTransferQueue() const noexcept;
+		
+		Queue& GetPresentQueue() noexcept;
+		const Queue& GetPresentQueue() const noexcept;
+
+
+		void Create(const Device& _device, const PhysicalDeviceInfos& _infos);
+		void Destroy(const Device& _device);
+	};
+}
+
+#endif // GUARD

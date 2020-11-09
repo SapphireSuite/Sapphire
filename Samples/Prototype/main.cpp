@@ -21,6 +21,7 @@ int main()
 	LOG("=== Create ===");
 	Vk::RenderInstance instance;
 	instance.Create();
+	instance.SelectDevice(Vk::QueueFamilyType::Graphics);
 	
 	
 	LOG("=== Destroy ===");

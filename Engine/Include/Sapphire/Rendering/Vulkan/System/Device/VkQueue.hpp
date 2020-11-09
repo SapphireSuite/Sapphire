@@ -5,6 +5,8 @@
 #ifndef SA_RENDERING_VK_QUEUE_GUARD
 #define SA_RENDERING_VK_QUEUE_GUARD
 
+#include <vector>
+
 #include <Rendering/Vulkan/System/Device/VkCommandPool.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -13,17 +15,23 @@ namespace Sa::Vk
 {
 	class Queue
 	{
-		VkQueue mHandle = VK_NULL_HANDLE;
+		uint32 mFamilyIndex = uint32(-1);
 
-		CommandPool mCommandPool;
+		std::vector<VkQueue> mHandles;
+
+		/**
+		*	Use 1 CommandPool per thread.
+		*	Sources: https://developer.nvidia.com/blog/vulkan-dos-donts/
+		*/
+		std::vector<CommandPool> mCommandPools;
 
 	public:
-		void Create(const Device& _device, uint32 _queueFamilyIndex);
+		uint32 GetFamilyIndex() const noexcept;
+		
+		bool IsValid() const noexcept;
+
+		void Create(const Device& _device, uint32 _queueFamilyIndex, uint32 _queueNum = 1u);
 		void Destroy(const Device& _device);
-
-		const CommandPool& GetCommandPool() const noexcept;
-
-		operator VkQueue() const noexcept;
 	};
 }
 
