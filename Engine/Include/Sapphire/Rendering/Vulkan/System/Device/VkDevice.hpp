@@ -24,10 +24,15 @@ namespace Sa::Vk
 		VkDevice mLogicalDevice = VK_NULL_HANDLE;
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 
-		QueueManager mQueueMgr;
+		// Properties.
+		VkPhysicalDeviceMemoryProperties mMemProperties;
 
 	public:
+		QueueManager queueMgr;
+
 		bool IsValid() const noexcept;
+
+		const VkPhysicalDeviceMemoryProperties& GetMemoryProperties() const noexcept;
 
 		void Create(const PhysicalDeviceInfos& _infos);
 		void Destroy();

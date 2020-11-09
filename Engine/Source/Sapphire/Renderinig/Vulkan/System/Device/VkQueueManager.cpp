@@ -6,47 +6,6 @@
 
 namespace Sa::Vk
 {
-	Queue& QueueManager::GetGraphicsQueue() noexcept
-	{
-		return mGraphicsQueue;
-	}
-
-	const Queue& QueueManager::GetGraphicsQueue() const noexcept
-	{
-		return mGraphicsQueue;
-	}
-
-	Queue& QueueManager::GetComputeQueue() noexcept
-	{
-		return mComputeQueue;
-	}
-
-	const Queue& QueueManager::GetComputeQueue() const noexcept
-	{
-		return mComputeQueue;
-	}
-
-	Queue& QueueManager::GetTransferQueue() noexcept
-	{
-		return mTransferQueue;
-	}
-
-	const Queue& QueueManager::GetTransferQueue() const noexcept
-	{
-		return mTransferQueue;
-	}
-
-	Queue& QueueManager::GetPresentQueue() noexcept
-	{
-		return mPresentQueue;
-	}
-
-	const Queue& QueueManager::GetPresentQueue() const noexcept
-	{
-		return mPresentQueue;
-	}
-
-
 	void QueueManager::Create(const Device& _device, const PhysicalDeviceInfos& _infos)
 	{
 		if (_infos.graphics.index != uint32(-1))

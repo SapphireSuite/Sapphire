@@ -109,6 +109,10 @@ namespace Sa::Vk
 		return mLogicalDevice != VK_NULL_HANDLE && mPhysicalDevice != VK_NULL_HANDLE;
 	}
 
+	const VkPhysicalDeviceMemoryProperties& Device::GetMemoryProperties() const noexcept
+	{
+		return mMemProperties;
+	}
 
 	void Device::Create(const PhysicalDeviceInfos& _infos)
 	{
@@ -148,14 +152,18 @@ namespace Sa::Vk
 		SA_VK_ASSERT(vkCreateDevice(mPhysicalDevice, &deviceCreateInfo, nullptr, &mLogicalDevice),
 			CreationFailed, Rendering, L"Failed to create logical device!");
 
-		mQueueMgr.Create(*this, _infos);
+		queueMgr.Create(*this, _infos);
+
+
+		// Query properties.
+		vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &mMemProperties);
 	}
 
 	void Device::Destroy()
 	{
 		SA_ASSERT(IsValid(), Nullptr, Rendering, L"Try to destroy null logical device!");
 
-		mQueueMgr.Destroy(*this);
+		queueMgr.Destroy(*this);
 
 		vkDestroyDevice(mLogicalDevice, nullptr);
 

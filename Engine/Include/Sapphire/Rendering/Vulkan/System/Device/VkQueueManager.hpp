@@ -13,24 +13,11 @@ namespace Sa::Vk
 
 	class QueueManager
 	{
+	public:
 		Queue mGraphicsQueue;
 		Queue mComputeQueue;
 		Queue mTransferQueue;
 		Queue mPresentQueue;
-
-	public:
-		Queue& GetGraphicsQueue() noexcept;
-		const Queue& GetGraphicsQueue() const noexcept;
-
-		Queue& GetComputeQueue() noexcept;
-		const Queue& GetComputeQueue() const noexcept;
-		
-		Queue& GetTransferQueue() noexcept;
-		const Queue& GetTransferQueue() const noexcept;
-		
-		Queue& GetPresentQueue() noexcept;
-		const Queue& GetPresentQueue() const noexcept;
-
 
 		void Create(const Device& _device, const PhysicalDeviceInfos& _infos);
 		void Destroy(const Device& _device);
