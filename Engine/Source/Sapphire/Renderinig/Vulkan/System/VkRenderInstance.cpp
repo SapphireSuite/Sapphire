@@ -7,6 +7,8 @@
 #include <Core/Support/Version.hpp>
 #include <Core/Algorithms/SizeOf.hpp>
 
+#include <Window/Framework/System/IWindow.hpp>
+
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa::Vk
@@ -16,7 +18,7 @@ namespace Sa::Vk
 		std::vector<const char*> extensions;
 
 		// Query window API required extensions.
-		//IWindow::GetRequiredExtensions(extensions);
+		IWindow::GetRequiredExtensions(extensions);
 
 #if SA_VK_VALIDATION_LAYERS
 
@@ -26,6 +28,10 @@ namespace Sa::Vk
 		return extensions;
 	}
 
+	const Device& RenderInstance::GetDevice() const noexcept
+	{
+		return mDevice;
+	}
 
 	void RenderInstance::SelectDevice(QueueFamilyType _requiredFamilies, const RenderSurface* _surface)
 	{
@@ -106,6 +112,53 @@ namespace Sa::Vk
 
 		vkDestroyInstance(mHandle, nullptr);
 		mHandle = VK_NULL_HANDLE;
+	}
+
+	IRenderSurface& RenderInstance::CreateRenderSurface(const IWindow& _window)
+	{
+		// Create.
+		VkSurfaceKHR vkSurface = _window.CreateRenderSurface(*this);
+
+		// Register.
+		RenderSurface& renderSurface = mSurfaces.emplace_back(new RenderSurface(vkSurface))->As<RenderSurface>();
+
+		// TODO: FIX.
+		//// Init resize event.
+		//_window.onResizeEvent.Add(std::function<void(const IWindow&, uint32, uint32)>(
+		//	[this, &renderSurfaceInfo] (const IWindow& _win, uint32 _width, uint32 _height)
+		//	{
+		//		(void)_win;
+		//		vkDeviceWaitIdle(mDevice);
+		//		renderSurfaceInfo.renderSurface.ResizeCallback(*this, _width, _height);
+		//	}
+		//));
+
+
+		// 1st surface: Device not selected yet.
+		if (!mDevice.IsValid())
+			SelectDevice(QueueFamilyType::Default, &renderSurface);
+
+		// Create swapchain after the creation of the first pass
+		renderSurface.Create(*this);
+
+		return renderSurface;
+	}
+
+	void RenderInstance::DestroyRenderSurface(const IRenderSurface& _surface)
+	{
+		for (auto it = mSurfaces.begin(); it != mSurfaces.end(); ++it)
+		{
+			if (*it == &_surface)
+			{
+				(*it)->Destroy(*this);
+
+				vkDestroySurfaceKHR(mHandle, (*it)->As<RenderSurface>(), nullptr);
+
+				mSurfaces.erase(it);
+
+				break;
+			}
+		}
 	}
 
 

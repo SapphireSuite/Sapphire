@@ -11,11 +11,21 @@
 
 namespace Sa
 {
+	class IWindow;
+
+	class IRenderSurface;
+
 	class IRenderInstance : public IInterface
 	{
+	protected:
+		std::vector<IRenderSurface*> mSurfaces;
+
 	public:
 		virtual void Create() = 0;
 		virtual void Destroy() = 0;
+
+		virtual IRenderSurface& CreateRenderSurface(const IWindow& _window) = 0;
+		virtual void DestroyRenderSurface(const IRenderSurface& _surface) = 0;
 
 		SA_ENGINE_API static void Init();
 		SA_ENGINE_API static void UnInit();

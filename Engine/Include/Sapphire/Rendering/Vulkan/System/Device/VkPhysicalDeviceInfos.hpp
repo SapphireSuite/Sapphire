@@ -22,18 +22,19 @@ namespace Sa::Vk
 		struct FamilyInfos
 		{
 			uint32 index = uint32(-1);
-			uint32 queueNum = 1u;
+			uint32 maxQueueNum = 1u;
+			mutable uint32 queueNum = 1u;
 		};
 
 		const VkPhysicalDevice device = VK_NULL_HANDLE;
-		const QueueFamilyType families;
+		const QueueFamilyType familyTypes;
 
 		FamilyInfos graphics;
 		FamilyInfos compute;
 		FamilyInfos transfer;
 		FamilyInfos present;
 
-		PhysicalDeviceInfos(VkPhysicalDevice _device, QueueFamilyType _families) noexcept;
+		PhysicalDeviceInfos(VkPhysicalDevice _device, QueueFamilyType _familyTypes) noexcept;
 		PhysicalDeviceInfos(PhysicalDeviceInfos&&) = default;
 		PhysicalDeviceInfos(const PhysicalDeviceInfos&) = default;
 

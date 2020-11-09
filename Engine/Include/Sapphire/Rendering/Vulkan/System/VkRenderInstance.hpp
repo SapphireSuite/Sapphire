@@ -9,13 +9,12 @@
 
 #include <Rendering/Vulkan/System/VkValidationLayers.hpp>
 #include <Rendering/Vulkan/System/Device/VkDevice.hpp>
+#include <Rendering/Vulkan/System/VkRenderSurface.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa::Vk
 {
-	class RenderSurface;
-
 	class SA_ENGINE_API RenderInstance : public IRenderInstance
 	{
 		VkInstance mHandle = VK_NULL_HANDLE;
@@ -29,10 +28,15 @@ namespace Sa::Vk
 #endif
 
 	public:
-		void SelectDevice(QueueFamilyType _requiredFamilies, const RenderSurface* _surface = nullptr);
+		const Device& GetDevice() const noexcept;
 		
+		void SelectDevice(QueueFamilyType _requiredFamilies = QueueFamilyType::DefaultNoPresent, const RenderSurface* _surface = nullptr);
+
 		void Create() override final;
 		void Destroy() override final;
+
+		IRenderSurface& CreateRenderSurface(const IWindow& _window) override final;
+		void DestroyRenderSurface(const IRenderSurface& _surface) override final;
 
 		static void Init();
 		static void UnInit();

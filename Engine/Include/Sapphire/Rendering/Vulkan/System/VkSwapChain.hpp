@@ -13,11 +13,16 @@
 
 namespace Sa::Vk
 {
+	class Device;
+	class RenderSurface;
+
 	class SwapChain
 	{
 		VkSwapchainKHR mHandle = VK_NULL_HANDLE;
 
 	public:
+		void Create(const Device& _device, const RenderSurface& _surface);
+		void Destroy(const Device& _device);
 	};
 }
 

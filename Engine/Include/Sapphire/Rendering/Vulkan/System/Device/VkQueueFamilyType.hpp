@@ -22,6 +22,10 @@ namespace Sa::Vk
 		Transfer = 1 << 2,
 
 		Present = 1 << 3,
+
+		// === Group ===
+		Default = Graphics | Compute | Transfer | Present,
+		DefaultNoPresent = Graphics | Compute | Transfer,
 	};
 }
 

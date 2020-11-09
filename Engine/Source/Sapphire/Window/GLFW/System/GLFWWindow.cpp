@@ -78,6 +78,25 @@ namespace Sa::GLFW
 		return glfwWindowShouldClose(mHandle);
 	}
 
+#if SA_RENDERING_API == SA_VULKAN
+
+	VkSurfaceKHR_T* Window::CreateRenderSurface(const IRenderInstance& _instance) const
+	{
+		VkSurfaceKHR vkSurface;
+		VkResult res = glfwCreateWindowSurface(
+			_instance.As<Vk::RenderInstance>(),
+			mHandle,
+			nullptr,
+			&vkSurface
+		);
+
+		SA_VK_ASSERT(res, CreationFailed, Window, L"Failed to create window surface!");
+
+		return vkSurface;
+	}
+
+#endif
+
 	void Window::ResizeCallback(GLFWwindow* _handle, int32 _width, int32 _height)
 	{
 		SA_ASSERT(_handle, Nullptr, Window, L"Window handle nulltpr!");

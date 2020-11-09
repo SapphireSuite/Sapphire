@@ -66,13 +66,13 @@ namespace Sa::Vk
 	{
 #if SA_DEBUG
 
-		if(static_cast<uint8>(_infos.families) & static_cast<uint8>(QueueFamilyType::Present))
-			SA_ASSERT(!_surface, InvalidParam, Rendering, L"QueueFamilyType::Present requiere a RenderSurface as parameter!");
+		if(static_cast<uint8>(_infos.familyTypes) & static_cast<uint8>(QueueFamilyType::Present))
+			SA_ASSERT(_surface, InvalidParam, Rendering, L"QueueFamilyType::Present requiere a RenderSurface as parameter!");
 
 #endif
 
 		// Check requiered extensions.
-		if (!CheckExtensionSupport(_infos.device, _infos.families))
+		if (!CheckExtensionSupport(_infos.device, _infos.familyTypes))
 			return false;
 
 
@@ -117,8 +117,12 @@ namespace Sa::Vk
 		physicalDeviceFeatures.sampleRateShading = VK_TRUE;
 		physicalDeviceFeatures.samplerAnisotropy = VK_TRUE;
 
-		std::vector<const char*> extensions = GetRequiredExtensions(_infos.families);
+		std::vector<const char*> extensions = GetRequiredExtensions(_infos.familyTypes);
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos = _infos.GetDeviceCreateInfos();
+
+		// TODO: Implement.
+		_infos.graphics.queueNum = 3u;
+		_infos.present.queueNum = 2u;
 
 		VkDeviceCreateInfo deviceCreateInfo;
 		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

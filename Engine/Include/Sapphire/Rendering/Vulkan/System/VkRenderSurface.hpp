@@ -20,6 +20,11 @@ namespace Sa::Vk
 		SwapChain mSwapChain;
 
 	public:
+		RenderSurface(VkSurfaceKHR _handle) noexcept;
+
+		void Create(const IRenderInstance& _instance) override final;
+		void Destroy(const IRenderInstance& _instance) override final;
+
 		operator VkSurfaceKHR() const;
 	};
 }

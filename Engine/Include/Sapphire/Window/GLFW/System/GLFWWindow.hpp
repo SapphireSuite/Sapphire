@@ -27,6 +27,12 @@ namespace Sa::GLFW
 
 		bool ShouldClose() const override final;
 
+#if SA_RENDERING_API == SA_VULKAN
+
+		VkSurfaceKHR_T* CreateRenderSurface(const IRenderInstance& _instance) const override final;
+
+#endif
+
 		static void GetRequiredExtensions(std::vector<const char*>& _extensions) noexcept;
 
 		static void Init();

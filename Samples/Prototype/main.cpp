@@ -23,10 +23,11 @@ int main()
 	LOG("=== Create ===");
 	Vk::RenderInstance instance;
 	instance.Create();
-	instance.SelectDevice(Vk::QueueFamilyType::Graphics);
 	
 	GLFW::Window window;
 	window.Create(1200u, 800u);
+
+	IRenderSurface& surface = instance.CreateRenderSurface(window);
 
 
 	LOG("=== Loop ===");
@@ -37,7 +38,10 @@ int main()
 
 	
 	LOG("=== Destroy ===");
+	instance.DestroyRenderSurface(surface);
+
 	window.Destroy();
+
 	instance.Destroy();
 
 

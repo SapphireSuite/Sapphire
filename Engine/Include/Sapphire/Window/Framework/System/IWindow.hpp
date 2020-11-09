@@ -11,6 +11,14 @@
 
 #include <Window/Config.hpp>
 
+#include <Rendering/Config.hpp>
+
+#if SA_RENDERING_API == SA_VULKAN
+
+struct VkSurfaceKHR_T;
+
+#endif
+
 namespace Sa
 {
 	class IRenderInstance;
@@ -27,6 +35,11 @@ namespace Sa
 
 		virtual bool ShouldClose() const = 0;
 
+#if SA_RENDERING_API == SA_VULKAN
+
+		virtual VkSurfaceKHR_T* CreateRenderSurface(const IRenderInstance& _instance) const = 0;
+
+#endif
 
 		static void Init();
 		static void UnInit();

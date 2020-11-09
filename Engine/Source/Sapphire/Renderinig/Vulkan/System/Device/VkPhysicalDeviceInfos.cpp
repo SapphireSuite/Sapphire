@@ -11,9 +11,9 @@ namespace Sa::Vk
 	constexpr uint32 familyNum = (sizeof(PhysicalDeviceInfos) - sizeof(VkPhysicalDevice)) / sizeof(PhysicalDeviceInfos::FamilyInfos);
 
 
-	PhysicalDeviceInfos::PhysicalDeviceInfos(VkPhysicalDevice _device, QueueFamilyType _families) noexcept :
+	PhysicalDeviceInfos::PhysicalDeviceInfos(VkPhysicalDevice _device, QueueFamilyType _familyTypes) noexcept :
 		device{ _device },
-		families{ _families }
+		familyTypes{ _familyTypes }
 	{
 	}
 
@@ -36,7 +36,7 @@ namespace Sa::Vk
 		const VkQueueFamilyProperties& _family, uint32 _index) noexcept
 	{
 		// Present family. Should be checked first.
-		if (_surface && (static_cast<uint32>(families) & static_cast<uint32>(QueueFamilyType::Present)))
+		if (_surface && (static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueFamilyType::Present)))
 		{
 			if (present.index == uint32(-1) ||				// Not completed yet.
 				graphics.index != _index)					// Different from graphics.
@@ -51,33 +51,33 @@ namespace Sa::Vk
 
 
 		// Graphics family.
-		if ((static_cast<uint32>(families) & static_cast<uint32>(QueueFamilyType::Graphics)) &&
+		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueFamilyType::Graphics)) &&
 			(_family.queueFlags & VK_QUEUE_GRAPHICS_BIT))
 		{
-			if (graphics.index == uint32(-1) ||				// Not completed yet.
-				graphics.queueNum < _family.queueCount)		// Allow more queue simultaneously.
+			if (graphics.index == uint32(-1) ||					// Not completed yet.
+				graphics.maxQueueNum < _family.queueCount)		// Allow more queue simultaneously.
 			{
 				graphics.index = _index;
-				graphics.queueNum = std::clamp(_family.queueCount, 1u, 3u); // TODO: FIX.
+				graphics.maxQueueNum = _family.queueCount;
 			}
 		}
 
 
 		// Compute family.
-		if ((static_cast<uint32>(families) & static_cast<uint32>(QueueFamilyType::Compute)) &&
+		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueFamilyType::Compute)) &&
 			(_family.queueFlags & VK_QUEUE_COMPUTE_BIT))
 		{
-			if (compute.index == uint32(-1) ||				// Not completed yet.
-				graphics.index != _index)					// Different from graphics.
+			if (compute.index == uint32(-1) ||					// Not completed yet.
+				present.index != _index)						// Different from Present.
 			{
 				compute.index = _index;
-				compute.queueNum = std::clamp(_family.queueCount, 1u, 3u); // TODO: FIX.
+				compute.maxQueueNum = _family.queueCount;
 			}
 		}
 
 
 		// Transfer family.
-		if ((static_cast<uint32>(families) & static_cast<uint32>(QueueFamilyType::Transfer)) &&
+		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueFamilyType::Transfer)) &&
 			(_family.queueFlags & VK_QUEUE_TRANSFER_BIT))
 		{
 			if (transfer.index == uint32(-1) ||				// Not completed yet.
@@ -85,7 +85,7 @@ namespace Sa::Vk
 				present.index != _index))					// Different from Present.
 			{
 				transfer.index = _index;
-				transfer.queueNum = std::clamp(_family.queueCount, 1u, 3u); // TODO: FIX.
+				transfer.maxQueueNum = _family.queueCount;
 			}
 		}
 	}
@@ -98,7 +98,7 @@ namespace Sa::Vk
 		for (uint32 i = 0u; i < familyNum; ++i)
 		{
 			// Has current type.
-			if (static_cast<uint32>(families) & (1 << i))
+			if (static_cast<uint32>(familyTypes) & (1 << i))
 			{
 				// Is family completed.
 				if (data[i].index == uint32(-1))
@@ -121,10 +121,30 @@ namespace Sa::Vk
 		for (uint32 i = 0u; i < familyNum; ++i)
 		{
 			// Has current type.
-			if (static_cast<uint32>(families) & (1 << i))
+			if (static_cast<uint32>(familyTypes) & (1 << i))
 			{
 				SA_ASSERT(data[i].index != uint32(-1), InvalidParam, Rendering, L"Create device infos of an uncompleted family!");
 
+
+				// Family index already in results.
+				bool bFound = false;
+				for (auto it = result.begin(); it != result.end(); ++it)
+				{
+					// Family index found.
+					if (it->queueFamilyIndex == data[i].index)
+					{
+						// Add queueNum.
+						it->queueCount = std::max(it->queueCount + data[i].queueNum, data[i].maxQueueNum);
+
+						bFound = true;
+					}
+				}
+
+				if (bFound)
+					continue;
+
+
+				// Create new queue create infos.
 				VkDeviceQueueCreateInfo queueInfos;
 				queueInfos.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 				queueInfos.pNext = nullptr;
