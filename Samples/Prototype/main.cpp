@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
+#include <Window/GLFW/System/GLFWWindow.hpp>
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
@@ -16,6 +17,7 @@ int main()
 
 	LOG("=== Init ===");
 	IRenderInstance::Init();
+	IWindow::Init();
 
 
 	LOG("=== Create ===");
@@ -23,12 +25,24 @@ int main()
 	instance.Create();
 	instance.SelectDevice(Vk::QueueFamilyType::Graphics);
 	
+	GLFW::Window window;
+	window.Create(1200u, 800u);
+
+
+	LOG("=== Loop ===");
+	while (!window.ShouldClose())
+	{
+		window.Update();
+	}
+
 	
 	LOG("=== Destroy ===");
+	window.Destroy();
 	instance.Destroy();
 
 
 	LOG("=== UnInit ===");
+	IWindow::UnInit();
 	IRenderInstance::UnInit();
 
 
