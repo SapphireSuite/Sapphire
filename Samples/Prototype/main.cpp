@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
+#include <Rendering/Vulkan/System/VkRenderPass.hpp>
 #include <Window/GLFW/System/GLFWWindow.hpp>
 using namespace Sa;
 
@@ -29,6 +30,9 @@ int main()
 
 	IRenderSurface& surface = instance.CreateRenderSurface(window);
 
+	Vk::RenderPass mainRenderPass;
+	mainRenderPass.Create(instance, RenderPassCreateInfos::defaultPBRDeferred);
+
 
 	LOG("=== Loop ===");
 	while (!window.ShouldClose())
@@ -38,6 +42,8 @@ int main()
 
 	
 	LOG("=== Destroy ===");
+	mainRenderPass.Destroy(instance);
+
 	instance.DestroyRenderSurface(surface);
 
 	window.Destroy();
