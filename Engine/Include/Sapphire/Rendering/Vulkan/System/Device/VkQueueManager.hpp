@@ -14,10 +14,10 @@ namespace Sa::Vk
 	class QueueManager
 	{
 	public:
-		Queue mGraphicsQueue;
-		Queue mComputeQueue;
-		Queue mTransferQueue;
-		Queue mPresentQueue;
+		Queue graphics;
+		Queue compute;
+		Queue transfer;
+		Queue present;
 
 		void Create(const Device& _device, const PhysicalDeviceInfos& _infos);
 		void Destroy(const Device& _device);

@@ -20,6 +20,9 @@ namespace Sa::Vk
 	{
 		VkSwapchainKHR mHandle = VK_NULL_HANDLE;
 
+		void CreateSwapChainKHR(const Device& _device, const RenderSurface& _surface);
+		void DestroySwapChainKHR(const Device& _device);
+
 	public:
 		void Create(const Device& _device, const RenderSurface& _surface);
 		void Destroy(const Device& _device);

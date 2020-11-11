@@ -28,6 +28,82 @@ namespace Sa::Vk
 		mSwapChain.Destroy(device);
 	}
 
+	RenderSurface::SupportDetails RenderSurface::QuerySupportDetails(VkPhysicalDevice _device) const
+	{
+		SupportDetails details{};
+
+		// KHR Capabilities.
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_device, mHandle, &details.capabilities);
+
+
+		// KHR Formats.
+		uint32 formatCount = 0u;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(_device, mHandle, &formatCount, nullptr);
+
+		if (formatCount != 0)
+		{
+			details.formats.resize(formatCount);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(_device, mHandle, &formatCount, details.formats.data());
+		}
+
+
+		// KHR Present Modes.
+		uint32 presentModeCount = 0u;
+		vkGetPhysicalDeviceSurfacePresentModesKHR(_device, mHandle, &presentModeCount, nullptr);
+
+		if (presentModeCount != 0)
+		{
+			details.presentModes.resize(presentModeCount);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(_device, mHandle, &presentModeCount, details.presentModes.data());
+		}
+
+		return details;
+	}
+
+	VkSurfaceFormatKHR RenderSurface::ChooseSwapSurfaceFormat(const SupportDetails& _details)
+	{
+		// Prefered
+		for (uint32 i = 0; i < _details.formats.size(); ++i)
+		{
+			if (_details.formats[i].format == VK_FORMAT_B8G8R8A8_SRGB
+				&& _details.formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+				return _details.formats[i];
+		}
+
+		// Default.
+		return _details.formats[0];
+	}
+
+	VkPresentModeKHR RenderSurface::ChooseSwapPresentMode(const SupportDetails& _details)
+	{
+		// Prefered.
+		for (uint32 i = 0; i < _details.presentModes.size(); ++i)
+		{
+			if (_details.presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+				return _details.presentModes[i];
+		}
+
+		// Default FIFO always supported.
+		return VK_PRESENT_MODE_FIFO_KHR;
+	}
+
+	Vec2ui RenderSurface::ChooseSwapExtent(const SupportDetails& _details)
+	{
+		if (_details.capabilities.currentExtent.width != UINT32_MAX)
+			return Vec2ui(_details.capabilities.currentExtent.width, _details.capabilities.currentExtent.height);
+		else
+		{
+			// TODO: Clean.
+			Vec2ui actualExtent = { 1920, 1080 };
+
+			actualExtent.x = Maths::Clamp(actualExtent.x, _details.capabilities.minImageExtent.width, _details.capabilities.maxImageExtent.width);
+			actualExtent.y = Maths::Clamp(actualExtent.y, _details.capabilities.minImageExtent.height, _details.capabilities.maxImageExtent.height);
+
+			return actualExtent;
+		}
+	}
+
+
 	RenderSurface::operator VkSurfaceKHR() const
 	{
 		return mHandle;

@@ -644,6 +644,9 @@ namespace Sa
 	/// Alias for int32 Vec3.
 	using Vec3i = Vec3<int32>;
 
+	/// Alias for uint32 Vec3.
+	using Vec3ui = Vec3<uint32>;
+
 	/// Alias for float Vec3.
 	using Vec3f = Vec3<float>;
 
@@ -657,6 +660,9 @@ namespace Sa
 
 	/// Alias for int32 Vector3.
 	using Vector3i = Vector3<int32>;
+
+	/// Alias for uint32 Vector3.
+	using Vector3ui = Vector3<uint32>;
 
 	/// Alias for float Vector3.
 	using Vector3f = Vector3<float>;
