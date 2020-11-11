@@ -12,7 +12,7 @@ namespace Sa::Vk
 		vkInfos.flags = imageFlags;
 		vkInfos.imageType = API_GetImageType(imageType);
 		vkInfos.format = API_GetRenderFormat(format);
-		vkInfos.extent = VkExtent3D{ extent.x, extent.y, 0 };
+		vkInfos.extent = VkExtent3D{ extent.x, extent.y, 1 };
 		vkInfos.mipLevels = mipLevels;
 
 		vkInfos.arrayLayers = API_GetLayerNum(imageType);
@@ -22,7 +22,10 @@ namespace Sa::Vk
 		
 		vkInfos.usage = usage;
 
-		if (format.type == RenderFormatType::Depth)
+
+		if (IsColorFormat(format))
+			vkInfos.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		else if (IsDepthFormat(format))
 			vkInfos.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
 		vkInfos.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -51,9 +54,9 @@ namespace Sa::Vk
 		
 		VkImageAspectFlags vkAspectFlags = aspectFlags;
 
-		if (format.type == RenderFormatType::RGB || format.type == RenderFormatType::sRGB)
-			vkAspectFlags |= VK_IMAGE_ASPECT_COLOR_BIT;
-		else if (format.type == RenderFormatType::Depth)
+		if (IsColorFormat(format))
+				vkAspectFlags |= VK_IMAGE_ASPECT_COLOR_BIT;
+		else if (IsDepthFormat(format))
 			vkAspectFlags |= VK_IMAGE_ASPECT_DEPTH_BIT;
 
 

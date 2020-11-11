@@ -31,8 +31,14 @@ namespace Sa::Vk
 
 		RenderSurface(VkSurfaceKHR _handle) noexcept;
 
+		RenderFormat GetRenderFormat() const noexcept override final;
+
 		void Create(const IRenderInstance& _instance) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
+
+		void AddRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor) override final;
+		void RemoveRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass) override final;
+
 
 		SupportDetails QuerySupportDetails(VkPhysicalDevice _device) const;
 

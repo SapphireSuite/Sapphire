@@ -27,7 +27,7 @@ namespace Sa::Vk
 		imageInfos.sampling = _rpDescriptor.sampling;
 
 		// Add Image buffer for each attachment.
-		imageInfos.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+		imageInfos.usage = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
 		auto subEndIt = _rpDescriptor.subPassDescriptors.end();
 		
@@ -52,6 +52,15 @@ namespace Sa::Vk
 
 			imageInfos.format = attachments[0].format;
 			mBuffers.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
+
+			// Multisampling resolution bufffer.
+			if (_rpDescriptor.sampling != SampleBits::Sample1Bit)
+			{
+				imageInfos.sampling = SampleBits::Sample1Bit;
+				mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
+
+				imageInfos.sampling = _rpDescriptor.sampling;
+			}
 		}
 
 		// Color clear values.
@@ -63,11 +72,7 @@ namespace Sa::Vk
 		if (_rpDescriptor.bDepthBuffer)
 		{
 			imageInfos.usage = 0u;
-
-			if(_rpDescriptor.bStencilBuffer)
-				imageInfos.format = RenderFormat{ 4u, RenderFormatType::DepthStencil };
-			else
-				imageInfos.format = RenderFormat{ 2u, RenderFormatType::Depth };
+			imageInfos.format = _rpDescriptor.depthFormat;
 
 			mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
 

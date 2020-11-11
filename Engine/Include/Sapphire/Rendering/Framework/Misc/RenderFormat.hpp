@@ -11,28 +11,41 @@
 
 namespace Sa
 {
-	enum RenderFormatType : uint8
+	enum class RenderFormat : uint8
 	{
-		RGB,
+		// RGB formats.
+		R_8,
+		RG_16,
+		
+		RGB_32,
+		BGR_32,
+		
+		RGBA_32,
+		BGRA_32,
 
-		sRGB,
 
-		Depth,
+		// sRGB formats.
+		sR_8,
+		sRG_16,
 
-		Stencil,
+		sRGBA_32,
+		sBGRA_32,
 
-		DepthStencil,
+
+		// Depth formats.
+		Stencil_8,
+		Depth_16,
+		Depth_32,
+		DepthStencil_32,
 	};
 
-	struct RenderFormat
-	{
-		uint32 channelNum = 4u;
-		RenderFormatType type = RenderFormatType::RGB;
-	};
+	bool IsColorFormat(RenderFormat _format) noexcept;
+	bool IsDepthFormat(RenderFormat _format) noexcept;
 
 #if SA_RENDERING_API == SA_VULKAN
 
 	VkFormat API_GetRenderFormat(RenderFormat _format);
+	RenderFormat API_FromRenderFormat(VkFormat _format);
 
 #endif
 }

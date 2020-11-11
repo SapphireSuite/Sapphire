@@ -15,6 +15,8 @@
 
 namespace Sa
 {
+	class IRenderSurface;
+
 	struct SubPassAttachmentDescriptor
 	{
 		RenderFormat format;
@@ -25,22 +27,30 @@ namespace Sa
 		std::vector<SubPassAttachmentDescriptor> attachmentDescriptors;
 	};
 
-	struct RenderPassDescriptor
+	class SA_ENGINE_API RenderPassDescriptor
 	{
+	public:
 		SampleBits sampling = SampleBits::Sample8Bits;
 
 		bool bPresent = true;
 
 		bool bDepthBuffer = true;
-		bool bStencilBuffer = false;
+		RenderFormat depthFormat = RenderFormat::Depth_16;
 
 		bool bClear = true;
 		Color clearColor = Color{ 0.0f, 0.0f, 0.05f, 1.0f };
 
 		std::vector<SubPassDescriptor> subPassDescriptors;
 
-		SA_ENGINE_API static const RenderPassDescriptor defaultForward;
-		SA_ENGINE_API static const RenderPassDescriptor defaultPBRDeferred;
+		/**
+		*	\brief Create a default forward rendering renderpass descriptor.
+		*/
+		static RenderPassDescriptor CreateDefaultForward(const IRenderSurface* _surface = nullptr);
+
+		/**
+		*	\brief Create a default PBR deferred rendering renderpass descriptor.
+		*/
+		static RenderPassDescriptor CreateDefaultPBRDeferred(const IRenderSurface* _surface = nullptr);
 	};
 }
 

@@ -147,13 +147,7 @@ namespace Sa::Vk
 		// Add Depth attachement.
 		if (_descriptor.bDepthBuffer)
 		{
-			/**
-			*	Use VK_FORMAT_D24_UNORM_S8_UINT or VK_FORMAT_D16_SFLOAT instead of VK_FORMAT_D32_SFLOAT optimization.
-			*	Sources: https://developer.nvidia.com/blog/vulkan-dos-donts/
-			*/
-			VkFormat depthFormat = _descriptor.bStencilBuffer ? VK_FORMAT_D24_UNORM_S8_UINT : VK_FORMAT_D16_UNORM;
-
-			VkAttachmentDescription depthAttachment = CreateAttachement(depthFormat, sampling, loadOp);
+			VkAttachmentDescription depthAttachment = CreateAttachement(API_GetRenderFormat(_descriptor.depthFormat), sampling, loadOp);
 			depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			
 			attachments.push_back(depthAttachment);

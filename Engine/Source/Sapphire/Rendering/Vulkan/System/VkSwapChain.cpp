@@ -10,6 +10,11 @@
 
 namespace Sa::Vk
 {
+	RenderFormat SwapChain::GetRenderFormat() const noexcept
+	{
+		return mFormat;
+	}
+
 	void SwapChain::Create(const Device& _device, const RenderSurface& _surface)
 	{
 		CreateSwapChainKHR(_device, _surface);
@@ -26,14 +31,15 @@ namespace Sa::Vk
 		RenderSurface::SupportDetails details = _surface.QuerySupportDetails(_device);
 		VkSurfaceFormatKHR surfaceFormat = RenderSurface::ChooseSwapSurfaceFormat(details);
 		VkPresentModeKHR presentMode = RenderSurface::ChooseSwapPresentMode(details);
-		Vec2ui extent = RenderSurface::ChooseSwapExtent(details);
+		mExtent = RenderSurface::ChooseSwapExtent(details);
 
+		mFormat = API_FromRenderFormat(surfaceFormat.format);
 
 		// Min image count to avoid driver blocking.
-		uint32 imageNum = details.capabilities.minImageCount + 1;
+		mImageNum = details.capabilities.minImageCount + 1;
 
-		if (details.capabilities.maxImageCount > 0 && imageNum > details.capabilities.maxImageCount)
-			imageNum = details.capabilities.maxImageCount;
+		if (details.capabilities.maxImageCount > 0 && mImageNum > details.capabilities.maxImageCount)
+			mImageNum = details.capabilities.maxImageCount;
 
 		// Create Swapchain.
 		VkSwapchainCreateInfoKHR swapChainCreateInfo{};
@@ -41,10 +47,10 @@ namespace Sa::Vk
 		swapChainCreateInfo.pNext = nullptr;
 		swapChainCreateInfo.flags = 0u;
 		swapChainCreateInfo.surface = _surface;
-		swapChainCreateInfo.minImageCount = imageNum;
+		swapChainCreateInfo.minImageCount = mImageNum;
 		swapChainCreateInfo.imageFormat = surfaceFormat.format;
 		swapChainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
-		swapChainCreateInfo.imageExtent = VkExtent2D{ extent.x, extent.y };
+		swapChainCreateInfo.imageExtent = VkExtent2D{ mExtent.x, mExtent.y };
 		swapChainCreateInfo.imageArrayLayers = 1u;
 		swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -80,5 +86,26 @@ namespace Sa::Vk
 
 		vkDestroySwapchainKHR(_device, mHandle, nullptr);
 		mHandle = VK_NULL_HANDLE;
+	}
+
+
+	void SwapChain::AddRenderPass(const Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _rpDesc)
+	{
+		std::vector<VkImage> swapChainImages(mImageNum);
+		vkGetSwapchainImagesKHR(_device, mHandle, &mImageNum, swapChainImages.data());
+
+		std::vector<FrameBuffer>& frameBuffers = frameBufferImages.emplace_back();
+		frameBuffers.reserve(mImageNum);
+
+		for (uint32 i = 0u; i < mImageNum; ++i)
+		{
+			FrameBuffer& frameBuffer = frameBuffers.emplace_back();
+			frameBuffer.Create(_device, _renderPass, _rpDesc, mExtent, swapChainImages[i]);
+		}
+	}
+	
+	void SwapChain::RemoveRenderPass(const Device& _device, const RenderPass& _renderPass)
+	{
+		// TODO: Implement.
 	}
 }

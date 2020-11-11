@@ -3,12 +3,20 @@
 #include <Rendering/Vulkan/System/VkRenderSurface.hpp>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
+#include <Rendering/Vulkan/System/VkRenderPass.hpp>
 
 namespace Sa::Vk
 {
 	RenderSurface::RenderSurface(VkSurfaceKHR _handle) noexcept : mHandle{ _handle }
 	{
 	}
+
+
+	RenderFormat RenderSurface::GetRenderFormat() const noexcept
+	{
+		return mSwapChain.GetRenderFormat();
+	}
+
 
 	void RenderSurface::Create(const IRenderInstance& _instance)
 	{
@@ -27,6 +35,17 @@ namespace Sa::Vk
 
 		mSwapChain.Destroy(device);
 	}
+
+	void RenderSurface::AddRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor)
+	{
+		mSwapChain.AddRenderPass(_instance.As<RenderInstance>().GetDevice(), _renderPass.As<RenderPass>(), _rpDescriptor);
+	}
+
+	void RenderSurface::RemoveRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass)
+	{
+		mSwapChain.RemoveRenderPass(_instance.As<RenderInstance>().GetDevice(), _renderPass.As<RenderPass>());
+	}
+
 
 	RenderSurface::SupportDetails RenderSurface::QuerySupportDetails(VkPhysicalDevice _device) const
 	{

@@ -32,12 +32,11 @@ int main()
 	IRenderSurface& surface = instance.CreateRenderSurface(window);
 
 	Vk::RenderPass mainRenderPass;
-	const RenderPassDescriptor& mainRPDescriptor = RenderPassDescriptor::defaultPBRDeferred;
+	const RenderPassDescriptor& mainRPDescriptor = RenderPassDescriptor::CreateDefaultPBRDeferred(&surface);
 
 	mainRenderPass.Create(instance, mainRPDescriptor);
 
-	Vk::FrameBuffer framebuffer;
-	//framebuffer.Create(instance.GetDevice(), mainRenderPass, mainRPDescriptor, Vec2ui{ 1200u, 800u });
+	surface.AddRenderPass(instance, mainRenderPass, mainRPDescriptor);
 
 
 	LOG("=== Loop ===");

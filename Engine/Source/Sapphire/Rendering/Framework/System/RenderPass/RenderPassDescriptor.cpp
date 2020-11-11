@@ -2,29 +2,36 @@
 
 #include <Rendering/Framework/System/RenderPass/RenderPassDescriptor.hpp>
 
+#include <Rendering/Framework/System/IRenderSurface.hpp>
+
 namespace Sa
 {
-	RenderPassDescriptor CreateDefaultForward()
+	RenderPassDescriptor RenderPassDescriptor::CreateDefaultForward(const IRenderSurface* _surface)
 	{
 		RenderPassDescriptor result{};
 
-		result.bPresent = true;
-
-		
 		// === Main Subpass ===
 		result.subPassDescriptors.resize(1u);
 
 		result.subPassDescriptors[0].attachmentDescriptors.resize(1u);
-		result.subPassDescriptors[0].attachmentDescriptors[0].format = RenderFormat{ 4u, RenderFormatType::sRGB };
+
+		if (_surface)
+		{
+			result.bPresent = true;
+			result.subPassDescriptors[0].attachmentDescriptors[0].format = _surface->GetRenderFormat();
+		}
+		else
+		{
+			result.bPresent = false;
+			result.subPassDescriptors[0].attachmentDescriptors[0].format = RenderFormat::sRGBA_32;
+		}
 
 		return result;
 	}
 
-	RenderPassDescriptor CreateDefaultPBRDeferred()
+	RenderPassDescriptor RenderPassDescriptor::CreateDefaultPBRDeferred(const IRenderSurface* _surface)
 	{
 		RenderPassDescriptor result{};
-
-		result.bPresent = true;
 
 		result.subPassDescriptors.resize(2u);
 
@@ -32,26 +39,33 @@ namespace Sa
 		result.subPassDescriptors[0].attachmentDescriptors.resize(4u);
 
 		// Position.
-		result.subPassDescriptors[0].attachmentDescriptors[0].format = RenderFormat{ 4u, RenderFormatType::RGB };
+		result.subPassDescriptors[0].attachmentDescriptors[0].format = RenderFormat::RGBA_32;
 		
 		// Normal
-		result.subPassDescriptors[0].attachmentDescriptors[1].format = RenderFormat{ 4u, RenderFormatType::RGB };
+		result.subPassDescriptors[0].attachmentDescriptors[1].format = RenderFormat::RGBA_32;
 
 		// Albedo
-		result.subPassDescriptors[0].attachmentDescriptors[2].format = RenderFormat{ 4u, RenderFormatType::RGB };
+		result.subPassDescriptors[0].attachmentDescriptors[2].format = RenderFormat::RGBA_32;
 
 		// PBR: Metallic, Roughness, Ambiant occlusion.
-		result.subPassDescriptors[0].attachmentDescriptors[3].format = RenderFormat{ 4u, RenderFormatType::RGB };
+		result.subPassDescriptors[0].attachmentDescriptors[3].format = RenderFormat::RGBA_32;
 
 
 		// === Present Subpass ===
 		result.subPassDescriptors[1].attachmentDescriptors.resize(1u);
-		result.subPassDescriptors[1].attachmentDescriptors[0].format = RenderFormat{ 4u, RenderFormatType::sRGB };
+
+		if (_surface)
+		{
+			result.bPresent = true;
+			result.subPassDescriptors[1].attachmentDescriptors[0].format = _surface->GetRenderFormat();
+		}
+		else
+		{
+			result.bPresent = false;
+			result.subPassDescriptors[1].attachmentDescriptors[0].format = RenderFormat::sRGBA_32;
+		}
 
 
 		return result;
 	}
-
-	const RenderPassDescriptor RenderPassDescriptor::defaultForward = CreateDefaultForward();
-	const RenderPassDescriptor RenderPassDescriptor::defaultPBRDeferred = CreateDefaultPBRDeferred();
 }
