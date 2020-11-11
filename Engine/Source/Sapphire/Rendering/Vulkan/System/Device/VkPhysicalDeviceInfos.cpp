@@ -145,7 +145,7 @@ namespace Sa::Vk
 
 
 				// Create new queue create infos.
-				VkDeviceQueueCreateInfo queueInfos;
+				VkDeviceQueueCreateInfo queueInfos{};
 				queueInfos.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 				queueInfos.pNext = nullptr;
 				queueInfos.flags = 0;

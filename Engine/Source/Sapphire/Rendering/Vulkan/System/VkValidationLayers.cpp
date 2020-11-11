@@ -19,23 +19,24 @@ namespace Sa::Vk
 	VkDebugUtilsMessengerCreateInfoEXT ValidationLayers::GetDebugUtilsMessengerCreateInfo() noexcept
 	{
 		// Debug Messenger Info.
-		return VkDebugUtilsMessengerCreateInfoEXT
-		{
-			VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,			// sType.
-			nullptr,															// pNext.
-			0,																	// flags.
+		VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
 
-			VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |					// messageSeverity.
+		debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		debugInfo.pNext = nullptr;
+		debugInfo.flags = 0u;
+
+		debugInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
 			VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 
-			VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |						// messageType.
+		debugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
 			VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+			VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
-			ValidationLayers::DebugCallback,									// pfnUserCallback.
-			nullptr																// pUserData.
-		};
+		debugInfo.pfnUserCallback = DebugCallback;
+		debugInfo.pUserData = nullptr;
+
+		return debugInfo;
 	}
 
 	uint32 ValidationLayers::GetLayerNum() noexcept

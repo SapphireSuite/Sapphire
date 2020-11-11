@@ -90,10 +90,10 @@ namespace Sa::Vk
 
 		// TODO: SAVE?
 		// Check properties suitability.
-		VkPhysicalDeviceProperties deviceProperties;
+		VkPhysicalDeviceProperties deviceProperties{};
 		vkGetPhysicalDeviceProperties(_infos.device, &deviceProperties);
 
-		VkPhysicalDeviceFeatures deviceFeatures;
+		VkPhysicalDeviceFeatures deviceFeatures{};
 		vkGetPhysicalDeviceFeatures(_infos.device, &deviceFeatures);
 
 		if (!deviceFeatures.samplerAnisotropy)
@@ -128,7 +128,7 @@ namespace Sa::Vk
 		_infos.graphics.queueNum = 3u;
 		_infos.present.queueNum = 2u;
 
-		VkDeviceCreateInfo deviceCreateInfo;
+		VkDeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceCreateInfo.pNext = nullptr;
 		deviceCreateInfo.flags = 0u;

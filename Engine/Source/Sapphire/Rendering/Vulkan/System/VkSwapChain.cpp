@@ -36,7 +36,7 @@ namespace Sa::Vk
 			imageNum = details.capabilities.maxImageCount;
 
 		// Create Swapchain.
-		VkSwapchainCreateInfoKHR swapChainCreateInfo;
+		VkSwapchainCreateInfoKHR swapChainCreateInfo{};
 		swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		swapChainCreateInfo.pNext = nullptr;
 		swapChainCreateInfo.flags = 0u;

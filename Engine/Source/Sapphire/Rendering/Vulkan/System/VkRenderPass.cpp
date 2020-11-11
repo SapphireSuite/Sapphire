@@ -10,7 +10,7 @@ namespace Sa::Vk
 {
 	VkSubpassDescription CreateSubpassDesc()
 	{
-		VkSubpassDescription subpass;
+		VkSubpassDescription subpass{};
 
 		subpass.flags = 0u;
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -32,7 +32,7 @@ namespace Sa::Vk
 
 	VkSubpassDependency CreateSubpassDep(uint32 _currIndex, uint32 _subpassNum)
 	{
-		VkSubpassDependency subpassDependency;
+		VkSubpassDependency subpassDependency{};
 
 		// Default dependency.
 		subpassDependency.srcSubpass = _currIndex - 1;
@@ -72,7 +72,7 @@ namespace Sa::Vk
 
 	VkAttachmentDescription CreateAttachement(VkFormat _format, VkSampleCountFlagBits _sampling, VkAttachmentLoadOp _loadOp)
 	{
-		VkAttachmentDescription attachment;
+		VkAttachmentDescription attachment{};
 		attachment.flags = 0u;
 		attachment.format = _format;
 		attachment.samples = _sampling;
@@ -86,12 +86,12 @@ namespace Sa::Vk
 		return attachment;
 	}
 
-	void RenderPass::Create(const IRenderInstance& _instance, const RenderPassCreateInfos& _infos)
+	void RenderPass::Create(const IRenderInstance& _instance, const RenderPassDescriptor& _descriptor)
 	{
 		const VkDevice& device = _instance.As<RenderInstance>().GetDevice();
 
-		const VkSampleCountFlagBits sampling = static_cast<VkSampleCountFlagBits>(_infos.sampling);
-		const VkAttachmentLoadOp loadOp = _infos.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		const VkSampleCountFlagBits sampling = static_cast<VkSampleCountFlagBits>(_descriptor.sampling);
+		const VkAttachmentLoadOp loadOp = _descriptor.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
 		// === Attachments ===
 		std::vector<uint32> offsetIndex;
@@ -111,11 +111,11 @@ namespace Sa::Vk
 		VkAttachmentReference presentAttachmentResolveRef;
 
 		
-		for (uint32 i = 0; i < SizeOf(_infos.subPassInfos); ++i)
+		for (uint32 i = 0; i < SizeOf(_descriptor.subPassDescriptors); ++i)
 		{
-			const SubPassCreateInfos& subpassInfos = _infos.subPassInfos[i];
+			const SubPassDescriptor& subpassDesc = _descriptor.subPassDescriptors[i];
 
-			for (auto attIt = subpassInfos.attachmentInfos.begin(); attIt != subpassInfos.attachmentInfos.end(); ++attIt)
+			for (auto attIt = subpassDesc.attachmentDescriptors.begin(); attIt != subpassDesc.attachmentDescriptors.end(); ++attIt)
 			{
 				attachments.push_back(CreateAttachement(API_GetRenderFormat(attIt->format), sampling, loadOp));
 				attachmentRefs.push_back({ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
@@ -127,12 +127,12 @@ namespace Sa::Vk
 		}
 
 		// Add present attachment.
-		if (_infos.bPresent)
+		if (_descriptor.bPresent)
 		{
 			if (sampling != VK_SAMPLE_COUNT_1_BIT)
 			{
 				// Color attachment multisampling resolution.
-				VkFormat presentFormat = API_GetRenderFormat(_infos.subPassInfos[SizeOf(_infos.subPassInfos) - 1].attachmentInfos[0].format);
+				VkFormat presentFormat = API_GetRenderFormat(_descriptor.subPassDescriptors[SizeOf(_descriptor.subPassDescriptors) - 1].attachmentDescriptors[0].format);
 
 				VkAttachmentDescription presentAttachmentResolve = CreateAttachement(presentFormat, VK_SAMPLE_COUNT_1_BIT, loadOp);
 				presentAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -145,13 +145,13 @@ namespace Sa::Vk
 		}
 
 		// Add Depth attachement.
-		if (_infos.bDepthBuffer)
+		if (_descriptor.bDepthBuffer)
 		{
 			/**
 			*	Use VK_FORMAT_D24_UNORM_S8_UINT or VK_FORMAT_D16_SFLOAT instead of VK_FORMAT_D32_SFLOAT optimization.
 			*	Sources: https://developer.nvidia.com/blog/vulkan-dos-donts/
 			*/
-			VkFormat depthFormat = _infos.bStencilBuffer ? VK_FORMAT_D24_UNORM_S8_UINT : VK_FORMAT_D16_UNORM;
+			VkFormat depthFormat = _descriptor.bStencilBuffer ? VK_FORMAT_D24_UNORM_S8_UINT : VK_FORMAT_D16_UNORM;
 
 			VkAttachmentDescription depthAttachment = CreateAttachement(depthFormat, sampling, loadOp);
 			depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -164,7 +164,7 @@ namespace Sa::Vk
 		// Split into 2 for loops to avoid bad pointers due to vector reallocation.
 
 		// === Subpasses ===
-		uint32 subpassNum = SizeOf(_infos.subPassInfos);
+		uint32 subpassNum = SizeOf(_descriptor.subPassDescriptors);
 
 		std::vector<VkSubpassDescription> subpassDescriptions;
 		subpassDescriptions.resize(subpassNum);
@@ -182,7 +182,7 @@ namespace Sa::Vk
 			subpassDesc.colorAttachmentCount = offsetIndex[i + 1] - offsetIndex[i];
 			subpassDesc.pColorAttachments = attachmentRefs.data() + offsetIndex[i];
 
-			if (_infos.bDepthBuffer)
+			if (_descriptor.bDepthBuffer)
 				subpassDesc.pDepthStencilAttachment = &depthAttachmentRef;
 
 			if (i > 0u)
@@ -200,12 +200,12 @@ namespace Sa::Vk
 
 
 		// Add present resolve attachment.
-		if (_infos.bPresent && sampling != VK_SAMPLE_COUNT_1_BIT)
+		if (_descriptor.bPresent && sampling != VK_SAMPLE_COUNT_1_BIT)
 			subpassDescriptions[subpassNum - 1].pResolveAttachments = &presentAttachmentResolveRef;
 		
 
 		// === RenderPass ===
-		VkRenderPassCreateInfo renderPassCreateInfo;
+		VkRenderPassCreateInfo renderPassCreateInfo{};
 		renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassCreateInfo.pNext = nullptr;
 		renderPassCreateInfo.flags = VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM;
@@ -227,5 +227,11 @@ namespace Sa::Vk
 		const VkDevice& device = _instance.As<RenderInstance>().GetDevice();
 
 		vkDestroyRenderPass(device, mHandle, nullptr);
+	}
+
+
+	RenderPass::operator VkRenderPass() const noexcept
+	{
+		return mHandle;
 	}
 }

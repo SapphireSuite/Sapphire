@@ -47,21 +47,20 @@ namespace Sa::Vk
 
 	void RenderInstance::Create()
 	{
-		const VkApplicationInfo appInfo
-		{
-			VK_STRUCTURE_TYPE_APPLICATION_INFO,											// sType.
-			nullptr,																	// pNext.
-			"Main Application",															// pApplicationName.
-			VK_MAKE_VERSION(1, 0, 0),													// applicationVersion.
-			"Sapphire Engine",															// pEngineName
-			VK_MAKE_VERSION(SA_VERSION_MAJOR, SA_VERSION_MINOR, SA_VERSION_PATCH),		// engineVersion.
-			VK_API_VERSION_1_0,															// apiVersion.
-		};
+		VkApplicationInfo appInfo{};
+		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+		appInfo.pNext = nullptr;
+		appInfo.pApplicationName = "Main Application";
+		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+		appInfo.pEngineName = "Sapphire Engine";
+		appInfo.engineVersion = VK_MAKE_VERSION(SA_VERSION_MAJOR, SA_VERSION_MINOR, SA_VERSION_PATCH);
+		appInfo.apiVersion = VK_API_VERSION_1_0;
+
 
 		std::vector<const char*> extensions = GetRequiredExtensions();
 
 
-		VkInstanceCreateInfo instanceCreateInfo;
+		VkInstanceCreateInfo instanceCreateInfo{};
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instanceCreateInfo.pNext = nullptr;
 		instanceCreateInfo.flags = 0;

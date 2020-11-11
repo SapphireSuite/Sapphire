@@ -13,7 +13,7 @@ namespace Sa::Vk
 	{
 		SA_ASSERT(mHandle == VK_NULL_HANDLE, AlreadyCreated, Rendering, L"Command pool already created!");
 
-		VkCommandPoolCreateInfo commandPoolCreateInfo;
+		VkCommandPoolCreateInfo commandPoolCreateInfo{};
 		commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		commandPoolCreateInfo.pNext = nullptr;
 		commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
