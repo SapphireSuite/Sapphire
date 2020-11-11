@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_CORE_COLOR_GUARD
 #define SAPPHIRE_CORE_COLOR_GUARD
 
-#include <Rendering/Config.hpp>
+#include <Rendering/APIConfig.hpp>
 
 namespace Sa
 {
@@ -21,6 +21,13 @@ namespace Sa
 		SA_ENGINE_API static const Color blue;
 		SA_ENGINE_API static const Color black;
 		SA_ENGINE_API static const Color white;
+
+#if SA_RENDERING_API == SA_VULKAN
+
+		operator VkClearValue() const noexcept;
+		operator VkClearColorValue() const noexcept;
+
+#endif
 	};
 }
 

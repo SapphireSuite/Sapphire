@@ -5,8 +5,6 @@
 #ifndef SAPPHIRE_RENDERING_VK_DEVICE_GUARD
 #define SAPPHIRE_RENDERING_VK_DEVICE_GUARD
 
-#include <Rendering/Config.hpp>
-
 #include <Rendering/Vulkan/System/Device/VkQueueManager.hpp>
 #include <Rendering/Vulkan/System/Device/VkQueueFamilyType.hpp>
 #include <Rendering/Vulkan/System/Device/VkPhysicalDeviceInfos.hpp>

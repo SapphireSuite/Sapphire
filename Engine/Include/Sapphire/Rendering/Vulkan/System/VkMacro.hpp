@@ -7,11 +7,9 @@
 
 #include <Collections/Debug>
 
-#include <Rendering/Config.hpp>
+#include <Rendering/APIConfig.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
-
-#include <vulkan/vulkan.h>
 
 namespace Sa::Vk
 {

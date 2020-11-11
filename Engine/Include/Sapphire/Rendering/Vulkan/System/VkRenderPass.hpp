@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDERING_VK_RENDER_PASS_GUARD
 #define SAPPHIRE_RENDERING_VK_RENDER_PASS_GUARD
 
-#include <Rendering/Config.hpp>
+#include <Rendering/APIConfig.hpp>
 
 #include <Rendering/Framework/System/RenderPass/IRenderPass.hpp>
 

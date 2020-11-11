@@ -19,6 +19,8 @@ namespace Sa
 						return VK_FORMAT_R8_UNORM;
 					case RenderFormatType::sRGB:
 						return VK_FORMAT_R8_SRGB;
+					case RenderFormatType::Stencil:
+						return VK_FORMAT_S8_UINT;
 					default:
 						SA_LOG("TextureFormat not supported yet!", Warning, Rendering);
 						return VK_FORMAT_R8_SRGB;
@@ -30,6 +32,8 @@ namespace Sa
 						return VK_FORMAT_R8G8_UNORM;
 					case RenderFormatType::sRGB:
 						return VK_FORMAT_R8G8_SRGB;
+					case RenderFormatType::Depth:
+						return VK_FORMAT_D16_UNORM;
 					default:
 						SA_LOG("TextureFormat not supported yet!", Warning, Rendering);
 						return VK_FORMAT_R8G8_SRGB;
@@ -41,6 +45,8 @@ namespace Sa
 						return VK_FORMAT_R8G8B8_UNORM;
 					case RenderFormatType::sRGB:
 						return VK_FORMAT_R8G8B8_SRGB;
+					case RenderFormatType::DepthStencil:
+						return VK_FORMAT_D16_UNORM_S8_UINT;
 					default:
 						SA_LOG("TextureFormat not supported yet!", Warning, Rendering);
 						return VK_FORMAT_R8G8B8_SRGB;
@@ -52,6 +58,10 @@ namespace Sa
 						return VK_FORMAT_R8G8B8A8_UNORM;
 					case RenderFormatType::sRGB:
 						return VK_FORMAT_R8G8B8A8_SRGB;
+					case RenderFormatType::Depth:
+						return VK_FORMAT_D32_SFLOAT;
+					case RenderFormatType::DepthStencil:
+						return VK_FORMAT_D24_UNORM_S8_UINT;
 					default:
 						SA_LOG("TextureFormat not supported yet!", Warning, Rendering);
 						return VK_FORMAT_R8G8B8A8_SRGB;

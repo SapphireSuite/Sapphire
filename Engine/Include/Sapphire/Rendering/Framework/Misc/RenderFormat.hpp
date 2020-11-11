@@ -7,13 +7,7 @@
 
 #include <Core/Types/Int.hpp>
 
-#include <Rendering/Config.hpp>
-
-#if SA_RENDERING_API == SA_VULKAN
-
-#include <vulkan/vulkan.h>
-
-#endif
+#include <Rendering/APIConfig.hpp>
 
 namespace Sa
 {
@@ -21,7 +15,13 @@ namespace Sa
 	{
 		RGB,
 
-		sRGB
+		sRGB,
+
+		Depth,
+
+		Stencil,
+
+		DepthStencil,
 	};
 
 	struct RenderFormat

@@ -7,11 +7,11 @@
 
 #include <vector>
 
+#include <Rendering/APIConfig.hpp>
+
 #include <Rendering/Vulkan/System/Device/VkQueueFamilyType.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
-
-#include <vulkan/vulkan.h>
 
 namespace Sa::Vk
 {
