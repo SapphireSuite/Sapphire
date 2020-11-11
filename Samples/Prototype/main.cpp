@@ -5,6 +5,7 @@
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
+#include <Rendering/Vulkan/System/Surface/VkRenderSurface.hpp>
 #include <Rendering/Vulkan/Buffers/VkFrameBuffer.hpp>
 #include <Window/GLFW/System/GLFWWindow.hpp>
 using namespace Sa;
@@ -31,23 +32,59 @@ int main()
 
 	IRenderSurface& surface = instance.CreateRenderSurface(window);
 
-	Vk::RenderPass mainRenderPass;
-	const RenderPassDescriptor& mainRPDescriptor = RenderPassDescriptor::CreateDefaultPBRDeferred(&surface);
+	// Main RenderPass.
+	Vk::RenderPass mainRP;
+	const RenderPassDescriptor mainRPDesc = RenderPassDescriptor::CreateDefaultPBRDeferred(&surface);
+	mainRP.Create(instance, mainRPDesc);
+	const uint32 mainRPID = surface.AddRenderPass(instance, mainRP, mainRPDesc);
 
-	mainRenderPass.Create(instance, mainRPDescriptor);
-
-	surface.AddRenderPass(instance, mainRenderPass, mainRPDescriptor);
+	// UI RenderPass.
+	Vk::RenderPass UIRP;
+	const RenderPassDescriptor UIRPDesc = RenderPassDescriptor::CreateDefaultForward(&surface);
+	UIRP.Create(instance, UIRPDesc);
+	const uint32 UIRPID = surface.AddRenderPass(instance, UIRP, UIRPDesc);
 
 
 	LOG("=== Loop ===");
 	while (!window.ShouldClose())
 	{
 		window.Update();
+
+		// Begin Surface.
+		surface.Begin(instance);
+
+
+		// Main framebuffer.
+		IFrameBuffer& mainFB = surface.GetFrameBuffer(mainRPID);
+
+		mainFB.Begin();
+
+		mainFB.NextSubpass();
+
+		mainFB.End();
+
+
+		// UI framebuffer.
+		IFrameBuffer& UIFB = surface.GetFrameBuffer(UIRPID);
+
+		UIFB.Begin();
+
+		UIFB.End();
+
+
+		// End Surface.
+		surface.End(instance);
 	}
 
 	
 	LOG("=== Destroy ===");
-	mainRenderPass.Destroy(instance);
+	vkDeviceWaitIdle(instance.device);
+
+	surface.RemoveRenderPass(instance, UIRPID);
+	surface.RemoveRenderPass(instance, mainRPID);
+
+	UIRP.Destroy(instance);
+	mainRP.Destroy(instance);
 
 	instance.DestroyRenderSurface(surface);
 

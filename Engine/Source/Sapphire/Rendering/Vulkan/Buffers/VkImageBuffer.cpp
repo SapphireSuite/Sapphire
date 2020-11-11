@@ -53,6 +53,8 @@ namespace Sa::Vk
 	
 	void ImageBuffer::CreateFromImage(const Device& _device, const ImageBufferCreateInfos& _infos, VkImage& _image)
 	{
+		mImage = _image;
+
 		CreateImageView(_device, _infos.VkImageViewInfos(_image));
 	}
 	
@@ -61,7 +63,7 @@ namespace Sa::Vk
 		vkDestroyImageView(_device, mImageView, nullptr);
 		mImageView = VK_NULL_HANDLE;
 
-		// In case, the image was given to the buffer
+		// In case, the image was given to the buffer (using CreateFromImage).
 		if (mImageMemory != VK_NULL_HANDLE)
 		{
 			vkDestroyImage(_device, mImage, nullptr);

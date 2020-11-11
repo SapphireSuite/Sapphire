@@ -28,10 +28,6 @@ namespace Sa::Vk
 		return extensions;
 	}
 
-	const Device& RenderInstance::GetDevice() const noexcept
-	{
-		return mDevice;
-	}
 
 	void RenderInstance::SelectDevice(QueueFamilyType _requiredFamilies, const RenderSurface* _surface)
 	{
@@ -39,9 +35,9 @@ namespace Sa::Vk
 
 		// Select first suitable device.
 		// TODO: Add score: https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families
-		mDevice.Create(deviceInfos[0]);
+		device.Create(deviceInfos[0]);
 
-		SA_ASSERT(mDevice.IsValid(), NotSupported, Rendering, L"No suitable GPU found!");
+		SA_ASSERT(device.IsValid(), NotSupported, Rendering, L"No suitable GPU found!");
 	}
 
 
@@ -97,8 +93,8 @@ namespace Sa::Vk
 
 	void RenderInstance::Destroy()
 	{
-		if(mDevice.IsValid())
-			mDevice.Destroy();
+		if(device.IsValid())
+			device.Destroy();
 
 
 #if SA_VK_VALIDATION_LAYERS
@@ -127,14 +123,14 @@ namespace Sa::Vk
 		//	[this, &renderSurfaceInfo] (const IWindow& _win, uint32 _width, uint32 _height)
 		//	{
 		//		(void)_win;
-		//		vkDeviceWaitIdle(mDevice);
+		//		vkDeviceWaitIdle(device);
 		//		renderSurfaceInfo.renderSurface.ResizeCallback(*this, _width, _height);
 		//	}
 		//));
 
 
 		// 1st surface: Device not selected yet.
-		if (!mDevice.IsValid())
+		if (!device.IsValid())
 			SelectDevice(QueueFamilyType::Default, &renderSurface);
 
 		// Create swapchain after the creation of the first pass

@@ -16,7 +16,7 @@ namespace Sa::Vk
 	class RenderInstance;
 	class RenderSurface;
 
-	class Device
+	class SA_ENGINE_API Device
 	{
 	protected:
 		VkDevice mLogicalDevice = VK_NULL_HANDLE;

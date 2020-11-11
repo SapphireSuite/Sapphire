@@ -14,12 +14,12 @@ namespace Sa
 
 	Color::operator VkClearValue() const noexcept
 	{
-		return VkClearValue{ r, g, b, a };
+		return VkClearValue{ VkClearColorValue{ { r, g, b, a } } };
 	}
 
 	Color::operator VkClearColorValue() const noexcept
 	{
-		return VkClearColorValue{ r, g, b, a };
+		return VkClearColorValue{ { r, g, b, a} };
 	}
 
 #endif

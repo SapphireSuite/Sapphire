@@ -1,6 +1,6 @@
 // Copyright 2020 Sapphire development team. All Rights Reserved.
 
-#include <Rendering/Vulkan/System/VkRenderSurface.hpp>
+#include <Rendering/Vulkan/System/Surface/VkRenderSurface.hpp>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
@@ -23,7 +23,7 @@ namespace Sa::Vk
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
-		mSwapChain.Create(_instance.As<Vk::RenderInstance>().GetDevice(), *this);
+		mSwapChain.Create(_instance.As<Vk::RenderInstance>().device, *this);
 	}
 
 	void RenderSurface::Destroy(const IRenderInstance& _instance)
@@ -31,19 +31,32 @@ namespace Sa::Vk
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
-		const Device& device = _instance.As<Vk::RenderInstance>().GetDevice();
-
-		mSwapChain.Destroy(device);
+		mSwapChain.Destroy(_instance.As<Vk::RenderInstance>().device);
 	}
 
-	void RenderSurface::AddRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor)
+	void RenderSurface::Begin(const IRenderInstance& _instance)
 	{
-		mSwapChain.AddRenderPass(_instance.As<RenderInstance>().GetDevice(), _renderPass.As<RenderPass>(), _rpDescriptor);
+		mSwapChain.Begin(_instance.As<RenderInstance>().device);
+	}
+	
+	void RenderSurface::End(const IRenderInstance& _instance)
+	{
+		mSwapChain.End(_instance.As<RenderInstance>().device);
 	}
 
-	void RenderSurface::RemoveRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass)
+	IFrameBuffer& RenderSurface::GetFrameBuffer(uint32 _renderPassID)
 	{
-		mSwapChain.RemoveRenderPass(_instance.As<RenderInstance>().GetDevice(), _renderPass.As<RenderPass>());
+		return mSwapChain.GetFrameBuffer(_renderPassID);
+	}
+
+	uint32 RenderSurface::AddRenderPass(IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor)
+	{
+		return mSwapChain.AddRenderPass(_instance.As<RenderInstance>().device, _renderPass.As<RenderPass>(), _rpDescriptor);
+	}
+
+	void RenderSurface::RemoveRenderPass(IRenderInstance& _instance, uint32 _renderPassID)
+	{
+		mSwapChain.RemoveRenderPass(_instance.As<RenderInstance>().device, _renderPassID);
 	}
 
 

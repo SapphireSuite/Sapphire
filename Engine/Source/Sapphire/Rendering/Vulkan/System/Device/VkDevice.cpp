@@ -6,7 +6,7 @@
 #include <Core/Algorithms/SizeOf.hpp>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
-#include <Rendering/Vulkan/System/VkRenderSurface.hpp>
+#include <Rendering/Vulkan/System/Surface/VkRenderSurface.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -126,7 +126,7 @@ namespace Sa::Vk
 
 		// TODO: Implement.
 		_infos.graphics.queueNum = 3u;
-		_infos.present.queueNum = 2u;
+		_infos.present.queueNum = 3u;
 
 		VkDeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

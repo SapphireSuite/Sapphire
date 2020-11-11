@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include <Rendering/Vulkan/System/VkRenderSurface.hpp>
+#include <Rendering/Vulkan/System/Surface/VkRenderSurface.hpp>
 
 namespace Sa::Vk
 {

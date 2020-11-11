@@ -14,7 +14,7 @@ namespace Sa::Vk
 {
 	void FrameBuffer::Create(const Device& _device, const RenderPass& _renderPass,
 		const RenderPassDescriptor& _rpDescriptor,
-		const Vec2ui& _extent, VkImage presentImage)
+		const Vec2ui& _extent, uint32 _poolIndex, VkImage presentImage)
 	{
 #if SA_DEBUG
 		if (_rpDescriptor.bPresent)
@@ -77,7 +77,7 @@ namespace Sa::Vk
 			mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
 
 			if (_rpDescriptor.bClear)
-				mClearValues.emplace_back(VkClearValue{ 1.f, 0.f });
+				mClearValues.emplace_back(VkClearValue{ { { 1.f, 0u } } });
 		}
 
 
@@ -100,16 +100,68 @@ namespace Sa::Vk
 
 		SA_VK_ASSERT(vkCreateFramebuffer(_device, &framebufferCreateInfo, nullptr, &mHandle),
 			CreationFailed, Rendering, L"Failed to create framebuffer!");
+
+		mExtent = _extent;
+		mRenderPass = _renderPass;
+
+		// === Create command buffer ===
+		commandBuffer = CommandBuffer::Allocate(_device, QueueFamilyType::Graphics, _poolIndex);
 	}
 
 	void FrameBuffer::Destroy(const Device& _device)
 	{
+		CommandBuffer::Free(_device, commandBuffer);
+
 		vkDestroyFramebuffer(_device, mHandle, nullptr);
 
 		for (auto it = mBuffers.begin(); it != mBuffers.end(); ++it)
 			it->Destroy(_device);
 
 		mBuffers.clear();
+	}
+
+	void FrameBuffer::Begin()
+	{
+		vkResetCommandBuffer(commandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+
+		// === Start Command buffer record ===
+		VkCommandBufferBeginInfo commandBufferBeginInfo{};
+		commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		commandBufferBeginInfo.pNext = nullptr;
+		commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+		SA_VK_ASSERT(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo),
+			LibCommandFailed, Rendering, L"Failed to begin command buffer!");
+
+
+		// === Start RenderPass record ===
+		VkRenderPassBeginInfo renderPassBeginInfo{};
+		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassBeginInfo.pNext = nullptr;
+		renderPassBeginInfo.renderPass = mRenderPass;
+		renderPassBeginInfo.framebuffer = mHandle;
+		renderPassBeginInfo.renderArea = VkRect2D{ VkOffset2D{}, VkExtent2D{ mExtent.x, mExtent.y } };
+		renderPassBeginInfo.clearValueCount = SizeOf(mClearValues);
+		renderPassBeginInfo.pClearValues = mClearValues.data();
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	}
+
+	void FrameBuffer::NextSubpass()
+	{
+		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
+	}
+
+	void FrameBuffer::End()
+	{
+		// === End RenderPass record ===
+		vkCmdEndRenderPass(commandBuffer);
+
+
+		// === End Command buffer record ===
+		SA_VK_ASSERT(vkEndCommandBuffer(commandBuffer),
+			LibCommandFailed, Rendering, L"Failed to end command buffer!");
 	}
 }
 

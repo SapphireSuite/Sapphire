@@ -9,7 +9,7 @@
 
 #include <Maths/Space/Vector2.hpp>
 
-#include <Rendering/Vulkan/System/VkSwapChain.hpp>
+#include <Rendering/Vulkan/System/Surface/VkSwapChain.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -36,8 +36,13 @@ namespace Sa::Vk
 		void Create(const IRenderInstance& _instance) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
-		void AddRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor) override final;
-		void RemoveRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass) override final;
+		void Begin(const IRenderInstance& _instance) override final;
+		void End(const IRenderInstance& _instance) override final;
+
+		IFrameBuffer& GetFrameBuffer(uint32 _renderPassID) override final;
+
+		uint32 AddRenderPass(IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor) override final;
+		void RemoveRenderPass(IRenderInstance& _instance, uint32 _renderPassID) override final;
 
 
 		SupportDetails QuerySupportDetails(VkPhysicalDevice _device) const;

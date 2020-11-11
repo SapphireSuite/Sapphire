@@ -59,9 +59,6 @@ namespace Sa::Vk
 		// Specialization: last dependency.
 		if (_currIndex == _subpassNum - 1)
 		{
-			if(_currIndex != 0) // Only if not also first dependency.
-				subpassDependency.dstSubpass = VK_SUBPASS_EXTERNAL;
-
 			subpassDependency.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 
 			subpassDependency.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
@@ -88,7 +85,7 @@ namespace Sa::Vk
 
 	void RenderPass::Create(const IRenderInstance& _instance, const RenderPassDescriptor& _descriptor)
 	{
-		const VkDevice& device = _instance.As<RenderInstance>().GetDevice();
+		const VkDevice& device = _instance.As<RenderInstance>().device;
 
 		const VkSampleCountFlagBits sampling = static_cast<VkSampleCountFlagBits>(_descriptor.sampling);
 		const VkAttachmentLoadOp loadOp = _descriptor.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -218,7 +215,7 @@ namespace Sa::Vk
 	{
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, InvalidParam, Rendering, L"Try to destroyed a null RenderPass!");
 
-		const VkDevice& device = _instance.As<RenderInstance>().GetDevice();
+		const VkDevice& device = _instance.As<RenderInstance>().device;
 
 		vkDestroyRenderPass(device, mHandle, nullptr);
 	}

@@ -19,6 +19,8 @@ namespace Sa::Vk
 		Queue transfer;
 		Queue present;
 
+		const Queue& GetQueueFromType(QueueFamilyType _type) const;
+
 		void Create(const Device& _device, const PhysicalDeviceInfos& _infos);
 		void Destroy(const Device& _device);
 	};

@@ -31,11 +31,11 @@ namespace Sa::Vk
 		
 		bool IsValid() const noexcept;
 
+		VkQueue GetHandle(uint32 _index) const;
+		const CommandPool& GetCommandPool(uint32 _index) const;
+
 		void Create(const Device& _device, uint32 _queueFamilyIndex, uint32 _queueNum = 1u);
 		void Destroy(const Device& _device);
-
-		CommandBuffer AllocateCommandBuffer(const Device& _device, uint32 _num = 1u, uint32 _poolIndex = 0u, VkCommandBufferLevel _level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-		void FreeCommandBuffer(const Device& _device, CommandBuffer& _buffer);
 	};
 }
 

@@ -16,6 +16,8 @@ namespace Sa
 	class IRenderPass;
 	class RenderPassDescriptor;
 
+	class IFrameBuffer;
+
 	class IRenderSurface : public IInterface
 	{
 	public:
@@ -24,8 +26,13 @@ namespace Sa
 		virtual void Create(const IRenderInstance& _instance) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 
-		virtual void AddRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor) = 0;
-		virtual void RemoveRenderPass(const IRenderInstance& _instance, const IRenderPass& _renderPass) = 0;
+		virtual void Begin(const IRenderInstance& _instance) = 0;
+		virtual void End(const IRenderInstance& _instance) = 0;
+
+		virtual IFrameBuffer& GetFrameBuffer(uint32 _renderPassID) = 0;
+
+		virtual uint32 AddRenderPass(IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor) = 0;
+		virtual void RemoveRenderPass(IRenderInstance& _instance, uint32 _renderPassID) = 0;
 	};
 }
 

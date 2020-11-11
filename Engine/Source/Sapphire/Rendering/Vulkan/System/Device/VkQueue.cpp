@@ -22,6 +22,20 @@ namespace Sa::Vk
 		return mFamilyIndex != uint32(-1);
 	}
 
+	VkQueue Queue::GetHandle(uint32 _index) const
+	{
+		SA_ASSERT(_index < SizeOf(mHandles), OutOfRange, Rendering, _index, 0u, SizeOf(mHandles));
+
+		return mHandles[_index];
+	}
+	
+	const CommandPool& Queue::GetCommandPool(uint32 _index) const
+	{
+		SA_ASSERT(_index < SizeOf(mCommandPools), OutOfRange, Rendering, _index, 0u, SizeOf(mCommandPools));
+
+		return mCommandPools[_index];
+	}
+
 
 	void Queue::Create(const Device& _device, uint32 _queueFamilyIndex, uint32 _queueNum)
 	{
@@ -52,32 +66,6 @@ namespace Sa::Vk
 
 		mHandles.clear();
 		mCommandPools.clear();
-	}
-
-	CommandBuffer Queue::AllocateCommandBuffer(const Device& _device, uint32 _num, uint32 _poolIndex, VkCommandBufferLevel _level)
-	{
-		SA_ASSERT(_poolIndex < SizeOf(mCommandPools), OutOfRange, Rendering, _poolIndex, 0u, SizeOf(mCommandPools));
-
-		CommandBuffer result(_num, _poolIndex);
-
-		VkCommandBufferAllocateInfo commandBufferAllocInfo{};
-		commandBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		commandBufferAllocInfo.pNext = nullptr;
-		commandBufferAllocInfo.commandPool = mCommandPools[_poolIndex];
-		commandBufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		commandBufferAllocInfo.commandBufferCount = _num;
-
-		SA_VK_ASSERT(vkAllocateCommandBuffers(_device, &commandBufferAllocInfo, &result.Get()),
-			CreationFailed, Rendering, L"Failed to allocate command buffers!");
-
-		return result;
-	}
-
-	void Queue::FreeCommandBuffer(const Device& _device, CommandBuffer& _buffer)
-	{
-		vkFreeCommandBuffers(_device, mCommandPools[_buffer.poolIndex], _buffer.num, &_buffer.Get());
-
-		_buffer.Get() = VK_NULL_HANDLE;
 	}
 }
 

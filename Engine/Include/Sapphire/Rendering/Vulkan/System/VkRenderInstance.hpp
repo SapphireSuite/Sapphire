@@ -9,7 +9,7 @@
 
 #include <Rendering/Vulkan/System/VkValidationLayers.hpp>
 #include <Rendering/Vulkan/System/Device/VkDevice.hpp>
-#include <Rendering/Vulkan/System/VkRenderSurface.hpp>
+#include <Rendering/Vulkan/System/Surface/VkRenderSurface.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -19,8 +19,6 @@ namespace Sa::Vk
 	{
 		VkInstance mHandle = VK_NULL_HANDLE;
 
-		Device mDevice;
-
 #if SA_VK_VALIDATION_LAYERS
 
 		VkDebugUtilsMessengerEXT debugMessenger = nullptr;
@@ -28,7 +26,7 @@ namespace Sa::Vk
 #endif
 
 	public:
-		const Device& GetDevice() const noexcept;
+		Device device;
 		
 		void SelectDevice(QueueFamilyType _requiredFamilies = QueueFamilyType::DefaultNoPresent, const RenderSurface* _surface = nullptr);
 
