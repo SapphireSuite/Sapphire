@@ -7,7 +7,7 @@
 
 #include <Core/Types/IInterface.hpp>
 
-#include <Rendering/Framework/System/RenderPass/RenderPassCreateInfos.hpp>
+#include <Rendering/Framework/System/RenderPass/RenderPassDescriptor.hpp>
 
 namespace Sa
 {
@@ -16,7 +16,7 @@ namespace Sa
 	class IRenderPass : public IInterface
 	{
 	public:
-		virtual void Create(const IRenderInstance& _instance, const RenderPassCreateInfos& _infos) = 0;
+		virtual void Create(const IRenderInstance& _instance, const RenderPassDescriptor& _descriptor) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 	};
 }

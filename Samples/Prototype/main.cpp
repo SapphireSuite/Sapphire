@@ -5,6 +5,7 @@
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
+#include <Rendering/Vulkan/Buffers/VkFrameBuffer.hpp>
 #include <Window/GLFW/System/GLFWWindow.hpp>
 using namespace Sa;
 
@@ -31,7 +32,12 @@ int main()
 	IRenderSurface& surface = instance.CreateRenderSurface(window);
 
 	Vk::RenderPass mainRenderPass;
-	mainRenderPass.Create(instance, RenderPassCreateInfos::defaultPBRDeferred);
+	const RenderPassDescriptor& mainRPDescriptor = RenderPassDescriptor::defaultPBRDeferred;
+
+	mainRenderPass.Create(instance, mainRPDescriptor);
+
+	Vk::FrameBuffer framebuffer;
+	//framebuffer.Create(instance.GetDevice(), mainRenderPass, mainRPDescriptor, Vec2ui{ 1200u, 800u });
 
 
 	LOG("=== Loop ===");

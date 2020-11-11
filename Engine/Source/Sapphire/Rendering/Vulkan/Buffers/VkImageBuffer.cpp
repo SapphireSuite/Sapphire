@@ -14,28 +14,10 @@ namespace Sa::Vk
 		return mImage != VK_NULL_HANDLE && mImageView != VK_NULL_HANDLE && mImageMemory != VK_NULL_HANDLE;
 	}
 
-
-	void ImageBuffer::Create(const Device& _device, const ImageBufferCreateInfos& _infos)
+	void ImageBuffer::CreateImage(const Device& _device, const VkImageCreateInfo& _vkInfos)
 	{
 		// Create Image.
-		VkImageCreateInfo imageCreateInfo{};
-		imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageCreateInfo.pNext = nullptr;
-		imageCreateInfo.flags = _infos.imageFlags;
-		imageCreateInfo.imageType = _infos.imageType;
-		imageCreateInfo.format = _infos.format;
-		imageCreateInfo.extent = _infos.extent;
-		imageCreateInfo.mipLevels = _infos.mipLevels;
-		imageCreateInfo.arrayLayers = _infos.layerNum;
-		imageCreateInfo.samples = _infos.sampleCount;
-		imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageCreateInfo.usage = _infos.usage;
-		imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageCreateInfo.queueFamilyIndexCount = 0u;
-		imageCreateInfo.pQueueFamilyIndices = nullptr;
-		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-		SA_VK_ASSERT(vkCreateImage(_device, &imageCreateInfo, nullptr, &mImage),
+		SA_VK_ASSERT(vkCreateImage(_device, &_vkInfos, nullptr, &mImage),
 			CreationFailed, Rendering, L"Failed to create image!");
 
 
@@ -45,50 +27,33 @@ namespace Sa::Vk
 
 		uint32 memoryTypeIndex = Buffer::FindMemoryType(_device, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		const VkMemoryAllocateInfo memoryAllocInfo
-		{
-			VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,					// sType.
-			nullptr,												// pNext.
-			memRequirements.size,									// allocationSize.
-			memoryTypeIndex,										// memoryTypeIndex.
-		};
+		VkMemoryAllocateInfo memoryAllocInfo{};
+		memoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		memoryAllocInfo.pNext = nullptr;
+		memoryAllocInfo.allocationSize = memRequirements.size;
+		memoryAllocInfo.memoryTypeIndex = memoryTypeIndex;
 
 		SA_VK_ASSERT(vkAllocateMemory(_device, &memoryAllocInfo, nullptr, &mImageMemory),
 			MemoryAllocationFailed, Rendering, L"Failed to allocate image memory!");
 
 		vkBindImageMemory(_device, mImage, mImageMemory, 0);
+	}
 
-		CreateFromImage(_device, _infos, mImage);
+	void ImageBuffer::CreateImageView(const Device& _device, const VkImageViewCreateInfo& _vkInfos)
+	{
+		SA_VK_ASSERT(vkCreateImageView(_device, &_vkInfos, nullptr, &mImageView),
+			CreationFailed, Rendering, L"Failed to create image view!");
+	}
+
+	void ImageBuffer::Create(const Device& _device, const ImageBufferCreateInfos& _infos)
+	{
+		CreateImage(_device, _infos.VkImageInfos());
+		CreateImageView(_device, _infos.VkImageViewInfos(mImage));
 	}
 	
 	void ImageBuffer::CreateFromImage(const Device& _device, const ImageBufferCreateInfos& _infos, VkImage& _image)
 	{
-		mImage = _image;
-
-		// Create image view.
-		VkImageViewCreateInfo imageViewCreateInfo{};
-		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCreateInfo.pNext = nullptr;
-		imageViewCreateInfo.flags = 0;
-		imageViewCreateInfo.image = mImage;
-		imageViewCreateInfo.viewType = _infos.imageViewType;
-		imageViewCreateInfo.format = _infos.format;
-		imageViewCreateInfo.components = VkComponentMapping {
-			VK_COMPONENT_SWIZZLE_IDENTITY,										// r.
-			VK_COMPONENT_SWIZZLE_IDENTITY,										// g.
-			VK_COMPONENT_SWIZZLE_IDENTITY,										// b.
-			VK_COMPONENT_SWIZZLE_IDENTITY										// a.
-		};
-		imageViewCreateInfo.subresourceRange = VkImageSubresourceRange {
-			_infos.aspectFlags,													// aspectMask.
-			0,																	// baseMipLevel.
-			_infos.mipLevels,													// levelCount.
-			0,																	// baseArrayLayer.
-			_infos.layerNum														// layerCount.
-		};
-
-		SA_VK_ASSERT(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &mImageView),
-			CreationFailed, Rendering, L"Failed to create image view!");
+		CreateImageView(_device, _infos.VkImageViewInfos(_image));
 	}
 	
 	void ImageBuffer::Destroy(const Device& _device)

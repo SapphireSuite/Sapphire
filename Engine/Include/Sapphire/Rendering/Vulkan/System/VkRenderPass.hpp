@@ -18,8 +18,10 @@ namespace Sa::Vk
 		VkRenderPass mHandle = VK_NULL_HANDLE;
 
 	public:
-		void Create(const IRenderInstance& _instance, const RenderPassCreateInfos& _infos) override final;
+		void Create(const IRenderInstance& _instance, const RenderPassDescriptor& _descriptor) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
+
+		operator VkRenderPass() const noexcept;
 	};
 }
 

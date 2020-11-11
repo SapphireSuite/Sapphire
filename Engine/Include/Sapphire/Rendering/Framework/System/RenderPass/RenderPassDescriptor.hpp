@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_RENDERPASS_CREATE_INFOS_GUARD
-#define SAPPHIRE_RENDERING_RENDERPASS_CREATE_INFOS_GUARD
+#ifndef SAPPHIRE_RENDERING_RENDERPASS_DESCRIPTOR_GUARD
+#define SAPPHIRE_RENDERING_RENDERPASS_DESCRIPTOR_GUARD
 
 #include <vector>
 
@@ -15,17 +15,17 @@
 
 namespace Sa
 {
-	struct SubPassAttachmentInfos
+	struct SubPassAttachmentDescriptor
 	{
 		RenderFormat format;
 	};
 
-	struct SubPassCreateInfos
+	struct SubPassDescriptor
 	{
-		std::vector<SubPassAttachmentInfos> attachmentInfos;
+		std::vector<SubPassAttachmentDescriptor> attachmentDescriptors;
 	};
 
-	struct RenderPassCreateInfos
+	struct RenderPassDescriptor
 	{
 		SampleBits sampling = SampleBits::Sample8Bits;
 
@@ -37,10 +37,10 @@ namespace Sa
 		bool bClear = true;
 		Color clearColor = Color{ 0.0f, 0.0f, 0.05f, 1.0f };
 
-		std::vector<SubPassCreateInfos> subPassInfos;
+		std::vector<SubPassDescriptor> subPassDescriptors;
 
-		SA_ENGINE_API static const RenderPassCreateInfos defaultForward;
-		SA_ENGINE_API static const RenderPassCreateInfos defaultPBRDeferred;
+		SA_ENGINE_API static const RenderPassDescriptor defaultForward;
+		SA_ENGINE_API static const RenderPassDescriptor defaultPBRDeferred;
 	};
 }
 
