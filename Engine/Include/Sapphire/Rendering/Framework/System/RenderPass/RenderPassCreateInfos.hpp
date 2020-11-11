@@ -30,7 +30,6 @@ namespace Sa
 		SampleBits sampling = SampleBits::Sample8Bits;
 
 		bool bPresent = true;
-		RenderFormat presentFormat = RenderFormat{ 4u, RenderFormatType::sRGB };
 
 		bool bDepthBuffer = true;
 		bool bStencilBuffer = false;

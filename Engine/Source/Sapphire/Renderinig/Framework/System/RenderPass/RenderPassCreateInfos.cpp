@@ -10,7 +10,12 @@ namespace Sa
 
 		result.bPresent = true;
 
-		// No subpass: only preset subpass.
+		
+		// === Main Subpass ===
+		result.subPassInfos.resize(1u);
+
+		result.subPassInfos[0].attachmentInfos.resize(1u);
+		result.subPassInfos[0].attachmentInfos[0].format = RenderFormat{ 4u, RenderFormatType::sRGB };
 
 		return result;
 	}
@@ -21,9 +26,9 @@ namespace Sa
 
 		result.bPresent = true;
 
-		result.subPassInfos.resize(1);
+		result.subPassInfos.resize(2u);
 
-		// === Main Subpass ===
+		// === PBR Subpass ===
 		result.subPassInfos[0].attachmentInfos.resize(4u);
 
 		// Position.
@@ -37,6 +42,12 @@ namespace Sa
 
 		// PBR: Metallic, Roughness, Ambiant occlusion.
 		result.subPassInfos[0].attachmentInfos[3].format = RenderFormat{ 4u, RenderFormatType::RGB };
+
+
+		// === Present Subpass ===
+		result.subPassInfos[1].attachmentInfos.resize(1u);
+		result.subPassInfos[1].attachmentInfos[0].format = RenderFormat{ 4u, RenderFormatType::sRGB };
+
 
 		return result;
 	}

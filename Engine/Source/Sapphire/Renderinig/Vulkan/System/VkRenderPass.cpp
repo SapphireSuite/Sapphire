@@ -123,18 +123,17 @@ namespace Sa::Vk
 			}
 
 			uint32 offset = SizeOf(attachments);
-			offsetIndex.push_back(offset + offsetIndex[i]);
+			offsetIndex.push_back(offset);
 		}
 
 		// Add present attachment.
 		if (_infos.bPresent)
 		{
-			VkFormat presentFormat = API_GetRenderFormat(_infos.presentFormat);
-			VkAttachmentDescription presentAttachment = CreateAttachement(presentFormat, sampling, loadOp);
-
 			if (sampling != VK_SAMPLE_COUNT_1_BIT)
 			{
 				// Color attachment multisampling resolution.
+				VkFormat presentFormat = API_GetRenderFormat(_infos.subPassInfos[SizeOf(_infos.subPassInfos) - 1].attachmentInfos[0].format);
+
 				VkAttachmentDescription presentAttachmentResolve = CreateAttachement(presentFormat, VK_SAMPLE_COUNT_1_BIT, loadOp);
 				presentAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
@@ -142,12 +141,7 @@ namespace Sa::Vk
 				presentAttachmentResolveRef = VkAttachmentReference{ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 			}
 			else
-				presentAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-			attachments.push_back(presentAttachment);
-			attachmentRefs.push_back({ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
-
-			offsetIndex.push_back(offsetIndex[SizeOf(offsetIndex) - 1] + 1); // Add one attachment (resolve not counted).
+				attachments[SizeOf(attachments) - 1].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 		}
 
 		// Add Depth attachement.
@@ -171,10 +165,6 @@ namespace Sa::Vk
 
 		// === Subpasses ===
 		uint32 subpassNum = SizeOf(_infos.subPassInfos);
-
-		// Add present subpass.
-		if (_infos.bPresent)
-			++subpassNum;
 
 		std::vector<VkSubpassDescription> subpassDescriptions;
 		subpassDescriptions.resize(subpassNum);
