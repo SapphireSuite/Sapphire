@@ -51,13 +51,13 @@ namespace Sa::Vk
 			auto& attachments = subEndIt->attachmentDescriptors;
 
 			imageInfos.format = attachments[0].format;
-			mBuffers.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
+			mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
 
 			// Multisampling resolution bufffer.
 			if (_rpDescriptor.sampling != SampleBits::Sample1Bit)
 			{
 				imageInfos.sampling = SampleBits::Sample1Bit;
-				mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
+				mBuffers.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
 
 				imageInfos.sampling = _rpDescriptor.sampling;
 			}

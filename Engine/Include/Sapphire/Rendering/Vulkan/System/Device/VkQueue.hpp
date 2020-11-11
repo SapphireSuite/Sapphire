@@ -7,13 +7,14 @@
 
 #include <vector>
 
+#include <Rendering/Vulkan/Buffers/VkCommandBuffer.hpp>
 #include <Rendering/Vulkan/System/Device/VkCommandPool.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
 namespace Sa::Vk
 {
-	class Queue
+	class SA_ENGINE_API Queue
 	{
 		uint32 mFamilyIndex = uint32(-1);
 
@@ -32,6 +33,9 @@ namespace Sa::Vk
 
 		void Create(const Device& _device, uint32 _queueFamilyIndex, uint32 _queueNum = 1u);
 		void Destroy(const Device& _device);
+
+		CommandBuffer AllocateCommandBuffer(const Device& _device, uint32 _num = 1u, uint32 _poolIndex = 0u, VkCommandBufferLevel _level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		void FreeCommandBuffer(const Device& _device, CommandBuffer& _buffer);
 	};
 }
 
