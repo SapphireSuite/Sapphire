@@ -106,5 +106,32 @@ namespace Sa
 		}
 	}
 
+	uint32 API_GetChannelNum(RenderFormat _format)
+	{
+		switch (_format)
+		{
+			case Sa::RenderFormat::R_8:
+			case Sa::RenderFormat::sR_8:
+			case Sa::RenderFormat::Stencil_8:
+				return 1u;
+			case Sa::RenderFormat::RG_16:
+			case Sa::RenderFormat::sRG_16:
+			case Sa::RenderFormat::Depth_16:
+				return 2u;
+			case Sa::RenderFormat::RGB_32:
+			case Sa::RenderFormat::BGR_32:
+			case Sa::RenderFormat::RGBA_32:
+			case Sa::RenderFormat::BGRA_32:
+			case Sa::RenderFormat::sRGBA_32:
+			case Sa::RenderFormat::sBGRA_32:
+			case Sa::RenderFormat::Depth_32:
+			case Sa::RenderFormat::DepthStencil_32:
+				return 4u;
+			default:
+				SA_LOG("RenderFormat not supported yet!", Warning, Rendering);
+				return 4u;
+		}
+	}
+
 #endif
 }

@@ -11,7 +11,7 @@ namespace Sa::Vk
 	constexpr uint32 familyNum = (sizeof(PhysicalDeviceInfos) - sizeof(VkPhysicalDevice)) / sizeof(PhysicalDeviceInfos::FamilyInfos);
 
 
-	PhysicalDeviceInfos::PhysicalDeviceInfos(VkPhysicalDevice _device, QueueFamilyType _familyTypes) noexcept :
+	PhysicalDeviceInfos::PhysicalDeviceInfos(VkPhysicalDevice _device, QueueType _familyTypes) noexcept :
 		device{ _device },
 		familyTypes{ _familyTypes }
 	{
@@ -36,7 +36,7 @@ namespace Sa::Vk
 		const VkQueueFamilyProperties& _family, uint32 _index) noexcept
 	{
 		// Present family. Should be checked first.
-		if (_surface && (static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueFamilyType::Present)))
+		if (_surface && (static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueType::Present)))
 		{
 			if (present.index == uint32(-1) ||				// Not completed yet.
 				graphics.index != _index)					// Different from graphics.
@@ -51,7 +51,7 @@ namespace Sa::Vk
 
 
 		// Graphics family.
-		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueFamilyType::Graphics)) &&
+		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueType::Graphics)) &&
 			(_family.queueFlags & VK_QUEUE_GRAPHICS_BIT))
 		{
 			if (graphics.index == uint32(-1) ||					// Not completed yet.
@@ -64,7 +64,7 @@ namespace Sa::Vk
 
 
 		// Compute family.
-		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueFamilyType::Compute)) &&
+		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueType::Compute)) &&
 			(_family.queueFlags & VK_QUEUE_COMPUTE_BIT))
 		{
 			if (compute.index == uint32(-1) ||					// Not completed yet.
@@ -77,7 +77,7 @@ namespace Sa::Vk
 
 
 		// Transfer family.
-		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueFamilyType::Transfer)) &&
+		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueType::Transfer)) &&
 			(_family.queueFlags & VK_QUEUE_TRANSFER_BIT))
 		{
 			if (transfer.index == uint32(-1) ||				// Not completed yet.

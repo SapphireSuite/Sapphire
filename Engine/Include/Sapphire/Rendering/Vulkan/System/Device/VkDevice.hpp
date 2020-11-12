@@ -6,7 +6,7 @@
 #define SAPPHIRE_RENDERING_VK_DEVICE_GUARD
 
 #include <Rendering/Vulkan/System/Device/VkQueueManager.hpp>
-#include <Rendering/Vulkan/System/Device/VkQueueFamilyType.hpp>
+#include <Rendering/Vulkan/System/Device/VkQueueType.hpp>
 #include <Rendering/Vulkan/System/Device/VkPhysicalDeviceInfos.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -35,7 +35,7 @@ namespace Sa::Vk
 		void Create(const PhysicalDeviceInfos& _infos);
 		void Destroy();
 
-		static std::vector<PhysicalDeviceInfos> QuerySuitableDevices(const RenderInstance& _instance, QueueFamilyType _requiredFamilies, const RenderSurface* _surface = nullptr);
+		static std::vector<PhysicalDeviceInfos> QuerySuitableDevices(const RenderInstance& _instance, QueueType _requiredFamilies, const RenderSurface* _surface = nullptr);
 
 		operator VkDevice() const noexcept;
 		operator VkPhysicalDevice() const noexcept;

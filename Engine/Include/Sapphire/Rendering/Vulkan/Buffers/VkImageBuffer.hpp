@@ -13,8 +13,6 @@ namespace Sa::Vk
 {
 	class Device;
 
-	struct ImageBufferCreateInfos;
-
 	class ImageBuffer
 	{
 		VkImage mImage = VK_NULL_HANDLE;
@@ -22,8 +20,29 @@ namespace Sa::Vk
 		VkDeviceMemory mImageMemory = VK_NULL_HANDLE;
 
 	public:
-		bool IsValid() const noexcept;
+		struct TransitionInfos
+		{
+			VkImageLayout oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			VkImageLayout newLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
+			uint32 mipLevels = 1u;
+			ImageType imageType = ImageType::Image2D;
+
+			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+		};
+
+		struct CopyBufferImageInfos
+		{
+			VkBuffer buffer = VK_NULL_HANDLE;
+			
+			Vec2ui extent;
+			RenderFormat format = RenderFormat::RGBA_32;
+
+			uint32 mipLevels = 1u;
+			ImageType imageType = ImageType::Image2D;
+		};
+
+		bool IsValid() const noexcept;
 
 		void CreateImage(const Device& _device, const VkImageCreateInfo& _vkInfos);
 		void CreateImageView(const Device& _device, const VkImageViewCreateInfo& _vkInfos);
@@ -32,6 +51,13 @@ namespace Sa::Vk
 		void CreateFromImage(const Device& _device, const ImageBufferCreateInfos& _infos, VkImage& _image);
 		
 		void Destroy(const Device& _device);
+
+		void TransitionImageLayout(const Device& _device, const ImageBuffer::TransitionInfos& _infos);
+		void CopyBufferToImage(const Device& _device, const ImageBuffer::CopyBufferImageInfos& _infos);
+
+
+		// Old mipmap generation. Mipmap are now generated on resource import (See StbiWrapper).
+		//void GenerateMipmaps(const Device& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels, uint32 _layerNum = 1u);
 
 
 		operator VkImage() const noexcept;

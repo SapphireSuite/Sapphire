@@ -28,7 +28,7 @@ namespace Sa::Vk
 	public:
 		Device device;
 		
-		void SelectDevice(QueueFamilyType _requiredFamilies = QueueFamilyType::DefaultNoPresent, const RenderSurface* _surface = nullptr);
+		void SelectDevice(QueueType _requiredFamilies = QueueType::DefaultNoPresent, const RenderSurface* _surface = nullptr);
 
 		void Create() override final;
 		void Destroy() override final;

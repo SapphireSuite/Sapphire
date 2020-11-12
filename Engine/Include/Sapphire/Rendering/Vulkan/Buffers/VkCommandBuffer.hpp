@@ -9,7 +9,7 @@
 
 #include <Rendering/APIConfig.hpp>
 
-#include <Rendering/Vulkan/System/Device/VkQueueFamilyType.hpp>
+#include <Rendering/Vulkan/System/Device/VkQueueType.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -23,9 +23,9 @@ namespace Sa::Vk
 		VkCommandBuffer mHandle = VK_NULL_HANDLE;
 
 		uint32 mPoolIndex = 0u;
-		QueueFamilyType mQueueType = QueueFamilyType::Graphics;
+		QueueType mQueueType = QueueType::Graphics;
 
-		CommandBuffer(uint32 _poolIndex, QueueFamilyType _queueType) noexcept;
+		CommandBuffer(uint32 _poolIndex, QueueType _queueType) noexcept;
 
 	public:
 		CommandBuffer() = default;
@@ -34,14 +34,19 @@ namespace Sa::Vk
 		const VkCommandBuffer& Get() const noexcept;
 		
 
-		static CommandBuffer Allocate(const Device& _device, QueueFamilyType _queueType, uint32 _poolIndex = 0u, VkCommandBufferLevel _level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		static CommandBuffer Allocate(const Device& _device, QueueType _queueType, uint32 _poolIndex = 0u, VkCommandBufferLevel _level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 		
-		static std::vector<CommandBuffer> AllocateMultiple(const Device& _device, QueueFamilyType _queueType, uint32 _num,
+		static std::vector<CommandBuffer> AllocateMultiple(const Device& _device, QueueType _queueType, uint32 _num,
 			uint32 _poolIndex = 0u, VkCommandBufferLevel _level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 		
 		static void Free(const Device& _device, CommandBuffer& _commandBuffer);
 		
 		static void FreeMultiple(const Device& _device, std::vector<CommandBuffer>& _buffers);
+
+
+		static CommandBuffer BeginSingleTimeCommands(const Device& _device, QueueType _queueType, uint32 _poolIndex = 0u);
+		static void EndSingleTimeCommands(const Device& _device, CommandBuffer& _commandBuffer);
+
 
 		operator VkCommandBuffer() const noexcept;
 	};

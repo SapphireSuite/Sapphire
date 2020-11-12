@@ -9,8 +9,13 @@ namespace Sa::Vk
 		VkImageCreateInfo vkInfos{};
 		vkInfos.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		vkInfos.pNext = nullptr;
+
 		vkInfos.flags = imageFlags;
 		vkInfos.imageType = API_GetImageType(imageType);
+		
+		if (imageType == ImageType::Cube)
+			vkInfos.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+		
 		vkInfos.format = API_GetRenderFormat(format);
 		vkInfos.extent = VkExtent3D{ extent.x, extent.y, 1 };
 		vkInfos.mipLevels = mipLevels;

@@ -10,7 +10,7 @@
 
 namespace Sa::Vk
 {
-	CommandBuffer::CommandBuffer(uint32 _poolIndex, QueueFamilyType _queueType) noexcept :
+	CommandBuffer::CommandBuffer(uint32 _poolIndex, QueueType _queueType) noexcept :
 		mPoolIndex{ _poolIndex },
 		mQueueType{ _queueType }
 	{
@@ -26,7 +26,7 @@ namespace Sa::Vk
 		return mHandle;
 	}
 
-	CommandBuffer CommandBuffer::Allocate(const Device& _device, QueueFamilyType _queueType, uint32 _poolIndex, VkCommandBufferLevel _level)
+	CommandBuffer CommandBuffer::Allocate(const Device& _device, QueueType _queueType, uint32 _poolIndex, VkCommandBufferLevel _level)
 	{
 		CommandBuffer result(_poolIndex, _queueType);
 
@@ -43,7 +43,7 @@ namespace Sa::Vk
 		return result;
 	}
 
-	std::vector<CommandBuffer> CommandBuffer::AllocateMultiple(const Device& _device, QueueFamilyType _queueType, uint32 _num, uint32 _poolIndex, VkCommandBufferLevel _level)
+	std::vector<CommandBuffer> CommandBuffer::AllocateMultiple(const Device& _device, QueueType _queueType, uint32 _num, uint32 _poolIndex, VkCommandBufferLevel _level)
 	{
 		std::vector<CommandBuffer> result;
 		result.resize(_num, CommandBuffer(_poolIndex, _queueType));
@@ -93,6 +93,51 @@ namespace Sa::Vk
 		vkFreeCommandBuffers(_device, _device.queueMgr.GetQueueFromType(_buffers[0].mQueueType).GetCommandPool(_buffers[0].mPoolIndex),
 			num, vkCommandBuffers.data());
 	}
+
+
+	CommandBuffer CommandBuffer::BeginSingleTimeCommands(const Device& _device, QueueType _queueType, uint32 _poolIndex)
+	{
+		CommandBuffer commandBuffer = Allocate(_device, _queueType, _poolIndex);
+
+		// Start command buffer record.
+		VkCommandBufferBeginInfo commandBeginInfo{};
+		commandBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		commandBeginInfo.pNext = nullptr;
+		commandBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		commandBeginInfo.pInheritanceInfo = nullptr;
+
+		vkBeginCommandBuffer(commandBuffer, &commandBeginInfo);
+
+		return commandBuffer;
+	}
+	
+	void CommandBuffer::EndSingleTimeCommands(const Device& _device, CommandBuffer& _commandBuffer)
+	{
+		// End command buffer record.
+		vkEndCommandBuffer(_commandBuffer);
+
+		// Submit commands.
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.pNext = nullptr;
+		submitInfo.waitSemaphoreCount = 0u;
+		submitInfo.pWaitSemaphores = nullptr;
+		submitInfo.pWaitDstStageMask = nullptr;
+		submitInfo.commandBufferCount = 1u;
+		submitInfo.pCommandBuffers = &_commandBuffer.mHandle;
+		submitInfo.signalSemaphoreCount = 0u;
+		submitInfo.pSignalSemaphores = nullptr;
+
+		VkQueue vkQueue = _device.queueMgr.GetQueueFromType(_commandBuffer.mQueueType).GetHandle(_commandBuffer.GetPoolIndex());
+
+		vkQueueSubmit(vkQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(vkQueue);
+
+
+		// Free command buffer.
+		Free(_device, _commandBuffer);
+	}
+
 
 	CommandBuffer::operator VkCommandBuffer() const noexcept
 	{

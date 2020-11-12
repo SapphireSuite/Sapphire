@@ -47,6 +47,8 @@ namespace Sa
 	VkFormat API_GetRenderFormat(RenderFormat _format);
 	RenderFormat API_FromRenderFormat(VkFormat _format);
 
+	uint32 API_GetChannelNum(RenderFormat _format);
+
 #endif
 }
 

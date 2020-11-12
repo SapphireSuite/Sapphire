@@ -105,7 +105,7 @@ namespace Sa::Vk
 		mRenderPass = _renderPass;
 
 		// === Create command buffer ===
-		commandBuffer = CommandBuffer::Allocate(_device, QueueFamilyType::Graphics, _poolIndex);
+		commandBuffer = CommandBuffer::Allocate(_device, QueueType::Graphics, _poolIndex);
 	}
 
 	void FrameBuffer::Destroy(const Device& _device)

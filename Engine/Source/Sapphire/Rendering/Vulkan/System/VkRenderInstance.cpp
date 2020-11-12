@@ -29,7 +29,7 @@ namespace Sa::Vk
 	}
 
 
-	void RenderInstance::SelectDevice(QueueFamilyType _requiredFamilies, const RenderSurface* _surface)
+	void RenderInstance::SelectDevice(QueueType _requiredFamilies, const RenderSurface* _surface)
 	{
 		std::vector<PhysicalDeviceInfos> deviceInfos = Device::QuerySuitableDevices(*this, _requiredFamilies, _surface);
 
@@ -131,7 +131,7 @@ namespace Sa::Vk
 
 		// 1st surface: Device not selected yet.
 		if (!device.IsValid())
-			SelectDevice(QueueFamilyType::Default, &renderSurface);
+			SelectDevice(QueueType::Default, &renderSurface); // TODO: CLEAN?
 
 		// Create swapchain after the creation of the first pass
 		renderSurface.Create(*this);

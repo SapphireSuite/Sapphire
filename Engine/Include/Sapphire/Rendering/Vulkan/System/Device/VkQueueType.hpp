@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_VK_QUEUE_FAMILY_TYPE_GUARD
-#define SAPPHIRE_RENDERING_VK_QUEUE_FAMILY_TYPE_GUARD
+#ifndef SAPPHIRE_RENDERING_VK_QUEUE_TYPE_GUARD
+#define SAPPHIRE_RENDERING_VK_QUEUE_TYPE_GUARD
 
 #include <Core/Types/Int.hpp>
 
@@ -13,7 +13,7 @@
 
 namespace Sa::Vk
 {
-	enum class QueueFamilyType : uint8
+	enum class QueueType : uint8
 	{
 		Graphics = 1 << 0,
 

@@ -6,7 +6,6 @@
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
 #include <Rendering/Vulkan/System/Surface/VkRenderSurface.hpp>
-#include <Rendering/Vulkan/Buffers/VkFrameBuffer.hpp>
 #include <Window/GLFW/System/GLFWWindow.hpp>
 using namespace Sa;
 
@@ -34,7 +33,7 @@ int main()
 
 	// Main RenderPass.
 	Vk::RenderPass mainRP;
-	const RenderPassDescriptor mainRPDesc = RenderPassDescriptor::CreateDefaultPBRDeferred(&surface);
+	const RenderPassDescriptor mainRPDesc = RenderPassDescriptor::CreateDefaultForward(&surface);
 	mainRP.Create(instance, mainRPDesc);
 	const uint32 mainRPID = surface.AddRenderPass(instance, mainRP, mainRPDesc);
 
@@ -58,8 +57,6 @@ int main()
 		IFrameBuffer& mainFB = surface.GetFrameBuffer(mainRPID);
 
 		mainFB.Begin();
-
-		mainFB.NextSubpass();
 
 		mainFB.End();
 

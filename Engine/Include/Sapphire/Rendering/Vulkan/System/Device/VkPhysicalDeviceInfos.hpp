@@ -9,7 +9,7 @@
 
 #include <Rendering/APIConfig.hpp>
 
-#include <Rendering/Vulkan/System/Device/VkQueueFamilyType.hpp>
+#include <Rendering/Vulkan/System/Device/VkQueueType.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -27,14 +27,14 @@ namespace Sa::Vk
 		};
 
 		const VkPhysicalDevice device = VK_NULL_HANDLE;
-		const QueueFamilyType familyTypes;
+		const QueueType familyTypes;
 
 		FamilyInfos graphics;
 		FamilyInfos compute;
 		FamilyInfos transfer;
 		FamilyInfos present;
 
-		PhysicalDeviceInfos(VkPhysicalDevice _device, QueueFamilyType _familyTypes) noexcept;
+		PhysicalDeviceInfos(VkPhysicalDevice _device, QueueType _familyTypes) noexcept;
 		PhysicalDeviceInfos(PhysicalDeviceInfos&&) = default;
 		PhysicalDeviceInfos(const PhysicalDeviceInfos&) = default;
 

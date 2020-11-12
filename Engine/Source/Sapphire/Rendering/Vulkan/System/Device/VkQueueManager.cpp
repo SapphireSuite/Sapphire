@@ -8,20 +8,20 @@
 
 namespace Sa::Vk
 {
-	const Queue& QueueManager::GetQueueFromType(QueueFamilyType _type) const
+	const Queue& QueueManager::GetQueueFromType(QueueType _type) const
 	{
 		switch (_type)
 		{
-			case Sa::Vk::QueueFamilyType::Graphics:
+			case Sa::Vk::QueueType::Graphics:
 				return graphics;
-			case Sa::Vk::QueueFamilyType::Compute:
+			case Sa::Vk::QueueType::Compute:
 				return compute;
-			case Sa::Vk::QueueFamilyType::Transfer:
+			case Sa::Vk::QueueType::Transfer:
 				return transfer;
-			case Sa::Vk::QueueFamilyType::Present:
+			case Sa::Vk::QueueType::Present:
 				return present;
 			default:
-				SA_LOG("QueueFamilyType not supported!", Warning, Rendering)
+				SA_LOG("QueueType not supported!", Warning, Rendering)
 				return graphics;
 		}
 	}
