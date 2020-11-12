@@ -5,7 +5,7 @@
 #ifndef SAPPHIRE_RENDERING_VK_SWAP_CHAIN_GUARD
 #define SAPPHIRE_RENDERING_VK_SWAP_CHAIN_GUARD
 
-#include <Rendering/Vulkan/System/Surface/VkSurfaceRenderPassInfos.hpp>
+#include <Rendering/Vulkan/Buffers/VkFrameBuffer.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -16,7 +16,7 @@ namespace Sa::Vk
 
 	class RenderPass;
 
-	class SA_ENGINE_API SwapChain
+	class SwapChain
 	{
 		VkSwapchainKHR mHandle = VK_NULL_HANDLE;
 
@@ -36,7 +36,8 @@ namespace Sa::Vk
 
 		std::vector<Synchronisation> mFramesSynch;
 
-		std::vector<SurfaceRenderPassInfos> mSurfaceRenderPassInfos;
+		std::vector<uint32> mRenderPassIDs;
+		std::vector<FrameBuffer> mFrameBuffers;
 
 
 		void CreateSwapChainKHR(const Device& _device, const RenderSurface& _surface);
@@ -45,7 +46,7 @@ namespace Sa::Vk
 		void CreateSynchronisation(const Device& _device);
 		void DestroySynchronisation(const Device& _device);
 
-		void DestroySurfaceRenderPass(const Device& _device);
+		void DestroyFrameBuffers(const Device& _device);
 
 	public:
 		RenderFormat GetRenderFormat() const noexcept;

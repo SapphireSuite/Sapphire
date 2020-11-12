@@ -19,7 +19,7 @@ namespace Sa::Vk
 	class Device;
 	class RenderPass;
 
-	class SA_ENGINE_API FrameBuffer : public IFrameBuffer
+	class FrameBuffer : public IFrameBuffer
 	{
 		VkFramebuffer mHandle = VK_NULL_HANDLE;
 		VkRenderPass mRenderPass = VK_NULL_HANDLE;

@@ -18,7 +18,7 @@ namespace Sa::Vk
 	class Device;
 	class Queue;
 
-	class SA_ENGINE_API CommandBuffer
+	class CommandBuffer
 	{
 		VkCommandBuffer mHandle = VK_NULL_HANDLE;
 

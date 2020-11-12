@@ -14,7 +14,7 @@
 
 namespace Sa::Vk
 {
-	class SA_ENGINE_API Queue
+	class Queue
 	{
 		uint32 mFamilyIndex = uint32(-1);
 

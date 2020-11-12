@@ -117,17 +117,15 @@ namespace Sa::Vk
 		mFramesSynch.clear();
 	}
 
-	void SwapChain::DestroySurfaceRenderPass(const Device& _device)
+	void SwapChain::DestroyFrameBuffers(const Device& _device)
 	{
-		for (auto it = mSurfaceRenderPassInfos.begin(); it != mSurfaceRenderPassInfos.end(); ++it)
-		{
-			for (auto fbIt = it->frameBuffers.begin(); fbIt != it->frameBuffers.end(); ++fbIt)
-				fbIt->Destroy(_device);
+		// Destroy remaining Framebuffers.
 
-			it->frameBuffers.clear();
-		}
+		for (auto it = mFrameBuffers.begin(); it != mFrameBuffers.end(); ++it)
+			it->Destroy(_device);
 
-		mSurfaceRenderPassInfos.clear();
+		mFrameBuffers.clear();
+		mRenderPassIDs.clear();
 	}
 
 	void SwapChain::Create(const Device& _device, const RenderSurface& _surface)
@@ -138,7 +136,7 @@ namespace Sa::Vk
 
 	void SwapChain::Destroy(const Device& _device)
 	{
-		DestroySurfaceRenderPass(_device);
+		DestroyFrameBuffers(_device);
 		DestroySynchronisation(_device);
 		DestroySwapChainKHR(_device);
 	}
@@ -157,17 +155,13 @@ namespace Sa::Vk
 	
 	void SwapChain::End(const Device& _device)
 	{
-
 		// Query all command buffers.
 		std::vector<VkCommandBuffer> commands;
-		commands.reserve(mSurfaceRenderPassInfos.size());
+		commands.reserve(mRenderPassIDs.size());
 
-		for (auto it = mSurfaceRenderPassInfos.begin(); it != mSurfaceRenderPassInfos.end(); ++it)
-		{
-			// Get current commandBuffer of renderpass infos.
-			CommandBuffer& commandBuffer = it->frameBuffers[mFrameIndex].commandBuffer;
-			commands.push_back(commandBuffer);
-		}
+		// Get current commandBuffer of framebuffer for each registered render pass.
+		for(uint32 i = mFrameIndex; i < SizeOf(mFrameBuffers); i += mImageNum)
+			commands.push_back(mFrameBuffers[i].commandBuffer);
 
 
 		// Submit graphics.
@@ -209,17 +203,15 @@ namespace Sa::Vk
 
 	FrameBuffer& SwapChain::GetFrameBuffer(uint32 _renderPassID)
 	{
-		for (auto it = mSurfaceRenderPassInfos.begin(); it != mSurfaceRenderPassInfos.end(); ++it)
+		for (uint32 i = 0u; i < SizeOf(mRenderPassIDs); ++i)
 		{
-			if (it->ID == _renderPassID)
-			{
-				SA_ASSERT(mFrameIndex < SizeOf(it->frameBuffers), InvalidParam, Rendering, L"Invalid frame index!");
-				return it->frameBuffers[mFrameIndex];
-			}
+			// ID found.
+			if (mRenderPassIDs[i] == _renderPassID)
+				return mFrameBuffers[i * mImageNum + mFrameIndex];
 		}
 
 		SA_ASSERT(false, InvalidParam, Rendering, L"Invalid RenderPass ID");
-		return mSurfaceRenderPassInfos[0].frameBuffers[0];
+		return mFrameBuffers[0];
 	}
 
 	uint32 SwapChain::AddRenderPass(Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _rpDesc)
@@ -229,32 +221,33 @@ namespace Sa::Vk
 		std::vector<VkImage> swapChainImages(mImageNum);
 		vkGetSwapchainImagesKHR(_device, mHandle, &mImageNum, swapChainImages.data());
 
-		SurfaceRenderPassInfos& surfaceRenderPassInfos = mSurfaceRenderPassInfos.emplace_back();
-		surfaceRenderPassInfos.frameBuffers.reserve(mImageNum);
+		mFrameBuffers.reserve(mImageNum);
 
 		for (uint32 i = 0u; i < mImageNum; ++i)
 		{
-			FrameBuffer& frameBuffer = surfaceRenderPassInfos.frameBuffers.emplace_back();
+			FrameBuffer& frameBuffer = mFrameBuffers.emplace_back();
 			frameBuffer.Create(_device, _renderPass, _rpDesc, mExtent, i, swapChainImages[i]);
 		}
 
-		surfaceRenderPassInfos.ID = ++currID;
+		mRenderPassIDs.push_back(++currID);
 		return currID;
 	}
 	
 	void SwapChain::RemoveRenderPass(Device& _device, uint32 _renderPassID)
 	{
-		for (auto it = mSurfaceRenderPassInfos.begin(); it != mSurfaceRenderPassInfos.end(); ++it)
+		for (uint32 i = 0u; i < SizeOf(mRenderPassIDs); ++i)
 		{
 			// ID found.
-			if (it->ID == _renderPassID)
+			if (mRenderPassIDs[i] == _renderPassID)
 			{
 				// Destroy associated framebuffers.
-				for (auto fbIt = it->frameBuffers.begin(); fbIt != it->frameBuffers.end(); ++fbIt)
-					fbIt->Destroy(_device);
+				for (uint32 j = i * mImageNum; j < (i + 1) * mImageNum; ++j)
+					mFrameBuffers[j].Destroy(_device);
 
 				// Erase render pass infos.
-				mSurfaceRenderPassInfos.erase(it);
+				mRenderPassIDs.erase(mRenderPassIDs.begin() + i);
+				mFrameBuffers.erase(mFrameBuffers.begin() + i * mImageNum, mFrameBuffers.begin() + (i + 1) * mImageNum);
+				
 				return;
 			}
 		}
