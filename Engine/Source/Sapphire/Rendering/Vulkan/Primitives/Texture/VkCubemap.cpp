@@ -14,8 +14,8 @@ namespace Sa::Vk
 {
 	void Cubemap::Create(const IRenderInstance& _instance, const RawCubemap& _rawCubemap)
 	{
-		uint64 dataSize = SizeOf(_rawCubemap.data) * API_GetChannelNum(_rawCubemap.format) * 6u;
-		uint64 irradianceSize = SizeOf(_rawCubemap.irradiancemapData) * API_GetChannelNum(_rawCubemap.format) * 6u;
+		uint64 dataSize = _rawCubemap.GetTotalMapSize();
+		uint64 irradianceSize = _rawCubemap.GetMapSize();
 
 		const Device& device = _instance.As<RenderInstance>().device;
 

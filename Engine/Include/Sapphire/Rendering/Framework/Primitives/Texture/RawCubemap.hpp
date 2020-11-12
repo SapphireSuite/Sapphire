@@ -15,6 +15,12 @@ namespace Sa
 
 		// Maximum rough level used for IBL. Generate as much mipmaps.
 		static const uint32 maxRoughLevel;
+
+		// Compute original map size in format unit.
+		uint64 GetMapSize() const noexcept;
+
+		// Compute total map size (including mipmaps) in format unit.
+		uint64 GetTotalMapSize() const noexcept;
 	};
 }
 

@@ -20,6 +20,12 @@ namespace Sa
 		uint32 mipLevels = 1u;
 
 		RenderFormat format = RenderFormat::RGBA_32;
+
+		// Compute original image size in format unit.
+		uint64 GetMainSize() const noexcept;
+
+		// Compute total image size (including mipmaps) in format unit.
+		uint64 GetTotalSize() const noexcept;
 	};
 }
 

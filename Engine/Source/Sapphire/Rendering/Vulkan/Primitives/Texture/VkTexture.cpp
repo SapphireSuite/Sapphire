@@ -15,7 +15,7 @@ namespace Sa::Vk
 {
 	void Texture::Create(const IRenderInstance& _instance, const RawTexture& _rawTexture)
 	{
-		uint64 dataSize = SizeOf(_rawTexture.data) * API_GetChannelNum(_rawTexture.format);
+		uint64 dataSize = _rawTexture.GetTotalSize();
 
 		const Device& device = _instance.As<RenderInstance>().device;
 
