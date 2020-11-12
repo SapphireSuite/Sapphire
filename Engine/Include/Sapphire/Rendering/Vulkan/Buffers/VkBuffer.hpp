@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_RENDERING_VK_BUFFER_GUARD
 #define SAPPHIRE_RENDERING_VK_BUFFER_GUARD
 
+#include <Rendering/Framework/Buffers/IBuffer.hpp>
+
 #include <Core/Types/Int.hpp>
 
 #include <Rendering/APIConfig.hpp>
@@ -15,7 +17,7 @@ namespace Sa::Vk
 {
 	class Device;
 
-	class Buffer
+	class SA_ENGINE_API Buffer : public IBuffer
 	{
 		VkBuffer mHandle = VK_NULL_HANDLE;
 		VkDeviceMemory mDeviceMemory = VK_NULL_HANDLE;
@@ -27,6 +29,7 @@ namespace Sa::Vk
 
 	public:
 		bool IsValid() const noexcept;
+		const VkBuffer& Get() const noexcept;
 
 		void Create(const Device& _device,
 			uint64 _size,
@@ -38,8 +41,6 @@ namespace Sa::Vk
 		void UpdateData(const Device& _device, const void* _data, uint32 _size, uint32 _offset = 0);
 
 		VkDescriptorBufferInfo CreateDescriptorBufferInfo(uint32 _size) const noexcept;
-		static VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, VkDescriptorType _type,
-			uint32 _binding, uint32 _arrayElem = 0u) noexcept;
 
 		static void Copy(const Device& _device, const Buffer& _src, const Buffer& _dst, uint64 _size);
 		static uint32 FindMemoryType(const Device& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties);

@@ -5,6 +5,7 @@
 #include <Core/Algorithms/SizeOf.hpp>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
+#include <Rendering/Vulkan/Buffers/VkFrameBuffer.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -12,8 +13,10 @@ namespace Sa::Vk
 {
 	void Mesh::Create(const IRenderInstance& _instance, const RawMesh& _rawMesh)
 	{
-		const Device& device = _instance.As<RenderInstance>().device;
+		IMesh::Create(_instance, _rawMesh);
 
+
+		const Device& device = _instance.As<RenderInstance>().device;
 
 		// Create Vertex buffer.
 		mVertexBuffer.Create(device, SizeOf(_rawMesh.vertices),
@@ -40,18 +43,17 @@ namespace Sa::Vk
 		mIndicesSize = uint32(-1);
 	}
 
-	//void Mesh::Draw(const IRenderFrame& _frame) const
-	//{
-	//	const VkRenderFrame& vkFrame = _frame.As<VkRenderFrame>();
+	void Mesh::Draw(const IFrameBuffer& _frameBuffer, const MeshDrawInfos& _infos) const
+	{
+		const FrameBuffer& vkFrameBuffer = _frameBuffer.As<FrameBuffer>();
 
-	//	VkDeviceSize offsets[] = { 0 };
-	//	::VkBuffer vkHandleVertexBuffer = mVertexBuffer;
-	//	vkCmdBindVertexBuffers(vkFrame.framebuffer->GetCommandBuffer(), 0, 1, &vkHandleVertexBuffer, offsets);
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(vkFrameBuffer.commandBuffer, 0, 1, &mVertexBuffer.Get(), offsets);
 
-	//	vkCmdBindIndexBuffer(vkFrame.framebuffer->GetCommandBuffer(), mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(vkFrameBuffer.commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-	//	vkCmdDrawIndexed(vkFrame.framebuffer->GetCommandBuffer(), mIndicesSize, 1, 0, 0, 0);
-	//}
+		vkCmdDrawIndexed(vkFrameBuffer.commandBuffer, mIndicesSize, _infos.instanceNum, 0, 0, 0);
+	}
 }
 
 #endif

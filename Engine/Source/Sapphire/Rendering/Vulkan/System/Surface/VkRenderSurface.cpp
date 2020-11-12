@@ -44,9 +44,9 @@ namespace Sa::Vk
 		mSwapChain.End(_instance.As<RenderInstance>().device);
 	}
 
-	IFrameBuffer& RenderSurface::GetFrameBuffer(uint32 _renderPassID)
+	FrameInfos RenderSurface::GetFrameInfos(uint32 _renderPassID)
 	{
-		return mSwapChain.GetFrameBuffer(_renderPassID);
+		return mSwapChain.GetFrameInfos(_renderPassID);
 	}
 
 	uint32 RenderSurface::AddRenderPass(IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor)

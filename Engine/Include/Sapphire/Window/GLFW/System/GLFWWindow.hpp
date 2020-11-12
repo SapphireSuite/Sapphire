@@ -7,6 +7,10 @@
 
 #include <Window/Framework/System/IWindow.hpp>
 
+
+// TODO: REMOVE LATER.
+#include <Maths/Space/Transform.hpp>
+
 #if SA_WINDOW_API == SA_GLFW
 
 struct GLFWwindow;
@@ -39,6 +43,9 @@ namespace Sa::GLFW
 		static void UnInit();
 
 		operator GLFWwindow*() const;
+
+		// TODO: REMOVE LATER.
+		void TEST(TransffPRS& _camTr, Vec3f& _lightPos, float _deltaTime);
 	};
 }
 

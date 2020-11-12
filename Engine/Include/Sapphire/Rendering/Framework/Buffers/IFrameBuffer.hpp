@@ -16,6 +16,12 @@ namespace Sa
 		virtual void NextSubpass() = 0;
 		virtual void End() = 0;
 	};
+
+	struct FrameInfos
+	{
+		const uint32 frameIndex = uint32(-1);
+		IFrameBuffer& frameBuffer;
+	};
 }
 
 #endif // GUARD

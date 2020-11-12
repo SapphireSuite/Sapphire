@@ -65,8 +65,8 @@ namespace Sa
 
 #endif
 
-		// Invert Y axis.
-		result.data[13] *= -1;
+		// Invert Y translation axis.
+		result.e13 *= -1;
 
 #endif
 
@@ -84,8 +84,8 @@ namespace Sa
 
 #endif
 
-		// Invert Y axis.
-		_matrix.data[13] *= -1;
+		// Invert Y translation axis.
+		_matrix.e13 *= -1;
 
 #endif
 

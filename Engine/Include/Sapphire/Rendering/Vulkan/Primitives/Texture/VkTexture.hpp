@@ -13,7 +13,7 @@
 
 namespace Sa::Vk
 {
-	class Texture : public ITexture
+	class SA_ENGINE_API Texture : public ITexture
 	{
 		ImageBuffer mBuffer;
 
@@ -24,7 +24,6 @@ namespace Sa::Vk
 		void Destroy(const IRenderInstance& _instance) override final;
 
 		VkDescriptorImageInfo CreateDescriptorImageInfo() const noexcept;
-		static VkWriteDescriptorSet CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem = 0u) noexcept;
 	};
 }
 

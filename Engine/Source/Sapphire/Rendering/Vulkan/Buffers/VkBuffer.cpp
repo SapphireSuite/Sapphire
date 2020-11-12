@@ -12,6 +12,12 @@ namespace Sa::Vk
 		return mHandle != VK_NULL_HANDLE && mDeviceMemory != VK_NULL_HANDLE;
 	}
 
+	const VkBuffer& Buffer::Get() const noexcept
+	{
+		return mHandle;
+	}
+
+
 	void Buffer::Create_Internal(const Device& _device,
 		uint64 _size, VkBufferUsageFlags _usage,
 		VkMemoryPropertyFlags _properties,
@@ -123,23 +129,6 @@ namespace Sa::Vk
 		descInfos.range = _size;
 
 		return descInfos;
-	}
-
-	VkWriteDescriptorSet Buffer::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, VkDescriptorType _type, uint32 _binding, uint32 _arrayElem) noexcept
-	{
-		VkWriteDescriptorSet writeDesc{};
-		writeDesc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writeDesc.pNext = nullptr;
-		writeDesc.dstSet = _descriptorSet;
-		writeDesc.dstBinding = _binding;
-		writeDesc.dstArrayElement = _arrayElem;
-		writeDesc.descriptorCount = 1u;
-		writeDesc.descriptorType = _type;
-		writeDesc.pImageInfo = nullptr; // Will be set in pipeline.
-		writeDesc.pBufferInfo = nullptr; // Will be set in pipeline.
-		writeDesc.pTexelBufferView = nullptr; // Will be set in pipeline.
-
-		return writeDesc;
 	}
 
 

@@ -201,17 +201,23 @@ namespace Sa::Vk
 		mFrameIndex = (mFrameIndex + 1) % mImageNum;
 	}
 
-	FrameBuffer& SwapChain::GetFrameBuffer(uint32 _renderPassID)
+	FrameInfos SwapChain::GetFrameInfos(uint32 _renderPassID)
 	{
+		FrameBuffer* frameBuffer = nullptr;
+
 		for (uint32 i = 0u; i < SizeOf(mRenderPassIDs); ++i)
 		{
 			// ID found.
 			if (mRenderPassIDs[i] == _renderPassID)
-				return mFrameBuffers[i * mImageNum + mFrameIndex];
+			{
+				frameBuffer = &mFrameBuffers[i * mImageNum + mFrameIndex];
+				break;
+			}
 		}
 
-		SA_ASSERT(false, InvalidParam, Rendering, L"Invalid RenderPass ID");
-		return mFrameBuffers[0];
+		SA_ASSERT(frameBuffer, InvalidParam, Rendering, L"Invalid RenderPass ID");
+
+		return FrameInfos{ mFrameIndex, *frameBuffer };
 	}
 
 	uint32 SwapChain::AddRenderPass(Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _rpDesc)

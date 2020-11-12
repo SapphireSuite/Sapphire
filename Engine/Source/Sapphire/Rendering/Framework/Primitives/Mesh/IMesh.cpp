@@ -8,4 +8,10 @@ namespace Sa
 	{
 		return mLayout;
 	}
+
+	void IMesh::Create(const IRenderInstance& _instance, const RawMesh& _rawMesh)
+	{
+		(void)_instance;
+		mLayout = _rawMesh.GetLayout();
+	}
 }

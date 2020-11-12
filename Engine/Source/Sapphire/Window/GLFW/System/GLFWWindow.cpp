@@ -27,6 +27,14 @@ namespace Sa::GLFW
 {
 	static uint32 sInitCount = 0u;
 
+	// TODO: Clean later:
+	static double oldX = 0.0f;
+	static double oldY = 0.0f;
+	static double mouseX = 0.0f;
+	static double mouseY = 0.0f;
+	static float dx = 0.0f;
+	static float dy = 0.0f;
+
 	void Window::Create(uint32 _width, uint32 _height, const char* _name)
 	{
 		// Init GLFW lib.
@@ -51,6 +59,11 @@ namespace Sa::GLFW
 
 		glfwSetKeyCallback(mHandle, lambda);
 		glfwSetInputMode(mHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // TODO: CLEAN LATER.
+
+		// TODO: REMOVE.
+		glfwGetCursorPos(mHandle, &mouseX, &mouseY);
+		oldX = mouseX;
+		oldY = mouseY;
 	}
 
 	void Window::Destroy()
@@ -134,6 +147,54 @@ namespace Sa::GLFW
 	Window::operator GLFWwindow* () const
 	{
 		return mHandle;
+	}
+
+
+	void Window::TEST(TransffPRS& _camTr, Vec3f& _lightPos, float _deltaTime)
+	{
+		if (glfwGetKey(mHandle, GLFW_KEY_D) == GLFW_PRESS)
+			_camTr.position += _deltaTime * _camTr.RightVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_A) == GLFW_PRESS)
+			_camTr.position -= _deltaTime * _camTr.RightVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_Q) == GLFW_PRESS)
+			_camTr.position -= _deltaTime * _camTr.UpVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_E) == GLFW_PRESS)
+			_camTr.position += _deltaTime * _camTr.UpVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_W) == GLFW_PRESS)
+			_camTr.position -= _deltaTime * _camTr.ForwardVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_S) == GLFW_PRESS)
+			_camTr.position += _deltaTime * _camTr.ForwardVector();
+
+		glfwGetCursorPos(mHandle, &mouseX, &mouseY);
+
+		if (mouseX != oldX || mouseY != oldY)
+		{
+			dx -= static_cast<float>(mouseX - oldX) * _deltaTime * 10.0f * Maths::DegToRad;
+			dy += static_cast<float>(mouseY - oldY) * _deltaTime * 10.0f * Maths::DegToRad;
+
+			oldX = mouseX;
+			oldY = mouseY;
+
+			dx = dx > Maths::Pi ? dx - Maths::Pi : dx < -Maths::Pi ? dx + Maths::Pi : dx;
+			dy = dy > Maths::Pi ? dy - Maths::Pi : dy < -Maths::Pi ? dy + Maths::Pi : dy;
+
+			_camTr.rotation = Quatf(cos(dx), 0, sin(dx), 0) * Quatf(cos(dy), sin(dy), 0, 0);
+		}
+
+
+
+		if (glfwGetKey(mHandle, GLFW_KEY_J) == GLFW_PRESS)
+			_lightPos -= _deltaTime * _camTr.RightVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_L) == GLFW_PRESS)
+			_lightPos += _deltaTime * _camTr.RightVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_U) == GLFW_PRESS)
+			_lightPos -= _deltaTime * _camTr.UpVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_O) == GLFW_PRESS)
+			_lightPos += _deltaTime * _camTr.UpVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_I) == GLFW_PRESS)
+			_lightPos -= _deltaTime * _camTr.ForwardVector();
+		if (glfwGetKey(mHandle, GLFW_KEY_K) == GLFW_PRESS)
+			_lightPos += _deltaTime * _camTr.ForwardVector();
 	}
 }
 

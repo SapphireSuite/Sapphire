@@ -39,7 +39,7 @@ namespace Sa::Vk
 		void Begin(const IRenderInstance& _instance) override final;
 		void End(const IRenderInstance& _instance) override final;
 
-		IFrameBuffer& GetFrameBuffer(uint32 _renderPassID) override final;
+		FrameInfos GetFrameInfos(uint32 _renderPassID) override final;
 
 		uint32 AddRenderPass(IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor) override final;
 		void RemoveRenderPass(IRenderInstance& _instance, uint32 _renderPassID) override final;

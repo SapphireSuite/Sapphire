@@ -19,7 +19,7 @@ namespace Sa
 	struct RawCubemap;
 	//class CubemapImportInfos;
 
-	class StbiWrapper
+	class SA_ENGINE_API StbiWrapper
 	{
 		static void GenerateMipMaps(RawTexture& _rawData);
 		static void GenerateMipMaps(RawCubemap& _rawData);

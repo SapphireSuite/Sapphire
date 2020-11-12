@@ -13,7 +13,7 @@
 
 namespace Sa::Vk
 {
-	class Shader : public IShader
+	class SA_ENGINE_API Shader : public IShader
 	{
 		VkShaderModule mHandle = VK_NULL_HANDLE;
 

@@ -116,22 +116,6 @@ namespace Sa::Vk
 
 		return descImage;
 	}
-	VkWriteDescriptorSet Texture::CreateWriteDescriptorSet(VkDescriptorSet _descriptorSet, uint32 _binding, uint32 _arrayElem) noexcept
-	{
-		VkWriteDescriptorSet writeDesc{};
-		writeDesc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writeDesc.pNext = nullptr;
-		writeDesc.dstSet = _descriptorSet;
-		writeDesc.dstBinding = _binding;
-		writeDesc.dstArrayElement = _arrayElem;
-		writeDesc.descriptorCount = 1u;
-		writeDesc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		writeDesc.pImageInfo = nullptr; // Will be set in pipeline.
-		writeDesc.pBufferInfo = nullptr; // Will be set in pipeline.
-		writeDesc.pTexelBufferView = nullptr; // Will be set in pipeline.
-
-		return writeDesc;
-	}
 }
 
 #endif

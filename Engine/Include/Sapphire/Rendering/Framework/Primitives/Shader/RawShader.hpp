@@ -7,9 +7,9 @@
 
 namespace Sa
 {
-	struct RawShader : std::vector<char>
+	struct RawShader
 	{
-		using std::vector<char>::vector;
+		std::vector<char> data;
 	};
 }
 

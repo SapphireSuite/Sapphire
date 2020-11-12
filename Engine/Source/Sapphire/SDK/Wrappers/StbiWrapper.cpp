@@ -59,15 +59,13 @@ namespace Sa
 	{
 		stbi_set_flip_vertically_on_load(true);
 
-		RawTexture rawData;
-
 		uint32 channelNum = 0u;
 		uint32 importChannelNum = API_GetChannelNum(_importInfos.format);
 
 		// Load texture.
 		char* data = reinterpret_cast<char*>(stbi_load(_resourcePath.c_str(),
-			reinterpret_cast<int32*>(&rawData.extent.x),
-			reinterpret_cast<int32*>(&rawData.extent.y),
+			reinterpret_cast<int32*>(&_outTexture.extent.x),
+			reinterpret_cast<int32*>(&_outTexture.extent.y),
 			reinterpret_cast<int32*>(&channelNum),
 			importChannelNum
 		));
@@ -79,16 +77,16 @@ namespace Sa
 			return false;
 		}
 
-		rawData.format = _importInfos.format;
-		rawData.data.assign(data, data + rawData.GetMainSize());
+		_outTexture.format = _importInfos.format;
+		_outTexture.data.assign(data, data + _outTexture.GetMainSize());
 
 
 		if(_importInfos.mipLevels == uint32(-1))
-			rawData.mipLevels = Mipmap::ComputeLevels(rawData.extent);
+			_outTexture.mipLevels = Mipmap::ComputeLevels(_outTexture.extent);
 		else
-			rawData.mipLevels = _importInfos.mipLevels;
+			_outTexture.mipLevels = _importInfos.mipLevels;
 
-		GenerateMipMaps(rawData);
+		GenerateMipMaps(_outTexture);
 
 		return true;
 	}

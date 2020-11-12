@@ -32,11 +32,11 @@ namespace Sa
 
 		void ComputeTangents();
 
-		template <VertexComp Comps = VertexComp::PNTanTex>
+		template <VertexComp Comps = VertexComp::Default>
 		static RawMesh Triangle() noexcept;
-		template <VertexComp Comps = VertexComp::PNTanTex>
+		template <VertexComp Comps = VertexComp::Default>
 		static RawMesh Square() noexcept;
-		template <VertexComp Comps = VertexComp::PNTanTex>
+		template <VertexComp Comps = VertexComp::Default>
 		static RawMesh Cube() noexcept;
 	};
 }

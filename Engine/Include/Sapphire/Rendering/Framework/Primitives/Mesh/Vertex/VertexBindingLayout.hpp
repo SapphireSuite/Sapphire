@@ -15,7 +15,7 @@
 
 namespace Sa
 {
-	struct VertexBindingLayout
+	struct SA_ENGINE_API VertexBindingLayout
 	{
 		std::shared_ptr<const VertexLayout> desiredLayout = nullptr;
 		std::shared_ptr<const VertexLayout> meshLayout = nullptr;

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_SHADER_TYPE_GUARD
-#define SAPPHIRE_RENDERING_SHADER_TYPE_GUARD
+#ifndef SAPPHIRE_RENDERING_SHADER_STAGE_GUARD
+#define SAPPHIRE_RENDERING_SHADER_STAGE_GUARD
 
 #include <Core/Types/Int.hpp>
 
@@ -11,7 +11,7 @@
 
 namespace Sa
 {
-	enum class ShaderType : uint8
+	enum class ShaderStage : uint8
 	{
 		Unknown = 0,
 
@@ -24,9 +24,9 @@ namespace Sa
 
 #if SA_RENDERING_API == SA_VULKAN
 
-	VkShaderStageFlagBits API_GetShaderType(ShaderType _type) noexcept;
+	VkShaderStageFlagBits API_GetShaderStage(ShaderStage _type) noexcept;
 
-	VkShaderStageFlags API_GetShaderFlags(uint8 _flags) noexcept;
+	VkShaderStageFlags API_GetShaderStageFlags(ShaderStage _type) noexcept;
 
 #endif
 

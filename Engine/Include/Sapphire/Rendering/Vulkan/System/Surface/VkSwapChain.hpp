@@ -57,7 +57,7 @@ namespace Sa::Vk
 		void Begin(const Device& _device);
 		void End(const Device& _device);
 
-		FrameBuffer& GetFrameBuffer(uint32 _renderPassID);
+		FrameInfos GetFrameInfos(uint32 _renderPassID);
 
 		uint32 AddRenderPass(Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _rpDesc);
 		void RemoveRenderPass(Device& _device, uint32 _renderPassID);
