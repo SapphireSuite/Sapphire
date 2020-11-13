@@ -324,9 +324,9 @@ namespace Sa::Vk
 
 
 
-	void Pipeline::Bind(const FrameInfos& _frameInfos)
+	void Pipeline::Bind(const RenderFrame& _frame)
 	{
-		Vk::CommandBuffer& commandBuffer = _frameInfos.frameBuffer.As<Vk::FrameBuffer>().commandBuffer;
+		Vk::CommandBuffer& commandBuffer = _frame.buffer.As<Vk::FrameBuffer>().commandBuffer;
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mHandle);
 	}

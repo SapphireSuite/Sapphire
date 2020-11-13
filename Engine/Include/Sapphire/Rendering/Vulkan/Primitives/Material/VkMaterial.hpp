@@ -41,7 +41,7 @@ namespace Sa::Vk
 		void Create(const IRenderInstance& _instance, const MaterialCreateInfos& _infos) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
-		void Bind(const FrameInfos& _frameInfos, const IPipeline& _pipeline) override final;
+		void Bind(const RenderFrame& _frame, const IPipeline& _pipeline) override final;
 	};
 }
 

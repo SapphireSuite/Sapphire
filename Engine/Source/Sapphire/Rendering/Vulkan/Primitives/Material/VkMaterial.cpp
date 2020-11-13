@@ -52,14 +52,14 @@ namespace Sa::Vk
 		DestroyDescriptorPool(device);
 	}
 
-	void Material::Bind(const FrameInfos& _frameInfos, const IPipeline& _pipeline)
+	void Material::Bind(const RenderFrame& _frame, const IPipeline& _pipeline)
 	{
-		Vk::CommandBuffer& commandBuffer = _frameInfos.frameBuffer.As<Vk::FrameBuffer>().commandBuffer;
+		Vk::CommandBuffer& commandBuffer = _frame.buffer.As<Vk::FrameBuffer>().commandBuffer;
 
 		const Pipeline& vkPipeline = _pipeline.As<Pipeline>();
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline.GetLayout(),
-			0, 1, &mDescriptorSets[_frameInfos.frameIndex], 0, nullptr);
+			0, 1, &mDescriptorSets[_frame.index], 0, nullptr);
 	}
 
 

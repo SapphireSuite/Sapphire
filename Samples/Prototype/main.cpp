@@ -29,7 +29,6 @@ using namespace Sa;
 struct MainRenderInfos
 {
 	Vk::RenderPass renderPass;
-	uint32 renderPassID = uint32(-1);
 
 	// Subpass 0: G-Buffer composition.
 	Vk::Shader litCompVert;
@@ -48,7 +47,7 @@ struct MainRenderInfos
 		// RenderPass.
 		const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultPBRDeferred(&_surface);
 		renderPass.Create(_instance, renderPassDesc);
-		renderPassID = _surface.AddRenderPass(_instance, renderPass, renderPassDesc);
+		const std::vector<IFrameBuffer>& framebuffers = _surface.CreateFrameBuffers(_instance, renderPass, renderPassDesc);
 
 		// Subpass 0: G-Buffer composition.
 		{
@@ -221,7 +220,7 @@ struct MainRenderInfos
 		litCompVert.Destroy(_instance);
 		litCompFrag.Destroy(_instance);
 
-		_surface.RemoveRenderPass(_instance, renderPassID);
+		_surface.DestroyFrameBuffers(_instance);
 		renderPass.Destroy(_instance);
 	}
 };
@@ -375,34 +374,23 @@ int main()
 
 
 		// Begin Surface.
-		surface.Begin(instance);
+		RenderFrame frame = surface.Begin(instance);
 
 
-		// Main framebuffer.
-		{
-			FrameInfos mainFI = surface.GetFrameInfos(mainRender.renderPassID);
+		// Subpass 0: G-Buffer composition.
+		mainRender.litCompPipeline.Bind(frame);
 
-			IFrameBuffer& mainFB = mainFI.frameBuffer;
+		cubeRender.material.Bind(frame, mainRender.litCompPipeline);
+		cubeMesh.Draw(frame);
+		//
 
-			mainFB.Begin();
+		frame.buffer.NextSubpass();
 
-			// Subpass 0: G-Buffer composition.
-			mainRender.litCompPipeline.Bind(mainFI);
+		// Subpass 1: Illumination.
+		mainRender.litPipeline.Bind(frame);
 
-			cubeRender.material.Bind(mainFI, mainRender.litCompPipeline);
-			cubeMesh.Draw(mainFB);
-			//
-
-			mainFB.NextSubpass();
-
-			// Subpass 1: Illumination.
-			mainRender.litPipeline.Bind(mainFI);
-
-			mainRender.litmaterial.Bind(mainFI, mainRender.litPipeline);
-			cubeMesh.Draw(mainFB);
-
-			mainFB.End();
-		}
+		mainRender.litmaterial.Bind(frame, mainRender.litPipeline);
+		cubeMesh.Draw(frame);
 
 
 		// End Surface.

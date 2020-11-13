@@ -24,7 +24,7 @@ namespace Sa::Vk
 		void Create(const IRenderInstance& _instance, const RawMesh& _rawMesh) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
-		void Draw(const IFrameBuffer& _frameBuffer, const MeshDrawInfos& _infos = MeshDrawInfos()) const override final;
+		void Draw(const RenderFrame& _frame, const MeshDrawInfos& _infos = MeshDrawInfos()) const override final;
 	};
 }
 

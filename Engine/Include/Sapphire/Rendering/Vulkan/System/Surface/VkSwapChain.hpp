@@ -36,7 +36,6 @@ namespace Sa::Vk
 
 		std::vector<Synchronisation> mFramesSynch;
 
-		std::vector<uint32> mRenderPassIDs;
 		std::vector<FrameBuffer> mFrameBuffers;
 
 
@@ -46,21 +45,17 @@ namespace Sa::Vk
 		void CreateSynchronisation(const Device& _device);
 		void DestroySynchronisation(const Device& _device);
 
-		void DestroyFrameBuffers(const Device& _device);
-
 	public:
 		Format GetFormat() const noexcept;
 
 		void Create(const Device& _device, const RenderSurface& _surface);
 		void Destroy(const Device& _device);
 
-		void Begin(const Device& _device);
+		RenderFrame Begin(const Device& _device);
 		void End(const Device& _device);
 
-		FrameInfos GetFrameInfos(uint32 _renderPassID);
-
-		uint32 AddRenderPass(Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _rpDesc);
-		void RemoveRenderPass(Device& _device, uint32 _renderPassID);
+		const std::vector<FrameBuffer>& CreateFrameBuffers(const Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _renderPassDesc);
+		void DestroyFrameBuffers(const Device& _device);
 	};
 }
 

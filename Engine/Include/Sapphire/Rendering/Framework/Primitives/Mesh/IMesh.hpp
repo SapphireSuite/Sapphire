@@ -13,7 +13,8 @@
 namespace Sa
 {
 	class IRenderInstance;
-	class IFrameBuffer;
+
+	struct RenderFrame;
 
 	class SA_ENGINE_API IMesh : public IRenderPrimitive
 	{
@@ -26,7 +27,7 @@ namespace Sa
 		virtual void Create(const IRenderInstance& _instance, const RawMesh& _rawMesh);
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 
-		virtual void Draw(const IFrameBuffer& _frameBuffer, const MeshDrawInfos& _infos = MeshDrawInfos()) const = 0;
+		virtual void Draw(const RenderFrame& _frame, const MeshDrawInfos& _infos = MeshDrawInfos()) const = 0;
 	};
 }
 

@@ -19,7 +19,7 @@ namespace Sa
 		virtual void Create(const IRenderInstance& _instance, const MaterialCreateInfos& _infos) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;
 
-		virtual void Bind(const FrameInfos& _frameInfos, const IPipeline& _pipeline) = 0;
+		virtual void Bind(const RenderFrame& _frame, const IPipeline& _pipeline) = 0;
 	};
 }
 

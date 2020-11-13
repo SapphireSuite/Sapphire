@@ -34,9 +34,9 @@ namespace Sa::Vk
 		mSwapChain.Destroy(_instance.As<Vk::RenderInstance>().device);
 	}
 
-	void RenderSurface::Begin(const IRenderInstance& _instance)
+	RenderFrame RenderSurface::Begin(const IRenderInstance& _instance)
 	{
-		mSwapChain.Begin(_instance.As<RenderInstance>().device);
+		return mSwapChain.Begin(_instance.As<RenderInstance>().device);
 	}
 	
 	void RenderSurface::End(const IRenderInstance& _instance)
@@ -44,19 +44,16 @@ namespace Sa::Vk
 		mSwapChain.End(_instance.As<RenderInstance>().device);
 	}
 
-	FrameInfos RenderSurface::GetFrameInfos(uint32 _renderPassID)
+	const std::vector<IFrameBuffer>& RenderSurface::CreateFrameBuffers(IRenderInstance& _instance, const IRenderPass& _renderPass,
+		const RenderPassDescriptor& _renderPassDesc)
 	{
-		return mSwapChain.GetFrameInfos(_renderPassID);
+		return reinterpret_cast<const std::vector<IFrameBuffer>&>(mSwapChain.CreateFrameBuffers(
+			_instance.As<RenderInstance>().device, _renderPass.As<RenderPass>(), _renderPassDesc));
 	}
 
-	uint32 RenderSurface::AddRenderPass(IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor)
+	void RenderSurface::DestroyFrameBuffers(IRenderInstance& _instance)
 	{
-		return mSwapChain.AddRenderPass(_instance.As<RenderInstance>().device, _renderPass.As<RenderPass>(), _rpDescriptor);
-	}
-
-	void RenderSurface::RemoveRenderPass(IRenderInstance& _instance, uint32 _renderPassID)
-	{
-		mSwapChain.RemoveRenderPass(_instance.As<RenderInstance>().device, _renderPassID);
+		mSwapChain.DestroyFrameBuffers(_instance.As<RenderInstance>().device);
 	}
 
 

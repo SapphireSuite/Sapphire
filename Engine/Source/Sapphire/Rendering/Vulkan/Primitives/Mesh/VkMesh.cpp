@@ -43,16 +43,16 @@ namespace Sa::Vk
 		mIndicesSize = uint32(-1);
 	}
 
-	void Mesh::Draw(const IFrameBuffer& _frameBuffer, const MeshDrawInfos& _infos) const
+	void Mesh::Draw(const RenderFrame& _frame, const MeshDrawInfos& _infos) const
 	{
-		const FrameBuffer& vkFrameBuffer = _frameBuffer.As<FrameBuffer>();
+		const CommandBuffer& commandBuffer = _frame.buffer.As<FrameBuffer>().commandBuffer;
 
 		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(vkFrameBuffer.commandBuffer, 0, 1, &mVertexBuffer.Get(), offsets);
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mVertexBuffer.Get(), offsets);
 
-		vkCmdBindIndexBuffer(vkFrameBuffer.commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdDrawIndexed(vkFrameBuffer.commandBuffer, mIndicesSize, _infos.instanceNum, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, mIndicesSize, _infos.instanceNum, 0, 0, 0);
 	}
 }
 

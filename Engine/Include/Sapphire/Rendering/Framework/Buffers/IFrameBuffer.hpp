@@ -17,10 +17,10 @@ namespace Sa
 		virtual void End() = 0;
 	};
 
-	struct FrameInfos
+	struct RenderFrame
 	{
-		const uint32 frameIndex = uint32(-1);
-		IFrameBuffer& frameBuffer;
+		const uint32 index = uint32(-1);
+		IFrameBuffer& buffer;
 	};
 }
 

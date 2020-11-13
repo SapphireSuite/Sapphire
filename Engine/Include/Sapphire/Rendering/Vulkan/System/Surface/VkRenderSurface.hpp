@@ -36,13 +36,12 @@ namespace Sa::Vk
 		void Create(const IRenderInstance& _instance) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
-		void Begin(const IRenderInstance& _instance) override final;
+		RenderFrame Begin(const IRenderInstance& _instance) override final;
 		void End(const IRenderInstance& _instance) override final;
 
-		FrameInfos GetFrameInfos(uint32 _renderPassID) override final;
-
-		uint32 AddRenderPass(IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _rpDescriptor) override final;
-		void RemoveRenderPass(IRenderInstance& _instance, uint32 _renderPassID) override final;
+		const std::vector<IFrameBuffer>& CreateFrameBuffers(IRenderInstance& _instance, const IRenderPass& _renderPass,
+			const RenderPassDescriptor& _renderPassDesc) override final;
+		void DestroyFrameBuffers(IRenderInstance& _instance) override final;
 
 
 		SupportDetails QuerySupportDetails(VkPhysicalDevice _device) const;

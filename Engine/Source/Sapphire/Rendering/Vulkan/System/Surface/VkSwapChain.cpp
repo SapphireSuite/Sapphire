@@ -117,17 +117,6 @@ namespace Sa::Vk
 		mFramesSynch.clear();
 	}
 
-	void SwapChain::DestroyFrameBuffers(const Device& _device)
-	{
-		// Destroy remaining Framebuffers.
-
-		for (auto it = mFrameBuffers.begin(); it != mFrameBuffers.end(); ++it)
-			it->Destroy(_device);
-
-		mFrameBuffers.clear();
-		mRenderPassIDs.clear();
-	}
-
 	void SwapChain::Create(const Device& _device, const RenderSurface& _surface)
 	{
 		CreateSwapChainKHR(_device, _surface);
@@ -137,11 +126,12 @@ namespace Sa::Vk
 	void SwapChain::Destroy(const Device& _device)
 	{
 		DestroyFrameBuffers(_device);
+
 		DestroySynchronisation(_device);
 		DestroySwapChainKHR(_device);
 	}
 
-	void SwapChain::Begin(const Device& _device)
+	RenderFrame SwapChain::Begin(const Device& _device)
 	{
 		// Wait current Fence.
 		vkWaitForFences(_device, 1, &mFramesSynch[mFrameIndex].fence, true, UINT64_MAX);
@@ -151,17 +141,16 @@ namespace Sa::Vk
 
 		SA_VK_ASSERT(vkAcquireNextImageKHR(_device, mHandle, UINT64_MAX, mFramesSynch[mFrameIndex].acquireSemaphore, VK_NULL_HANDLE, &mImageIndex),
 			LibCommandFailed, Rendering, L"Failed to aquire next image!");
+
+
+		mFrameBuffers[mFrameIndex].Begin();
+
+		return RenderFrame{ mFrameIndex, mFrameBuffers[mFrameIndex] };
 	}
 	
 	void SwapChain::End(const Device& _device)
 	{
-		// Query all command buffers.
-		std::vector<VkCommandBuffer> commands;
-		commands.reserve(mRenderPassIDs.size());
-
-		// Get current commandBuffer of framebuffer for each registered render pass.
-		for(uint32 i = mFrameIndex; i < SizeOf(mFrameBuffers); i += mImageNum)
-			commands.push_back(mFrameBuffers[i].commandBuffer);
+		mFrameBuffers[mFrameIndex].End();
 
 
 		// Submit graphics.
@@ -173,8 +162,8 @@ namespace Sa::Vk
 		submitInfo.waitSemaphoreCount = 1u;
 		submitInfo.pWaitSemaphores = &mFramesSynch[mFrameIndex].acquireSemaphore;
 		submitInfo.pWaitDstStageMask = &waitStages;
-		submitInfo.commandBufferCount = SizeOf(commands);
-		submitInfo.pCommandBuffers = commands.data();
+		submitInfo.commandBufferCount = 1u;
+		submitInfo.pCommandBuffers = &mFrameBuffers[mFrameIndex].commandBuffer.Get();
 		submitInfo.signalSemaphoreCount = 1u;
 		submitInfo.pSignalSemaphores = &mFramesSynch[mFrameIndex].presentSemaphore;
 
@@ -201,29 +190,8 @@ namespace Sa::Vk
 		mFrameIndex = (mFrameIndex + 1) % mImageNum;
 	}
 
-	FrameInfos SwapChain::GetFrameInfos(uint32 _renderPassID)
+	const std::vector<FrameBuffer>& SwapChain::CreateFrameBuffers(const Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _renderPassDesc)
 	{
-		FrameBuffer* frameBuffer = nullptr;
-
-		for (uint32 i = 0u; i < SizeOf(mRenderPassIDs); ++i)
-		{
-			// ID found.
-			if (mRenderPassIDs[i] == _renderPassID)
-			{
-				frameBuffer = &mFrameBuffers[i * mImageNum + mFrameIndex];
-				break;
-			}
-		}
-
-		SA_ASSERT(frameBuffer, InvalidParam, Rendering, L"Invalid RenderPass ID");
-
-		return FrameInfos{ mFrameIndex, *frameBuffer };
-	}
-
-	uint32 SwapChain::AddRenderPass(Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _rpDesc)
-	{
-		static uint32 currID = 0u;
-
 		std::vector<VkImage> swapChainImages(mImageNum);
 		vkGetSwapchainImagesKHR(_device, mHandle, &mImageNum, swapChainImages.data());
 
@@ -232,32 +200,17 @@ namespace Sa::Vk
 		for (uint32 i = 0u; i < mImageNum; ++i)
 		{
 			FrameBuffer& frameBuffer = mFrameBuffers.emplace_back();
-			frameBuffer.Create(_device, _renderPass, _rpDesc, mExtent, i, swapChainImages[i]);
+			frameBuffer.Create(_device, _renderPass, _renderPassDesc, mExtent, i, swapChainImages[i]);
 		}
 
-		mRenderPassIDs.push_back(++currID);
-		return currID;
+		return mFrameBuffers;
 	}
-	
-	void SwapChain::RemoveRenderPass(Device& _device, uint32 _renderPassID)
+
+	void SwapChain::DestroyFrameBuffers(const Device& _device)
 	{
-		for (uint32 i = 0u; i < SizeOf(mRenderPassIDs); ++i)
-		{
-			// ID found.
-			if (mRenderPassIDs[i] == _renderPassID)
-			{
-				// Destroy associated framebuffers.
-				for (uint32 j = i * mImageNum; j < (i + 1) * mImageNum; ++j)
-					mFrameBuffers[j].Destroy(_device);
+		for (auto it = mFrameBuffers.begin(); it != mFrameBuffers.end(); ++it)
+			it->Destroy(_device);
 
-				// Erase render pass infos.
-				mRenderPassIDs.erase(mRenderPassIDs.begin() + i);
-				mFrameBuffers.erase(mFrameBuffers.begin() + i * mImageNum, mFrameBuffers.begin() + (i + 1) * mImageNum);
-				
-				return;
-			}
-		}
-
-		SA_ASSERT(false, InvalidParam, Rendering, L"RenderPass ID not registered!");
+		mFrameBuffers.clear();
 	}
 }
