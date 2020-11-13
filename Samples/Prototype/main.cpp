@@ -192,21 +192,21 @@ struct MainRenderInfos
 			// Material.
 			MaterialCreateInfos matCreateInfos(litPipeline);
 
-			MaterialBindingInfos& inPositionBinding = matCreateInfos.bindings.emplace_back();
-			inPositionBinding.binding = 0u;
-			inPositionBinding.type = ShaderBindingType::InputAttachment;
+			//MaterialBindingInfos& inPositionBinding = matCreateInfos.bindings.emplace_back();
+			//inPositionBinding.binding = 0u;
+			//inPositionBinding.type = ShaderBindingType::InputAttachment;
 
-			MaterialBindingInfos& inNormalBinding = matCreateInfos.bindings.emplace_back();
-			inNormalBinding.binding = 1u;
-			inNormalBinding.type = ShaderBindingType::InputAttachment;
+			//MaterialBindingInfos& inNormalBinding = matCreateInfos.bindings.emplace_back();
+			//inNormalBinding.binding = 1u;
+			//inNormalBinding.type = ShaderBindingType::InputAttachment;
 
-			MaterialBindingInfos& inAlbedoBinding = matCreateInfos.bindings.emplace_back();
-			inAlbedoBinding.binding = 2u;
-			inAlbedoBinding.type = ShaderBindingType::InputAttachment;
+			//MaterialBindingInfos& inAlbedoBinding = matCreateInfos.bindings.emplace_back();
+			//inAlbedoBinding.binding = 2u;
+			//inAlbedoBinding.type = ShaderBindingType::InputAttachment;
 
-			MaterialBindingInfos& inPBRBinding = matCreateInfos.bindings.emplace_back();
-			inPBRBinding.binding = 3u;
-			inPBRBinding.type = ShaderBindingType::InputAttachment;
+			//MaterialBindingInfos& inPBRBinding = matCreateInfos.bindings.emplace_back();
+			//inPBRBinding.binding = 3u;
+			//inPBRBinding.type = ShaderBindingType::InputAttachment;
 
 			litmaterial.Create(_instance, matCreateInfos);
 		}
@@ -294,20 +294,15 @@ struct CubeRender
 
 		MaterialBindingInfos& camBinding = matCreateInfos.bindings.emplace_back();
 		camBinding.binding = 0u;
-		camBinding.type = ShaderBindingType::UniformBuffer;
-		camBinding.bufferDataSize = sizeof(camUBOData);
-		camBinding.buffers.push_back(&camUBO);
+		camBinding.SetUniformBuffers({ &camUBO });
 
 		MaterialBindingInfos& modelBinding = matCreateInfos.bindings.emplace_back();
 		modelBinding.binding = 1u;
-		modelBinding.type = ShaderBindingType::UniformBuffer;
-		modelBinding.bufferDataSize = sizeof(modelUBOData);
-		modelBinding.buffers.push_back(&modelUBO);
+		modelBinding.SetUniformBuffers({ &modelUBO });
 
 		MaterialBindingInfos& textureBinding = matCreateInfos.bindings.emplace_back();
 		textureBinding.binding = 2u;
-		textureBinding.type = ShaderBindingType::ImageSampler2D;
-		textureBinding.textures.push_back(&texture);
+		textureBinding.SetImageSamplers2D({ &texture });
 
 		material.Create(_instance, matCreateInfos);
 	}

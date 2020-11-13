@@ -23,9 +23,18 @@ namespace Sa::Vk
 		void CreateDescriptorPool(const Device& _device, const MaterialCreateInfos& _infos);
 		void DestroyDescriptorPool(const Device& _device);
 
+
 		void CreateDescriptorSets(const Device& _device, const MaterialCreateInfos& _infos);
+		
 		void UpdateDescriptorSets(const Device& _device, const MaterialBindingInfos& _binding);
 		void UpdateDescriptorSets(const Device& _device, const std::vector<MaterialBindingInfos>& _bindings);
+		
+		void CountDescriptors(const MaterialBindingInfos& _binding, uint32& _bufferDescSize, uint32& _imageDescSize) const noexcept;
+		void FillDescriptorWrites(const MaterialBindingInfos& _binding,
+			std::vector<VkDescriptorBufferInfo>& _bufferDescs,
+			std::vector<VkDescriptorImageInfo>& _imageDescs,
+			std::vector<VkWriteDescriptorSet>& _descWrites) const noexcept;
+		
 		void DestroyDescriptorSets(const Device& _device);
 
 	public:

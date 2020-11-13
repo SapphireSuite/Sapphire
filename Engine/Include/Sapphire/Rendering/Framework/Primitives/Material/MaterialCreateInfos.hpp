@@ -13,34 +13,25 @@ namespace Sa
 	class IBuffer;
 	class ITexture;
 
-	struct SA_ENGINE_API MaterialBindingInfos
+	class SA_ENGINE_API MaterialBindingInfos
 	{
+		ShaderBindingType mType = ShaderBindingType::UniformBuffer;
+
+		std::vector<IInterface*> mBuffers;
+
+	public:
 		uint32 binding = 0u;
 
-		ShaderBindingType type = ShaderBindingType::UniformBuffer;
+		ShaderBindingType GetType() const noexcept;
 
-		// Size of buffer data (used for buffers).
-		uint64 bufferDataSize = 0u;
+		const std::vector<IBuffer*>& GetUniformBuffers() const;
+		const std::vector<ITexture*>& GetImageSamplers() const;
+		const IBuffer& GetStorageBuffer() const;
 
-		union
-		{
-			// UBO.
-			std::vector<IBuffer*> buffers;
-
-			// Image sampler.
-			std::vector<ITexture*> textures;
-
-			// Storage buffer.
-			IBuffer* storageBuffer;
-		};
-
-		MaterialBindingInfos() noexcept;
-		MaterialBindingInfos(MaterialBindingInfos&& _other) noexcept;
-		MaterialBindingInfos(const MaterialBindingInfos& _other) noexcept;
-		~MaterialBindingInfos() noexcept;
-
-		MaterialBindingInfos& operator=(MaterialBindingInfos&& _rhs) noexcept;
-		MaterialBindingInfos& operator=(const MaterialBindingInfos& _rhs) noexcept;
+		void SetUniformBuffers(const std::vector<IBuffer*>& _uniformBuffers);
+		void SetImageSamplers2D(const std::vector<ITexture*>& _imageSamplers);
+		void SetImageSamplerCubes(const std::vector<ITexture*>& _imageSamplers);
+		void SetStorageBuffer(IBuffer& _storageBuffer);
 	};
 
 	struct SA_ENGINE_API MaterialCreateInfos

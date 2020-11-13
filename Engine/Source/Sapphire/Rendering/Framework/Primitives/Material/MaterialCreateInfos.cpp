@@ -2,87 +2,67 @@
 
 #include <Rendering/Framework/Primitives/Material/MaterialCreateInfos.hpp>
 
-#include <Core/Algorithms/Move.hpp>
+#include <Rendering/Framework/Buffers/IBuffer.hpp>
 
 namespace Sa
 {
 	// === MaterialBindingInfos ===
-	MaterialBindingInfos::MaterialBindingInfos() noexcept : buffers{}
+	ShaderBindingType MaterialBindingInfos::GetType() const noexcept
 	{
+		return mType;
 	}
 
-	MaterialBindingInfos::MaterialBindingInfos(MaterialBindingInfos&& _other) noexcept :
-		binding{ _other.binding },
-		type{ _other.type }
+	const std::vector<IBuffer*>& MaterialBindingInfos::GetUniformBuffers() const
 	{
-		if (type == ShaderBindingType::UniformBuffer)
-		{
-			bufferDataSize = _other.bufferDataSize;
-			buffers = Move(_other.buffers);
-		}
-		else if (type == ShaderBindingType::ImageSampler2D || type == ShaderBindingType::ImageSamplerCube)
-			textures = Move(_other.textures);
-		else if (type == ShaderBindingType::StorageBuffer)
-			storageBuffer = _other.storageBuffer;
+		SA_ASSERT(mType == ShaderBindingType::UniformBuffer,
+			InvalidParam, Rendering, L"Binding is not uniform buffer!");
+
+		return reinterpret_cast<const std::vector<IBuffer*>&>(mBuffers);
 	}
 	
-	MaterialBindingInfos::MaterialBindingInfos(const MaterialBindingInfos& _other) noexcept :
-		binding{ _other.binding },
-		type{ _other.type }
+	const std::vector<ITexture*>& MaterialBindingInfos::GetImageSamplers() const
 	{
-		if (type == ShaderBindingType::UniformBuffer)
-		{
-			bufferDataSize = _other.bufferDataSize;
-			buffers = _other.buffers;
-		}
-		else if (type == ShaderBindingType::ImageSampler2D || type == ShaderBindingType::ImageSamplerCube)
-			textures = _other.textures;
-		else if (type == ShaderBindingType::StorageBuffer)
-			storageBuffer = _other.storageBuffer;
+		SA_ASSERT(mType == ShaderBindingType::ImageSampler2D || mType == ShaderBindingType::ImageSamplerCube,
+			InvalidParam, Rendering, L"Binding is not image sampler!");
+
+		return reinterpret_cast<const std::vector<ITexture*>&>(mBuffers);
+	}
+	
+	const IBuffer& MaterialBindingInfos::GetStorageBuffer() const
+	{
+		SA_ASSERT(mType == ShaderBindingType::StorageBuffer && !mBuffers.empty(),
+			InvalidParam, Rendering, L"Binding is not storage buffer!");
+
+		return reinterpret_cast<const IBuffer&>(mBuffers[0]);
+	}
+	
+	void MaterialBindingInfos::SetUniformBuffers(const std::vector<IBuffer*>& _uniformBuffers)
+	{
+		mType = ShaderBindingType::UniformBuffer;
+
+		mBuffers = reinterpret_cast<const std::vector<IInterface*>&>(_uniformBuffers);
+	}
+	
+	void MaterialBindingInfos::SetImageSamplers2D(const std::vector<ITexture*>& _imageSamplers)
+	{
+		mType = ShaderBindingType::ImageSampler2D;
+
+		mBuffers = reinterpret_cast<const std::vector<IInterface*>&>(_imageSamplers);
 	}
 
-	MaterialBindingInfos::~MaterialBindingInfos()
+	void MaterialBindingInfos::SetImageSamplerCubes(const std::vector<ITexture*>& _imageSamplers)
 	{
-		if (type == ShaderBindingType::UniformBuffer)
-			buffers.clear();
-		else if (type == ShaderBindingType::ImageSampler2D || type == ShaderBindingType::ImageSamplerCube)
-			textures.clear();
+		mType = ShaderBindingType::ImageSamplerCube;
+
+		mBuffers = reinterpret_cast<const std::vector<IInterface*>&>(_imageSamplers);
 	}
-
-	MaterialBindingInfos& MaterialBindingInfos::operator=(MaterialBindingInfos&& _rhs) noexcept
+	
+	void MaterialBindingInfos::SetStorageBuffer(IBuffer& _storageBuffer)
 	{
-		binding = _rhs.binding;
-		type = _rhs.type;
+		mType = ShaderBindingType::StorageBuffer;
+		mBuffers.clear();
 
-		if (type == ShaderBindingType::UniformBuffer)
-		{
-			bufferDataSize = _rhs.bufferDataSize;
-			buffers = Move(_rhs.buffers);
-		}
-		else if (type == ShaderBindingType::ImageSampler2D || type == ShaderBindingType::ImageSamplerCube)
-			textures = Move(_rhs.textures);
-		else if (type == ShaderBindingType::StorageBuffer)
-			storageBuffer = _rhs.storageBuffer;
-
-		return *this;
-	}
-
-	MaterialBindingInfos& MaterialBindingInfos::operator=(const MaterialBindingInfos& _rhs) noexcept
-	{
-		binding = _rhs.binding;
-		type = _rhs.type;
-
-		if (type == ShaderBindingType::UniformBuffer)
-		{
-			bufferDataSize = _rhs.bufferDataSize;
-			buffers = _rhs.buffers;
-		}
-		else if (type == ShaderBindingType::ImageSampler2D || type == ShaderBindingType::ImageSamplerCube)
-			textures = _rhs.textures;
-		else if (type == ShaderBindingType::StorageBuffer)
-			storageBuffer = _rhs.storageBuffer;
-
-		return *this;
+		mBuffers.push_back(&_storageBuffer);
 	}
 
 

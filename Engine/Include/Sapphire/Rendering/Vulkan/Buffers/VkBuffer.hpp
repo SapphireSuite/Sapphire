@@ -22,6 +22,8 @@ namespace Sa::Vk
 		VkBuffer mHandle = VK_NULL_HANDLE;
 		VkDeviceMemory mDeviceMemory = VK_NULL_HANDLE;
 
+		uint64 mDeviceSize = 0u;
+
 		void Create_Internal(const Device& _device,
 			uint64 _size, VkBufferUsageFlags _usage,
 			VkMemoryPropertyFlags _properties,
@@ -29,6 +31,8 @@ namespace Sa::Vk
 
 	public:
 		bool IsValid() const noexcept;
+		uint64 GetSize() const noexcept;
+		
 		const VkBuffer& Get() const noexcept;
 
 		void Create(const Device& _device,
@@ -40,7 +44,7 @@ namespace Sa::Vk
 
 		void UpdateData(const Device& _device, const void* _data, uint32 _size, uint32 _offset = 0);
 
-		VkDescriptorBufferInfo CreateDescriptorBufferInfo(uint32 _size) const noexcept;
+		VkDescriptorBufferInfo CreateDescriptorBufferInfo() const noexcept;
 
 		static void Copy(const Device& _device, const Buffer& _src, const Buffer& _dst, uint64 _size);
 		static uint32 FindMemoryType(const Device& _device, uint32 _typeFilter, VkMemoryPropertyFlags _properties);

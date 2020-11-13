@@ -12,6 +12,11 @@ namespace Sa::Vk
 		return mHandle != VK_NULL_HANDLE && mDeviceMemory != VK_NULL_HANDLE;
 	}
 
+	uint64 Buffer::GetSize() const noexcept
+	{
+		return mDeviceSize;
+	}
+
 	const VkBuffer& Buffer::Get() const noexcept
 	{
 		return mHandle;
@@ -23,6 +28,8 @@ namespace Sa::Vk
 		VkMemoryPropertyFlags _properties,
 		const void* _data)
 	{
+		mDeviceSize = _size;
+
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.pNext = nullptr;
@@ -105,6 +112,7 @@ namespace Sa::Vk
 
 		mHandle = VK_NULL_HANDLE;
 		mDeviceMemory = VK_NULL_HANDLE;
+		mDeviceSize = 0u;
 	}
 
 
@@ -121,12 +129,12 @@ namespace Sa::Vk
 		vkUnmapMemory(_device, mDeviceMemory);
 	}
 
-	VkDescriptorBufferInfo Buffer::CreateDescriptorBufferInfo(uint32 _size) const noexcept
+	VkDescriptorBufferInfo Buffer::CreateDescriptorBufferInfo() const noexcept
 	{
 		VkDescriptorBufferInfo descInfos{};
 		descInfos.buffer = mHandle;
 		descInfos.offset = 0u;
-		descInfos.range = _size;
+		descInfos.range = mDeviceSize;
 
 		return descInfos;
 	}
