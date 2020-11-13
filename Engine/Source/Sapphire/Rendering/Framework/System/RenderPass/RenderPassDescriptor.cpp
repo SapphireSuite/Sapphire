@@ -33,8 +33,6 @@ namespace Sa
 	{
 		RenderPassDescriptor result{};
 
-		result.sampling = SampleBits::Sample1Bit;
-
 		result.subPassDescs.resize(2u);
 
 		// === PBR Subpass ===
