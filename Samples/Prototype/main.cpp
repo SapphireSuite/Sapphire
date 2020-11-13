@@ -43,15 +43,15 @@ RenderInfos UIRender;
 void CreateMainRender(IRenderInstance& _instance, IRenderSurface& _surface)
 {
 	// RenderPass.
-	const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultForward(&_surface);
+	const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultPBRDeferred(&_surface);
 	mainRender.renderPass.Create(_instance, renderPassDesc);
 	mainRender.renderPassID = _surface.AddRenderPass(_instance, mainRender.renderPass, renderPassDesc);
 
 
 	// Vertex Shader.
 	{
-		const char* assetPath = "Bin/Engine/Shaders/unlit_VS.spha";
-		const char* resourcePath = "../../Engine/Resources/Shaders/unlit.vert";
+		const char* assetPath = "Bin/Engine/Shaders/lit_VS.spha";
+		const char* resourcePath = "../../Engine/Resources/Shaders/lit.vert";
 
 		ShaderAsset asset;
 		uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
@@ -66,8 +66,8 @@ void CreateMainRender(IRenderInstance& _instance, IRenderSurface& _surface)
 
 	// Fragment Shader.
 	{
-		const char* assetPath = "Bin/Engine/Shaders/unlit_FS.spha";
-		const char* resourcePath = "../../Engine/Resources/Shaders/unlit.frag";
+		const char* assetPath = "Bin/Engine/Shaders/lit_FS.spha";
+		const char* resourcePath = "../../Engine/Resources/Shaders/lit.frag";
 
 		ShaderAsset asset;
 		uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
@@ -107,7 +107,7 @@ void CreateMainRender(IRenderInstance& _instance, IRenderSurface& _surface)
 	mainPipelineInfos.shaders.push_back(PipelineShaderInfos{ &mainRender.frag, ShaderStage::Fragment });
 
 	mainPipelineInfos.vertexBindingLayout.meshLayout = VertexLayout::Make<VertexComp::Default>();
-	mainPipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Position | VertexComp::Texture>();
+	mainPipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Default>();
 
 	mainRender.pipeline.Create(_instance, mainPipelineInfos);
 }
