@@ -18,12 +18,23 @@ namespace Sa
 	protected:
 		RawTexture mRawData;
 
+		bool Load_Internal(const std::string& _filePath, std::fstream& _fStream) override final;
+		void UnLoad_Internal() override final;
+
+		void Save_Internal(std::fstream& _fStream) const override final;
+
 	public:
+		using ImportT = TextureImportInfos;
+
+		TextureAsset() noexcept;
+
 		const RawTexture& GetRawData() const noexcept;
 
 		void FlipVertically();
 		
-		bool Import(const std::string& _resourcePath, const TextureImportInfos& _importInfos = TextureImportInfos());
+		bool IsValid() const noexcept override final;
+
+		bool Import(const std::string& _resourcePath, const IAssetImportInfos& _importInfos = ImportT()) override final;
 	};
 }
 

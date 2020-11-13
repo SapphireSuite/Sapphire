@@ -12,6 +12,11 @@ namespace Sa
 	constexpr const char tempDirectory[] = "Temp/Shaders/";
 
 
+	ShaderAsset::ShaderAsset() noexcept : IAsset(AssetType::Shader)
+	{
+	}
+
+
 	const RawShader& ShaderAsset::GetRawData() const noexcept
 	{
 		return mRawData;
@@ -61,12 +66,75 @@ namespace Sa
 		SA_LOG("Compilation Success", Infos, SDK_Asset);
 	}
 
-	bool ShaderAsset::Import(const std::string& _resourcePath, const ShaderImportInfos& _importInfos)
+
+	bool ShaderAsset::IsValid() const noexcept
 	{
+		return !mRawData.data.empty() && !mResourcePath.empty();
+	}
+
+	bool ShaderAsset::Load_Internal(const std::string& _filePath, std::fstream& _fStream)
+	{
+		// Resource path.
+		uint32 resourcePathSize = 0u;
+		_fStream.read(reinterpret_cast<char*>(&resourcePathSize), sizeof(uint32));
+
+		SA_ASSERT(resourcePathSize != 0u, InvalidParam, SDK_Asset, L"Asset load failure!");
+
+		mResourcePath.resize(resourcePathSize);
+		_fStream.read(mResourcePath.data(), resourcePathSize);
+
+
+		if (!ShouldCompileShader(mResourcePath, _filePath)) // Read saved shader.
+		{
+			// Data.
+			uint32 dataSize = 0u;
+			_fStream.read(reinterpret_cast<char*>(&dataSize), sizeof(uint32));
+
+			SA_ASSERT(dataSize != 0u, InvalidParam, SDK_Asset, L"Asset load failure!");
+
+			mRawData.data.resize(dataSize);
+			_fStream.read(mRawData.data.data(), dataSize);
+		}
+		else if (!Import(mResourcePath, ShaderImportInfos())) // Reimport shader.
+		{
+			// TODO: default import infos?
+			SA_LOG("Re-Import compilation failed!", Error, SDK_Asset);
+			return false;
+		}
+
+		return true;
+	}
+
+	void ShaderAsset::UnLoad_Internal()
+	{
+		mResourcePath.clear();
+		mRawData.data.clear();
+	}
+
+	void ShaderAsset::Save_Internal(std::fstream& _fStream) const
+	{
+		// Resource path.
+		const uint32 resourcePathSize = SizeOf(mResourcePath);
+		_fStream.write(reinterpret_cast<const char*>(&resourcePathSize), sizeof(uint32));
+
+		_fStream.write(mResourcePath.data(), resourcePathSize);
+
+
+		// Data.
+		const uint32 dataSize = SizeOf(mRawData.data);
+		_fStream.write(reinterpret_cast<const char*>(&dataSize), sizeof(uint32));
+		
+		_fStream.write(mRawData.data.data(), dataSize);
+	}
+
+	bool ShaderAsset::Import(const std::string& _resourcePath, const IAssetImportInfos& _importInfos)
+	{
+		(void)_importInfos;
+
 		std::string tempPath = GenerateTempPath(_resourcePath);
 		CompileShader(_resourcePath, tempPath);
 
-		//mResourcePath = _resourcePath;
+		mResourcePath = _resourcePath;
 
 		std::ifstream file(tempPath, std::ios::binary | std::ios::ate);
 		SA_ASSERT(file.is_open(), InvalidParam, Rendering, L"failed to open shader file!");
@@ -80,8 +148,7 @@ namespace Sa
 		file.close();
 
 		// Delete temp file.
-		std::filesystem::path systemTempPath(tempPath);
-		systemTempPath.remove_filename();
+		std::filesystem::remove(tempPath);
 
 		return true;
 	}

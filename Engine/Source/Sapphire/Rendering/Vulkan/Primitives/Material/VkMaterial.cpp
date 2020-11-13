@@ -248,6 +248,8 @@ namespace Sa::Vk
 
 	void Material::DestroyDescriptorSets(const Device& _device)
 	{
+		(void)_device;
+
 		// Not needed when vkDestroyDescriptorPool() is called. Otherwise, requiere VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT flag.
 		//vkFreeDescriptorSets(_device, mDescriptorPool, static_cast<uint32>(mDescriptorSets.size()), mDescriptorSets.data());
 		mDescriptorSets.clear();

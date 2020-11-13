@@ -48,14 +48,37 @@ void CreateMainRender(IRenderInstance& _instance, IRenderSurface& _surface)
 	mainRender.renderPassID = _surface.AddRenderPass(_instance, mainRender.renderPass, renderPassDesc);
 
 
-	// Create Shaders.
-	ShaderAsset mainVertAsset;
-	SA_ASSERT(mainVertAsset.Import("../../Engine/Resources/Shaders/unlit.vert"), InvalidParam, SDK, L"Import failed");
-	mainRender.vert.Create(_instance, mainVertAsset.GetRawData());
+	// Vertex Shader.
+	{
+		const char* assetPath = "Bin/Engine/Shaders/unlit_VS.spha";
+		const char* resourcePath = "../../Engine/Resources/Shaders/unlit.vert";
 
-	ShaderAsset mainFragAsset;
-	SA_ASSERT(mainFragAsset.Import("../../Engine/Resources/Shaders/unlit.frag"), InvalidParam, SDK, L"Import failed");
-	mainRender.frag.Create(_instance, mainFragAsset.GetRawData());
+		ShaderAsset asset;
+		uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
+
+		if (res == 0)
+			asset.Save(assetPath);
+		else if(res == -1)
+			SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
+
+		mainRender.vert.Create(_instance, asset.GetRawData());
+	}
+
+	// Fragment Shader.
+	{
+		const char* assetPath = "Bin/Engine/Shaders/unlit_FS.spha";
+		const char* resourcePath = "../../Engine/Resources/Shaders/unlit.frag";
+
+		ShaderAsset asset;
+		uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
+
+		if (res == 0)
+			asset.Save(assetPath);
+		else if (res == -1)
+			SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
+
+		mainRender.frag.Create(_instance, asset.GetRawData());
+	}
 
 
 	// Pipeline.
@@ -144,10 +167,23 @@ struct CubeMatInfos
 
 	void Create(Vk::RenderInstance& _instance)
 	{
-		TextureImportInfos importInfos; importInfos.format = RenderFormat::sRGBA_32;
-		TextureAsset textureAsset;
-		SA_ASSERT(textureAsset.Import("../../Engine/Resources/Textures/missing_texture.png", importInfos), InvalidParam, SDK, L"Import failed");
-		texture.Create(_instance, textureAsset.GetRawData());
+		// Texture Asset.
+		{
+			const char* assetPath = "Bin/Engine/Textures/missText.spha";
+			const char* resourcePath = "../../Engine/Resources/Textures/missing_texture.png";
+
+			TextureAsset asset;
+			TextureImportInfos importInfos; importInfos.format = RenderFormat::sRGBA_32;
+			uint32 res = asset.TryLoadImport(assetPath, resourcePath, importInfos);
+
+			if (res == 0)
+				asset.Save(assetPath);
+			else if (res == -1)
+				SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
+
+			texture.Create(_instance, asset.GetRawData());
+		}
+
 
 		camTr.position = Vec3f(0.0f, 0.0f, 10.0f);
 		camUBOd.proj = Mat4f::MakePerspective(90.0f, 1200.0f / 800.0f);
