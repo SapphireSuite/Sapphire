@@ -10,7 +10,7 @@
 
 namespace Sa::Vk
 {
-	RenderFormat SwapChain::GetRenderFormat() const noexcept
+	Format SwapChain::GetFormat() const noexcept
 	{
 		return mFormat;
 	}
@@ -23,7 +23,7 @@ namespace Sa::Vk
 		VkPresentModeKHR presentMode = RenderSurface::ChooseSwapPresentMode(details);
 		mExtent = RenderSurface::ChooseSwapExtent(details);
 
-		mFormat = API_FromRenderFormat(surfaceFormat.format);
+		mFormat = API_FromFormat(surfaceFormat.format);
 
 		// Min image count to avoid driver blocking.
 		mImageNum = details.capabilities.minImageCount + 1;

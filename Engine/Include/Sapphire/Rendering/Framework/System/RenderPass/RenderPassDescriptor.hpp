@@ -9,7 +9,7 @@
 
 #include <Maths/Space/Vector2.hpp>
 
-#include <Rendering/Framework/Misc/RenderFormat.hpp>
+#include <Rendering/Framework/Misc/Format.hpp>
 #include <Rendering/Framework/Misc/Color.hpp>
 #include <Rendering/Framework/System/RenderPass/SampleBits.hpp>
 
@@ -19,7 +19,7 @@ namespace Sa
 
 	struct SubPassAttachmentDescriptor
 	{
-		RenderFormat format;
+		Format format;
 	};
 
 	struct SubPassDescriptor
@@ -35,10 +35,10 @@ namespace Sa
 		bool bPresent = true;
 
 		bool bDepthBuffer = true;
-		RenderFormat depthFormat = RenderFormat::Depth_16;
+		Format depthFormat = Format::Depth_16;
 
 		bool bClear = true;
-		Color clearColor = Color{ 0.0f, 0.0f, 0.05f, 1.0f };
+		Color clearColor = Color{ 0.0f, 0.0f, 0.05f, 0.0f };
 
 		std::vector<SubPassDescriptor> subPassDescriptors;
 

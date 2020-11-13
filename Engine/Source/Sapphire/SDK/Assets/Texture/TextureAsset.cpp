@@ -38,7 +38,7 @@ namespace Sa
 
 		_fStream.read(reinterpret_cast<char*>(&mRawData.extent), sizeof(Vec2ui));
 		_fStream.read(reinterpret_cast<char*>(&mRawData.mipLevels), sizeof(uint32));
-		_fStream.read(reinterpret_cast<char*>(&mRawData.format), sizeof(RenderFormat));
+		_fStream.read(reinterpret_cast<char*>(&mRawData.format), sizeof(Format));
 
 		// Data.
 		uint32 dataSize = 0u;
@@ -56,7 +56,7 @@ namespace Sa
 	{
 		mRawData.extent = Vec2ui::Zero;
 		mRawData.mipLevels = 1u;
-		mRawData.format = RenderFormat::RGBA_32;
+		mRawData.format = Format::RGBA_32;
 
 		mRawData.data.clear();
 	}
@@ -65,7 +65,7 @@ namespace Sa
 	{
 		_fStream.write(reinterpret_cast<const char*>(&mRawData.extent), sizeof(Vec2ui));
 		_fStream.write(reinterpret_cast<const char*>(&mRawData.mipLevels), sizeof(uint32));
-		_fStream.write(reinterpret_cast<const char*>(&mRawData.format), sizeof(RenderFormat));
+		_fStream.write(reinterpret_cast<const char*>(&mRawData.format), sizeof(Format));
 
 		// Data.
 		const uint32 dataSize = SizeOf(mRawData.data);

@@ -21,7 +21,7 @@ namespace Sa::Vk
 		VkSwapchainKHR mHandle = VK_NULL_HANDLE;
 
 		Vec2ui mExtent;
-		RenderFormat mFormat = RenderFormat::sRGBA_32;
+		Format mFormat = Format::sRGBA_32;
 
 		uint32 mImageNum = 1u;
 		uint32 mFrameIndex = 0u;
@@ -49,7 +49,7 @@ namespace Sa::Vk
 		void DestroyFrameBuffers(const Device& _device);
 
 	public:
-		RenderFormat GetRenderFormat() const noexcept;
+		Format GetFormat() const noexcept;
 
 		void Create(const Device& _device, const RenderSurface& _surface);
 		void Destroy(const Device& _device);

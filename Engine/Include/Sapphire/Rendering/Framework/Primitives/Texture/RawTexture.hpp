@@ -7,7 +7,7 @@
 
 #include <Maths/Space/Vector2.hpp>
 
-#include <Rendering/Framework/Misc/RenderFormat.hpp>
+#include <Rendering/Framework/Misc/Format.hpp>
 
 namespace Sa
 {
@@ -19,7 +19,7 @@ namespace Sa
 
 		uint32 mipLevels = 1u;
 
-		RenderFormat format = RenderFormat::RGBA_32;
+		Format format = Format::RGBA_32;
 
 		// Compute original image size in format unit.
 		uint64 GetMainSize() const noexcept;

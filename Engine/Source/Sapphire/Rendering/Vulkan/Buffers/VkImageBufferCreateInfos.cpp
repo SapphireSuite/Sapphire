@@ -16,7 +16,7 @@ namespace Sa::Vk
 		if (imageType == ImageType::Cube)
 			vkInfos.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 		
-		vkInfos.format = API_GetRenderFormat(format);
+		vkInfos.format = API_GetFormat(format);
 		vkInfos.extent = VkExtent3D{ extent.x, extent.y, 1 };
 		vkInfos.mipLevels = mipLevels;
 
@@ -50,7 +50,7 @@ namespace Sa::Vk
 		vkInfos.flags = 0;
 		vkInfos.image = _image;
 		vkInfos.viewType = API_GetImageViewType(imageType);
-		vkInfos.format = API_GetRenderFormat(format);
+		vkInfos.format = API_GetFormat(format);
 		
 		vkInfos.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 		vkInfos.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;

@@ -173,7 +173,7 @@ struct CubeMatInfos
 			const char* resourcePath = "../../Engine/Resources/Textures/missing_texture.png";
 
 			TextureAsset asset;
-			TextureImportInfos importInfos; importInfos.format = RenderFormat::sRGBA_32;
+			TextureImportInfos importInfos; importInfos.format = Format::sRGBA_32;
 			uint32 res = asset.TryLoadImport(assetPath, resourcePath, importInfos);
 
 			if (res == 0)

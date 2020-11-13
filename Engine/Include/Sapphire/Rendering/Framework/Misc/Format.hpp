@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef SAPPHIRE_RENDERING_RENDER_FORMAT_GUARD
-#define SAPPHIRE_RENDERING_RENDER_FORMAT_GUARD
+#ifndef SAPPHIRE_RENDERING_FORMAT_GUARD
+#define SAPPHIRE_RENDERING_FORMAT_GUARD
 
 #include <Core/Types/Int.hpp>
 
@@ -11,7 +11,7 @@
 
 namespace Sa
 {
-	enum class RenderFormat : uint8
+	enum class Format : uint8
 	{
 		// RGB formats.
 		R_8,
@@ -22,6 +22,8 @@ namespace Sa
 		
 		RGBA_32,
 		BGRA_32,
+
+		RGBA_64,
 
 
 		// sRGB formats.
@@ -39,15 +41,15 @@ namespace Sa
 		DepthStencil_32,
 	};
 
-	bool IsColorFormat(RenderFormat _format) noexcept;
-	bool IsDepthFormat(RenderFormat _format) noexcept;
+	bool IsColorFormat(Format _format) noexcept;
+	bool IsDepthFormat(Format _format) noexcept;
 
 #if SA_RENDERING_API == SA_VULKAN
 
-	VkFormat API_GetRenderFormat(RenderFormat _format);
-	RenderFormat API_FromRenderFormat(VkFormat _format);
+	VkFormat API_GetFormat(Format _format);
+	Format API_FromFormat(VkFormat _format);
 
-	uint32 API_GetChannelNum(RenderFormat _format);
+	uint32 API_GetChannelNum(Format _format);
 
 #endif
 }

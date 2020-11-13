@@ -31,7 +31,7 @@ namespace Sa::Vk
 
 		RenderSurface(VkSurfaceKHR _handle) noexcept;
 
-		RenderFormat GetRenderFormat() const noexcept override final;
+		Format GetFormat() const noexcept override final;
 
 		void Create(const IRenderInstance& _instance) override final;
 		void Destroy(const IRenderInstance& _instance) override final;

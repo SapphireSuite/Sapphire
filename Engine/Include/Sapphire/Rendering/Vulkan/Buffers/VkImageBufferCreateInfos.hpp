@@ -8,7 +8,7 @@
 #include <Maths/Space/Vector2.hpp>
 
 #include <Rendering/Framework/Misc/ImageType.hpp>
-#include <Rendering/Framework/Misc/RenderFormat.hpp>
+#include <Rendering/Framework/Misc/Format.hpp>
 #include <Rendering/Framework/System/RenderPass/SampleBits.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -20,7 +20,7 @@ namespace Sa::Vk
 		uint32 imageFlags = 0u;
 		ImageType imageType = ImageType::Image2D;
 
-		RenderFormat format;
+		Format format;
 		Vec2ui extent;
 
 		uint32 mipLevels = 1u;

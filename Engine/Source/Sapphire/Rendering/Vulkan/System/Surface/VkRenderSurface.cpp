@@ -12,9 +12,9 @@ namespace Sa::Vk
 	}
 
 
-	RenderFormat RenderSurface::GetRenderFormat() const noexcept
+	Format RenderSurface::GetFormat() const noexcept
 	{
-		return mSwapChain.GetRenderFormat();
+		return mSwapChain.GetFormat();
 	}
 
 

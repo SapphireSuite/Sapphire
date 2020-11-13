@@ -114,7 +114,7 @@ namespace Sa::Vk
 
 			for (auto attIt = subpassDesc.attachmentDescriptors.begin(); attIt != subpassDesc.attachmentDescriptors.end(); ++attIt)
 			{
-				attachments.push_back(CreateAttachement(API_GetRenderFormat(attIt->format), sampling, loadOp));
+				attachments.push_back(CreateAttachement(API_GetFormat(attIt->format), sampling, loadOp));
 				attachmentRefs.push_back({ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
 				inputAttachmentRefs.push_back({ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 			}
@@ -129,7 +129,7 @@ namespace Sa::Vk
 			if (sampling != VK_SAMPLE_COUNT_1_BIT)
 			{
 				// Color attachment multisampling resolution.
-				VkFormat presentFormat = API_GetRenderFormat(_descriptor.subPassDescriptors[SizeOf(_descriptor.subPassDescriptors) - 1].attachmentDescriptors[0].format);
+				VkFormat presentFormat = API_GetFormat(_descriptor.subPassDescriptors[SizeOf(_descriptor.subPassDescriptors) - 1].attachmentDescriptors[0].format);
 
 				VkAttachmentDescription presentAttachmentResolve = CreateAttachement(presentFormat, VK_SAMPLE_COUNT_1_BIT, loadOp);
 				presentAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -144,7 +144,7 @@ namespace Sa::Vk
 		// Add Depth attachement.
 		if (_descriptor.bDepthBuffer)
 		{
-			VkAttachmentDescription depthAttachment = CreateAttachement(API_GetRenderFormat(_descriptor.depthFormat), sampling, loadOp);
+			VkAttachmentDescription depthAttachment = CreateAttachement(API_GetFormat(_descriptor.depthFormat), sampling, loadOp);
 			depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			
 			attachments.push_back(depthAttachment);

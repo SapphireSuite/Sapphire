@@ -7,7 +7,7 @@
 
 #include <Core/Types/IInterface.hpp>
 
-#include <Rendering/Framework/Misc/RenderFormat.hpp>
+#include <Rendering/Framework/Misc/Format.hpp>
 
 namespace Sa
 {
@@ -21,7 +21,7 @@ namespace Sa
 	class IRenderSurface : public IInterface
 	{
 	public:
-		virtual RenderFormat GetRenderFormat() const noexcept = 0;
+		virtual Format GetFormat() const noexcept = 0;
 
 		virtual void Create(const IRenderInstance& _instance) = 0;
 		virtual void Destroy(const IRenderInstance& _instance) = 0;

@@ -18,12 +18,12 @@ namespace Sa
 		if (_surface)
 		{
 			result.bPresent = true;
-			result.subPassDescriptors[0].attachmentDescriptors[0].format = _surface->GetRenderFormat();
+			result.subPassDescriptors[0].attachmentDescriptors[0].format = _surface->GetFormat();
 		}
 		else
 		{
 			result.bPresent = false;
-			result.subPassDescriptors[0].attachmentDescriptors[0].format = RenderFormat::sRGBA_32;
+			result.subPassDescriptors[0].attachmentDescriptors[0].format = Format::sRGBA_32;
 		}
 
 		return result;
@@ -39,16 +39,16 @@ namespace Sa
 		result.subPassDescriptors[0].attachmentDescriptors.resize(4u);
 
 		// Position.
-		result.subPassDescriptors[0].attachmentDescriptors[0].format = RenderFormat::RGBA_32;
+		result.subPassDescriptors[0].attachmentDescriptors[0].format = Format::RGBA_32;
 		
 		// Normal
-		result.subPassDescriptors[0].attachmentDescriptors[1].format = RenderFormat::RGBA_32;
+		result.subPassDescriptors[0].attachmentDescriptors[1].format = Format::RGBA_32;
 
 		// Albedo
-		result.subPassDescriptors[0].attachmentDescriptors[2].format = RenderFormat::RGBA_32;
+		result.subPassDescriptors[0].attachmentDescriptors[2].format = Format::RGBA_32;
 
 		// PBR: Metallic, Roughness, Ambiant occlusion.
-		result.subPassDescriptors[0].attachmentDescriptors[3].format = RenderFormat::RGBA_32;
+		result.subPassDescriptors[0].attachmentDescriptors[3].format = Format::RGBA_32;
 
 
 		// === Present Subpass ===
@@ -57,12 +57,12 @@ namespace Sa
 		if (_surface)
 		{
 			result.bPresent = true;
-			result.subPassDescriptors[1].attachmentDescriptors[0].format = _surface->GetRenderFormat();
+			result.subPassDescriptors[1].attachmentDescriptors[0].format = _surface->GetFormat();
 		}
 		else
 		{
 			result.bPresent = false;
-			result.subPassDescriptors[1].attachmentDescriptors[0].format = RenderFormat::sRGBA_32;
+			result.subPassDescriptors[1].attachmentDescriptors[0].format = Format::sRGBA_32;
 		}
 
 

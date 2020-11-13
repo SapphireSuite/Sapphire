@@ -36,7 +36,7 @@ namespace Sa::Vk
 			VkBuffer buffer = VK_NULL_HANDLE;
 			
 			Vec2ui extent;
-			RenderFormat format = RenderFormat::RGBA_32;
+			Format format = Format::RGBA_32;
 
 			uint32 mipLevels = 1u;
 			ImageType imageType = ImageType::Image2D;
