@@ -19,10 +19,6 @@ namespace Sa
 		Pair() = default;
 		Pair(Pair&&) = default;
 		Pair(const Pair&) = default;
-		Pair(T1&& _first) noexcept;
-		Pair(const T1& _first) noexcept;
-		Pair(T2&& _second) noexcept;
-		Pair(const T2& _second) noexcept;
 		Pair(T1&& _first, T2&& _second) noexcept;
 		Pair(const T1& _first, const T2& _second) noexcept;
 		~Pair() = default;

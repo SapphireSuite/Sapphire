@@ -26,116 +26,210 @@ using namespace Sa;
 #define LOG(_str) std::cout << _str << std::endl;
 
 
-struct RenderInfos
+struct MainRenderInfos
 {
 	Vk::RenderPass renderPass;
 	uint32 renderPassID = uint32(-1);
 
-	Vk::Shader vert;
-	Vk::Shader frag;
-	
-	Vk::Pipeline pipeline;
+	// Subpass 0: G-Buffer composition.
+	Vk::Shader litCompVert;
+	Vk::Shader litCompFrag;
+	Vk::Pipeline litCompPipeline;
+
+	// Subpass 1: Illumination.
+	Vk::Shader litVert;
+	Vk::Shader litFrag;
+	Vk::Pipeline litPipeline;
+	Vk::Material litmaterial;
+
+
+	void Create(IRenderInstance& _instance, IRenderSurface& _surface)
+	{
+		// RenderPass.
+		const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultPBRDeferred(&_surface);
+		renderPass.Create(_instance, renderPassDesc);
+		renderPassID = _surface.AddRenderPass(_instance, renderPass, renderPassDesc);
+
+		// Subpass 0: G-Buffer composition.
+		{
+			// Vertex Shader.
+			{
+				const char* assetPath = "Bin/Engine/Shaders/Deferred/lit_composition_VS.spha";
+				const char* resourcePath = "../../Engine/Resources/Shaders/Deferred/lit_composition.vert";
+
+				ShaderAsset asset;
+				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
+
+				if (res == 0)
+					asset.Save(assetPath);
+				else if (res == -1)
+					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
+
+				litCompVert.Create(_instance, asset.GetRawData());
+			}
+
+			// Fragment Shader.
+			{
+				const char* assetPath = "Bin/Engine/Shaders/Deferred/lit_composition_FS.spha";
+				const char* resourcePath = "../../Engine/Resources/Shaders/Deferred/lit_composition.frag";
+
+				ShaderAsset asset;
+				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
+
+				if (res == 0)
+					asset.Save(assetPath);
+				else if (res == -1)
+					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
+
+				litCompFrag.Create(_instance, asset.GetRawData());
+			}
+
+
+			// Pipeline.
+			PipelineCreateInfos pipelineInfos(renderPass, renderPassDesc);
+
+			{
+				PipelineBindingInfos& camUBOBinding = pipelineInfos.bindings.emplace_back();
+				camUBOBinding.binding = 0u;
+				camUBOBinding.stages = ShaderStage::Vertex;
+				camUBOBinding.type = ShaderBindingType::UniformBuffer;
+
+
+				PipelineBindingInfos& modelUBOBinding = pipelineInfos.bindings.emplace_back();
+				modelUBOBinding.binding = 1u;
+				modelUBOBinding.stages = ShaderStage::Vertex;
+				modelUBOBinding.type = ShaderBindingType::UniformBuffer;
+
+
+				PipelineBindingInfos& textureBinding = pipelineInfos.bindings.emplace_back();
+				textureBinding.binding = 2u;
+				textureBinding.stages = ShaderStage::Fragment;
+				textureBinding.type = ShaderBindingType::ImageSampler2D;
+			}
+
+			pipelineInfos.subPassIndex = 0u;
+			pipelineInfos.shaders.push_back(PipelineShaderInfos{ &litCompVert, ShaderStage::Vertex });
+			pipelineInfos.shaders.push_back(PipelineShaderInfos{ &litCompFrag, ShaderStage::Fragment });
+
+			pipelineInfos.vertexBindingLayout.meshLayout = VertexLayout::Make<VertexComp::Default>();
+			pipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Default>();
+
+			litCompPipeline.Create(_instance, pipelineInfos);
+		}
+
+		// Subpass 1: Illumination.
+		{
+			// Vertex Shader.
+			{
+				const char* assetPath = "Bin/Engine/Shaders/Deferred/lit_VS.spha";
+				const char* resourcePath = "../../Engine/Resources/Shaders/Deferred/lit.vert";
+
+				ShaderAsset asset;
+				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
+
+				if (res == 0)
+					asset.Save(assetPath);
+				else if (res == -1)
+					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
+
+				litVert.Create(_instance, asset.GetRawData());
+			}
+
+			// Fragment Shader.
+			{
+				const char* assetPath = "Bin/Engine/Shaders/Deferred/lit_FS.spha";
+				const char* resourcePath = "../../Engine/Resources/Shaders/Deferred/lit.frag";
+
+				ShaderAsset asset;
+				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
+
+				if (res == 0)
+					asset.Save(assetPath);
+				else if (res == -1)
+					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
+
+				litFrag.Create(_instance, asset.GetRawData());
+			}
+
+
+			// Pipeline.
+			PipelineCreateInfos pipelineInfos(renderPass, renderPassDesc);
+
+			{
+				PipelineBindingInfos& inPositionBinding = pipelineInfos.bindings.emplace_back();
+				inPositionBinding.binding = 0u;
+				inPositionBinding.stages = ShaderStage::Fragment;
+				inPositionBinding.type = ShaderBindingType::InputAttachment;
+
+
+				PipelineBindingInfos& inNormalBinding = pipelineInfos.bindings.emplace_back();
+				inNormalBinding.binding = 1u;
+				inNormalBinding.stages = ShaderStage::Fragment;
+				inNormalBinding.type = ShaderBindingType::InputAttachment;
+
+
+				PipelineBindingInfos& inAlbedoBinding = pipelineInfos.bindings.emplace_back();
+				inAlbedoBinding.binding = 2u;
+				inAlbedoBinding.stages = ShaderStage::Fragment;
+				inAlbedoBinding.type = ShaderBindingType::InputAttachment;
+
+				PipelineBindingInfos& inPBRBinding = pipelineInfos.bindings.emplace_back();
+				inPBRBinding.binding = 3u;
+				inPBRBinding.stages = ShaderStage::Fragment;
+				inPBRBinding.type = ShaderBindingType::InputAttachment;
+			}
+
+			pipelineInfos.subPassIndex = 1u;
+			pipelineInfos.shaders.push_back(PipelineShaderInfos{ &litVert, ShaderStage::Vertex });
+			pipelineInfos.shaders.push_back(PipelineShaderInfos{ &litFrag, ShaderStage::Fragment });
+
+			pipelineInfos.vertexBindingLayout.meshLayout = VertexLayout::Make<VertexComp::Default>();
+			pipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Default>();
+
+			litPipeline.Create(_instance, pipelineInfos);
+
+
+			// Material.
+			MaterialCreateInfos matCreateInfos(litPipeline);
+
+			MaterialBindingInfos& inPositionBinding = matCreateInfos.bindings.emplace_back();
+			inPositionBinding.binding = 0u;
+			inPositionBinding.type = ShaderBindingType::InputAttachment;
+
+			MaterialBindingInfos& inNormalBinding = matCreateInfos.bindings.emplace_back();
+			inNormalBinding.binding = 1u;
+			inNormalBinding.type = ShaderBindingType::InputAttachment;
+
+			MaterialBindingInfos& inAlbedoBinding = matCreateInfos.bindings.emplace_back();
+			inAlbedoBinding.binding = 2u;
+			inAlbedoBinding.type = ShaderBindingType::InputAttachment;
+
+			MaterialBindingInfos& inPBRBinding = matCreateInfos.bindings.emplace_back();
+			inPBRBinding.binding = 3u;
+			inPBRBinding.type = ShaderBindingType::InputAttachment;
+
+			litmaterial.Create(_instance, matCreateInfos);
+		}
+	}
+	void Destroy(IRenderInstance& _instance, IRenderSurface& _surface)
+	{
+		litPipeline.Destroy(_instance);
+		litVert.Destroy(_instance);
+		litFrag.Destroy(_instance);
+
+		litCompPipeline.Destroy(_instance);
+		litCompVert.Destroy(_instance);
+		litCompFrag.Destroy(_instance);
+
+		_surface.RemoveRenderPass(_instance, renderPassID);
+		renderPass.Destroy(_instance);
+	}
 };
 
-RenderInfos mainRender;
-RenderInfos UIRender;
-
-void CreateMainRender(IRenderInstance& _instance, IRenderSurface& _surface)
-{
-	// RenderPass.
-	const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultPBRDeferred(&_surface);
-	mainRender.renderPass.Create(_instance, renderPassDesc);
-	mainRender.renderPassID = _surface.AddRenderPass(_instance, mainRender.renderPass, renderPassDesc);
+MainRenderInfos mainRender;
 
 
-	// Vertex Shader.
-	{
-		const char* assetPath = "Bin/Engine/Shaders/lit_VS.spha";
-		const char* resourcePath = "../../Engine/Resources/Shaders/lit.vert";
-
-		ShaderAsset asset;
-		uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
-
-		if (res == 0)
-			asset.Save(assetPath);
-		else if(res == -1)
-			SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
-
-		mainRender.vert.Create(_instance, asset.GetRawData());
-	}
-
-	// Fragment Shader.
-	{
-		const char* assetPath = "Bin/Engine/Shaders/lit_FS.spha";
-		const char* resourcePath = "../../Engine/Resources/Shaders/lit.frag";
-
-		ShaderAsset asset;
-		uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
-
-		if (res == 0)
-			asset.Save(assetPath);
-		else if (res == -1)
-			SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
-
-		mainRender.frag.Create(_instance, asset.GetRawData());
-	}
-
-
-	// Pipeline.
-	PipelineCreateInfos mainPipelineInfos(mainRender.renderPass, renderPassDesc);
-
-	{
-		PipelineBindingInfos& camUBOBinding = mainPipelineInfos.bindings.emplace_back();
-		camUBOBinding.binding = 0u;
-		camUBOBinding.stages = ShaderStage::Vertex;
-		camUBOBinding.type = ShaderBindingType::UniformBuffer;
-
-
-		PipelineBindingInfos& modelUBOBinding = mainPipelineInfos.bindings.emplace_back();
-		modelUBOBinding.binding = 1u;
-		modelUBOBinding.stages = ShaderStage::Vertex;
-		modelUBOBinding.type = ShaderBindingType::UniformBuffer;
-
-
-		PipelineBindingInfos& textureBinding = mainPipelineInfos.bindings.emplace_back();
-		textureBinding.binding = 2u;
-		textureBinding.stages = ShaderStage::Fragment;
-		textureBinding.type = ShaderBindingType::ImageSampler2D;
-	}
-
-	mainPipelineInfos.shaders.push_back(PipelineShaderInfos{ &mainRender.vert, ShaderStage::Vertex });
-	mainPipelineInfos.shaders.push_back(PipelineShaderInfos{ &mainRender.frag, ShaderStage::Fragment });
-
-	mainPipelineInfos.vertexBindingLayout.meshLayout = VertexLayout::Make<VertexComp::Default>();
-	mainPipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Default>();
-
-	mainRender.pipeline.Create(_instance, mainPipelineInfos);
-}
-void DestroyMainRender(IRenderInstance& _instance, IRenderSurface& _surface)
-{
-	mainRender.pipeline.Destroy(_instance);
-
-	mainRender.vert.Destroy(_instance);
-	mainRender.frag.Destroy(_instance);
-
-	_surface.RemoveRenderPass(_instance, mainRender.renderPassID);
-	mainRender.renderPass.Destroy(_instance);
-}
-
-void CreateUIRender(IRenderInstance& _instance, IRenderSurface& _surface)
-{
-	// RenderPass.
-	const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultForward(&_surface);
-	UIRender.renderPass.Create(_instance, renderPassDesc);
-	UIRender.renderPassID = _surface.AddRenderPass(_instance, UIRender.renderPass, renderPassDesc);
-}
-void DestroyUIRender(IRenderInstance& _instance, IRenderSurface& _surface)
-{
-	_surface.RemoveRenderPass(_instance, UIRender.renderPassID);
-	UIRender.renderPass.Destroy(_instance);
-}
-
-struct CubeMatInfos
+struct CubeRender
 {
 	Vk::Material material;
 
@@ -196,7 +290,7 @@ struct CubeMatInfos
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &modelUBOd);
 
 
-		MaterialCreateInfos matCreateInfos(mainRender.pipeline);
+		MaterialCreateInfos matCreateInfos(mainRender.litCompPipeline);
 
 		MaterialBindingInfos& camBinding = matCreateInfos.bindings.emplace_back();
 		camBinding.binding = 0u;
@@ -213,7 +307,7 @@ struct CubeMatInfos
 		MaterialBindingInfos& textureBinding = matCreateInfos.bindings.emplace_back();
 		textureBinding.binding = 2u;
 		textureBinding.type = ShaderBindingType::ImageSampler2D;
-		textureBinding.buffers.push_back(&texture);
+		textureBinding.textures.push_back(&texture);
 
 		material.Create(_instance, matCreateInfos);
 	}
@@ -236,7 +330,7 @@ struct CubeMatInfos
 	}
 };
 
-CubeMatInfos cubeMatInfos;
+CubeRender cubeRender;
 
 
 int main()
@@ -258,11 +352,10 @@ int main()
 
 	IRenderSurface& surface = instance.CreateRenderSurface(window);
 
-	CreateMainRender(instance, surface);
-	//CreateUIRender(instance, surface);
 
+	mainRender.Create(instance, surface);
 
-	cubeMatInfos.Create(instance);
+	cubeRender.Create(instance);
 
 
 	Vk::Mesh cubeMesh;
@@ -282,8 +375,8 @@ int main()
 
 		window.Update();
 
-		window.TEST(cubeMatInfos.camTr, lightPos, deltaTime * speed);
-		cubeMatInfos.Update(instance);
+		window.TEST(cubeRender.camTr, lightPos, deltaTime * speed);
+		cubeRender.Update(instance);
 
 
 		// Begin Surface.
@@ -298,26 +391,23 @@ int main()
 
 			mainFB.Begin();
 
-			mainRender.pipeline.Bind(mainFI);
+			// Subpass 0: G-Buffer composition.
+			mainRender.litCompPipeline.Bind(mainFI);
 
-			cubeMatInfos.material.Bind(mainFI, mainRender.pipeline);
+			cubeRender.material.Bind(mainFI, mainRender.litCompPipeline);
 			cubeMesh.Draw(mainFB);
+			//
 
 			mainFB.NextSubpass();
 
+			// Subpass 1: Illumination.
+			mainRender.litPipeline.Bind(mainFI);
+
+			mainRender.litmaterial.Bind(mainFI, mainRender.litPipeline);
+			cubeMesh.Draw(mainFB);
+
 			mainFB.End();
 		}
-
-
-		//// UI framebuffer.
-		//{
-		//	FrameInfos UIFI = surface.GetFrameInfos(UIRPID);
-		//	IFrameBuffer& UIFB = UIFI.frameBuffer;
-
-		//	UIFB.Begin();
-
-		//	UIFB.End();
-		//}
 
 
 		// End Surface.
@@ -329,12 +419,10 @@ int main()
 	vkDeviceWaitIdle(instance.device);
 
 
-	DestroyMainRender(instance, surface);
-	//DestroyUIRender(instance, surface);
-
-	cubeMatInfos.Destroy(instance);
-
+	cubeRender.Destroy(instance);
 	cubeMesh.Destroy(instance);
+
+	mainRender.Destroy(instance, surface);
 
 
 	instance.DestroyRenderSurface(surface);

@@ -3,6 +3,7 @@
 #include <Rendering/Vulkan/Primitives/Material/VkMaterial.hpp>
 
 #include <Core/Algorithms/SizeOf.hpp>
+#include <Core/Types/Variadics/Pair.hpp>
 
 #include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 
@@ -148,41 +149,64 @@ namespace Sa::Vk
 		descWrites.reserve(SizeOf(mDescriptorSets) * SizeOf(_binding.buffers));
 
 
+		VkWriteDescriptorSet mainWriteDesc{};
+		mainWriteDesc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		mainWriteDesc.pNext = nullptr;
+		mainWriteDesc.dstSet = VK_NULL_HANDLE;
+		mainWriteDesc.dstBinding = _binding.binding;
+		mainWriteDesc.dstArrayElement = 0u;
+		mainWriteDesc.descriptorCount = 1u;
+
 		for (uint32 i = 0; i < SizeOf(mDescriptorSets); ++i)
 		{
-			for (uint32 j = 0u; j < SizeOf(_binding.buffers); ++j)
+			mainWriteDesc.dstSet = mDescriptorSets[i];
+			
+			if (_binding.type == ShaderBindingType::UniformBuffer)
 			{
-				VkWriteDescriptorSet& writeDesc = descWrites.emplace_back();
-				writeDesc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-				writeDesc.pNext = nullptr;
-				writeDesc.dstSet = mDescriptorSets[i];
-				writeDesc.dstBinding = _binding.binding;
-				writeDesc.dstArrayElement = j;
-				writeDesc.descriptorCount = 1u;
+				mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-				if (_binding.type == ShaderBindingType::UniformBuffer)
+				for (uint32 j = 0u; j < SizeOf(_binding.buffers); ++j)
 				{
-					writeDesc.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					VkWriteDescriptorSet& writeDesc = descWrites.emplace_back(mainWriteDesc);
+					writeDesc.dstArrayElement = j;
 
-					VkDescriptorBufferInfo& desc = descBufferInfos.emplace_back(VkDescriptorBufferInfo{ _binding.buffers[j]->As<Buffer>().CreateDescriptorBufferInfo(_binding.bufferDataSize) });
+					VkDescriptorBufferInfo& desc = descBufferInfos.emplace_back(
+						VkDescriptorBufferInfo{ _binding.buffers[j]->As<Buffer>().CreateDescriptorBufferInfo(_binding.bufferDataSize) });
 					writeDesc.pBufferInfo = &desc;
 				}
-				else if (_binding.type == ShaderBindingType::StorageBuffer)
-				{
-					writeDesc.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			}
+			else if (_binding.type == ShaderBindingType::ImageSampler2D || _binding.type == ShaderBindingType::ImageSamplerCube)
+			{
+				mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
-					// TODO: IMPLEMENT.
-				}
-				else if (_binding.type == ShaderBindingType::ImageSampler2D || _binding.type == ShaderBindingType::ImageSamplerCube)
+				for (uint32 j = 0u; j < SizeOf(_binding.textures); ++j)
 				{
-					writeDesc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					VkWriteDescriptorSet& writeDesc = descWrites.emplace_back(mainWriteDesc);
+					writeDesc.dstArrayElement = j;
 
-					VkDescriptorImageInfo& desc = descImageInfos.emplace_back(VkDescriptorImageInfo{ _binding.buffers[j]->As<Texture>().CreateDescriptorImageInfo() });
+					VkDescriptorImageInfo& desc = descImageInfos.emplace_back(
+						VkDescriptorImageInfo{ _binding.textures[j]->As<Texture>().CreateDescriptorImageInfo() });
 					writeDesc.pImageInfo = &desc;
 				}
-				else if (_binding.type != ShaderBindingType::InputAttachment)
-					SA_LOG("ShaderBindingType for descriptor write not supported.", Error, Rendering);
 			}
+			else if (_binding.type == ShaderBindingType::StorageBuffer)
+			{
+				mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+				VkWriteDescriptorSet& writeDesc = descWrites.emplace_back(mainWriteDesc);
+				writeDesc.dstArrayElement = 0;
+
+				VkDescriptorBufferInfo& desc = descBufferInfos.emplace_back(
+					VkDescriptorBufferInfo{ _binding.storageBuffer->As<Buffer>().CreateDescriptorBufferInfo(_binding.bufferDataSize) });
+				writeDesc.pBufferInfo = &desc;
+			}
+			else if (_binding.type == ShaderBindingType::InputAttachment)
+			{
+				mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+				descWrites.emplace_back(mainWriteDesc);
+			}
+			else
+				SA_LOG("ShaderBindingType for descriptor write not supported.", Error, Rendering);
 		}
 
 		vkUpdateDescriptorSets(_device, SizeOf(descWrites), descWrites.data(), 0, nullptr);
@@ -196,51 +220,78 @@ namespace Sa::Vk
 		std::vector<VkWriteDescriptorSet> descWrites;
 		descWrites.reserve(10u);
 
-		for (uint32 i = 0; i < SizeOf(mDescriptorSets); ++i)
-		{
-			for (auto it = _bindings.begin(); it != _bindings.end(); ++it)
-			{
-				for (uint32 j = 0u; j < SizeOf(it->buffers); ++j)
-				{
-					VkWriteDescriptorSet& writeDesc = descWrites.emplace_back();
-					writeDesc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					writeDesc.pNext = nullptr;
-					writeDesc.dstSet = mDescriptorSets[i];
-					writeDesc.dstBinding = it->binding;
-					writeDesc.dstArrayElement = j;
-					writeDesc.descriptorCount = 1u;
+		std::vector<Pair<uint32, uint32>> resolveWrites;
+		descWrites.reserve(10u);
+		
 
-					if (it->type == ShaderBindingType::UniformBuffer)
+		VkWriteDescriptorSet mainWriteDesc{};
+		mainWriteDesc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		mainWriteDesc.pNext = nullptr;
+		mainWriteDesc.dstSet = VK_NULL_HANDLE;
+		mainWriteDesc.dstBinding = 0u;
+		mainWriteDesc.dstArrayElement = 0u;
+		mainWriteDesc.descriptorCount = 1u;
+
+		for (auto it = _bindings.begin(); it != _bindings.end(); ++it)
+		{
+			mainWriteDesc.dstBinding = it->binding;
+
+			for (uint32 i = 0; i < SizeOf(mDescriptorSets); ++i)
+			{
+				mainWriteDesc.dstSet = mDescriptorSets[i];
+
+				if (it->type == ShaderBindingType::UniformBuffer)
+				{
+					mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+					for (uint32 j = 0u; j < SizeOf(it->buffers); ++j)
 					{
-						writeDesc.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						VkWriteDescriptorSet& writeDesc = descWrites.emplace_back(mainWriteDesc);
+						writeDesc.dstArrayElement = j;
 
 						descInfos.emplace_back(DescriptorInfo{ it->buffers[j]->As<Buffer>().CreateDescriptorBufferInfo(it->bufferDataSize) });
+						resolveWrites.emplace_back(Pair<uint32, uint32>{ SizeOf(descInfos) - 1u, SizeOf(descWrites) - 1u });
 					}
-					else if (it->type == ShaderBindingType::StorageBuffer)
-					{
-						writeDesc.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-
-						// TODO: IMPLEMENT.
-					}
-					else if (it->type == ShaderBindingType::ImageSampler2D || it->type == ShaderBindingType::ImageSamplerCube)
-					{
-						writeDesc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-
-						descInfos.emplace_back(DescriptorInfo{ it->buffers[j]->As<Texture>().CreateDescriptorImageInfo() });
-					}
-					else if (it->type != ShaderBindingType::InputAttachment)
-						SA_LOG("ShaderBindingType for descriptor write not supported.", Error, Rendering);
 				}
+				else if (it->type == ShaderBindingType::ImageSampler2D || it->type == ShaderBindingType::ImageSamplerCube)
+				{
+					mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+					for (uint32 j = 0u; j < SizeOf(it->textures); ++j)
+					{
+						VkWriteDescriptorSet& writeDesc = descWrites.emplace_back(mainWriteDesc);
+						writeDesc.dstArrayElement = j;
+
+						descInfos.emplace_back(DescriptorInfo{ it->textures[j]->As<Texture>().CreateDescriptorImageInfo() });
+						resolveWrites.emplace_back(Pair<uint32, uint32>{ SizeOf(descInfos) - 1u, SizeOf(descWrites) - 1u });
+					}
+				}
+				else if (it->type == ShaderBindingType::StorageBuffer)
+				{
+					mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+					VkWriteDescriptorSet& writeDesc = descWrites.emplace_back(mainWriteDesc);
+					writeDesc.dstArrayElement = 0;
+
+					descInfos.emplace_back(DescriptorInfo{ it->storageBuffer->As<Buffer>().CreateDescriptorBufferInfo(it->bufferDataSize) });
+				}
+				else if (it->type == ShaderBindingType::InputAttachment)
+				{
+					mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+					descWrites.emplace_back(mainWriteDesc);
+				}
+				else
+					SA_LOG("ShaderBindingType for descriptor write not supported.", Error, Rendering);
 			}
 		}
 
 		// Init info ptr after any vector resize.
-		for (uint32 j = 0u; j < descWrites.size(); ++j)
+		for (auto it = resolveWrites.begin(); it != resolveWrites.end(); ++it)
 		{
-			if (descInfos[j].bIsImage)
-				descWrites[j].pImageInfo = &descInfos[j].image;
+			if(descInfos[it->first].bIsImage)
+				descWrites[it->second].pImageInfo = &descInfos[it->first].image;
 			else
-				descWrites[j].pBufferInfo = &descInfos[j].buffer;
+				descWrites[it->second].pBufferInfo = &descInfos[it->first].buffer;
 		}
 
 		vkUpdateDescriptorSets(_device, SizeOf(descWrites), descWrites.data(), 0, nullptr);

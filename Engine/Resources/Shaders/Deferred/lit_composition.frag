@@ -5,11 +5,6 @@
 // Uniform.
 layout(binding = 2) uniform sampler2D texSampler;
 
-//layout (binding = 3) uniform subpassInput samplerPosition;
-//layout (binding = 4) uniform subpassInput samplerNormal;
-//layout (binding = 5) uniform subpassInput samplerAlbedo;
-//layout (binding = 6) uniform subpassInput samplerPBR;
-
 
 // In.
 layout(location = 0) in DataBlock

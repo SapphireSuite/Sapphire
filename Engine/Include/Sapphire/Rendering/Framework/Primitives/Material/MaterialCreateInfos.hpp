@@ -10,17 +10,37 @@
 
 namespace Sa
 {
-	struct MaterialBindingInfos
+	class IBuffer;
+	class ITexture;
+
+	struct SA_ENGINE_API MaterialBindingInfos
 	{
 		uint32 binding = 0u;
 
 		ShaderBindingType type = ShaderBindingType::UniformBuffer;
 
-		// Size of buffer data.
+		// Size of buffer data (used for buffers).
 		uint64 bufferDataSize = 0u;
 
-		// Either IBuffer or ITexture.
-		std::vector<IInterface*> buffers;
+		union
+		{
+			// UBO.
+			std::vector<IBuffer*> buffers;
+
+			// Image sampler.
+			std::vector<ITexture*> textures;
+
+			// Storage buffer.
+			IBuffer* storageBuffer;
+		};
+
+		MaterialBindingInfos() noexcept;
+		MaterialBindingInfos(MaterialBindingInfos&& _other) noexcept;
+		MaterialBindingInfos(const MaterialBindingInfos& _other) noexcept;
+		~MaterialBindingInfos() noexcept;
+
+		MaterialBindingInfos& operator=(MaterialBindingInfos&& _rhs) noexcept;
+		MaterialBindingInfos& operator=(const MaterialBindingInfos& _rhs) noexcept;
 	};
 
 	struct SA_ENGINE_API MaterialCreateInfos
