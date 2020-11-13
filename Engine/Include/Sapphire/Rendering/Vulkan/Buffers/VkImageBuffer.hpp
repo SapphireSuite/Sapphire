@@ -13,7 +13,7 @@ namespace Sa::Vk
 {
 	class Device;
 
-	class ImageBuffer
+	class SA_ENGINE_API ImageBuffer
 	{
 		VkImage mImage = VK_NULL_HANDLE;
 		VkImageView mImageView = VK_NULL_HANDLE;
@@ -55,6 +55,7 @@ namespace Sa::Vk
 		void TransitionImageLayout(const Device& _device, const ImageBuffer::TransitionInfos& _infos);
 		void CopyBufferToImage(const Device& _device, const ImageBuffer::CopyBufferImageInfos& _infos);
 
+		VkDescriptorImageInfo CreateDescriptorImageInfo(VkSampler _sampler = VK_NULL_HANDLE) const noexcept;
 
 		// Old mipmap generation. Mipmap are now generated on resource import (See StbiWrapper).
 		//void GenerateMipmaps(const Device& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels, uint32 _layerNum = 1u);

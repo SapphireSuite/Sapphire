@@ -20,22 +20,6 @@ namespace Sa::Vk
 	constexpr uint32 imageNum = 3u;
 
 
-	struct DescriptorInfo
-	{
-		union
-		{
-			VkDescriptorBufferInfo buffer;
-			VkDescriptorImageInfo image;
-		};
-
-		bool bIsImage = false;
-
-		DescriptorInfo() = default;
-		DescriptorInfo(VkDescriptorBufferInfo _buffer) noexcept : buffer{ _buffer }, bIsImage{ false } {}
-		DescriptorInfo(VkDescriptorImageInfo _image) noexcept : image{ _image }, bIsImage{ true } {}
-	};
-
-
 	void Material::Create(const IRenderInstance& _instance, const MaterialCreateInfos& _infos)
 	{
 		const Device& device = _instance.As<RenderInstance>().device;
@@ -215,6 +199,7 @@ namespace Sa::Vk
 		mainWriteDesc.dstBinding = _binding.binding;
 		mainWriteDesc.dstArrayElement = 0u;
 		mainWriteDesc.descriptorCount = 1u;
+		mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
 
 		for (uint32 i = 0; i < SizeOf(mDescriptorSets); ++i)
 		{

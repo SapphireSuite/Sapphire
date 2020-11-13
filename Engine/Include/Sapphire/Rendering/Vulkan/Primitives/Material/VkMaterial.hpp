@@ -17,6 +17,7 @@ namespace Sa::Vk
 
 	class SA_ENGINE_API Material : public IMaterial
 	{
+	public:// TODO: REMOVE
 		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSet> mDescriptorSets;
 

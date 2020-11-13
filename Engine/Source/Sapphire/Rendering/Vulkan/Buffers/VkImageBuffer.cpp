@@ -182,6 +182,16 @@ namespace Sa::Vk
 		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer);
 	}
 
+	VkDescriptorImageInfo ImageBuffer::CreateDescriptorImageInfo(VkSampler _sampler) const noexcept
+	{
+		VkDescriptorImageInfo descImage{};
+		descImage.sampler = _sampler;
+		descImage.imageView = mImageView;
+		descImage.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		return descImage;
+	}
+
 	/*
 	void ImageBuffer::GenerateMipmaps(const Device& _device, VkFormat format, uint32 _width, uint32 _height, uint32 _mipLevels, uint32 _layerCount)
 	{

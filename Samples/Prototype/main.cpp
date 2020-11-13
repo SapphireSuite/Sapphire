@@ -26,7 +26,7 @@ using namespace Sa;
 #define LOG(_str) std::cout << _str << std::endl;
 
 
-#define __DEFERRED 0
+#define __DEFERRED 1
 
 #if __DEFERRED
 
@@ -51,7 +51,8 @@ struct MainRenderInfos
 		// RenderPass.
 		const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultPBRDeferred(&_surface);
 		renderPass.Create(_instance, renderPassDesc);
-		const std::vector<IFrameBuffer>& framebuffers = _surface.CreateFrameBuffers(_instance, renderPass, renderPassDesc);
+		const std::vector<Vk::FrameBuffer>& frameBuffers =
+			reinterpret_cast<const std::vector<Vk::FrameBuffer>&>(_surface.CreateFrameBuffers(_instance, renderPass, renderPassDesc));
 
 		// Subpass 0: G-Buffer composition.
 		{
@@ -63,7 +64,7 @@ struct MainRenderInfos
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
 
-				if (res == 0)
+				if (res != 1)
 					asset.Save(assetPath);
 				else if (res == -1)
 					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
@@ -79,7 +80,7 @@ struct MainRenderInfos
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
 
-				if (res == 0)
+				if (res != 1)
 					asset.Save(assetPath);
 				else if (res == -1)
 					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
@@ -130,7 +131,7 @@ struct MainRenderInfos
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
 
-				if (res == 0)
+				if (res != 1)
 					asset.Save(assetPath);
 				else if (res == -1)
 					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
@@ -146,7 +147,7 @@ struct MainRenderInfos
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
 
-				if (res == 0)
+				if (res != 1)
 					asset.Save(assetPath);
 				else if (res == -1)
 					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
@@ -195,23 +196,73 @@ struct MainRenderInfos
 			// Material.
 			MaterialCreateInfos matCreateInfos(litPipeline);
 
-			//MaterialBindingInfos& inPositionBinding = matCreateInfos.bindings.emplace_back();
-			//inPositionBinding.binding = 0u;
-			//inPositionBinding.type = ShaderBindingType::InputAttachment;
+			for (uint32 i = 0; i < 4u; ++i)
+			{
+				MaterialBindingInfos& inBinding = matCreateInfos.bindings.emplace_back();
+				inBinding.binding = i;
 
-			//MaterialBindingInfos& inNormalBinding = matCreateInfos.bindings.emplace_back();
-			//inNormalBinding.binding = 1u;
-			//inNormalBinding.type = ShaderBindingType::InputAttachment;
-
-			//MaterialBindingInfos& inAlbedoBinding = matCreateInfos.bindings.emplace_back();
-			//inAlbedoBinding.binding = 2u;
-			//inAlbedoBinding.type = ShaderBindingType::InputAttachment;
-
-			//MaterialBindingInfos& inPBRBinding = matCreateInfos.bindings.emplace_back();
-			//inPBRBinding.binding = 3u;
-			//inPBRBinding.type = ShaderBindingType::InputAttachment;
+				inBinding.mType = ShaderBindingType::InputAttachment;
+			}
 
 			litmaterial.Create(_instance, matCreateInfos);
+
+
+			// TEMP.
+			VkSampler sampler = VK_NULL_HANDLE;
+
+			VkSamplerCreateInfo samplerCreateInfo{};
+			samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+			samplerCreateInfo.pNext = nullptr;
+			samplerCreateInfo.flags = 0;
+			samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+			samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+			samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			samplerCreateInfo.mipLodBias = 0.0f;
+			samplerCreateInfo.anisotropyEnable = VK_TRUE;
+			samplerCreateInfo.maxAnisotropy = 16.0f;
+			samplerCreateInfo.compareEnable = VK_FALSE;
+			samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+			samplerCreateInfo.minLod = 0.0f;
+			samplerCreateInfo.maxLod = 1.0f;
+			samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+			samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+
+			SA_VK_ASSERT(vkCreateSampler(_instance.As<Vk::RenderInstance>().device, &samplerCreateInfo, nullptr, &sampler),
+				CreationFailed, Rendering, L"Failed to create texture sampler!");
+
+
+			std::vector<VkDescriptorImageInfo> imageDescs;
+			imageDescs.reserve(3u * 4u);
+
+			std::vector<VkWriteDescriptorSet> descWrites;
+			descWrites.reserve(3u * 4u);
+
+			VkWriteDescriptorSet mainWriteDesc{};
+			mainWriteDesc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			mainWriteDesc.pNext = nullptr;
+			mainWriteDesc.dstSet = VK_NULL_HANDLE;
+			mainWriteDesc.dstBinding = 0u;
+			mainWriteDesc.dstArrayElement = 0u;
+			mainWriteDesc.descriptorCount = 1u;
+			mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+
+			for (uint32 i = 0; i < 3u; ++i) // Fame num
+			{
+				mainWriteDesc.dstSet = litmaterial.mDescriptorSets[i];
+
+				for (uint32 j = 0; j < 4u; ++j) // binding num.
+				{
+					VkWriteDescriptorSet& writeDesc = descWrites.emplace_back(mainWriteDesc);
+					writeDesc.dstBinding = j;
+
+					writeDesc.pImageInfo = &imageDescs.emplace_back(frameBuffers[i].GetAttachment(j).CreateDescriptorImageInfo(sampler));
+				}
+			}
+
+			vkUpdateDescriptorSets(_instance.As<Vk::RenderInstance>().device, SizeOf(descWrites), descWrites.data(), 0, nullptr);
 		}
 	}
 	void Destroy(IRenderInstance& _instance, IRenderSurface& _surface)
@@ -256,7 +307,7 @@ struct MainRenderInfos
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
 
-				if (res == 0)
+				if (res != 1)
 					asset.Save(assetPath);
 				else if (res == -1)
 					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
@@ -272,7 +323,7 @@ struct MainRenderInfos
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
 
-				if (res == 0)
+				if (res != 1)
 					asset.Save(assetPath);
 				else if (res == -1)
 					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
@@ -369,7 +420,7 @@ struct CubeRender
 			TextureImportInfos importInfos; importInfos.format = Format::sRGBA_32;
 			uint32 res = asset.TryLoadImport(assetPath, resourcePath, importInfos);
 
-			if (res == 0)
+			if (res != 1)
 				asset.Save(assetPath);
 			else if (res == -1)
 				SA_ASSERT(false, InvalidParam, SDK, L"Import failed");

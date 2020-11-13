@@ -15,6 +15,7 @@ namespace Sa
 
 	class SA_ENGINE_API MaterialBindingInfos
 	{
+	public:// TODO: REMOVE
 		ShaderBindingType mType = ShaderBindingType::UniformBuffer;
 
 		std::vector<IInterface*> mBuffers;

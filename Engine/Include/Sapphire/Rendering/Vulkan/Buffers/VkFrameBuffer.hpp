@@ -19,18 +19,20 @@ namespace Sa::Vk
 	class Device;
 	class RenderPass;
 
-	class FrameBuffer : public IFrameBuffer
+	class SA_ENGINE_API FrameBuffer : public IFrameBuffer
 	{
 		VkFramebuffer mHandle = VK_NULL_HANDLE;
 		VkRenderPass mRenderPass = VK_NULL_HANDLE;
 
 		Vec2ui mExtent;
 
-		std::vector<ImageBuffer> mBuffers;
+		std::vector<ImageBuffer> mAttachments;
 		std::vector<VkClearValue> mClearValues;
 
 	public:
 		CommandBuffer commandBuffer;
+
+		const ImageBuffer& GetAttachment(uint32 _index) const;
 
 		void Create(const Device& _device, const RenderPass& _renderPass,
 			const RenderPassDescriptor& _rpDescriptor,

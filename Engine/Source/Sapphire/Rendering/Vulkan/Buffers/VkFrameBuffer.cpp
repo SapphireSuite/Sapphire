@@ -12,6 +12,13 @@
 
 namespace Sa::Vk
 {
+	const ImageBuffer& FrameBuffer::GetAttachment(uint32 _index) const
+	{
+		SA_ASSERT(_index < SizeOf(mAttachments), OutOfRange, Rendering, _index, 0u, SizeOf(mAttachments));
+
+		return mAttachments[_index];
+	}
+
 	void FrameBuffer::Create(const Device& _device, const RenderPass& _renderPass,
 		const RenderPassDescriptor& _rpDescriptor,
 		const Vec2ui& _extent, uint32 _poolIndex, VkImage presentImage)
@@ -21,7 +28,7 @@ namespace Sa::Vk
 			SA_ASSERT(presentImage != VK_NULL_HANDLE, InvalidParam, Rendering, L"Framebuffer with bPresent == true requiere a valid swapchain image!");
 #endif
 
-		// === Attachment buffers ===
+		// === Color attachments ===
 		ImageBufferCreateInfos imageInfos;
 		imageInfos.extent = _extent;
 		imageInfos.sampling = _rpDescriptor.sampling;
@@ -41,11 +48,11 @@ namespace Sa::Vk
 			{
 				imageInfos.format = attIt->format;
 
-				mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
+				mAttachments.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
 			}
 		}
 
-		// === Present buffer ===
+		// === Present attachment ===
 		if (_rpDescriptor.bPresent)
 		{
 			auto& attachments = subEndIt->attachmentDescs;
@@ -53,14 +60,14 @@ namespace Sa::Vk
 			imageInfos.format = attachments[0].format;
 
 			if (_rpDescriptor.sampling == SampleBits::Sample1Bit)
-				mBuffers.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
+				mAttachments.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
 			else
 			{
-				mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
+				mAttachments.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
 
 				// Multisampling resolution bufffer.
 				imageInfos.sampling = SampleBits::Sample1Bit;
-				mBuffers.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
+				mAttachments.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
 
 				imageInfos.sampling = _rpDescriptor.sampling;
 			}
@@ -68,16 +75,16 @@ namespace Sa::Vk
 
 		// Color clear values.
 		if (_rpDescriptor.bClear)
-			mClearValues.insert(mClearValues.end(), SizeOf(mBuffers), _rpDescriptor.clearColor);
+			mClearValues.insert(mClearValues.end(), SizeOf(mAttachments), _rpDescriptor.clearColor);
 
 
-		// === Depth buffer ===
+		// === Depth attachment ===
 		if (_rpDescriptor.bDepthBuffer)
 		{
 			imageInfos.usage = 0u;
 			imageInfos.format = _rpDescriptor.depthFormat;
 
-			mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
+			mAttachments.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
 
 			if (_rpDescriptor.bClear)
 				mClearValues.emplace_back(VkClearValue{ { { 1.f, 0u } } });
@@ -85,10 +92,10 @@ namespace Sa::Vk
 
 
 		// === Create FrameBuffer ===
-		std::vector<VkImageView> attachements(mBuffers.size());
+		std::vector<VkImageView> attachements(mAttachments.size());
 
-		for (size_t i = 0; i < mBuffers.size(); ++i)
-			attachements[i] = mBuffers[i];
+		for (size_t i = 0; i < mAttachments.size(); ++i)
+			attachements[i] = mAttachments[i];
 
 		VkFramebufferCreateInfo framebufferCreateInfo{};
 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -117,10 +124,10 @@ namespace Sa::Vk
 
 		vkDestroyFramebuffer(_device, mHandle, nullptr);
 
-		for (auto it = mBuffers.begin(); it != mBuffers.end(); ++it)
+		for (auto it = mAttachments.begin(); it != mAttachments.end(); ++it)
 			it->Destroy(_device);
 
-		mBuffers.clear();
+		mAttachments.clear();
 	}
 
 	void FrameBuffer::Begin()

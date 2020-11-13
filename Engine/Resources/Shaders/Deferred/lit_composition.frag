@@ -19,8 +19,8 @@ layout(location = 0) in DataBlock
 // Out.
 layout(location = 0) out vec4 outPosition;
 layout(location = 1) out vec4 outNormal;
-layout(location = 2) out vec3 outAlbedo;
-layout(location = 3) out vec3 outPBR;
+layout(location = 2) out vec4 outAlbedo;
+layout(location = 3) out vec4 outPBR;
 
 
 // Code.
@@ -28,6 +28,6 @@ void main()
 {
 	outPosition = vec4(fsIn.position, 1.0);
 	outNormal = vec4(fsIn.normal, 1.0);
-	outAlbedo = texture(texSampler, fsIn.texture).xyz;
-	outPBR = vec3(1.0);
+	outAlbedo = texture(texSampler, fsIn.texture);
+	outPBR = vec4(1.0);
 }
