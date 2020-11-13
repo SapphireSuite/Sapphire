@@ -7,11 +7,7 @@
 
 #include <vector>
 
-#include <Core/Types/Int.hpp>
-
 #include <Rendering/Framework/System/RenderPass/IRenderPass.hpp>
-
-#include <Rendering/Framework/Buffers/IBuffer.hpp>
 
 #include <Rendering/Framework/Primitives/Shader/IShader.hpp>
 #include <Rendering/Framework/Primitives/Shader/ShaderBindingType.hpp>
@@ -31,22 +27,16 @@ namespace Sa
 		const ShaderStage stage = ShaderStage::Unknown;
 	};
 
-	struct PipelineDataBindingInfos
+	struct PipelineBindingInfos
 	{
 		uint32 binding = 0u;
 
+		ShaderStage stages = ShaderStage::Unknown;
+
 		ShaderBindingType type = ShaderBindingType::UniformBuffer;
 
-		// Size of buffer data.
-		uint64 bufferDataSize = 0u;
-
-		// Either IBuffer or ITexture.
-		std::vector<IInterface*> buffers;
-	};
-
-	struct PipelineBindingInfos : public PipelineDataBindingInfos
-	{
-		ShaderStage stages = ShaderStage::Unknown;
+		// Number of elements (array).
+		uint32 num = 1u;
 	};
 
 	struct PipelineRenderModes

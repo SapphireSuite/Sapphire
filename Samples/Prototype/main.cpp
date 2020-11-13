@@ -13,6 +13,7 @@
 #include <Rendering/Vulkan/Primitives/Shader/VkShader.hpp>
 #include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
 #include <Rendering/Vulkan/Primitives/Pipeline/VkPipeline.hpp>
+#include <Rendering/Vulkan/Primitives/Material/VkMaterial.hpp>
 #include <Rendering/Vulkan/Buffers/VkBuffer.hpp>
 #include <Rendering/Vulkan/Buffers/VkFrameBuffer.hpp>
 
@@ -23,6 +24,183 @@
 using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
+
+
+struct RenderInfos
+{
+	Vk::RenderPass renderPass;
+	uint32 renderPassID = uint32(-1);
+
+	Vk::Shader vert;
+	Vk::Shader frag;
+	
+	Vk::Pipeline pipeline;
+};
+
+RenderInfos mainRender;
+RenderInfos UIRender;
+
+void CreateMainRender(IRenderInstance& _instance, IRenderSurface& _surface)
+{
+	// RenderPass.
+	const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultForward(&_surface);
+	mainRender.renderPass.Create(_instance, renderPassDesc);
+	mainRender.renderPassID = _surface.AddRenderPass(_instance, mainRender.renderPass, renderPassDesc);
+
+
+	// Create Shaders.
+	ShaderAsset mainVertAsset;
+	SA_ASSERT(mainVertAsset.Import("../../Engine/Resources/Shaders/unlit.vert"), InvalidParam, SDK, L"Import failed");
+	mainRender.vert.Create(_instance, mainVertAsset.GetRawData());
+
+	ShaderAsset mainFragAsset;
+	SA_ASSERT(mainFragAsset.Import("../../Engine/Resources/Shaders/unlit.frag"), InvalidParam, SDK, L"Import failed");
+	mainRender.frag.Create(_instance, mainFragAsset.GetRawData());
+
+
+	// Pipeline.
+	PipelineCreateInfos mainPipelineInfos(mainRender.renderPass, renderPassDesc);
+
+	{
+		PipelineBindingInfos& camUBOBinding = mainPipelineInfos.bindings.emplace_back();
+		camUBOBinding.binding = 0u;
+		camUBOBinding.stages = ShaderStage::Vertex;
+		camUBOBinding.type = ShaderBindingType::UniformBuffer;
+
+
+		PipelineBindingInfos& modelUBOBinding = mainPipelineInfos.bindings.emplace_back();
+		modelUBOBinding.binding = 1u;
+		modelUBOBinding.stages = ShaderStage::Vertex;
+		modelUBOBinding.type = ShaderBindingType::UniformBuffer;
+
+
+		PipelineBindingInfos& textureBinding = mainPipelineInfos.bindings.emplace_back();
+		textureBinding.binding = 2u;
+		textureBinding.stages = ShaderStage::Fragment;
+		textureBinding.type = ShaderBindingType::ImageSampler2D;
+	}
+
+	mainPipelineInfos.shaders.push_back(PipelineShaderInfos{ &mainRender.vert, ShaderStage::Vertex });
+	mainPipelineInfos.shaders.push_back(PipelineShaderInfos{ &mainRender.frag, ShaderStage::Fragment });
+
+	mainPipelineInfos.vertexBindingLayout.meshLayout = VertexLayout::Make<VertexComp::Default>();
+	mainPipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Position | VertexComp::Texture>();
+
+	mainRender.pipeline.Create(_instance, mainPipelineInfos);
+}
+void DestroyMainRender(IRenderInstance& _instance, IRenderSurface& _surface)
+{
+	mainRender.pipeline.Destroy(_instance);
+
+	mainRender.vert.Destroy(_instance);
+	mainRender.frag.Destroy(_instance);
+
+	_surface.RemoveRenderPass(_instance, mainRender.renderPassID);
+	mainRender.renderPass.Destroy(_instance);
+}
+
+void CreateUIRender(IRenderInstance& _instance, IRenderSurface& _surface)
+{
+	// RenderPass.
+	const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultForward(&_surface);
+	UIRender.renderPass.Create(_instance, renderPassDesc);
+	UIRender.renderPassID = _surface.AddRenderPass(_instance, UIRender.renderPass, renderPassDesc);
+}
+void DestroyUIRender(IRenderInstance& _instance, IRenderSurface& _surface)
+{
+	_surface.RemoveRenderPass(_instance, UIRender.renderPassID);
+	UIRender.renderPass.Destroy(_instance);
+}
+
+struct CubeMatInfos
+{
+	Vk::Material material;
+
+	TransffPRS camTr;
+
+	Vk::Buffer camUBO;
+	Vk::Buffer modelUBO;
+	Vk::Texture texture;
+
+
+	struct camUBOData
+	{
+		Mat4f proj = Mat4f::Identity;
+		Mat4f viewInv = Mat4f::Identity;
+		Vec3f viewPosition;
+	};
+
+	camUBOData camUBOd;
+
+	struct modelUBOData
+	{
+		Mat4f modelMat = Mat4f::Identity;
+
+		float uvTilling = 1.0f;
+		float uvOffset = 0.0f;
+	};
+
+	modelUBOData modelUBOd;
+
+	void Create(Vk::RenderInstance& _instance)
+	{
+		TextureImportInfos importInfos; importInfos.format = RenderFormat::sRGBA_32;
+		TextureAsset textureAsset;
+		SA_ASSERT(textureAsset.Import("../../Engine/Resources/Textures/missing_texture.png", importInfos), InvalidParam, SDK, L"Import failed");
+		texture.Create(_instance, textureAsset.GetRawData());
+
+		camTr.position = Vec3f(0.0f, 0.0f, 10.0f);
+		camUBOd.proj = Mat4f::MakePerspective(90.0f, 1200.0f / 800.0f);
+
+		camUBO.Create(_instance.device, sizeof(camUBOData),
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &camUBOd);
+
+		modelUBOd.modelMat = API_ConvertCoordinateSystem(Mat4f::MakeTransform(Vec3f(0.0f, 0.0f, 0.0f), Quatf::Identity, Vec3f::One * 5.0f));
+		modelUBO.Create(_instance.device, sizeof(modelUBOData),
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &modelUBOd);
+
+
+		MaterialCreateInfos matCreateInfos(mainRender.pipeline);
+
+		MaterialBindingInfos& camBinding = matCreateInfos.bindings.emplace_back();
+		camBinding.binding = 0u;
+		camBinding.type = ShaderBindingType::UniformBuffer;
+		camBinding.bufferDataSize = sizeof(camUBOData);
+		camBinding.buffers.push_back(&camUBO);
+
+		MaterialBindingInfos& modelBinding = matCreateInfos.bindings.emplace_back();
+		modelBinding.binding = 1u;
+		modelBinding.type = ShaderBindingType::UniformBuffer;
+		modelBinding.bufferDataSize = sizeof(modelUBOData);
+		modelBinding.buffers.push_back(&modelUBO);
+
+		MaterialBindingInfos& textureBinding = matCreateInfos.bindings.emplace_back();
+		textureBinding.binding = 2u;
+		textureBinding.type = ShaderBindingType::ImageSampler2D;
+		textureBinding.buffers.push_back(&texture);
+
+		material.Create(_instance, matCreateInfos);
+	}
+
+	void Update(const Vk::RenderInstance& _instance)
+	{
+		camUBOd.viewInv = API_ConvertCoordinateSystem(camTr.Matrix()).GetInversed();
+		camUBOd.viewPosition = API_ConvertCoordinateSystem(camTr.position);
+		camUBO.UpdateData(_instance.device, &camUBOd, sizeof(camUBOd));
+	}
+
+	void Destroy(const Vk::RenderInstance& _instance)
+	{
+		material.Destroy(_instance);
+
+		camUBO.Destroy(_instance.device);
+		modelUBO.Destroy(_instance.device);
+
+		texture.Destroy(_instance);
+	}
+};
+
+CubeMatInfos cubeMatInfos;
 
 
 int main()
@@ -44,113 +222,15 @@ int main()
 
 	IRenderSurface& surface = instance.CreateRenderSurface(window);
 
-	// Main RenderPass.
-	Vk::RenderPass mainRP;
-	const RenderPassDescriptor mainRPDesc = RenderPassDescriptor::CreateDefaultForward(&surface);
-	mainRP.Create(instance, mainRPDesc);
-	const uint32 mainRPID = surface.AddRenderPass(instance, mainRP, mainRPDesc);
-
-	//// UI RenderPass.
-	//Vk::RenderPass UIRP;
-	//const RenderPassDescriptor UIRPDesc = RenderPassDescriptor::CreateDefaultForward(&surface);
-	//UIRP.Create(instance, UIRPDesc);
-	//const uint32 UIRPID = surface.AddRenderPass(instance, UIRP, UIRPDesc);
+	CreateMainRender(instance, surface);
+	//CreateUIRender(instance, surface);
 
 
-	struct camUBOData
-	{
-		Mat4f proj = Mat4f::Identity;
-		Mat4f viewInv = Mat4f::Identity;
-		Vec3f viewPosition;
-	};
-
-	camUBOData camUBOd;
-	TransffPRS camTr;
-	camTr.position = Vec3f(0.0f, 0.0f, 10.0f);
-	camUBOd.proj = Mat4f::MakePerspective(90.0f, 1200.0f / 800.0f);
-
-	Vk::Buffer camUBO;
-	camUBO.Create(instance.device, sizeof(camUBOData),
-		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &camUBOd);
-
-	struct modelUBOData
-	{
-		Mat4f modelMat = Mat4f::Identity;
-
-		float uvTilling = 1.0f;
-		float uvOffset = 0.0f;
-	};
-
-	modelUBOData modelUBOd;
-	modelUBOd.modelMat = API_ConvertCoordinateSystem(Mat4f::MakeTransform(Vec3f(0.0f, 0.0f, 0.0f), Quatf::Identity, Vec3f::One * 5.0f));
-
-	Vk::Buffer modelUBO;
-	modelUBO.Create(instance.device, sizeof(modelUBOData),
-		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &modelUBOd);
+	cubeMatInfos.Create(instance);
 
 
 	Vk::Mesh cubeMesh;
 	cubeMesh.Create(instance, RawMesh::Cube());
-
-	TextureImportInfos importInfos; importInfos.format = RenderFormat::sRGBA_32;
-	TextureAsset cubeTextAsset;
-	SA_ASSERT(cubeTextAsset.Import("../../Engine/Resources/Textures/missing_texture.png", importInfos), InvalidParam, SDK, L"Import failed");
-	Vk::Texture cubeText;
-	cubeText.Create(instance, cubeTextAsset.GetRawData());
-
-	Vk::Shader cubeVert;
-	ShaderAsset cubeVertAsset;
-	SA_ASSERT(cubeVertAsset.Import("../../Engine/Resources/Shaders/unlit.vert"), InvalidParam, SDK, L"Import failed");
-	cubeVert.Create(instance, cubeVertAsset.GetRawData());
-
-	Vk::Shader cubeFrag;
-	ShaderAsset cubeFragAsset;
-	SA_ASSERT(cubeFragAsset.Import("../../Engine/Resources/Shaders/unlit.frag"), InvalidParam, SDK, L"Import failed");
-	cubeFrag.Create(instance, cubeFragAsset.GetRawData());
-
-
-	// Pipeline.
-	PipelineCreateInfos cubePipelineInfos(mainRP, mainRPDesc);
-
-	{
-		PipelineBindingInfos camUBOBinding;
-		camUBOBinding.binding = 0u;
-		camUBOBinding.stages = ShaderStage::Vertex;
-		camUBOBinding.type = ShaderBindingType::UniformBuffer;
-		camUBOBinding.bufferDataSize = sizeof(camUBOData);
-		camUBOBinding.buffers.push_back(&camUBO);
-
-		cubePipelineInfos.AddBinding(camUBOBinding);
-
-
-		PipelineBindingInfos modelUBOBinding;
-		modelUBOBinding.binding = 1u;
-		modelUBOBinding.stages = ShaderStage::Vertex;
-		modelUBOBinding.type = ShaderBindingType::UniformBuffer;
-		modelUBOBinding.bufferDataSize = sizeof(modelUBOData);
-		modelUBOBinding.buffers.push_back(&modelUBO);
-
-		cubePipelineInfos.AddBinding(modelUBOBinding);
-
-
-		PipelineBindingInfos textureBinding;
-		textureBinding.binding = 2u;
-		textureBinding.stages = ShaderStage::Fragment;
-		textureBinding.type = ShaderBindingType::ImageSampler2D;
-		textureBinding.buffers.push_back(&cubeText);
-
-		cubePipelineInfos.AddBinding(textureBinding);
-	}
-
-	cubePipelineInfos.shaders.push_back(PipelineShaderInfos{ &cubeVert, ShaderStage::Vertex });
-	cubePipelineInfos.shaders.push_back(PipelineShaderInfos{ &cubeFrag, ShaderStage::Fragment });
-
-	cubePipelineInfos.vertexBindingLayout.meshLayout = cubeMesh.GetLayout();
-	cubePipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Position | VertexComp::Texture>();
-
-	Vk::Pipeline cubePipeline;
-	cubePipeline.Create(instance, cubePipelineInfos);
-
 
 	Vec3f lightPos;
 
@@ -166,10 +246,8 @@ int main()
 
 		window.Update();
 
-		window.TEST(camTr, lightPos, deltaTime * speed);
-		camUBOd.viewInv = API_ConvertCoordinateSystem(camTr.Matrix()).GetInversed();
-		camUBOd.viewPosition = API_ConvertCoordinateSystem(camTr.position);
-		camUBO.UpdateData(instance.device, &camUBOd, sizeof(camUBOd));
+		window.TEST(cubeMatInfos.camTr, lightPos, deltaTime * speed);
+		cubeMatInfos.Update(instance);
 
 
 		// Begin Surface.
@@ -178,13 +256,15 @@ int main()
 
 		// Main framebuffer.
 		{
-			FrameInfos mainFI = surface.GetFrameInfos(mainRPID);
+			FrameInfos mainFI = surface.GetFrameInfos(mainRender.renderPassID);
 
 			IFrameBuffer& mainFB = mainFI.frameBuffer;
 
 			mainFB.Begin();
 
-			cubePipeline.Bind(mainFI);
+			mainRender.pipeline.Bind(mainFI);
+
+			cubeMatInfos.material.Bind(mainFI, mainRender.pipeline);
 
 			cubeMesh.Draw(mainFB);
 
@@ -211,22 +291,14 @@ int main()
 	LOG("=== Destroy ===");
 	vkDeviceWaitIdle(instance.device);
 
-	cubePipeline.Destroy(instance);
 
-	camUBO.Destroy(instance.device);
-	modelUBO.Destroy(instance.device);
+	DestroyMainRender(instance, surface);
+	//DestroyUIRender(instance, surface);
 
+	cubeMatInfos.Destroy(instance);
 
-	cubeVert.Destroy(instance);
-	cubeFrag.Destroy(instance);
-	cubeText.Destroy(instance);
 	cubeMesh.Destroy(instance);
 
-	//surface.RemoveRenderPass(instance, UIRPID);
-	surface.RemoveRenderPass(instance, mainRPID);
-
-	//UIRP.Destroy(instance);
-	mainRP.Destroy(instance);
 
 	instance.DestroyRenderSurface(surface);
 

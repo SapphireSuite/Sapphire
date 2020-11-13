@@ -16,7 +16,7 @@ namespace Sa
 	class IRenderPass;
 	class RenderPassDescriptor;
 
-	class FrameInfos;
+	struct FrameInfos;
 
 	class IRenderSurface : public IInterface
 	{

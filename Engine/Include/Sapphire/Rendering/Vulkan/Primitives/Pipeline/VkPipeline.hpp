@@ -21,20 +21,11 @@ namespace Sa::Vk
 		VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
 
 		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
-		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
-		std::vector<VkDescriptorSet> mDescriptorSets;
 
 
 		void CreateDescriptorSetLayout(const Device& _device, const PipelineCreateInfos& _infos);
 		void DestroyDescriptorSetLayout(const Device& _device);
 
-		void CreateDescriptorPoolSize(const Device& _device, const PipelineCreateInfos& _infos);
-		void DestroyDescriptorPoolSize(const Device& _device);
-
-		void CreateDescriptorSets(const Device& _device, const PipelineCreateInfos& _infos);
-		void UpdateDescriptorSets(const Device& _device, PipelineDataBindingInfos& _bindInfos);
-		void UpdateDescriptorSets(const Device& _device, const std::vector<PipelineBindingInfos>& _bindings);
-		void DestroyDescriptorSets(const Device& _device);
 
 		void CreatePipelineLayout(const Device& _device);
 		void DestroyPipelineLayout(const Device& _device);
@@ -53,6 +44,9 @@ namespace Sa::Vk
 		static void FillRenderPassAttachments(struct RenderPassAttachmentInfos& _renderPassAttInfos, const RenderPassDescriptor& _renderPassDesc) noexcept;
 
 	public:
+		VkPipelineLayout GetLayout() const noexcept;
+		VkDescriptorSetLayout GetDescriptorSetLayout() const noexcept;
+
 		void Create(const IRenderInstance& _instance, const PipelineCreateInfos& _infos) override final;
 		void Destroy(const IRenderInstance& _instance) override final;
 
