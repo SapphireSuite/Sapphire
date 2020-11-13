@@ -108,11 +108,11 @@ namespace Sa::Vk
 		VkAttachmentReference presentAttachmentResolveRef;
 
 		
-		for (uint32 i = 0; i < SizeOf(_descriptor.subPassDescriptors); ++i)
+		for (uint32 i = 0; i < SizeOf(_descriptor.subPassDescs); ++i)
 		{
-			const SubPassDescriptor& subpassDesc = _descriptor.subPassDescriptors[i];
+			const SubPassDescriptor& subpassDesc = _descriptor.subPassDescs[i];
 
-			for (auto attIt = subpassDesc.attachmentDescriptors.begin(); attIt != subpassDesc.attachmentDescriptors.end(); ++attIt)
+			for (auto attIt = subpassDesc.attachmentDescs.begin(); attIt != subpassDesc.attachmentDescs.end(); ++attIt)
 			{
 				attachments.push_back(CreateAttachement(API_GetFormat(attIt->format), sampling, loadOp));
 				attachmentRefs.push_back({ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
@@ -129,7 +129,7 @@ namespace Sa::Vk
 			if (sampling != VK_SAMPLE_COUNT_1_BIT)
 			{
 				// Color attachment multisampling resolution.
-				VkFormat presentFormat = API_GetFormat(_descriptor.subPassDescriptors[SizeOf(_descriptor.subPassDescriptors) - 1].attachmentDescriptors[0].format);
+				VkFormat presentFormat = API_GetFormat(_descriptor.subPassDescs[SizeOf(_descriptor.subPassDescs) - 1].attachmentDescs[0].format);
 
 				VkAttachmentDescription presentAttachmentResolve = CreateAttachement(presentFormat, VK_SAMPLE_COUNT_1_BIT, loadOp);
 				presentAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -155,7 +155,7 @@ namespace Sa::Vk
 		// Split into 2 for loops to avoid bad pointers due to vector reallocation.
 
 		// === Subpasses ===
-		uint32 subpassNum = SizeOf(_descriptor.subPassDescriptors);
+		uint32 subpassNum = SizeOf(_descriptor.subPassDescs);
 
 		std::vector<VkSubpassDescription> subpassDescriptions;
 		subpassDescriptions.resize(subpassNum);

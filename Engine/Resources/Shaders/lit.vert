@@ -23,6 +23,9 @@ layout(binding = 1) uniform ObjectUniformBuffer
 	// Model transformation matrix.
     mat4 modelMat;
 
+    //// Normal transformation matrix.
+    //mat3 normalMat;
+
 	// Material UV tilling.
     float uvTilling;
 
@@ -55,11 +58,21 @@ void main()
     // Position.
     vec4 modelPosition = objectUBO.modelMat * vec4(inPosition, 1.0);
 
+    vsOut.position = modelPosition.xyz / modelPosition.w;
     gl_Position = cameraUBO.proj * cameraUBO.viewInv * modelPosition;
 
+
+    // Normal & Tangent
+    // TODO: Implement.
+    // if uniform scale.
     mat3 modelMat3 = mat3(objectUBO.modelMat);
     vsOut.normal = modelMat3 * inNormal;
     vsOut.tangent = modelMat3 * inTangent;
+    // else if non-uniform scale.
+    //vsOut.normal = objectUBO.normalMat * inNormal;.
+    //vsOut.tangent = objectUBO.normalMat * inTangent;.
+
+
 
     // Texture
     vsOut.texture = inTexture * objectUBO.uvTilling + objectUBO.uvOffset;

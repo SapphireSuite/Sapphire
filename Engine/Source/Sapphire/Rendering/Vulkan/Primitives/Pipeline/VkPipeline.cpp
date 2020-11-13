@@ -174,7 +174,7 @@ namespace Sa::Vk
 
 		// Multisampling.
 		RenderPassAttachmentInfos renderPassAttInfos{};
-		FillRenderPassAttachments(renderPassAttInfos, _infos.renderPassDesc);
+		FillRenderPassAttachments(renderPassAttInfos, _infos);
 
 
 		// Create handle.
@@ -195,7 +195,7 @@ namespace Sa::Vk
 		pipelineCreateInfo.pDynamicState = nullptr;
 		pipelineCreateInfo.layout = mPipelineLayout;
 		pipelineCreateInfo.renderPass = _infos.renderPass.As<RenderPass>();
-		pipelineCreateInfo.subpass = SizeOf(_infos.renderPassDesc.subPassDescriptors) - 1; // Additionnal subpass.
+		pipelineCreateInfo.subpass = _infos.subPassIndex;
 		pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineCreateInfo.basePipelineIndex = -1;
 
@@ -261,13 +261,13 @@ namespace Sa::Vk
 		_rasterizerInfo.lineWidth = 1.0f;
 	}
 
-	void Pipeline::FillRenderPassAttachments(RenderPassAttachmentInfos& _renderPassAttInfos, const RenderPassDescriptor& _renderPassDesc) noexcept
+	void Pipeline::FillRenderPassAttachments(RenderPassAttachmentInfos& _renderPassAttInfos, const PipelineCreateInfos& _infos) noexcept
 	{
 		// MultiSampling.
 		_renderPassAttInfos.multisamplingInfos.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		_renderPassAttInfos.multisamplingInfos.pNext = nullptr;
 		_renderPassAttInfos.multisamplingInfos.flags = 0u;
-		_renderPassAttInfos.multisamplingInfos.rasterizationSamples = static_cast<VkSampleCountFlagBits>(_renderPassDesc.sampling);
+		_renderPassAttInfos.multisamplingInfos.rasterizationSamples = static_cast<VkSampleCountFlagBits>(_infos.renderPassDesc.sampling);
 		_renderPassAttInfos.multisamplingInfos.sampleShadingEnable = VK_TRUE;
 		_renderPassAttInfos.multisamplingInfos.minSampleShading = 0.2f;
 		_renderPassAttInfos.multisamplingInfos.pSampleMask = nullptr;
@@ -290,22 +290,23 @@ namespace Sa::Vk
 
 
 		// Color attachments.
-		_renderPassAttInfos.colorBlendAttachments.reserve(10u);
-		for (auto subIt = _renderPassDesc.subPassDescriptors.begin(); subIt != _renderPassDesc.subPassDescriptors.end(); ++subIt)
-		{
-			for (auto attIt = subIt->attachmentDescriptors.begin(); attIt != subIt->attachmentDescriptors.end(); ++attIt)
-			{
-				VkPipelineColorBlendAttachmentState& colorBlendAttachment = _renderPassAttInfos.colorBlendAttachments.emplace_back();
-				colorBlendAttachment.blendEnable = VK_TRUE;
-				colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-				colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-				colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-				colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-				colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-				colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-				colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-			}
-		}
+		SA_ASSERT(_infos.subPassIndex < SizeOf(_infos.renderPassDesc.subPassDescs),
+			OutOfRange, Rendering, _infos.subPassIndex, 0u, SizeOf(_infos.renderPassDesc.subPassDescs));
+
+		const SubPassDescriptor& subpassDesc = _infos.renderPassDesc.subPassDescs[_infos.subPassIndex];
+		
+		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+		colorBlendAttachment.blendEnable = VK_TRUE;
+		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+		colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		
+		_renderPassAttInfos.colorBlendAttachments.resize(subpassDesc.attachmentDescs.size(), colorBlendAttachment);
+
 
 		// Color blending.
 		_renderPassAttInfos.colorBlendingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

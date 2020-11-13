@@ -301,8 +301,9 @@ int main()
 			mainRender.pipeline.Bind(mainFI);
 
 			cubeMatInfos.material.Bind(mainFI, mainRender.pipeline);
-
 			cubeMesh.Draw(mainFB);
+
+			mainFB.NextSubpass();
 
 			mainFB.End();
 		}

@@ -58,6 +58,9 @@ namespace Sa
 		const IRenderPass& renderPass;
 		const RenderPassDescriptor& renderPassDesc;
 
+		// Index of the associated subpass.
+		uint32 subPassIndex = 0u;
+
 		PipelineCreateInfos(const IRenderPass& _renderPass, const RenderPassDescriptor& _renderPassDesc) noexcept;
 
 		// Helper functions.

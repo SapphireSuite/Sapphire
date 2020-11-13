@@ -24,7 +24,7 @@ namespace Sa
 
 	struct SubPassDescriptor
 	{
-		std::vector<SubPassAttachmentDescriptor> attachmentDescriptors;
+		std::vector<SubPassAttachmentDescriptor> attachmentDescs;
 	};
 
 	class SA_ENGINE_API RenderPassDescriptor
@@ -40,7 +40,7 @@ namespace Sa
 		bool bClear = true;
 		Color clearColor = Color{ 0.0f, 0.0f, 0.05f, 0.0f };
 
-		std::vector<SubPassDescriptor> subPassDescriptors;
+		std::vector<SubPassDescriptor> subPassDescs;
 
 		/**
 		*	\brief Create a default forward rendering renderpass descriptor.

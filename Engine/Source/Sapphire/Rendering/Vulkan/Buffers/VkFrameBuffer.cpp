@@ -29,15 +29,15 @@ namespace Sa::Vk
 		// Add Image buffer for each attachment.
 		imageInfos.usage = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
-		auto subEndIt = _rpDescriptor.subPassDescriptors.end();
+		auto subEndIt = _rpDescriptor.subPassDescs.end();
 		
 		// Prensent subpass framebuffer should be created manually.
 		if (_rpDescriptor.bPresent)
 			--subEndIt;
 
-		for (auto subIt = _rpDescriptor.subPassDescriptors.begin(); subIt != subEndIt; ++subIt)
+		for (auto subIt = _rpDescriptor.subPassDescs.begin(); subIt != subEndIt; ++subIt)
 		{
-			for (auto attIt = subIt->attachmentDescriptors.begin(); attIt != subIt->attachmentDescriptors.end(); ++attIt)
+			for (auto attIt = subIt->attachmentDescs.begin(); attIt != subIt->attachmentDescs.end(); ++attIt)
 			{
 				imageInfos.format = attIt->format;
 
@@ -48,19 +48,20 @@ namespace Sa::Vk
 		// === Present buffer ===
 		if (_rpDescriptor.bPresent)
 		{
-			auto& attachments = subEndIt->attachmentDescriptors;
+			auto& attachments = subEndIt->attachmentDescs;
 
 			imageInfos.format = attachments[0].format;
-			mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
+			mBuffers.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
+			//mBuffers.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
 
-			// Multisampling resolution bufffer.
-			if (_rpDescriptor.sampling != SampleBits::Sample1Bit)
-			{
-				imageInfos.sampling = SampleBits::Sample1Bit;
-				mBuffers.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
+			//// Multisampling resolution bufffer.
+			//if (_rpDescriptor.sampling != SampleBits::Sample1Bit)
+			//{
+			//	imageInfos.sampling = SampleBits::Sample1Bit;
+			//	mBuffers.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
 
-				imageInfos.sampling = _rpDescriptor.sampling;
-			}
+			//	imageInfos.sampling = _rpDescriptor.sampling;
+			//}
 		}
 
 		// Color clear values.

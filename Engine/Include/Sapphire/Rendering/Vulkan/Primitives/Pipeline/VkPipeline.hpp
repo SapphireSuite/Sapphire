@@ -41,7 +41,7 @@ namespace Sa::Vk
 		
 		static void FillRasterization(VkPipelineRasterizationStateCreateInfo& _rasterizerInfo, const PipelineRenderModes& _modes) noexcept;
 
-		static void FillRenderPassAttachments(struct RenderPassAttachmentInfos& _renderPassAttInfos, const RenderPassDescriptor& _renderPassDesc) noexcept;
+		static void FillRenderPassAttachments(struct RenderPassAttachmentInfos& _renderPassAttInfos, const PipelineCreateInfos& _infos) noexcept;
 
 	public:
 		VkPipelineLayout GetLayout() const noexcept;
