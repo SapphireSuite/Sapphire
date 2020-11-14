@@ -10,10 +10,6 @@ layout (set = 0, input_attachment_index = 2, binding = 2) uniform subpassInput s
 layout (set = 0, input_attachment_index = 3, binding = 3) uniform subpassInput samplerPBR;
 
 
-// In.
-layout(location = 0) in vec2 inSamplerUV;
-
-
 // Out.
 layout(location = 0) out vec4 outColor;
 

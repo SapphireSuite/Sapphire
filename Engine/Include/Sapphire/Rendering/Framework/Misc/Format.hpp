@@ -42,6 +42,7 @@ namespace Sa
 	};
 
 	bool IsColorFormat(Format _format) noexcept;
+	bool IsPresentFormat(Format _format) noexcept;
 	bool IsDepthFormat(Format _format) noexcept;
 
 #if SA_RENDERING_API == SA_VULKAN

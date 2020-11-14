@@ -28,7 +28,7 @@ namespace Sa::Vk
 		vkInfos.usage = usage;
 
 
-		if (IsColorFormat(format))
+		if (IsColorFormat(format) || IsPresentFormat(format))
 			vkInfos.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		else if (IsDepthFormat(format))
 			vkInfos.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
@@ -59,7 +59,7 @@ namespace Sa::Vk
 		
 		VkImageAspectFlags vkAspectFlags = aspectFlags;
 
-		if (IsColorFormat(format))
+		if (IsColorFormat(format) || IsPresentFormat(format))
 				vkAspectFlags |= VK_IMAGE_ASPECT_COLOR_BIT;
 		else if (IsDepthFormat(format))
 			vkAspectFlags |= VK_IMAGE_ASPECT_DEPTH_BIT;

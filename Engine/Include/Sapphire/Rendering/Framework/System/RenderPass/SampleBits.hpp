@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_RENDERING_SAMPLE_BITS_GUARD
 #define SAPPHIRE_RENDERING_SAMPLE_BITS_GUARD
 
+#include <Rendering/APIConfig.hpp>
+
 namespace Sa
 {
 	enum class SampleBits
@@ -29,10 +31,19 @@ namespace Sa
 
 		/// 64 bits multisampling.
 		Sample64Bits = 1 << 6,
+		
 
 		/// Use maximum multisampling allowed by hardware.
 		Max,
+
+		Default = Sample8Bits,
 	};
+
+#if SA_RENDERING_API == SA_VULKAN
+
+	VkSampleCountFlagBits API_GetSampleCount(SampleBits _sampleBits);
+
+#endif
 }
 
 #endif // GUARD

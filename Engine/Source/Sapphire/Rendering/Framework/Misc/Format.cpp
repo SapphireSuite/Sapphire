@@ -8,7 +8,12 @@ namespace Sa
 {
 	bool IsColorFormat(Format _format) noexcept
 	{
-		return static_cast<uint8>(_format) >= static_cast<uint8>(Format::R_8) && static_cast<uint8>(_format) <= static_cast<uint8>(Format::sBGRA_32);
+		return static_cast<uint8>(_format) >= static_cast<uint8>(Format::R_8) && static_cast<uint8>(_format) <= static_cast<uint8>(Format::BGRA_32);
+	}
+
+	bool IsPresentFormat(Format _format) noexcept
+	{
+		return static_cast<uint8>(_format) >= static_cast<uint8>(Format::sR_8) && static_cast<uint8>(_format) <= static_cast<uint8>(Format::sBGRA_32);
 	}
 	
 	bool IsDepthFormat(Format _format) noexcept
