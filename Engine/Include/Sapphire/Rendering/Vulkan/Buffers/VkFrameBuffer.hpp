@@ -27,12 +27,15 @@ namespace Sa::Vk
 		Vec2ui mExtent;
 
 		std::vector<ImageBuffer> mAttachments;
+		std::vector<ImageBuffer> mInputAttachments;
 		std::vector<VkClearValue> mClearValues;
+
+		void AddClearColor(Format _format, const Color& _clearColor);
 
 	public:
 		CommandBuffer commandBuffer;
 
-		const ImageBuffer& GetAttachment(uint32 _index) const;
+		const ImageBuffer& GetInputAttachment(uint32 _index) const;
 
 		void Create(const Device& _device, const RenderPass& _renderPass,
 			const RenderPassDescriptor& _rpDescriptor,

@@ -49,7 +49,7 @@ struct MainRenderInfos
 	void Create(IRenderInstance& _instance, IRenderSurface& _surface)
 	{
 		// RenderPass.
-		const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultPBRDeferred(&_surface);
+		const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::DefaultPBR(&_surface);
 		renderPass.Create(_instance, renderPassDesc);
 		const std::vector<Vk::FrameBuffer>& frameBuffers =
 			reinterpret_cast<const std::vector<Vk::FrameBuffer>&>(_surface.CreateFrameBuffers(_instance, renderPass, renderPassDesc));
@@ -207,33 +207,7 @@ struct MainRenderInfos
 			litmaterial.Create(_instance, matCreateInfos);
 
 
-			// TEMP.
-			VkSampler sampler = VK_NULL_HANDLE;
-
-			VkSamplerCreateInfo samplerCreateInfo{};
-			samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerCreateInfo.pNext = nullptr;
-			samplerCreateInfo.flags = 0;
-			samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-			samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-			samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerCreateInfo.mipLodBias = 0.0f;
-			samplerCreateInfo.anisotropyEnable = VK_TRUE;
-			samplerCreateInfo.maxAnisotropy = 16.0f;
-			samplerCreateInfo.compareEnable = VK_FALSE;
-			samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-			samplerCreateInfo.minLod = 0.0f;
-			samplerCreateInfo.maxLod = 1.0f;
-			samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-			samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
-
-			SA_VK_ASSERT(vkCreateSampler(_instance.As<Vk::RenderInstance>().device, &samplerCreateInfo, nullptr, &sampler),
-				CreationFailed, Rendering, L"Failed to create texture sampler!");
-
-
+			// TODO: Clean later.
 			std::vector<VkDescriptorImageInfo> imageDescs;
 			imageDescs.reserve(3u * 4u);
 
@@ -258,7 +232,7 @@ struct MainRenderInfos
 					VkWriteDescriptorSet& writeDesc = descWrites.emplace_back(mainWriteDesc);
 					writeDesc.dstBinding = j;
 
-					writeDesc.pImageInfo = &imageDescs.emplace_back(frameBuffers[i].GetAttachment(j).CreateDescriptorImageInfo(sampler));
+					writeDesc.pImageInfo = &imageDescs.emplace_back(frameBuffers[i].GetInputAttachment(j).CreateDescriptorImageInfo(VK_NULL_HANDLE));
 				}
 			}
 
@@ -267,6 +241,8 @@ struct MainRenderInfos
 	}
 	void Destroy(IRenderInstance& _instance, IRenderSurface& _surface)
 	{
+		litmaterial.Destroy(_instance);
+
 		litPipeline.Destroy(_instance);
 		litVert.Destroy(_instance);
 		litFrag.Destroy(_instance);

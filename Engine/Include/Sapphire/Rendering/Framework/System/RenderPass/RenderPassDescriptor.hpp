@@ -20,37 +20,36 @@ namespace Sa
 	struct SubPassAttachmentDescriptor
 	{
 		Format format;
+
+		// Used as input attachment in next subpass.
+		bool bInputNext = false;
 	};
 
 	struct SubPassDescriptor
 	{
+		// All color attachment must have the same sample count.
+		SampleBits sampling = SampleBits::Sample1Bit;
+
 		std::vector<SubPassAttachmentDescriptor> attachmentDescs;
 	};
 
 	class SA_ENGINE_API RenderPassDescriptor
 	{
 	public:
-		SampleBits sampling = SampleBits::Sample8Bits;
-
-		bool bPresent = true;
-
-		bool bDepthBuffer = true;
-		Format depthFormat = Format::Depth_16;
-
 		bool bClear = true;
 		Color clearColor = Color{ 0.0f, 0.0f, 0.05f, 0.0f };
 
 		std::vector<SubPassDescriptor> subPassDescs;
 
 		/**
-		*	\brief Create a default forward rendering renderpass descriptor.
+		*	\brief Create a default single-pass forward rendering renderpass descriptor.
 		*/
-		static RenderPassDescriptor CreateDefaultForward(const IRenderSurface* _surface = nullptr);
+		static RenderPassDescriptor DefaultSingle(const IRenderSurface* _surface = nullptr);
 
 		/**
-		*	\brief Create a default PBR deferred rendering renderpass descriptor.
+		*	\brief Create a default multi-pass PBR deferred rendering renderpass descriptor.
 		*/
-		static RenderPassDescriptor CreateDefaultPBRDeferred(const IRenderSurface* _surface = nullptr);
+		static RenderPassDescriptor DefaultPBR(const IRenderSurface* _surface = nullptr);
 	};
 }
 

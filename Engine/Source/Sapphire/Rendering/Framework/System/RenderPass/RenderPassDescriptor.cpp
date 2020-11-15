@@ -6,64 +6,76 @@
 
 namespace Sa
 {
-	RenderPassDescriptor RenderPassDescriptor::CreateDefaultForward(const IRenderSurface* _surface)
+	RenderPassDescriptor RenderPassDescriptor::DefaultSingle(const IRenderSurface* _surface)
 	{
 		RenderPassDescriptor result{};
 
+		result.subPassDescs.reserve(1u);
+
 		// === Main Subpass ===
-		result.subPassDescs.resize(1u);
-
-		result.subPassDescs[0].attachmentDescs.resize(1u);
-
-		if (_surface)
 		{
-			result.bPresent = true;
-			result.subPassDescs[0].attachmentDescs[0].format = _surface->GetFormat();
-		}
-		else
-		{
-			result.bPresent = false;
-			result.subPassDescs[0].attachmentDescs[0].format = Format::sRGBA_32;
+			SubPassDescriptor& mainSubpassDesc = result.subPassDescs.emplace_back();
+			mainSubpassDesc.sampling = SampleBits::Sample8Bits;
+
+			mainSubpassDesc.attachmentDescs.reserve(2u);
+
+
+			// Color and present attachment.
+			SubPassAttachmentDescriptor& colorAttachDesc = mainSubpassDesc.attachmentDescs.emplace_back();
+			colorAttachDesc.format = _surface ? _surface->GetFormat() : Format::sRGBA_32;
+
+
+			// Depth attachment.
+			SubPassAttachmentDescriptor& depthAttachDesc = mainSubpassDesc.attachmentDescs.emplace_back();
+			depthAttachDesc.format = Format::Depth_16;
 		}
 
 		return result;
 	}
 
-	RenderPassDescriptor RenderPassDescriptor::CreateDefaultPBRDeferred(const IRenderSurface* _surface)
+	RenderPassDescriptor RenderPassDescriptor::DefaultPBR(const IRenderSurface* _surface)
 	{
 		RenderPassDescriptor result{};
 
-		result.sampling = SampleBits::Sample1Bit;
-		result.subPassDescs.resize(2u);
+		result.subPassDescs.reserve(2u);
 
 		// === PBR Subpass ===
-		result.subPassDescs[0].attachmentDescs.resize(4u);
+		{
+			SubPassDescriptor& pbrSubpassDesc = result.subPassDescs.emplace_back();
+			pbrSubpassDesc.sampling = SampleBits::Sample8Bits;
 
-		// Position.
-		result.subPassDescs[0].attachmentDescs[0].format = Format::RGBA_32;
-		
-		// Normal
-		result.subPassDescs[0].attachmentDescs[1].format = Format::RGBA_32;
+			// Deferred position attachment.
+			SubPassAttachmentDescriptor& posAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+			posAttachDesc.format = Format::RGBA_32;
+			posAttachDesc.bInputNext = true;
 
-		// Albedo
-		result.subPassDescs[0].attachmentDescs[2].format = Format::RGBA_32;
+			// Deferred normal attachment.
+			SubPassAttachmentDescriptor& normAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+			normAttachDesc.format = Format::RGBA_32;
+			normAttachDesc.bInputNext = true;
 
-		// PBR: Metallic, Roughness, Ambiant occlusion.
-		result.subPassDescs[0].attachmentDescs[3].format = Format::RGBA_32;
+			// Deferred albedo attachment.
+			SubPassAttachmentDescriptor& albedoAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+			albedoAttachDesc.format = Format::RGBA_32;
+			albedoAttachDesc.bInputNext = true;
+
+			// Deferred PBR (Metallic, Roughness, Ambiant occlusion) attachment.
+			SubPassAttachmentDescriptor& pbrAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+			pbrAttachDesc.format = Format::RGBA_32;
+			pbrAttachDesc.bInputNext = true;
+
+			SubPassAttachmentDescriptor& depthAttachDesc = pbrSubpassDesc.attachmentDescs.emplace_back();
+			depthAttachDesc.format = Format::Depth_16;
+		}
 
 
 		// === Present Subpass ===
-		result.subPassDescs[1].attachmentDescs.resize(1u);
+		{
+			SubPassDescriptor& presentSubpassDesc = result.subPassDescs.emplace_back();
+			presentSubpassDesc.sampling = SampleBits::Sample1Bit;
 
-		if (_surface)
-		{
-			result.bPresent = true;
-			result.subPassDescs[1].attachmentDescs[0].format = _surface->GetFormat();
-		}
-		else
-		{
-			result.bPresent = false;
-			result.subPassDescs[1].attachmentDescs[0].format = Format::sRGBA_32;
+			SubPassAttachmentDescriptor& presentAttachDesc = presentSubpassDesc.attachmentDescs.emplace_back();
+			presentAttachDesc.format = _surface ? _surface->GetFormat() : Format::sRGBA_32;
 		}
 
 

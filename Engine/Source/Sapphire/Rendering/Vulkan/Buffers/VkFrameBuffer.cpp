@@ -12,98 +12,83 @@
 
 namespace Sa::Vk
 {
-	const ImageBuffer& FrameBuffer::GetAttachment(uint32 _index) const
+	const ImageBuffer& FrameBuffer::GetInputAttachment(uint32 _index) const
 	{
-		SA_ASSERT(_index < SizeOf(mAttachments), OutOfRange, Rendering, _index, 0u, SizeOf(mAttachments));
+		SA_ASSERT(_index < SizeOf(mInputAttachments), OutOfRange, Rendering, _index, 0u, SizeOf(mInputAttachments));
 
-		return mAttachments[_index];
+		return mInputAttachments[_index];
 	}
 
 	void FrameBuffer::Create(const Device& _device, const RenderPass& _renderPass,
 		const RenderPassDescriptor& _rpDescriptor,
 		const Vec2ui& _extent, uint32 _poolIndex, VkImage presentImage)
 	{
-#if SA_DEBUG
-		if (_rpDescriptor.bPresent)
-			SA_ASSERT(presentImage != VK_NULL_HANDLE, InvalidParam, Rendering, L"Framebuffer with bPresent == true requiere a valid swapchain image!");
-#endif
+		std::vector<VkImageView> attachementCreateInfos;
 
-		// === Color attachments ===
 		ImageBufferCreateInfos imageInfos;
 		imageInfos.extent = _extent;
-		imageInfos.sampling = _rpDescriptor.sampling;
 
-		// Add Image buffer for each attachment.
-		imageInfos.usage = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-
-		auto subEndIt = _rpDescriptor.subPassDescs.end();
-		
-		// Prensent subpass framebuffer should be created manually.
-		if (_rpDescriptor.bPresent)
-			--subEndIt;
-
-		for (auto subIt = _rpDescriptor.subPassDescs.begin(); subIt != subEndIt; ++subIt)
+		for (auto subIt = _rpDescriptor.subPassDescs.begin(); subIt != _rpDescriptor.subPassDescs.end(); ++subIt)
 		{
 			for (auto attIt = subIt->attachmentDescs.begin(); attIt != subIt->attachmentDescs.end(); ++attIt)
 			{
 				imageInfos.format = attIt->format;
+				imageInfos.usage = 0u; // Reset usage.
+				imageInfos.sampling = subIt->sampling; // Reset sampling value.
 
-				mAttachments.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
+
+				if (subIt->sampling != SampleBits::Sample1Bit && !IsDepthFormat(attIt->format))
+				{
+					// Add multisampled buffer.
+					ImageBuffer& multSamplBuffer = mAttachments.emplace_back(ImageBuffer{});
+					multSamplBuffer.Create(_device, imageInfos);
+					attachementCreateInfos.push_back(multSamplBuffer);
+
+					if (_rpDescriptor.bClear)
+						AddClearColor(attIt->format, _rpDescriptor.clearColor);
+
+					imageInfos.sampling = SampleBits::Sample1Bit;
+				}
+
+
+				if (IsPresentFormat(attIt->format))
+				{
+					SA_ASSERT(presentImage != VK_NULL_HANDLE, InvalidParam, Rendering, L"Framebuffer with present format requiere a valid swapchain image!");
+					
+					ImageBuffer& presentBuffer = mAttachments.emplace_back(ImageBuffer{});
+					presentBuffer.CreateFromImage(_device, imageInfos, presentImage);
+					attachementCreateInfos.push_back(presentBuffer);
+				}
+				else if (attIt->bInputNext)
+				{
+					imageInfos.usage = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+
+					ImageBuffer& inputBuffer = mInputAttachments.emplace_back(ImageBuffer{});
+					inputBuffer.Create(_device, imageInfos);
+					attachementCreateInfos.push_back(inputBuffer);
+				}
+				else
+				{
+					ImageBuffer& buffer = mAttachments.emplace_back(ImageBuffer{});
+					buffer.Create(_device, imageInfos);
+					attachementCreateInfos.push_back(buffer);
+				}
+
+
+				if (_rpDescriptor.bClear)
+					AddClearColor(attIt->format, _rpDescriptor.clearColor);
 			}
-		}
-
-		// === Present attachment ===
-		if (_rpDescriptor.bPresent)
-		{
-			auto& attachments = subEndIt->attachmentDescs;
-
-			imageInfos.format = attachments[0].format;
-
-			if (_rpDescriptor.sampling == SampleBits::Sample1Bit)
-				mAttachments.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
-			else
-			{
-				mAttachments.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
-
-				// Multisampling resolution bufffer.
-				imageInfos.sampling = SampleBits::Sample1Bit;
-				mAttachments.emplace_back(ImageBuffer{}).CreateFromImage(_device, imageInfos, presentImage);
-
-				imageInfos.sampling = _rpDescriptor.sampling;
-			}
-		}
-
-		// Color clear values.
-		if (_rpDescriptor.bClear)
-			mClearValues.insert(mClearValues.end(), SizeOf(mAttachments), _rpDescriptor.clearColor);
-
-
-		// === Depth attachment ===
-		if (_rpDescriptor.bDepthBuffer)
-		{
-			imageInfos.usage = 0u;
-			imageInfos.format = _rpDescriptor.depthFormat;
-
-			mAttachments.emplace_back(ImageBuffer{}).Create(_device, imageInfos);
-
-			if (_rpDescriptor.bClear)
-				mClearValues.emplace_back(VkClearValue{ { { 1.f, 0u } } });
 		}
 
 
 		// === Create FrameBuffer ===
-		std::vector<VkImageView> attachements(mAttachments.size());
-
-		for (size_t i = 0; i < mAttachments.size(); ++i)
-			attachements[i] = mAttachments[i];
-
 		VkFramebufferCreateInfo framebufferCreateInfo{};
 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferCreateInfo.pNext = nullptr;
 		framebufferCreateInfo.flags = 0;
 		framebufferCreateInfo.renderPass = _renderPass;
-		framebufferCreateInfo.attachmentCount = SizeOf(attachements);
-		framebufferCreateInfo.pAttachments = attachements.data();
+		framebufferCreateInfo.attachmentCount = SizeOf(attachementCreateInfos);
+		framebufferCreateInfo.pAttachments = attachementCreateInfos.data();
 		framebufferCreateInfo.width = _extent.x;
 		framebufferCreateInfo.height = _extent.y;
 		framebufferCreateInfo.layers = 1;
@@ -124,10 +109,17 @@ namespace Sa::Vk
 
 		vkDestroyFramebuffer(_device, mHandle, nullptr);
 
+		// Destroy attachments.
 		for (auto it = mAttachments.begin(); it != mAttachments.end(); ++it)
 			it->Destroy(_device);
 
 		mAttachments.clear();
+
+		// Destroy input attachments.
+		for (auto it = mInputAttachments.begin(); it != mInputAttachments.end(); ++it)
+			it->Destroy(_device);
+
+		mInputAttachments.clear();
 	}
 
 	void FrameBuffer::Begin()
@@ -172,6 +164,15 @@ namespace Sa::Vk
 		// === End Command buffer record ===
 		SA_VK_ASSERT(vkEndCommandBuffer(commandBuffer),
 			LibCommandFailed, Rendering, L"Failed to end command buffer!");
+	}
+
+
+	void FrameBuffer::AddClearColor(Format _format, const Color& _clearColor)
+	{
+		if (IsDepthFormat(_format))
+			mClearValues.emplace_back(VkClearValue{ { { 1.f, 0u } } });
+		else
+			mClearValues.emplace_back(_clearColor);
 	}
 }
 

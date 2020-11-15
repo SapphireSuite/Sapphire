@@ -20,8 +20,8 @@ namespace Sa::Vk
 
 		subpass.colorAttachmentCount = 0u;
 		subpass.pColorAttachments = nullptr;
-		
 		subpass.pResolveAttachments = nullptr;
+		
 		subpass.pDepthStencilAttachment = nullptr;
 
 		subpass.preserveAttachmentCount = 0u;
@@ -87,121 +87,119 @@ namespace Sa::Vk
 	{
 		const Device& device = _instance.As<RenderInstance>().device;
 
-		const VkSampleCountFlagBits sampling = static_cast<VkSampleCountFlagBits>(_descriptor.sampling);
 		const VkAttachmentLoadOp loadOp = _descriptor.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-		// === Attachments ===
-		std::vector<uint32> offsetIndex;
-		offsetIndex.push_back(0u); // Add first offset.
-		offsetIndex.reserve(10u);
-
-		std::vector<VkAttachmentDescription> attachments;
-		attachments.reserve(10u);
-
-		std::vector<VkAttachmentReference> attachmentRefs;
-		attachmentRefs.reserve(10u);
-
-		std::vector<VkAttachmentReference> inputAttachmentRefs;
-		inputAttachmentRefs.reserve(10u);
-
-		VkAttachmentReference depthAttachmentRef;
-		VkAttachmentReference presentAttachmentResolveRef;
-
-		
-		for (uint32 i = 0; i < SizeOf(_descriptor.subPassDescs); ++i)
-		{
-			const SubPassDescriptor& subpassDesc = _descriptor.subPassDescs[i];
-
-			for (auto attIt = subpassDesc.attachmentDescs.begin(); attIt != subpassDesc.attachmentDescs.end(); ++attIt)
-			{
-				attachments.push_back(CreateAttachement(API_GetFormat(attIt->format), sampling, loadOp));
-				attachmentRefs.push_back({ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
-				inputAttachmentRefs.push_back({ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
-			}
-
-			uint32 offset = SizeOf(attachments);
-			offsetIndex.push_back(offset);
-		}
-
-		// Add present attachment.
-		if (_descriptor.bPresent)
-		{
-			if (sampling != VK_SAMPLE_COUNT_1_BIT)
-			{
-				// Color attachment multisampling resolution.
-				VkFormat presentFormat = API_GetFormat(_descriptor.subPassDescs[SizeOf(_descriptor.subPassDescs) - 1].attachmentDescs[0].format);
-
-				VkAttachmentDescription presentAttachmentResolve = CreateAttachement(presentFormat, VK_SAMPLE_COUNT_1_BIT, loadOp);
-				presentAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-				attachments.push_back(presentAttachmentResolve);
-				presentAttachmentResolveRef = VkAttachmentReference{ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-			}
-			else
-				attachments[SizeOf(attachments) - 1].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		}
-
-		// Add Depth attachement.
-		if (_descriptor.bDepthBuffer)
-		{
-			VkAttachmentDescription depthAttachment = CreateAttachement(API_GetFormat(_descriptor.depthFormat), sampling, loadOp);
-			depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			
-			attachments.push_back(depthAttachment);
-
-			depthAttachmentRef = VkAttachmentReference{ SizeOf(attachments) - 1u, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
-		}
-		
-		// Split into 2 for loops to avoid bad pointers due to vector reallocation.
 
 		// === Subpasses ===
 		uint32 subpassNum = SizeOf(_descriptor.subPassDescs);
 
 		std::vector<VkSubpassDescription> subpassDescriptions;
-		subpassDescriptions.resize(subpassNum);
+		subpassDescriptions.reserve(subpassNum);
 
 		std::vector<VkSubpassDependency> subpassDependencies;
-		subpassDependencies.resize(subpassNum);
+		subpassDependencies.reserve(subpassNum);
 
-		for (uint32 i = 0; i < subpassNum; ++i)
+
+		std::vector<VkAttachmentDescription> subpassAttachments;
+		subpassAttachments.reserve(subpassNum * 10u);
+
+		std::vector<std::vector<VkAttachmentReference>> subpassColorAttachmentRefs;
+		subpassColorAttachmentRefs.resize(subpassNum);
+
+		std::vector<std::vector<VkAttachmentReference>> subpassAttachmentResolveRefs;
+		subpassAttachmentResolveRefs.resize(subpassNum);
+
+		std::vector<std::vector<VkAttachmentReference>> subpassInputAttachmentRefs;
+		subpassInputAttachmentRefs.resize(subpassNum);
+
+		std::vector<VkAttachmentReference> subpassDepthAttachmentRefs;
+		subpassDepthAttachmentRefs.reserve(subpassNum);
+
+
+		for (uint32 i = 0; i < SizeOf(_descriptor.subPassDescs); ++i)
 		{
-			// Description.
-			VkSubpassDescription& subpassDesc = subpassDescriptions[i];
+			const SubPassDescriptor& subpassDesc = _descriptor.subPassDescs[i];
+			const VkSampleCountFlagBits sampling = API_GetSampleCount(subpassDesc.sampling);
 
-			subpassDesc = CreateSubpassDesc();
+			// === Attachments ===
+			std::vector<VkAttachmentReference>& colorAttachmentRefs = subpassColorAttachmentRefs[i];
+			colorAttachmentRefs.reserve(subpassDesc.attachmentDescs.size());
 
-			subpassDesc.colorAttachmentCount = offsetIndex[i + 1] - offsetIndex[i];
-			subpassDesc.pColorAttachments = attachmentRefs.data() + offsetIndex[i];
+			std::vector<VkAttachmentReference>& resolveAttachmentRefs = subpassAttachmentResolveRefs[i];
+			resolveAttachmentRefs.reserve(subpassDesc.attachmentDescs.size());
 
-			if (_descriptor.bDepthBuffer)
-				subpassDesc.pDepthStencilAttachment = &depthAttachmentRef;
+			std::vector<VkAttachmentReference>& inputAttachmentRefs = subpassInputAttachmentRefs[i];
+			inputAttachmentRefs.reserve(subpassDesc.attachmentDescs.size());
 
-			if (i > 0u)
+			VkAttachmentReference& depthAttachRef = subpassDepthAttachmentRefs.emplace_back(VkAttachmentReference{ VK_ATTACHMENT_UNUSED,
+				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL });
+
+
+			for (auto attIt = subpassDesc.attachmentDescs.begin(); attIt != subpassDesc.attachmentDescs.end(); ++attIt)
 			{
-				// Add input attachment of previous subpass.
-				subpassDesc.inputAttachmentCount = offsetIndex[i] - offsetIndex[i - 1];
-				subpassDesc.pInputAttachments = inputAttachmentRefs.data() + offsetIndex[i - 1];
+				const VkFormat format = API_GetFormat(attIt->format);
+
+				VkAttachmentDescription& attachDesc = subpassAttachments.emplace_back(CreateAttachement(format, sampling, loadOp));
+
+				if (IsDepthFormat(attIt->format))
+				{
+					attachDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+					depthAttachRef.attachment = SizeOf(subpassAttachments) - 1u;
+				}
+				else
+				{
+					colorAttachmentRefs.push_back({ SizeOf(subpassAttachments) - 1u, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
+					resolveAttachmentRefs.push_back(VkAttachmentReference{ VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
+
+					if (sampling != VK_SAMPLE_COUNT_1_BIT)
+					{
+						// Color attachment multisampling resolution.
+
+						VkAttachmentDescription& resolveAttachDesc = subpassAttachments.emplace_back(CreateAttachement(format, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE));
+
+						if (IsPresentFormat(attIt->format))
+							resolveAttachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+						resolveAttachmentRefs.back().attachment = SizeOf(subpassAttachments) - 1u;
+					}
+					else if (IsPresentFormat(attIt->format))
+						attachDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+				}
+
+				if(attIt->bInputNext)
+					inputAttachmentRefs.push_back({ SizeOf(subpassAttachments) - 1u, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 			}
 
 
-			// Dependency.
-			VkSubpassDependency& subpassDep = subpassDependencies[i];
-			subpassDep = CreateSubpassDep(i, subpassNum);
+			// Subpass description.
+			VkSubpassDescription& vkSubpassDesc = subpassDescriptions.emplace_back(CreateSubpassDesc());
+
+			vkSubpassDesc.colorAttachmentCount = SizeOf(colorAttachmentRefs);
+			vkSubpassDesc.pColorAttachments = colorAttachmentRefs.data();
+			vkSubpassDesc.pResolveAttachments = resolveAttachmentRefs.data();
+
+			vkSubpassDesc.pDepthStencilAttachment = &depthAttachRef;
+
+			if (i > 0u && SizeOf(subpassInputAttachmentRefs[i - 1]) > 0u)
+			{
+				// Add input attachment from previous subpass.
+				vkSubpassDesc.inputAttachmentCount = SizeOf(subpassInputAttachmentRefs[i - 1]);
+				vkSubpassDesc.pInputAttachments = subpassInputAttachmentRefs[i - 1].data();
+			}
+
+
+			// Subpass dependency.
+			/* VkSubpassDependency& subpassDep =*/ subpassDependencies.emplace_back(CreateSubpassDep(i, subpassNum));
 		}
 
-
-		// Add present resolve attachment.
-		if (_descriptor.bPresent && sampling != VK_SAMPLE_COUNT_1_BIT)
-			subpassDescriptions[subpassNum - 1].pResolveAttachments = &presentAttachmentResolveRef;
-		
 
 		// === RenderPass ===
 		VkRenderPassCreateInfo renderPassCreateInfo{};
 		renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassCreateInfo.pNext = nullptr;
 		renderPassCreateInfo.flags = VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM;
-		renderPassCreateInfo.attachmentCount = SizeOf(attachments);
-		renderPassCreateInfo.pAttachments = attachments.data();
+		renderPassCreateInfo.attachmentCount = SizeOf(subpassAttachments);
+		renderPassCreateInfo.pAttachments = subpassAttachments.data();
 		renderPassCreateInfo.subpassCount = SizeOf(subpassDescriptions);
 		renderPassCreateInfo.pSubpasses = subpassDescriptions.data();
 		renderPassCreateInfo.dependencyCount = SizeOf(subpassDependencies);

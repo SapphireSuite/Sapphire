@@ -267,7 +267,7 @@ namespace Sa::Vk
 		_renderPassAttInfos.multisamplingInfos.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		_renderPassAttInfos.multisamplingInfos.pNext = nullptr;
 		_renderPassAttInfos.multisamplingInfos.flags = 0u;
-		_renderPassAttInfos.multisamplingInfos.rasterizationSamples = static_cast<VkSampleCountFlagBits>(_infos.renderPassDesc.sampling);
+		_renderPassAttInfos.multisamplingInfos.rasterizationSamples = API_GetSampleCount(_infos.renderPassDesc.subPassDescs[_infos.subPassIndex].sampling);
 		_renderPassAttInfos.multisamplingInfos.sampleShadingEnable = VK_TRUE;
 		_renderPassAttInfos.multisamplingInfos.minSampleShading = 0.2f;
 		_renderPassAttInfos.multisamplingInfos.pSampleMask = nullptr;
@@ -305,7 +305,16 @@ namespace Sa::Vk
 		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		
-		_renderPassAttInfos.colorBlendAttachments.resize(subpassDesc.attachmentDescs.size(), colorBlendAttachment);
+		// Query color attachments only.
+		uint32 colorAttachmentNum = 0u;
+
+		for (auto it = subpassDesc.attachmentDescs.begin(); it != subpassDesc.attachmentDescs.end(); ++it)
+		{
+			if (!IsDepthFormat(it->format))
+				++colorAttachmentNum;
+		}
+
+		_renderPassAttInfos.colorBlendAttachments.resize(colorAttachmentNum, colorBlendAttachment);
 
 
 		// Color blending.
