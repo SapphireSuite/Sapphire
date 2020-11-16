@@ -143,14 +143,14 @@ namespace Sa::Vk
 			LibCommandFailed, Rendering, L"Failed to aquire next image!");
 
 
-		mFrameBuffers[mFrameIndex].Begin();
+		mFrameBuffers[mFrameIndex]->Begin();
 
-		return RenderFrame{ mFrameIndex, mFrameBuffers[mFrameIndex] };
+		return RenderFrame{ mFrameIndex, *mFrameBuffers[mFrameIndex] };
 	}
 	
 	void SwapChain::End(const Device& _device)
 	{
-		mFrameBuffers[mFrameIndex].End();
+		mFrameBuffers[mFrameIndex]->End();
 
 
 		// Submit graphics.
@@ -163,7 +163,7 @@ namespace Sa::Vk
 		submitInfo.pWaitSemaphores = &mFramesSynch[mFrameIndex].acquireSemaphore;
 		submitInfo.pWaitDstStageMask = &waitStages;
 		submitInfo.commandBufferCount = 1u;
-		submitInfo.pCommandBuffers = &mFrameBuffers[mFrameIndex].commandBuffer.Get();
+		submitInfo.pCommandBuffers = &mFrameBuffers[mFrameIndex]->commandBuffer.Get();
 		submitInfo.signalSemaphoreCount = 1u;
 		submitInfo.pSignalSemaphores = &mFramesSynch[mFrameIndex].presentSemaphore;
 
@@ -190,7 +190,8 @@ namespace Sa::Vk
 		mFrameIndex = (mFrameIndex + 1) % mImageNum;
 	}
 
-	const std::vector<FrameBuffer>& SwapChain::CreateFrameBuffers(const Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _renderPassDesc)
+	const std::vector<FrameBuffer*>& SwapChain::CreateFrameBuffers(const Device& _device, const RenderPass& _renderPass,
+		const RenderPassDescriptor& _renderPassDesc, uint32* _size)
 	{
 		std::vector<VkImage> swapChainImages(mImageNum);
 		vkGetSwapchainImagesKHR(_device, mHandle, &mImageNum, swapChainImages.data());
@@ -199,9 +200,12 @@ namespace Sa::Vk
 
 		for (uint32 i = 0u; i < mImageNum; ++i)
 		{
-			FrameBuffer& frameBuffer = mFrameBuffers.emplace_back();
-			frameBuffer.Create(_device, _renderPass, _renderPassDesc, mExtent, i, swapChainImages[i]);
+			FrameBuffer* frameBuffer = mFrameBuffers.emplace_back(new FrameBuffer());
+			frameBuffer->Create(_device, _renderPass, _renderPassDesc, mExtent, i, swapChainImages[i]);
 		}
+
+		if (_size)
+			*_size = mImageNum;
 
 		return mFrameBuffers;
 	}
@@ -209,7 +213,10 @@ namespace Sa::Vk
 	void SwapChain::DestroyFrameBuffers(const Device& _device)
 	{
 		for (auto it = mFrameBuffers.begin(); it != mFrameBuffers.end(); ++it)
-			it->Destroy(_device);
+		{
+			(*it)->Destroy(_device);
+			delete* it;
+		}
 
 		mFrameBuffers.clear();
 	}

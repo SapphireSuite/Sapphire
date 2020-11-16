@@ -15,7 +15,6 @@
 #include <Rendering/Vulkan/Primitives/Pipeline/VkPipeline.hpp>
 #include <Rendering/Vulkan/Primitives/Material/VkMaterial.hpp>
 #include <Rendering/Vulkan/Buffers/VkBuffer.hpp>
-#include <Rendering/Vulkan/Buffers/VkFrameBuffer.hpp>
 
 #include <SDK/Assets/Shader/ShaderAsset.hpp>
 #include <SDK/Assets/Texture/TextureAsset.hpp>
@@ -25,10 +24,6 @@ using namespace Sa;
 
 #define LOG(_str) std::cout << _str << std::endl;
 
-
-#define __DEFERRED 1
-
-#if __DEFERRED
 
 struct MainRenderInfos
 {
@@ -51,8 +46,9 @@ struct MainRenderInfos
 		// RenderPass.
 		const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::DefaultPBR(&_surface);
 		renderPass.Create(_instance, renderPassDesc);
-		const std::vector<Vk::FrameBuffer>& frameBuffers =
-			reinterpret_cast<const std::vector<Vk::FrameBuffer>&>(_surface.CreateFrameBuffers(_instance, renderPass, renderPassDesc));
+		
+		uint32 frameBuffersSize = 0u;
+		const std::vector<IFrameBuffer*>& frameBuffers = _surface.CreateFrameBuffers(_instance, renderPass, renderPassDesc, &frameBuffersSize);
 
 		// Subpass 0: G-Buffer composition.
 		{
@@ -194,49 +190,21 @@ struct MainRenderInfos
 
 
 			// Material.
-			MaterialCreateInfos matCreateInfos(litPipeline);
+			MaterialCreateInfos matCreateInfos(litPipeline, frameBuffersSize);
 
-			for (uint32 i = 0; i < 4u; ++i)
+			for (uint32 i = 0; i < 3u; ++i)
 			{
-				MaterialBindingInfos& inBinding = matCreateInfos.bindings.emplace_back();
-				inBinding.binding = i;
-
-				inBinding.mType = ShaderBindingType::InputAttachment;
-			}
-
-			litmaterial.Create(_instance, matCreateInfos);
-
-
-			// TODO: Clean later.
-			std::vector<VkDescriptorImageInfo> imageDescs;
-			imageDescs.reserve(3u * 4u);
-
-			std::vector<VkWriteDescriptorSet> descWrites;
-			descWrites.reserve(3u * 4u);
-
-			VkWriteDescriptorSet mainWriteDesc{};
-			mainWriteDesc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			mainWriteDesc.pNext = nullptr;
-			mainWriteDesc.dstSet = VK_NULL_HANDLE;
-			mainWriteDesc.dstBinding = 0u;
-			mainWriteDesc.dstArrayElement = 0u;
-			mainWriteDesc.descriptorCount = 1u;
-			mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-
-			for (uint32 i = 0; i < 3u; ++i) // Fame num
-			{
-				mainWriteDesc.dstSet = litmaterial.mDescriptorSets[i];
-
-				for (uint32 j = 0; j < 4u; ++j) // binding num.
+					for (uint32 j = 0; j < 4u; ++j)
 				{
-					VkWriteDescriptorSet& writeDesc = descWrites.emplace_back(mainWriteDesc);
-					writeDesc.dstBinding = j;
+					MaterialBindingInfos& inBinding = matCreateInfos.bindings.emplace_back();
+					inBinding.binding = j;
+					inBinding.descriptor = i;
 
-					writeDesc.pImageInfo = &imageDescs.emplace_back(frameBuffers[i].GetInputAttachment(j).CreateDescriptorImageInfo(VK_NULL_HANDLE));
+					inBinding.SetInputBuffer(frameBuffers[i]->GetInputAttachment(j));
 				}
 			}
 
-			vkUpdateDescriptorSets(_instance.As<Vk::RenderInstance>().device, SizeOf(descWrites), descWrites.data(), 0, nullptr);
+			litmaterial.Create(_instance, matCreateInfos);
 		}
 	}
 	void Destroy(IRenderInstance& _instance, IRenderSurface& _surface)
@@ -255,103 +223,6 @@ struct MainRenderInfos
 		renderPass.Destroy(_instance);
 	}
 };
-
-#else
-
-struct MainRenderInfos
-{
-	Vk::RenderPass renderPass;
-
-	Vk::Shader unlitVert;
-	Vk::Shader unlitFrag;
-	Vk::Pipeline mainPipeline;
-
-
-	void Create(IRenderInstance& _instance, IRenderSurface& _surface)
-	{
-		// RenderPass.
-		const RenderPassDescriptor renderPassDesc = RenderPassDescriptor::CreateDefaultForward(&_surface);
-		renderPass.Create(_instance, renderPassDesc);
-		const std::vector<IFrameBuffer>& framebuffers = _surface.CreateFrameBuffers(_instance, renderPass, renderPassDesc);
-
-		{
-			// Vertex Shader.
-			{
-				const char* assetPath = "Bin/Engine/Shaders/unlit_VS.spha";
-				const char* resourcePath = "../../Engine/Resources/Shaders/unlit.vert";
-
-				ShaderAsset asset;
-				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
-
-				if (res != 1)
-					asset.Save(assetPath);
-				else if (res == -1)
-					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
-
-				unlitVert.Create(_instance, asset.GetRawData());
-			}
-
-			// Fragment Shader.
-			{
-				const char* assetPath = "Bin/Engine/Shaders/unlit_FS.spha";
-				const char* resourcePath = "../../Engine/Resources/Shaders/unlit.frag";
-
-				ShaderAsset asset;
-				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
-
-				if (res != 1)
-					asset.Save(assetPath);
-				else if (res == -1)
-					SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
-
-				unlitFrag.Create(_instance, asset.GetRawData());
-			}
-
-
-			// Pipeline.
-			PipelineCreateInfos pipelineInfos(renderPass, renderPassDesc);
-
-			{
-				PipelineBindingInfos& camUBOBinding = pipelineInfos.bindings.emplace_back();
-				camUBOBinding.binding = 0u;
-				camUBOBinding.stages = ShaderStage::Vertex;
-				camUBOBinding.type = ShaderBindingType::UniformBuffer;
-
-
-				PipelineBindingInfos& modelUBOBinding = pipelineInfos.bindings.emplace_back();
-				modelUBOBinding.binding = 1u;
-				modelUBOBinding.stages = ShaderStage::Vertex;
-				modelUBOBinding.type = ShaderBindingType::UniformBuffer;
-
-
-				PipelineBindingInfos& textureBinding = pipelineInfos.bindings.emplace_back();
-				textureBinding.binding = 2u;
-				textureBinding.stages = ShaderStage::Fragment;
-				textureBinding.type = ShaderBindingType::ImageSampler2D;
-			}
-
-			pipelineInfos.subPassIndex = 0u;
-			pipelineInfos.shaders.push_back(PipelineShaderInfos{ &unlitVert, ShaderStage::Vertex });
-			pipelineInfos.shaders.push_back(PipelineShaderInfos{ &unlitFrag, ShaderStage::Fragment });
-
-			pipelineInfos.vertexBindingLayout.meshLayout = VertexLayout::Make<VertexComp::Default>();
-			pipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::PTex>();
-
-			mainPipeline.Create(_instance, pipelineInfos);
-		}
-	}
-	void Destroy(IRenderInstance& _instance, IRenderSurface& _surface)
-	{
-		mainPipeline.Destroy(_instance);
-		unlitVert.Destroy(_instance);
-		unlitFrag.Destroy(_instance);
-
-		_surface.DestroyFrameBuffers(_instance);
-		renderPass.Destroy(_instance);
-	}
-};
-
-#endif
 
 MainRenderInfos mainRender;
 
@@ -489,7 +360,10 @@ int main()
 
 
 	LOG("=== Loop ===");
+
+#ifndef __SA_TRAVIS
 	while (!window.ShouldClose())
+#endif
 	{
 		float deltaTime = chrono.Restart() * 0.00005f;
 
@@ -511,8 +385,6 @@ int main()
 		cubeMesh.Draw(frame);
 		//
 
-#if __DEFERRED
-
 		frame.buffer.NextSubpass();
 
 		// Subpass 1: Illumination.
@@ -520,8 +392,6 @@ int main()
 
 		mainRender.litmaterial.Bind(frame, mainRender.litPipeline);
 		cubeMesh.Draw(frame);
-
-#endif
 
 		// End Surface.
 		surface.End(instance);

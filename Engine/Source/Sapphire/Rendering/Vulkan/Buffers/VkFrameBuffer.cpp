@@ -12,7 +12,7 @@
 
 namespace Sa::Vk
 {
-	const ImageBuffer& FrameBuffer::GetInputAttachment(uint32 _index) const
+	const IImageBuffer& FrameBuffer::GetInputAttachment(uint32 _index) const
 	{
 		SA_ASSERT(_index < SizeOf(mInputAttachments), OutOfRange, Rendering, _index, 0u, SizeOf(mInputAttachments));
 

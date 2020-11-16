@@ -39,8 +39,8 @@ namespace Sa::Vk
 		RenderFrame Begin(const IRenderInstance& _instance) override final;
 		void End(const IRenderInstance& _instance) override final;
 
-		const std::vector<IFrameBuffer>& CreateFrameBuffers(IRenderInstance& _instance, const IRenderPass& _renderPass,
-			const RenderPassDescriptor& _renderPassDesc) override final;
+		const std::vector<IFrameBuffer*>& CreateFrameBuffers(IRenderInstance& _instance, const IRenderPass& _renderPass,
+			const RenderPassDescriptor& _renderPassDesc, uint32* _size = nullptr) override final;
 		void DestroyFrameBuffers(IRenderInstance& _instance) override final;
 
 

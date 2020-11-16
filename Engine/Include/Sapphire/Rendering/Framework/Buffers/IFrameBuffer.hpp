@@ -5,13 +5,15 @@
 #ifndef SAPPHIRE_RENDERING_IFRAME_BUFFER_GUARD
 #define SAPPHIRE_RENDERING_IFRAME_BUFFER_GUARD
 
-#include <Core/Types/IInterface.hpp>
+#include <Rendering/Framework/Buffers/IImageBuffer.hpp>
 
 namespace Sa
 {
 	class IFrameBuffer : public IInterface
 	{
 	public:
+		virtual const IImageBuffer& GetInputAttachment(uint32 _index) const = 0;
+
 		virtual void Begin() = 0;
 		virtual void NextSubpass() = 0;
 		virtual void End() = 0;

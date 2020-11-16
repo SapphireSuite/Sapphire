@@ -44,12 +44,14 @@ namespace Sa::Vk
 		mSwapChain.End(_instance.As<RenderInstance>().device);
 	}
 
-	const std::vector<IFrameBuffer>& RenderSurface::CreateFrameBuffers(IRenderInstance& _instance, const IRenderPass& _renderPass,
-		const RenderPassDescriptor& _renderPassDesc)
+	const std::vector<IFrameBuffer*>& RenderSurface::CreateFrameBuffers(IRenderInstance& _instance, const IRenderPass& _renderPass,
+		const RenderPassDescriptor& _renderPassDesc, uint32* _size)
 	{
-		// TODO: FIX THIS IS WRONG.
-		return reinterpret_cast<const std::vector<IFrameBuffer>&>(mSwapChain.CreateFrameBuffers(
-			_instance.As<RenderInstance>().device, _renderPass.As<RenderPass>(), _renderPassDesc));
+		return reinterpret_cast<const std::vector<IFrameBuffer*>&>(mSwapChain.CreateFrameBuffers(
+			_instance.As<RenderInstance>().device,
+			_renderPass.As<RenderPass>(), _renderPassDesc,
+			_size
+		));
 	}
 
 	void RenderSurface::DestroyFrameBuffers(IRenderInstance& _instance)

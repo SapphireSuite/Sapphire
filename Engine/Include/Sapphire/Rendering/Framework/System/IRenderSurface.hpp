@@ -30,7 +30,8 @@ namespace Sa
 		virtual RenderFrame Begin(const IRenderInstance& _instance) = 0;
 		virtual void End(const IRenderInstance& _instance) = 0;
 
-		virtual const std::vector<IFrameBuffer>& CreateFrameBuffers(IRenderInstance& _instance, const IRenderPass& _renderPass, const RenderPassDescriptor& _renderPassDesc) = 0;
+		virtual const std::vector<IFrameBuffer*>& CreateFrameBuffers(IRenderInstance& _instance, const IRenderPass& _renderPass,
+			const RenderPassDescriptor& _renderPassDesc, uint32* _size = nullptr) = 0;
 		virtual void DestroyFrameBuffers(IRenderInstance& _instance) = 0;
 	};
 }

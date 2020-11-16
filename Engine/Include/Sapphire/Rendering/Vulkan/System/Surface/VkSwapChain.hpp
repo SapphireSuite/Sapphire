@@ -36,7 +36,7 @@ namespace Sa::Vk
 
 		std::vector<Synchronisation> mFramesSynch;
 
-		std::vector<FrameBuffer> mFrameBuffers;
+		std::vector<FrameBuffer*> mFrameBuffers;
 
 
 		void CreateSwapChainKHR(const Device& _device, const RenderSurface& _surface);
@@ -54,7 +54,8 @@ namespace Sa::Vk
 		RenderFrame Begin(const Device& _device);
 		void End(const Device& _device);
 
-		const std::vector<FrameBuffer>& CreateFrameBuffers(const Device& _device, const RenderPass& _renderPass, const RenderPassDescriptor& _renderPassDesc);
+		const std::vector<FrameBuffer*>& CreateFrameBuffers(const Device& _device, const RenderPass& _renderPass,
+			const RenderPassDescriptor& _renderPassDesc, uint32* _size = nullptr);
 		void DestroyFrameBuffers(const Device& _device);
 	};
 }

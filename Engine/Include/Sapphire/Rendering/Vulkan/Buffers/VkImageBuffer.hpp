@@ -5,6 +5,8 @@
 #ifndef SAPPHIRE_RENDERING_VK_IMAGE_BUFFER_GUARD
 #define SAPPHIRE_RENDERING_VK_IMAGE_BUFFER_GUARD
 
+#include <Rendering/Framework/Buffers/IImageBuffer.hpp>
+
 #include <Rendering/Vulkan/Buffers/VkImageBufferCreateInfos.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
@@ -13,7 +15,7 @@ namespace Sa::Vk
 {
 	class Device;
 
-	class SA_ENGINE_API ImageBuffer
+	class SA_ENGINE_API ImageBuffer : public IImageBuffer
 	{
 		VkImage mImage = VK_NULL_HANDLE;
 		VkImageView mImageView = VK_NULL_HANDLE;

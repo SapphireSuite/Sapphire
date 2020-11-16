@@ -15,33 +15,36 @@ namespace Sa
 
 	class SA_ENGINE_API MaterialBindingInfos
 	{
-	public:// TODO: REMOVE
 		ShaderBindingType mType = ShaderBindingType::UniformBuffer;
 
-		std::vector<IInterface*> mBuffers;
+		std::vector<const IInterface*> mBuffers;
 
 	public:
 		uint32 binding = 0u;
+		uint32 descriptor = uint32(-1);
 
 		ShaderBindingType GetType() const noexcept;
 
-		const std::vector<IBuffer*>& GetUniformBuffers() const;
-		const std::vector<ITexture*>& GetImageSamplers() const;
+		const std::vector<const IBuffer*>& GetUniformBuffers() const;
+		const std::vector<const ITexture*>& GetImageSamplers() const;
 		const IBuffer& GetStorageBuffer() const;
+		const IImageBuffer& GetInputBuffer() const;
 
-		void SetUniformBuffers(const std::vector<IBuffer*>& _uniformBuffers);
-		void SetImageSamplers2D(const std::vector<ITexture*>& _imageSamplers);
-		void SetImageSamplerCubes(const std::vector<ITexture*>& _imageSamplers);
-		void SetStorageBuffer(IBuffer& _storageBuffer);
+		void SetUniformBuffers(const std::vector<const IBuffer*>& _uniformBuffers);
+		void SetImageSamplers2D(const std::vector<const ITexture*>& _imageSamplers);
+		void SetImageSamplerCubes(const std::vector<const ITexture*>& _imageSamplers);
+		void SetStorageBuffer(const IBuffer& _storageBuffer);
+		void SetInputBuffer(const IImageBuffer& _inputBuffer);
 	};
 
 	struct SA_ENGINE_API MaterialCreateInfos
 	{
 		const IPipeline& pipeline;
+		const uint32 descriptorSetNum = 0u;
 
 		std::vector<MaterialBindingInfos> bindings;
 
-		MaterialCreateInfos(const IPipeline& _pipeline) noexcept;
+		MaterialCreateInfos(const IPipeline& _pipeline, const uint32 _descriptorSetNum = 1u) noexcept;
 	};
 }
 

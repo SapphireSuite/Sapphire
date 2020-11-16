@@ -17,7 +17,6 @@ namespace Sa::Vk
 
 	class SA_ENGINE_API Material : public IMaterial
 	{
-	public:// TODO: REMOVE
 		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSet> mDescriptorSets;
 
@@ -27,14 +26,14 @@ namespace Sa::Vk
 
 		void CreateDescriptorSets(const Device& _device, const MaterialCreateInfos& _infos);
 		
-		void UpdateDescriptorSets(const Device& _device, const MaterialBindingInfos& _binding);
 		void UpdateDescriptorSets(const Device& _device, const std::vector<MaterialBindingInfos>& _bindings);
 		
 		void CountDescriptors(const MaterialBindingInfos& _binding, uint32& _bufferDescSize, uint32& _imageDescSize) const noexcept;
 		void FillDescriptorWrites(const MaterialBindingInfos& _binding,
 			std::vector<VkDescriptorBufferInfo>& _bufferDescs,
 			std::vector<VkDescriptorImageInfo>& _imageDescs,
-			std::vector<VkWriteDescriptorSet>& _descWrites) const noexcept;
+			std::vector<VkWriteDescriptorSet>& _descWrites,
+			uint32 _descIndex = uint32 (-1)) const noexcept;
 		
 		void DestroyDescriptorSets(const Device& _device);
 

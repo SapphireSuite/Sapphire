@@ -19,7 +19,7 @@ namespace Sa::Vk
 	class Device;
 	class RenderPass;
 
-	class SA_ENGINE_API FrameBuffer : public IFrameBuffer
+	class FrameBuffer : public IFrameBuffer
 	{
 		VkFramebuffer mHandle = VK_NULL_HANDLE;
 		VkRenderPass mRenderPass = VK_NULL_HANDLE;
@@ -35,7 +35,7 @@ namespace Sa::Vk
 	public:
 		CommandBuffer commandBuffer;
 
-		const ImageBuffer& GetInputAttachment(uint32 _index) const;
+		const IImageBuffer& GetInputAttachment(uint32 _index) const override final;
 
 		void Create(const Device& _device, const RenderPass& _renderPass,
 			const RenderPassDescriptor& _rpDescriptor,

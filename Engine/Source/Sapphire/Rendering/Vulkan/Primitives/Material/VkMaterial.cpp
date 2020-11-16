@@ -16,10 +16,6 @@
 
 namespace Sa::Vk
 {
-	// TODO: REMOVE LATER.
-	constexpr uint32 imageNum = 3u;
-
-
 	void Material::Create(const IRenderInstance& _instance, const MaterialCreateInfos& _infos)
 	{
 		const Device& device = _instance.As<RenderInstance>().device;
@@ -43,7 +39,7 @@ namespace Sa::Vk
 		const Pipeline& vkPipeline = _pipeline.As<Pipeline>();
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline.GetLayout(),
-			0, 1, &mDescriptorSets[_frame.index], 0, nullptr);
+			0, 1, &mDescriptorSets[_frame.index % SizeOf(mDescriptorSets)], 0, nullptr);
 	}
 
 
@@ -85,7 +81,7 @@ namespace Sa::Vk
 		descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		descriptorPoolInfo.pNext = nullptr;
 		descriptorPoolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-		descriptorPoolInfo.maxSets = imageNum;
+		descriptorPoolInfo.maxSets = _infos.descriptorSetNum;
 		descriptorPoolInfo.poolSizeCount = SizeOf(poolSizes);
 		descriptorPoolInfo.pPoolSizes = poolSizes.data();
 
@@ -104,14 +100,14 @@ namespace Sa::Vk
 	{
 		const Pipeline& vkPipeline = _infos.pipeline.As<Pipeline>();
 
-		mDescriptorSets.resize(imageNum);
-		std::vector<VkDescriptorSetLayout> descriptorSetLayouts(imageNum, vkPipeline.GetDescriptorSetLayout());
+		mDescriptorSets.resize(_infos.descriptorSetNum);
+		std::vector<VkDescriptorSetLayout> descriptorSetLayouts(_infos.descriptorSetNum, vkPipeline.GetDescriptorSetLayout());
 
 		VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
 		descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		descriptorSetAllocInfo.pNext = nullptr;
 		descriptorSetAllocInfo.descriptorPool = mDescriptorPool;
-		descriptorSetAllocInfo.descriptorSetCount = imageNum;
+		descriptorSetAllocInfo.descriptorSetCount = _infos.descriptorSetNum;
 		descriptorSetAllocInfo.pSetLayouts = descriptorSetLayouts.data();
 
 		SA_VK_ASSERT(vkAllocateDescriptorSets(_device, &descriptorSetAllocInfo, mDescriptorSets.data()),
@@ -121,30 +117,6 @@ namespace Sa::Vk
 		UpdateDescriptorSets(_device, _infos.bindings);
 	}
 	
-	void Material::UpdateDescriptorSets(const Device& _device, const MaterialBindingInfos& _binding)
-	{
-		// Query allocation size.
-		uint32 bufferDescSize = 0u;
-		uint32 imageDescSize = 0u;
-
-		CountDescriptors(_binding, bufferDescSize, imageDescSize);
-
-		// Allocate.
-		std::vector<VkDescriptorBufferInfo> bufferDescs;
-		bufferDescs.reserve(bufferDescSize);
-
-		std::vector<VkDescriptorImageInfo> imageDescs;
-		imageDescs.reserve(imageDescSize);
-
-		std::vector<VkWriteDescriptorSet> descWrites;
-		descWrites.reserve(bufferDescSize + imageDescSize);
-
-
-		FillDescriptorWrites(_binding, bufferDescs, imageDescs, descWrites);
-
-		vkUpdateDescriptorSets(_device, SizeOf(descWrites), descWrites.data(), 0, nullptr);
-	}
-
 	void Material::UpdateDescriptorSets(const Device& _device, const std::vector<MaterialBindingInfos>& _bindings)
 	{
 		// Query allocation size.
@@ -173,7 +145,7 @@ namespace Sa::Vk
 	void Material::CountDescriptors(const MaterialBindingInfos& _binding, uint32& _bufferDescSize, uint32& _imageDescSize) const noexcept
 	{
 		ShaderBindingType type = _binding.GetType();
-		const uint32 descSetSize = SizeOf(mDescriptorSets);
+		const uint32 descSetSize = _binding.descriptor == uint32(-1) ? SizeOf(mDescriptorSets) : 1u;
 
 		if (type == ShaderBindingType::UniformBuffer)
 			_bufferDescSize += SizeOf(_binding.GetUniformBuffers()) * descSetSize;
@@ -190,73 +162,86 @@ namespace Sa::Vk
 	void Material::FillDescriptorWrites(const MaterialBindingInfos& _binding,
 		std::vector<VkDescriptorBufferInfo>& _bufferDescs,
 		std::vector<VkDescriptorImageInfo>& _imageDescs,
-		std::vector<VkWriteDescriptorSet>& _descWrites) const noexcept
+		std::vector<VkWriteDescriptorSet>& _descWrites,
+		uint32 _descIndex) const noexcept
 	{
+		// Selected descriptor index.
+		if (_descIndex == uint32(-1))
+		{
+			if (_binding.descriptor != uint32(-1))
+				_descIndex = _binding.descriptor;
+			else
+			{
+				// Update for all descriptors.
+				for (uint32 i = 0; i < SizeOf(mDescriptorSets); ++i)
+					FillDescriptorWrites(_binding, _bufferDescs, _imageDescs, _descWrites, i);
+
+				return;
+			}
+		}
+
+		const ShaderBindingType bindType = _binding.GetType();
+
 		VkWriteDescriptorSet mainWriteDesc{};
 		mainWriteDesc.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		mainWriteDesc.pNext = nullptr;
-		mainWriteDesc.dstSet = VK_NULL_HANDLE;
+		mainWriteDesc.dstSet = mDescriptorSets[_descIndex];
 		mainWriteDesc.dstBinding = _binding.binding;
 		mainWriteDesc.dstArrayElement = 0u;
 		mainWriteDesc.descriptorCount = 1u;
 		mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
 
-		for (uint32 i = 0; i < SizeOf(mDescriptorSets); ++i)
+		if (bindType == ShaderBindingType::UniformBuffer)
 		{
-			mainWriteDesc.dstSet = mDescriptorSets[i];
+			mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-			if (_binding.GetType() == ShaderBindingType::UniformBuffer)
+			const std::vector<const IBuffer*>& ubos = _binding.GetUniformBuffers();
+
+			for (uint32 j = 0; j < SizeOf(ubos); ++j)
 			{
-				mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-
-				const std::vector<IBuffer*>& ubos = _binding.GetUniformBuffers();
-
-				for (uint32 j = 0; j < SizeOf(ubos); ++j)
-				{
-					VkWriteDescriptorSet& writeDesc = _descWrites.emplace_back(mainWriteDesc);
-					writeDesc.dstArrayElement = j;
-
-					VkDescriptorBufferInfo& desc = _bufferDescs.emplace_back(VkDescriptorBufferInfo{ ubos[j]->As<Buffer>().CreateDescriptorBufferInfo() });
-					writeDesc.pBufferInfo = &desc;
-				}
-			}
-			else if (_binding.GetType() == ShaderBindingType::ImageSampler2D || _binding.GetType() == ShaderBindingType::ImageSamplerCube)
-			{
-				mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-
-				const std::vector<ITexture*>& samplers = _binding.GetImageSamplers();
-
-				for (uint32 j = 0u; j < SizeOf(samplers); ++j)
-				{
-					VkWriteDescriptorSet& writeDesc = _descWrites.emplace_back(mainWriteDesc);
-					writeDesc.dstArrayElement = j;
-
-					VkDescriptorImageInfo& desc = _imageDescs.emplace_back(VkDescriptorImageInfo{ samplers[j]->As<Texture>().CreateDescriptorImageInfo() });
-					writeDesc.pImageInfo = &desc;
-				}
-			}
-			else if (_binding.GetType() == ShaderBindingType::StorageBuffer)
-			{
-				mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-
-				const IBuffer& storageBuffer = _binding.GetStorageBuffer();
-
 				VkWriteDescriptorSet& writeDesc = _descWrites.emplace_back(mainWriteDesc);
-				writeDesc.dstArrayElement = 0;
+				writeDesc.dstArrayElement = j;
 
-				VkDescriptorBufferInfo& desc = _bufferDescs.emplace_back(VkDescriptorBufferInfo{ storageBuffer.As<Buffer>().CreateDescriptorBufferInfo() });
+				VkDescriptorBufferInfo& desc = _bufferDescs.emplace_back(VkDescriptorBufferInfo{ ubos[j]->As<Buffer>().CreateDescriptorBufferInfo() });
 				writeDesc.pBufferInfo = &desc;
 			}
-			else if (_binding.GetType() == ShaderBindingType::InputAttachment)
-			{
-				mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-
-				// TODO.
-				//_descWrites.emplace_back(mainWriteDesc);
-			}
-			else
-				SA_LOG("ShaderBindingType for descriptor write not supported.", Error, Rendering);
 		}
+		else if (bindType == ShaderBindingType::ImageSampler2D || bindType == ShaderBindingType::ImageSamplerCube)
+		{
+			mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+			const std::vector<const ITexture*>& samplers = _binding.GetImageSamplers();
+
+			for (uint32 j = 0u; j < SizeOf(samplers); ++j)
+			{
+				VkWriteDescriptorSet& writeDesc = _descWrites.emplace_back(mainWriteDesc);
+				writeDesc.dstArrayElement = j;
+
+				VkDescriptorImageInfo& desc = _imageDescs.emplace_back(VkDescriptorImageInfo{ samplers[j]->As<Texture>().CreateDescriptorImageInfo() });
+				writeDesc.pImageInfo = &desc;
+			}
+		}
+		else if (bindType == ShaderBindingType::StorageBuffer)
+		{
+			mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+			const IBuffer& storageBuffer = _binding.GetStorageBuffer();
+
+			VkWriteDescriptorSet& writeDesc = _descWrites.emplace_back(mainWriteDesc);
+			writeDesc.dstArrayElement = 0;
+
+			VkDescriptorBufferInfo& desc = _bufferDescs.emplace_back(VkDescriptorBufferInfo{ storageBuffer.As<Buffer>().CreateDescriptorBufferInfo() });
+			writeDesc.pBufferInfo = &desc;
+		}
+		else if (bindType == ShaderBindingType::InputAttachment)
+		{
+			mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+
+			VkWriteDescriptorSet& writeDesc = _descWrites.emplace_back(mainWriteDesc);
+			writeDesc.pImageInfo = &_imageDescs.emplace_back(VkDescriptorImageInfo{ _binding.GetInputBuffer().As<ImageBuffer>().CreateDescriptorImageInfo() });
+		}
+		else
+			SA_LOG("ShaderBindingType for descriptor write not supported.", Error, Rendering);
 	}
 
 	void Material::DestroyDescriptorSets(const Device& _device)
