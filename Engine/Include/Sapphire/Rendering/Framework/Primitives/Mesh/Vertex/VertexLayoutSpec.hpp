@@ -31,6 +31,7 @@ namespace Sa
 	};
 }
 
+#include <Rendering/Framework/Primitives/Mesh/Vertex/VertexLayout.inl>
 #include <Rendering/Framework/Primitives/Mesh/Vertex/VertexLayoutSpec.inl>
 
 #endif // GUARD

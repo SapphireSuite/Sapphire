@@ -51,6 +51,7 @@ namespace Sa
 	};
 }
 
-#include <Rendering/Framework/Primitives/Mesh/Vertex/VertexLayout.inl>
+// Included in VertexLayoutSpec.hpp to allow Make<> compilation.
+//#include <Rendering/Framework/Primitives/Mesh/Vertex/VertexLayout.inl>
 
 #endif // GUARD
