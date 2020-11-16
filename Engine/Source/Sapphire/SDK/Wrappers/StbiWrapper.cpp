@@ -91,7 +91,7 @@ namespace Sa
 		return true;
 	}
 
-	bool StbiWrapper::Import(const std::string& _resourcePath, RawCubemap& _outCubemap, const TextureImportInfos& _importInfos)
+	bool StbiWrapper::Import(const std::string& _resourcePath, RawCubemap& _outCubemap, const CubemapImportInfos& _importInfos)
 	{
 		// TODO: Implement.
 		return false;

@@ -13,7 +13,7 @@
 
 namespace Sa::Vk
 {
-	class Cubemap : public ICubemap
+	class SA_ENGINE_API Cubemap : public ICubemap
 	{
 		ImageBuffer mBuffer;
 		ImageBuffer mIrradianceBuffer;

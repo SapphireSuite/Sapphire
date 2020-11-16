@@ -12,6 +12,7 @@ namespace Sa
 {
 	class IBuffer;
 	class ITexture;
+	class ICubemap;
 
 	class SA_ENGINE_API MaterialBindingInfos
 	{
@@ -26,13 +27,14 @@ namespace Sa
 		ShaderBindingType GetType() const noexcept;
 
 		const std::vector<const IBuffer*>& GetUniformBuffers() const;
-		const std::vector<const ITexture*>& GetImageSamplers() const;
+		const std::vector<const ITexture*>& GetImageSamplers2D() const;
+		const std::vector<const ICubemap*>& GetImageSamplerCubes() const;
 		const IBuffer& GetStorageBuffer() const;
 		const IImageBuffer& GetInputBuffer() const;
 
 		void SetUniformBuffers(const std::vector<const IBuffer*>& _uniformBuffers);
 		void SetImageSamplers2D(const std::vector<const ITexture*>& _imageSamplers);
-		void SetImageSamplerCubes(const std::vector<const ITexture*>& _imageSamplers);
+		void SetImageSamplerCubes(const std::vector<const ICubemap*>& _imageSamplers);
 		void SetStorageBuffer(const IBuffer& _storageBuffer);
 		void SetInputBuffer(const IImageBuffer& _inputBuffer);
 	};

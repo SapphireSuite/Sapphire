@@ -6,6 +6,11 @@ namespace Sa
 {
 	const uint32 RawCubemap::maxRoughLevel = 5u;
 
+	RawCubemap::RawCubemap() noexcept
+	{
+		format = Format::sRGBA_32; // default format.
+	}
+
 	uint64 RawCubemap::GetMapSize() const noexcept
 	{
 		return GetMainSize() * 6u;

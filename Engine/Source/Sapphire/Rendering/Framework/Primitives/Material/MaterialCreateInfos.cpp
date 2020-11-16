@@ -20,12 +20,20 @@ namespace Sa
 		return reinterpret_cast<const std::vector<const IBuffer*>&>(mBuffers);
 	}
 	
-	const std::vector<const ITexture*>& MaterialBindingInfos::GetImageSamplers() const
+	const std::vector<const ITexture*>& MaterialBindingInfos::GetImageSamplers2D() const
 	{
-		SA_ASSERT(mType == ShaderBindingType::ImageSampler2D || mType == ShaderBindingType::ImageSamplerCube,
-			InvalidParam, Rendering, L"Binding is not image sampler!");
+		SA_ASSERT(mType == ShaderBindingType::ImageSampler2D,
+			InvalidParam, Rendering, L"Binding is not image sampler 2D!");
 
 		return reinterpret_cast<const std::vector<const ITexture*>&>(mBuffers);
+	}
+
+	const std::vector<const ICubemap*>& MaterialBindingInfos::GetImageSamplerCubes() const
+	{
+		SA_ASSERT(mType == ShaderBindingType::ImageSamplerCube,
+			InvalidParam, Rendering, L"Binding is not image sampler cube!");
+
+		return reinterpret_cast<const std::vector<const ICubemap*>&>(mBuffers);
 	}
 	
 	const IBuffer& MaterialBindingInfos::GetStorageBuffer() const
@@ -59,7 +67,7 @@ namespace Sa
 		mBuffers = reinterpret_cast<const std::vector<const IInterface*>&>(_imageSamplers);
 	}
 
-	void MaterialBindingInfos::SetImageSamplerCubes(const std::vector<const ITexture*>& _imageSamplers)
+	void MaterialBindingInfos::SetImageSamplerCubes(const std::vector<const ICubemap*>& _imageSamplers)
 	{
 		mType = ShaderBindingType::ImageSamplerCube;
 

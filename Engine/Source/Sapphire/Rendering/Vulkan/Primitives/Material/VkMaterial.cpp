@@ -11,6 +11,7 @@
 
 #include <Rendering/Vulkan/Primitives/Pipeline/VkPipeline.hpp>
 #include <Rendering/Vulkan/Primitives/Texture/VkTexture.hpp>
+#include <Rendering/Vulkan/Primitives/Texture/VkCubemap.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -150,7 +151,7 @@ namespace Sa::Vk
 		if (type == ShaderBindingType::UniformBuffer)
 			_bufferDescSize += SizeOf(_binding.GetUniformBuffers()) * descSetSize;
 		else if (type == ShaderBindingType::ImageSampler2D || type == ShaderBindingType::ImageSamplerCube)
-			_imageDescSize += SizeOf(_binding.GetImageSamplers()) * descSetSize;
+			_imageDescSize += SizeOf(_binding.GetImageSamplers2D()) * descSetSize;
 		else if (type == ShaderBindingType::StorageBuffer)
 			_bufferDescSize += descSetSize;
 		else if (type == ShaderBindingType::InputAttachment)
@@ -206,11 +207,11 @@ namespace Sa::Vk
 				writeDesc.pBufferInfo = &desc;
 			}
 		}
-		else if (bindType == ShaderBindingType::ImageSampler2D || bindType == ShaderBindingType::ImageSamplerCube)
+		else if (bindType == ShaderBindingType::ImageSampler2D)
 		{
 			mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
-			const std::vector<const ITexture*>& samplers = _binding.GetImageSamplers();
+			const std::vector<const ITexture*>& samplers = _binding.GetImageSamplers2D();
 
 			for (uint32 j = 0u; j < SizeOf(samplers); ++j)
 			{
@@ -218,6 +219,21 @@ namespace Sa::Vk
 				writeDesc.dstArrayElement = j;
 
 				VkDescriptorImageInfo& desc = _imageDescs.emplace_back(VkDescriptorImageInfo{ samplers[j]->As<Texture>().CreateDescriptorImageInfo() });
+				writeDesc.pImageInfo = &desc;
+			}
+		}
+		else if (bindType == ShaderBindingType::ImageSamplerCube)
+		{
+			mainWriteDesc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+			const std::vector<const ICubemap*>& samplers = _binding.GetImageSamplerCubes();
+
+			for (uint32 j = 0u; j < SizeOf(samplers); ++j)
+			{
+				VkWriteDescriptorSet& writeDesc = _descWrites.emplace_back(mainWriteDesc);
+				writeDesc.dstArrayElement = j;
+
+				VkDescriptorImageInfo& desc = _imageDescs.emplace_back(VkDescriptorImageInfo{ samplers[j]->As<Cubemap>().CreateDescriptorImageInfo() });
 				writeDesc.pImageInfo = &desc;
 			}
 		}

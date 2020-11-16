@@ -13,8 +13,12 @@ namespace Sa
 	{
 		std::vector<char> irradiancemapData;
 
+		Format irradianceformat = Format::RGBA_32;
+
 		// Maximum rough level used for IBL. Generate as much mipmaps.
 		static const uint32 maxRoughLevel;
+
+		RawCubemap() noexcept;
 
 		// Compute original map size in format unit.
 		uint64 GetMapSize() const noexcept;

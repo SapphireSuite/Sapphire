@@ -17,7 +17,7 @@ namespace Sa
 	class TextureImportInfos;
 
 	struct RawCubemap;
-	//class CubemapImportInfos;
+	class CubemapImportInfos;
 
 	class SA_ENGINE_API StbiWrapper
 	{
@@ -34,7 +34,7 @@ namespace Sa
 		static void Free(void* _data);
 
 		static bool Import(const std::string& _resourcePath, RawTexture& _outTexture, const TextureImportInfos& _importInfos);
-		static bool Import(const std::string& _resourcePath, RawCubemap& _outCubemap, const TextureImportInfos& _importInfos);
+		static bool Import(const std::string& _resourcePath, RawCubemap& _outCubemap, const CubemapImportInfos& _importInfos);
 	};
 }
 
