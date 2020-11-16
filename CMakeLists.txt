@@ -12,9 +12,6 @@ message("Main directory: ${CMAKE_SOURCE_DIR}")
 
 
 
-
-
-
 # === Outputs ===
 
 # Setup output directories for project.
@@ -34,6 +31,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Build/${CMAKE_BUILD_TYPE
 # === Tests ===
 
 enable_testing()
+
+# Enable travis preprocessors.
+if("${CMAKE_TRAVIS}" STREQUAL "1")
+	add_compile_definitions(__SA_TRAVIS)
+endif()
+
 
 
 # === Entrypoints ===

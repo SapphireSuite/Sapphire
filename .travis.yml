@@ -55,6 +55,8 @@ addons:
     update: true
     packages:
       - ninja-build # Ninja generator.
+      - libvulkan-dev
+      - libvulkan1
 
   # OSX
   homebrew:
@@ -107,7 +109,7 @@ before_script:
 script:
 
   # Generate, build and test.
-  - bash Tools/Generators/Ninja.sh ${CONFIG} -b -t
+  - bash Tools/Generators/Ninja.sh ${CONFIG} -b -t -travis
 
 
 

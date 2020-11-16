@@ -9,6 +9,7 @@ set op_build=0
 set op_test=0
 set op_npause=0
 set op_nexit=0
+set travis_config=""
 
 for %%x in (%*) do (
 	:: use -b to trigger build after generation.
@@ -22,6 +23,9 @@ for %%x in (%*) do (
 
 	:: use -ne to never trigger exit.
 	if "%%x"=="-ne" set op_nexit=1
+
+	:: use -travis to setup travis compile definition.
+	if "%%x"=="-travis" set travis_config="-DCMAKE_TRAVIS=1"
 )
 
 
@@ -43,7 +47,7 @@ mkdir Build\VS_2019\%config%
 
 
 :: Generate project.
-cmake -B Build\VS_2019\%config% -DCMAKE_BUILD_TYPE=%config% -G "Visual Studio 16 2019"
+cmake -B Build\VS_2019\%config% -DCMAKE_BUILD_TYPE=%config% -G "Visual Studio 16 2019" %travis_config%
 
 :: Catch generation failure.
 call :catch_error
