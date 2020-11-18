@@ -16,7 +16,7 @@ namespace Sa
 		Format irradianceformat = Format::RGBA_32;
 
 		// Maximum rough level used for IBL. Generate as much mipmaps.
-		static const uint32 maxRoughLevel;
+		SA_ENGINE_API static const uint32 maxRoughLevel;
 
 		RawCubemap() noexcept;
 

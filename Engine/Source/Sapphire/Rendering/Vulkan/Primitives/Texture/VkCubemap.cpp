@@ -14,7 +14,8 @@ namespace Sa::Vk
 {
 	void Cubemap::Create(const IRenderInstance& _instance, const RawCubemap& _rawCubemap)
 	{
-		uint64 dataSize = _rawCubemap.GetTotalMapSize();
+		uint64 dataSize = SizeOf(_rawCubemap.data);
+		//uint64 dataSize = _rawCubemap.GetTotalMapSize();
 		uint64 irradianceSize = _rawCubemap.GetMapSize();
 
 		const Device& device = _instance.As<RenderInstance>().device;
@@ -70,24 +71,25 @@ namespace Sa::Vk
 		mBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
 
 		
-		// === Create irradiance buffer ===
-		imageBufferCreateInfos.format = _rawCubemap.irradianceformat;
-		imageBufferCreateInfos.mipLevels = 1u;
-		imageBufferCreateInfos.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		//TODO: Reset.
+		//// === Create irradiance buffer ===
+		//imageBufferCreateInfos.format = _rawCubemap.irradianceformat;
+		//imageBufferCreateInfos.mipLevels = 1u;
+		//imageBufferCreateInfos.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-		copyInfos.mipLevels = 1u;
-		undefToDstTransitionInfos.mipLevels = 1u;
-		dstToReadTransitionInfos.mipLevels = 1u;
+		//copyInfos.mipLevels = 1u;
+		//undefToDstTransitionInfos.mipLevels = 1u;
+		//dstToReadTransitionInfos.mipLevels = 1u;
 
-		stagingBuffer.UpdateData(device, _rawCubemap.irradiancemapData.data(), irradianceSize);
+		//stagingBuffer.UpdateData(device, _rawCubemap.irradiancemapData.data(), irradianceSize);
 
-		mIrradianceBuffer.Create(device, imageBufferCreateInfos);
+		//mIrradianceBuffer.Create(device, imageBufferCreateInfos);
 
-		mIrradianceBuffer.TransitionImageLayout(device, undefToDstTransitionInfos);
+		//mIrradianceBuffer.TransitionImageLayout(device, undefToDstTransitionInfos);
 
-		mIrradianceBuffer.CopyBufferToImage(device, copyInfos);
+		//mIrradianceBuffer.CopyBufferToImage(device, copyInfos);
 
-		mIrradianceBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
+		//mIrradianceBuffer.TransitionImageLayout(device, dstToReadTransitionInfos);
 
 
 		stagingBuffer.Destroy(device);

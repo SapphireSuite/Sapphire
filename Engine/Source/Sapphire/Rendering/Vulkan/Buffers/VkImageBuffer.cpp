@@ -182,6 +182,49 @@ namespace Sa::Vk
 		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer);
 	}
 
+	void ImageBuffer::CopyImageToBuffer(const Device& _device, const ImageBuffer::CopyBufferImageInfos& _infos)
+	{
+		CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands(_device, QueueType::Transfer);
+
+		// TODO:
+		//uint64 offset = 0u;
+		//VkExtent3D extent{ _infos.extent.x, _infos.extent.y, 1 };
+		//uint32 layerCount = API_GetLayerNum(_infos.imageType);
+		//uint32 channelNum = API_GetChannelNum(_infos.format);
+
+		std::vector<VkBufferImageCopy> bufferImageCopies;
+
+		//for (uint32 currMipLevel = 0u; currMipLevel < _infos.mipLevels; ++currMipLevel)
+		//{
+		//	VkBufferImageCopy imageCopy{};
+		//	imageCopy.bufferOffset = offset;
+		//	imageCopy.bufferRowLength = 0u;
+		//	imageCopy.bufferImageHeight = 0u;
+
+		//	imageCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		//	imageCopy.imageSubresource.mipLevel = currMipLevel;
+		//	imageCopy.imageSubresource.baseArrayLayer = 0u;
+		//	imageCopy.imageSubresource.layerCount = layerCount;
+
+		//	imageCopy.imageOffset = VkOffset3D{ 0, 0, 0 };
+		//	imageCopy.imageExtent = extent;
+
+		//	bufferImageCopies.emplace_back(imageCopy);
+
+		//	offset += extent.width * extent.height * channelNum;
+
+		//	if (extent.width > 1)
+		//		extent.width >>= 1;
+
+		//	if (extent.height > 1)
+		//		extent.height >>= 1;
+		//}
+
+		vkCmdCopyImageToBuffer(commandBuffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, _infos.buffer, SizeOf(bufferImageCopies), bufferImageCopies.data());
+
+		CommandBuffer::EndSingleTimeCommands(_device, commandBuffer);
+	}
+
 	VkDescriptorImageInfo ImageBuffer::CreateDescriptorImageInfo(VkSampler _sampler) const noexcept
 	{
 		VkDescriptorImageInfo descImage{};

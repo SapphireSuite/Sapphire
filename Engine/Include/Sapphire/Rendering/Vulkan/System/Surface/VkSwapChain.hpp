@@ -48,15 +48,15 @@ namespace Sa::Vk
 	public:
 		Format GetFormat() const noexcept;
 
-		void Create(const Device& _device, const RenderSurface& _surface);
-		void Destroy(const Device& _device);
+		void Create(const IRenderInstance& _instance, const RenderSurface& _surface);
+		void Destroy(const IRenderInstance& _instance);
 
 		RenderFrame Begin(const Device& _device);
 		void End(const Device& _device);
 
-		const std::vector<FrameBuffer*>& CreateFrameBuffers(const Device& _device, const RenderPass& _renderPass,
+		const std::vector<FrameBuffer*>& CreateFrameBuffers(const IRenderInstance& _instance, const RenderPass& _renderPass,
 			const RenderPassDescriptor& _renderPassDesc, uint32* _size = nullptr);
-		void DestroyFrameBuffers(const Device& _device);
+		void DestroyFrameBuffers(const IRenderInstance& _instance);
 	};
 }
 

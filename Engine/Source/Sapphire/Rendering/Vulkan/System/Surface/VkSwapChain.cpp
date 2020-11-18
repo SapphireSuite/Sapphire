@@ -5,7 +5,8 @@
 #include <Core/Algorithms/SizeOf.hpp>
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
-#include <Rendering/Vulkan/System/Device/VkDevice.hpp>
+#include <Rendering/Vulkan/System/VkRenderInstance.hpp>
+#include <Rendering/Vulkan/System/VkRenderPass.hpp>
 #include <Rendering/Vulkan/System/Surface/VkRenderSurface.hpp>
 
 namespace Sa::Vk
@@ -117,18 +118,22 @@ namespace Sa::Vk
 		mFramesSynch.clear();
 	}
 
-	void SwapChain::Create(const Device& _device, const RenderSurface& _surface)
+	void SwapChain::Create(const IRenderInstance& _instance, const RenderSurface& _surface)
 	{
-		CreateSwapChainKHR(_device, _surface);
-		CreateSynchronisation(_device);
+		const Device& device = _instance.As<RenderInstance>().device;
+
+		CreateSwapChainKHR(device, _surface);
+		CreateSynchronisation(device);
 	}
 
-	void SwapChain::Destroy(const Device& _device)
+	void SwapChain::Destroy(const IRenderInstance& _instance)
 	{
-		DestroyFrameBuffers(_device);
+		const Device& device = _instance.As<RenderInstance>().device;
 
-		DestroySynchronisation(_device);
-		DestroySwapChainKHR(_device);
+		DestroyFrameBuffers(_instance);
+
+		DestroySynchronisation(device);
+		DestroySwapChainKHR(device);
 	}
 
 	RenderFrame SwapChain::Begin(const Device& _device)
@@ -190,18 +195,25 @@ namespace Sa::Vk
 		mFrameIndex = (mFrameIndex + 1) % mImageNum;
 	}
 
-	const std::vector<FrameBuffer*>& SwapChain::CreateFrameBuffers(const Device& _device, const RenderPass& _renderPass,
+	const std::vector<FrameBuffer*>& SwapChain::CreateFrameBuffers(const IRenderInstance& _instance, const RenderPass& _renderPass,
 		const RenderPassDescriptor& _renderPassDesc, uint32* _size)
 	{
+		const Device& device = _instance.As<RenderInstance>().device;
+
 		std::vector<VkImage> swapChainImages(mImageNum);
-		vkGetSwapchainImagesKHR(_device, mHandle, &mImageNum, swapChainImages.data());
+		vkGetSwapchainImagesKHR(device, mHandle, &mImageNum, swapChainImages.data());
+
+		FrameBufferCreateInfos fbCreateInfos(_renderPass, _renderPassDesc);
+		fbCreateInfos.extent = mExtent;
 
 		mFrameBuffers.reserve(mImageNum);
 
 		for (uint32 i = 0u; i < mImageNum; ++i)
 		{
+			fbCreateInfos.poolIndex = i;
+
 			FrameBuffer* frameBuffer = mFrameBuffers.emplace_back(new FrameBuffer());
-			frameBuffer->Create(_device, _renderPass, _renderPassDesc, mExtent, i, swapChainImages[i]);
+			frameBuffer->Create(_instance, fbCreateInfos, swapChainImages[i]);
 		}
 
 		if (_size)
@@ -210,11 +222,11 @@ namespace Sa::Vk
 		return mFrameBuffers;
 	}
 
-	void SwapChain::DestroyFrameBuffers(const Device& _device)
+	void SwapChain::DestroyFrameBuffers(const IRenderInstance& _instance)
 	{
 		for (auto it = mFrameBuffers.begin(); it != mFrameBuffers.end(); ++it)
 		{
-			(*it)->Destroy(_device);
+			(*it)->Destroy(_instance);
 			delete* it;
 		}
 

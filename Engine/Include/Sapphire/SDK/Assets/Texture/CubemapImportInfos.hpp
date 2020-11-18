@@ -11,9 +11,15 @@
 
 namespace Sa
 {
-	class CubemapImportInfos : public IAssetImportInfos
+	class IRenderInstance;
+
+	class SA_ENGINE_API CubemapImportInfos : public IAssetImportInfos
 	{
 	public:
+		CubemapImportInfos(const IRenderInstance& _instance) noexcept;
+
+		const IRenderInstance& instance;
+
 		Format format = Format::sRGBA_32;
 		Format irradianceformat = Format::RGBA_32;
 

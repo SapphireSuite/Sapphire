@@ -351,13 +351,12 @@ struct SkyboxRender
 			const char* resourcePath = "../../Samples/Prototype/Resources/Skybox/Milkyway.hdr";
 
 			CubemapAsset asset;
-			TextureImportInfos importInfos; importInfos.format = Format::sRGBA_32;
-			uint32 res = asset.TryLoadImport(assetPath, resourcePath, importInfos);
+			uint32 res = asset.TryLoadImport(assetPath, resourcePath, CubemapImportInfos(_instance));
 
-			if (res != 1)
-				asset.Save(assetPath);
-			else if (res == -1)
-				SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
+			//if (res != 1)
+			//	asset.Save(assetPath);
+			//else if (res == -1)
+			//	SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
 
 			cubemap.Create(_instance, asset.GetRawData());
 		}

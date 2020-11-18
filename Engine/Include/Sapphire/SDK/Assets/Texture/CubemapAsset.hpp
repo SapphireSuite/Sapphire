@@ -32,7 +32,7 @@ namespace Sa
 
 		bool IsValid() const noexcept override final;
 
-		bool Import(const std::string& _resourcePath, const IAssetImportInfos& _importInfos = ImportT()) override final;
+		bool Import(const std::string& _resourcePath, const IAssetImportInfos& _importInfos) override final;
 	};
 }
 

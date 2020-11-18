@@ -150,8 +150,10 @@ namespace Sa::Vk
 
 		if (type == ShaderBindingType::UniformBuffer)
 			_bufferDescSize += SizeOf(_binding.GetUniformBuffers()) * descSetSize;
-		else if (type == ShaderBindingType::ImageSampler2D || type == ShaderBindingType::ImageSamplerCube)
+		else if (type == ShaderBindingType::ImageSampler2D)
 			_imageDescSize += SizeOf(_binding.GetImageSamplers2D()) * descSetSize;
+		else if (type == ShaderBindingType::ImageSamplerCube)
+			_imageDescSize += SizeOf(_binding.GetImageSamplerCubes()) * descSetSize;
 		else if (type == ShaderBindingType::StorageBuffer)
 			_bufferDescSize += descSetSize;
 		else if (type == ShaderBindingType::InputAttachment)

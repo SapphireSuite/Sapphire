@@ -56,6 +56,7 @@ namespace Sa::Vk
 
 		void TransitionImageLayout(const Device& _device, const ImageBuffer::TransitionInfos& _infos);
 		void CopyBufferToImage(const Device& _device, const ImageBuffer::CopyBufferImageInfos& _infos);
+		void CopyImageToBuffer(const Device& _device, const ImageBuffer::CopyBufferImageInfos& _infos);
 
 		VkDescriptorImageInfo CreateDescriptorImageInfo(VkSampler _sampler = VK_NULL_HANDLE) const noexcept;
 

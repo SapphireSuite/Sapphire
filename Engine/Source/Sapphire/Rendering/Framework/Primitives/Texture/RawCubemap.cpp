@@ -4,7 +4,8 @@
 
 namespace Sa
 {
-	const uint32 RawCubemap::maxRoughLevel = 5u;
+	const uint32 RawCubemap::maxRoughLevel = 1u;
+	//const uint32 RawCubemap::maxRoughLevel = 5u; //TODO: Reset.
 
 	RawCubemap::RawCubemap() noexcept
 	{

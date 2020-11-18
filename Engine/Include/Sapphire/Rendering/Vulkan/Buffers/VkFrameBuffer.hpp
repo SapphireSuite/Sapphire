@@ -37,10 +37,9 @@ namespace Sa::Vk
 
 		const IImageBuffer& GetInputAttachment(uint32 _index) const override final;
 
-		void Create(const Device& _device, const RenderPass& _renderPass,
-			const RenderPassDescriptor& _rpDescriptor,
-			const Vec2ui& _extent, uint32 _poolIndex = 0u, VkImage presentImage = VK_NULL_HANDLE);
-		void Destroy(const Device& _device);
+		void Create(const IRenderInstance& _instance, const FrameBufferCreateInfos& _infos) override final;
+		void Create(const IRenderInstance& _instance, const FrameBufferCreateInfos& _infos, VkImage presentImage);
+		void Destroy(const IRenderInstance& _instance) override final;
 
 		void Begin() override final;
 		void NextSubpass() override final;

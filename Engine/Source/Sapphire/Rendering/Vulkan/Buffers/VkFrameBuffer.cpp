@@ -6,7 +6,7 @@
 
 #include <Rendering/Vulkan/System/VkMacro.hpp>
 #include <Rendering/Vulkan/System/VkRenderPass.hpp>
-#include <Rendering/Vulkan/System/Device/VkDevice.hpp>
+#include <Rendering/Vulkan/System/VkRenderInstance.hpp>
 
 #if SA_RENDERING_API == SA_VULKAN
 
@@ -19,16 +19,21 @@ namespace Sa::Vk
 		return mInputAttachments[_index];
 	}
 
-	void FrameBuffer::Create(const Device& _device, const RenderPass& _renderPass,
-		const RenderPassDescriptor& _rpDescriptor,
-		const Vec2ui& _extent, uint32 _poolIndex, VkImage presentImage)
+	void FrameBuffer::Create(const IRenderInstance& _instance, const FrameBufferCreateInfos& _infos)
 	{
+		Create(_instance, _infos, VK_NULL_HANDLE);
+	}
+
+	void FrameBuffer::Create(const IRenderInstance& _instance, const FrameBufferCreateInfos& _infos, VkImage presentImage)
+	{
+		const Device& device = _instance.As<RenderInstance>().device;
+
 		std::vector<VkImageView> attachementCreateInfos;
 
 		ImageBufferCreateInfos imageInfos;
-		imageInfos.extent = _extent;
+		imageInfos.extent = _infos.extent;
 
-		for (auto subIt = _rpDescriptor.subPassDescs.begin(); subIt != _rpDescriptor.subPassDescs.end(); ++subIt)
+		for (auto subIt = _infos.rpDescriptor.subPassDescs.begin(); subIt != _infos.rpDescriptor.subPassDescs.end(); ++subIt)
 		{
 			for (auto attIt = subIt->attachmentDescs.begin(); attIt != subIt->attachmentDescs.end(); ++attIt)
 			{
@@ -41,22 +46,21 @@ namespace Sa::Vk
 				{
 					// Add multisampled buffer.
 					ImageBuffer& multSamplBuffer = mAttachments.emplace_back(ImageBuffer{});
-					multSamplBuffer.Create(_device, imageInfos);
+					multSamplBuffer.Create(device, imageInfos);
 					attachementCreateInfos.push_back(multSamplBuffer);
 
-					if (_rpDescriptor.bClear)
-						AddClearColor(attIt->format, _rpDescriptor.clearColor);
+					if (_infos.rpDescriptor.bClear)
+						AddClearColor(attIt->format, _infos.rpDescriptor.clearColor);
 
 					imageInfos.sampling = SampleBits::Sample1Bit;
 				}
 
 
-				if (IsPresentFormat(attIt->format))
+				if (IsPresentFormat(attIt->format) && presentImage != VK_NULL_HANDLE)
 				{
-					SA_ASSERT(presentImage != VK_NULL_HANDLE, InvalidParam, Rendering, L"Framebuffer with present format requiere a valid swapchain image!");
-					
 					ImageBuffer& presentBuffer = mAttachments.emplace_back(ImageBuffer{});
-					presentBuffer.CreateFromImage(_device, imageInfos, presentImage);
+
+					presentBuffer.CreateFromImage(device, imageInfos, presentImage);
 					attachementCreateInfos.push_back(presentBuffer);
 				}
 				else if (attIt->bInputNext)
@@ -64,19 +68,19 @@ namespace Sa::Vk
 					imageInfos.usage = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
 					ImageBuffer& inputBuffer = mInputAttachments.emplace_back(ImageBuffer{});
-					inputBuffer.Create(_device, imageInfos);
+					inputBuffer.Create(device, imageInfos);
 					attachementCreateInfos.push_back(inputBuffer);
 				}
 				else
 				{
 					ImageBuffer& buffer = mAttachments.emplace_back(ImageBuffer{});
-					buffer.Create(_device, imageInfos);
+					buffer.Create(device, imageInfos);
 					attachementCreateInfos.push_back(buffer);
 				}
 
 
-				if (_rpDescriptor.bClear)
-					AddClearColor(attIt->format, _rpDescriptor.clearColor);
+				if (_infos.rpDescriptor.bClear)
+					AddClearColor(attIt->format, _infos.rpDescriptor.clearColor);
 			}
 		}
 
@@ -86,38 +90,40 @@ namespace Sa::Vk
 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferCreateInfo.pNext = nullptr;
 		framebufferCreateInfo.flags = 0;
-		framebufferCreateInfo.renderPass = _renderPass;
+		framebufferCreateInfo.renderPass = _infos.renderPass.As<RenderPass>();
 		framebufferCreateInfo.attachmentCount = SizeOf(attachementCreateInfos);
 		framebufferCreateInfo.pAttachments = attachementCreateInfos.data();
-		framebufferCreateInfo.width = _extent.x;
-		framebufferCreateInfo.height = _extent.y;
-		framebufferCreateInfo.layers = 1;
+		framebufferCreateInfo.width = _infos.extent.x;
+		framebufferCreateInfo.height = _infos.extent.y;
+		framebufferCreateInfo.layers = _infos.layerNum;
 
-		SA_VK_ASSERT(vkCreateFramebuffer(_device, &framebufferCreateInfo, nullptr, &mHandle),
+		SA_VK_ASSERT(vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr, &mHandle),
 			CreationFailed, Rendering, L"Failed to create framebuffer!");
 
-		mExtent = _extent;
-		mRenderPass = _renderPass;
+		mExtent = _infos.extent;
+		mRenderPass = _infos.renderPass.As<RenderPass>();
 
 		// === Create command buffer ===
-		commandBuffer = CommandBuffer::Allocate(_device, QueueType::Graphics, _poolIndex);
+		commandBuffer = CommandBuffer::Allocate(device, QueueType::Graphics, _infos.poolIndex);
 	}
 
-	void FrameBuffer::Destroy(const Device& _device)
+	void FrameBuffer::Destroy(const IRenderInstance& _instance)
 	{
-		CommandBuffer::Free(_device, commandBuffer);
+		const Device& device = _instance.As<RenderInstance>().device;
 
-		vkDestroyFramebuffer(_device, mHandle, nullptr);
+		CommandBuffer::Free(device, commandBuffer);
+
+		vkDestroyFramebuffer(device, mHandle, nullptr);
 
 		// Destroy attachments.
 		for (auto it = mAttachments.begin(); it != mAttachments.end(); ++it)
-			it->Destroy(_device);
+			it->Destroy(device);
 
 		mAttachments.clear();
 
 		// Destroy input attachments.
 		for (auto it = mInputAttachments.begin(); it != mInputAttachments.end(); ++it)
-			it->Destroy(_device);
+			it->Destroy(device);
 
 		mInputAttachments.clear();
 	}

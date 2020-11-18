@@ -23,7 +23,7 @@ namespace Sa::Vk
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
-		mSwapChain.Create(_instance.As<Vk::RenderInstance>().device, *this);
+		mSwapChain.Create(_instance, *this);
 	}
 
 	void RenderSurface::Destroy(const IRenderInstance& _instance)
@@ -31,7 +31,7 @@ namespace Sa::Vk
 		SA_ASSERT(mHandle != VK_NULL_HANDLE, Nullptr, Rendering,
 			L"Handle is nullptr. VkSurfaceKHR must be created first: use VkRenderInstance.CreateRenderSurface().");
 
-		mSwapChain.Destroy(_instance.As<Vk::RenderInstance>().device);
+		mSwapChain.Destroy(_instance);
 	}
 
 	RenderFrame RenderSurface::Begin(const IRenderInstance& _instance)
@@ -44,19 +44,19 @@ namespace Sa::Vk
 		mSwapChain.End(_instance.As<RenderInstance>().device);
 	}
 
-	const std::vector<IFrameBuffer*>& RenderSurface::CreateFrameBuffers(IRenderInstance& _instance, const IRenderPass& _renderPass,
+	const std::vector<IFrameBuffer*>& RenderSurface::CreateFrameBuffers(const IRenderInstance& _instance, const IRenderPass& _renderPass,
 		const RenderPassDescriptor& _renderPassDesc, uint32* _size)
 	{
 		return reinterpret_cast<const std::vector<IFrameBuffer*>&>(mSwapChain.CreateFrameBuffers(
-			_instance.As<RenderInstance>().device,
+			_instance,
 			_renderPass.As<RenderPass>(), _renderPassDesc,
 			_size
 		));
 	}
 
-	void RenderSurface::DestroyFrameBuffers(IRenderInstance& _instance)
+	void RenderSurface::DestroyFrameBuffers(const IRenderInstance& _instance)
 	{
-		mSwapChain.DestroyFrameBuffers(_instance.As<RenderInstance>().device);
+		mSwapChain.DestroyFrameBuffers(_instance);
 	}
 
 
