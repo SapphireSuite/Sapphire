@@ -1,3 +1,5 @@
+// Copyright 2020 Sapphire development team. All Rights Reserved.
+
 #version 450
 #extension GL_KHR_vulkan_glsl : enable
 #extension GL_ARB_separate_shader_objects : enable

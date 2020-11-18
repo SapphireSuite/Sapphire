@@ -54,8 +54,8 @@ struct MainRenderInfos
 		{
 			// Vertex Shader.
 			{
-				const char* assetPath = "Bin/Engine/Shaders/Deferred/lit_composition_VS.spha";
-				const char* resourcePath = "../../Engine/Resources/Shaders/Deferred/lit_composition.vert";
+				const char* assetPath = "Bin/Engine/Shaders/lit_composition_VS.spha";
+				const char* resourcePath = "../../Engine/Resources/Shaders/lit_composition.vert";
 
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
@@ -70,8 +70,8 @@ struct MainRenderInfos
 
 			// Fragment Shader.
 			{
-				const char* assetPath = "Bin/Engine/Shaders/Deferred/lit_composition_FS.spha";
-				const char* resourcePath = "../../Engine/Resources/Shaders/Deferred/lit_composition.frag";
+				const char* assetPath = "Bin/Engine/Shaders/lit_composition_FS.spha";
+				const char* resourcePath = "../../Engine/Resources/Shaders/lit_composition.frag";
 
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
@@ -121,8 +121,8 @@ struct MainRenderInfos
 		{
 			// Vertex Shader.
 			{
-				const char* assetPath = "Bin/Engine/Shaders/Deferred/lit_VS.spha";
-				const char* resourcePath = "../../Engine/Resources/Shaders/Deferred/lit.vert";
+				const char* assetPath = "Bin/Engine/Shaders/lit_VS.spha";
+				const char* resourcePath = "../../Engine/Resources/Shaders/lit.vert";
 
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
@@ -137,8 +137,8 @@ struct MainRenderInfos
 
 			// Fragment Shader.
 			{
-				const char* assetPath = "Bin/Engine/Shaders/Deferred/lit_FS.spha";
-				const char* resourcePath = "../../Engine/Resources/Shaders/Deferred/lit.frag";
+				const char* assetPath = "Bin/Engine/Shaders/lit_FS.spha";
+				const char* resourcePath = "../../Engine/Resources/Shaders/lit.frag";
 
 				ShaderAsset asset;
 				uint32 res = asset.TryLoadImport(assetPath, resourcePath, ShaderImportInfos());
