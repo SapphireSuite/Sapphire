@@ -68,7 +68,7 @@ namespace Sa::Vk
 			void* deviceData;
 			vkMapMemory(_device, mDeviceMemory, 0, _size, 0, &deviceData);
 
-			memcpy(deviceData, _data, _size);
+			std::memcpy(deviceData, _data, _size);
 
 			vkUnmapMemory(_device, mDeviceMemory);
 		}
@@ -124,7 +124,7 @@ namespace Sa::Vk
 
 		vkMapMemory(_device, mDeviceMemory, _offset, _size, 0, &bufferData);
 
-		memcpy(bufferData, _data, _size);
+		std::memcpy(bufferData, _data, _size);
 
 		vkUnmapMemory(_device, mDeviceMemory);
 	}
