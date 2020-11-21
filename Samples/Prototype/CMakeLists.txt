@@ -19,3 +19,8 @@ add_executable(Prototype ${SOURCES})
 
 # Add library dependencies.
 target_link_libraries(Prototype PRIVATE Engine)
+
+
+# === Tests ===
+
+add_test(NAME CPrototype COMMAND Prototype --config $<CONFIGURATION> --exe $<TARGET_FILE:Prototype>)

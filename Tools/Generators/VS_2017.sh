@@ -13,12 +13,21 @@ do
 done
 
 
+# Travis config.
+travis_config=""
+
+if [ "$4" == "-travis" ]
+then
+	travis_config="-DCMAKE_TRAVIS=1"
+fi
+
+
 # Create generator folder.
 mkdir -p Build/VS_2017/$config
 
 
 # Generate project.
-cmake -B Build/VS_2017/$config -DCMAKE_BUILD_TYPE=$config -G "Visual Studio 15 2017"
+cmake -B Build/VS_2017/$config -DCMAKE_BUILD_TYPE=$config -G "Visual Studio 15 2017" $travis_config
 
 # Catch generation failure.
 if [ $? != 0 ]; then exit 1; fi

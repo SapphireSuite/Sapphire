@@ -1,6 +1,7 @@
 # Copyright 2020 Sapphire development team. All Rights Reserved.
 
 # Reference: https://docs.travis-ci.com/
+# Build status: https://travis-ci.org/github/sapphire-devteam/Sapphire
 
 # Language.
 language: cpp
@@ -15,35 +16,15 @@ dist: bionic
 # OS matrix.
 os:
   - linux
-  - osx
-  - windows
+# - windows
+# - osx
 
 
 
 # Architecture matrix.
 arch:
   - amd64
-#  - arm64
-
-
-
-# Compiler matrix.
-compiler:
-  - gcc
-  - clang
-
-
-
-# Environment matrix.
-env:
-
-  # Common to all jobs variables.
-  global:
-
-  # Job-specific variables.
-  jobs:
-    - CONFIG=Debug
-    - CONFIG=Release
+# - arm64
 
 
 
@@ -53,31 +34,54 @@ addons:
   # Linux
   apt:
     update: true
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
-      - ninja-build # Ninja generator.
+      - gcc-8
+      - g++-8
+      - clang-8
+      - gcc-9
+      - g++-9
+      - clang-9
+      - gcc-10
+      - g++-10
+      - clang-10
+      - ninja-build
+      - libvulkan-dev
+
+# Not supported yet.
+#  # Windows
+#  chocolatey:
+#    update: true
+#    packages:
+#      - cmake
+#      - llvm
+#      - ninja
+#      - vulkan-sdk
 
   # OSX
   homebrew:
     update: true
     packages:
-      - ninja # Ninja generator.
+      - cmake
+      - gcc
+      - llvm
+      - ninja
+      - vulkan-headers
 
 
 
 # Pre-install commands.
 before_install:
 
+  # All the dependencies are installed in ${HOME}/deps/
+  - DEPS_DIR="${HOME}/deps"
+  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+
 
 
 # Install commands.
 install:
-
-  # Add Windows Ninja generator dependency.
-  - if [[ "${TRAVIS_OS_NAME}" == "windows" ]]; then choco install -y ninja; fi
-
-  # All the dependencies are installed in ${HOME}/deps/
-  - DEPS_DIR="${HOME}/deps"
-  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
 
   # Install Cmake 3.17.0
   - |
@@ -85,9 +89,21 @@ install:
       CMAKE_URL="https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
-    elif [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
-      brew install cmake || brew upgrade cmake
     fi
+
+  # Add Windows dependencies.
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "windows" ]]; then
+      choco install -y cmake
+      choco install -y gcc
+      choco install -y llvm
+      choco install -y ninja
+      choco install -y vulkan-sdk
+      powershell refreshenv
+    fi
+
+  # Engine path environment variable.
+  - export PATH="$HOME/Sapphire-DevTeam/Sapphire:$PATH"
 
 
 
@@ -96,7 +112,9 @@ before_script:
 
   # Log versions.
   - cmake --version
-  - ninja --version
+  - ${CC} --version
+  - ${CXX} --version
+  - echo ${GEN}
 
   # Go back to the root of the project
   - cd "${TRAVIS_BUILD_DIR}"
@@ -106,14 +124,79 @@ before_script:
 # Executed commands.
 script:
 
-  # Generate, build and test.
-  - bash Tools/Generators/Ninja.sh ${CONFIG} -b -t
+  # Debug: generate, build and test.
+  - echo === Debug ===
+  - bash Tools/Generators/${GEN}.sh Debug -b -t -travis
+
+  # Release: generate, build and test.
+  - echo === Release ===
+  - bash Tools/Generators/${GEN}.sh Release -b -t -travis
 
 
 
 # Job specialization matrix.
 jobs:
   include:
+
+    # Linux GCC 8
+    - name: "GCC 8"
+      os: linux
+      env: CC=gcc-8 CXX=g++-8 GEN=Ninja
+
+    # Linux GCC 9
+    - name: "GCC 9"
+      os: linux
+      env: CC=gcc-9 CXX=g++-9 GEN=Ninja
+
+    # Linux GCC 10
+    - name: "GCC 10"
+      os: linux
+      env: CC=gcc-10 CXX=g++-10 GEN=Ninja
+
+
+    # Linux CLANG 8
+    - name: "CLANG 8"
+      os: linux
+      env: CC=clang-8 CXX=clang++-8 GEN=Ninja
+
+    # Linux CLANG 9
+    - name: "CLANG 9"
+      os: linux
+      env: CC=clang-9 CXX=clang++-9 GEN=Ninja
+
+    # Linux CLANG 8
+    - name: "CLANG 10"
+      os: linux
+      env: CC=clang-10 CXX=clang++-10 GEN=Ninja
+
+
+    # Windows Ninja
+    - name: "Windows Ninja"
+      os: windows
+      env: CC=clang CXX=clang++ GEN=Ninja
+
+    # Windows Visual 2017
+    - name: "Windows Visual 2017"
+      os: windows
+      env: CC=clang CXX=clang++ GEN=VS_2017
+
+# Not supported yet.
+#    # Windows Visual 2019
+#    - name: "Windows Visual 2019"
+#      os: windows
+#      env: CC=clang CXX=clang++ GEN=VS_2019
+
+
+    # OSX GCC.
+    - name: "OSX GCC"
+      os: osx
+      env: CC=gcc CXX=g++ GEN=Ninja
+
+    # OSX CLANG.
+    - name: "OSX CLANG"
+      os: osx
+      env: CC=clang CXX=clang++ GEN=Ninja
+
 
     # Doxygen Generation.
     - name: "Doxygen"

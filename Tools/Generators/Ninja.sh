@@ -13,12 +13,21 @@ do
 done
 
 
+# Travis config.
+travis_config=""
+
+if [ "$4" == "-travis" ]
+then
+	travis_config="-DCMAKE_TRAVIS=1"
+fi
+
+
 # Create generator folder.
 mkdir -p Build/Ninja/$config
 
 
 # Generate project.
-cmake -B Build/Ninja/$config -DCMAKE_BUILD_TYPE=$config -G Ninja
+cmake -B Build/Ninja/$config -DCMAKE_BUILD_TYPE=$config -G Ninja $travis_config
 
 # Catch generation failure.
 if [ $? != 0 ]; then exit 1; fi
