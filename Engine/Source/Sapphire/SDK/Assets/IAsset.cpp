@@ -48,9 +48,9 @@ namespace Sa
 
 		// Create Directory.
 		std::string dirPath;
-		uint32 dirIndex = _outFilePath.find_last_of('/');
+		uint32 dirIndex = static_cast<uint32>(_outFilePath.find_last_of('/'));
 
-		if (dirIndex != uint32(-1))
+		if (dirIndex != ~uint32())
 			dirPath = _outFilePath.substr(0, dirIndex);
 
 		if (!dirPath.empty())

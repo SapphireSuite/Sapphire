@@ -145,7 +145,7 @@ namespace Sa::Vk
 	void Material::CountDescriptors(const MaterialBindingInfos& _binding, uint32& _bufferDescSize, uint32& _imageDescSize) const noexcept
 	{
 		ShaderBindingType type = _binding.GetType();
-		const uint32 descSetSize = _binding.descriptor == uint32(-1) ? SizeOf(mDescriptorSets) : 1u;
+		const uint32 descSetSize = _binding.descriptor == ~uint32() ? SizeOf(mDescriptorSets) : 1u;
 
 		if (type == ShaderBindingType::UniformBuffer)
 			_bufferDescSize += SizeOf(_binding.GetUniformBuffers()) * descSetSize;
@@ -166,9 +166,9 @@ namespace Sa::Vk
 		uint32 _descIndex) const noexcept
 	{
 		// Selected descriptor index.
-		if (_descIndex == uint32(-1))
+		if (_descIndex == ~uint32())
 		{
-			if (_binding.descriptor != uint32(-1))
+			if (_binding.descriptor != ~uint32())
 				_descIndex = _binding.descriptor;
 			else
 			{

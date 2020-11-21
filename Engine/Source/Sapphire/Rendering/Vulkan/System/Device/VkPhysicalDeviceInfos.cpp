@@ -38,7 +38,7 @@ namespace Sa::Vk
 		// Present family. Should be checked first.
 		if (_surface && (static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueType::Present)))
 		{
-			if (present.index == uint32(-1) ||				// Not completed yet.
+			if (present.index == ~uint32() ||				// Not completed yet.
 				graphics.index != _index)					// Different from graphics.
 			{
 				VkBool32 presentSupport = false;
@@ -54,7 +54,7 @@ namespace Sa::Vk
 		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueType::Graphics)) &&
 			(_family.queueFlags & VK_QUEUE_GRAPHICS_BIT))
 		{
-			if (graphics.index == uint32(-1) ||					// Not completed yet.
+			if (graphics.index == ~uint32() ||					// Not completed yet.
 				graphics.maxQueueNum < _family.queueCount)		// Allow more queue simultaneously.
 			{
 				graphics.index = _index;
@@ -67,7 +67,7 @@ namespace Sa::Vk
 		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueType::Compute)) &&
 			(_family.queueFlags & VK_QUEUE_COMPUTE_BIT))
 		{
-			if (compute.index == uint32(-1) ||					// Not completed yet.
+			if (compute.index == ~uint32() ||					// Not completed yet.
 				present.index != _index)						// Different from Present.
 			{
 				compute.index = _index;
@@ -80,7 +80,7 @@ namespace Sa::Vk
 		if ((static_cast<uint32>(familyTypes) & static_cast<uint32>(QueueType::Transfer)) &&
 			(_family.queueFlags & VK_QUEUE_TRANSFER_BIT))
 		{
-			if (transfer.index == uint32(-1) ||				// Not completed yet.
+			if (transfer.index == ~uint32() ||				// Not completed yet.
 				(graphics.index != _index &&				// Different from Graphics.
 				present.index != _index))					// Different from Present.
 			{
@@ -101,7 +101,7 @@ namespace Sa::Vk
 			if (static_cast<uint32>(familyTypes) & (1 << i))
 			{
 				// Is family completed.
-				if (data[i].index == uint32(-1))
+				if (data[i].index == ~uint32())
 					return false;
 			}
 		}
@@ -123,7 +123,7 @@ namespace Sa::Vk
 			// Has current type.
 			if (static_cast<uint32>(familyTypes) & (1 << i))
 			{
-				SA_ASSERT(data[i].index != uint32(-1), InvalidParam, Rendering, L"Create device infos of an uncompleted family!");
+				SA_ASSERT(data[i].index != ~uint32(), InvalidParam, Rendering, L"Create device infos of an uncompleted family!");
 
 
 				// Family index already in results.

@@ -26,11 +26,11 @@ namespace Sa
 	{
 		std::string tempPath;
 
-		uint32 nameIndex = _resourcePath.find_last_of('/') + 1;
+		uint32 nameIndex = static_cast<uint32>(_resourcePath.find_last_of('/') + 1);
 		SA_ASSERT(nameIndex != 0, InvalidParam, SDK_Asset, L"Invalid resource path!");
 
-		uint32 extensionIndex = _resourcePath.find_last_of('.');
-		SA_ASSERT(extensionIndex != uint32(-1), InvalidParam, SDK_Asset, L"Invalid resource path!");
+		uint32 extensionIndex = static_cast<uint32>(_resourcePath.find_last_of('.'));
+		SA_ASSERT(extensionIndex != ~uint32(), InvalidParam, SDK_Asset, L"Invalid resource path!");
 
 		std::string extension = _resourcePath.substr(extensionIndex + 1);
 

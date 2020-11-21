@@ -40,7 +40,7 @@ namespace Sa::Vk
 		mVertexBuffer.Destroy(device);
 		mIndexBuffer.Destroy(device);
 
-		mIndicesSize = uint32(-1);
+		mIndicesSize = ~uint32();
 	}
 
 	void Mesh::Draw(const RenderFrame& _frame, const MeshDrawInfos& _infos) const

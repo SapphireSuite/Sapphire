@@ -116,7 +116,7 @@ namespace Sa::Vk
 	}
 
 
-	void Buffer::UpdateData(const Device& _device, const void* _data, uint32 _size, uint32 _offset)
+	void Buffer::UpdateData(const Device& _device, const void* _data, uint64 _size, uint64 _offset)
 	{
 		SA_ASSERT(_data, Nullptr, Rendering, L"Update nullptr data!");
 
@@ -168,7 +168,7 @@ namespace Sa::Vk
 
 		SA_ASSERT(false, NotSupported, Rendering, L"Memory type requiered not supported!");
 
-		return uint32(-1);
+		return ~uint32();
 	}
 
 

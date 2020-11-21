@@ -16,7 +16,7 @@ namespace Sa
 	public:
 		Format format = Format::RGBA_32;
 
-		uint32 mipLevels = uint32(-1u);
+		uint32 mipLevels = ~uint32();
 	};
 }
 

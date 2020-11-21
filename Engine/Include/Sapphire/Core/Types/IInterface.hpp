@@ -10,7 +10,9 @@ namespace Sa
 	class IInterface
 	{
 	public:
+#if SA_DEBUG
 		virtual ~IInterface() = default;
+#endif
 
 		template <typename T>
 		T& As();

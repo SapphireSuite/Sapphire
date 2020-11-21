@@ -16,7 +16,7 @@ namespace Sa::Vk
 {
 	class Queue
 	{
-		uint32 mFamilyIndex = uint32(-1);
+		uint32 mFamilyIndex = ~uint32();
 
 		std::vector<VkQueue> mHandles;
 

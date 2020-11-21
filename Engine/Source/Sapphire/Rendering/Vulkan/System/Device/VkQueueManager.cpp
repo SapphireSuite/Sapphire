@@ -28,16 +28,16 @@ namespace Sa::Vk
 
 	void QueueManager::Create(const Device& _device, const PhysicalDeviceInfos& _infos)
 	{
-		if (_infos.graphics.index != uint32(-1))
+		if (_infos.graphics.index != ~uint32())
 			graphics.Create(_device, _infos.graphics.index, _infos.graphics.queueNum);
 
-		if (_infos.compute.index != uint32(-1))
+		if (_infos.compute.index != ~uint32())
 			compute.Create(_device, _infos.compute.index, _infos.compute.queueNum);
 
-		if (_infos.transfer.index != uint32(-1))
+		if (_infos.transfer.index != ~uint32())
 			transfer.Create(_device, _infos.transfer.index, _infos.transfer.queueNum);
 
-		if (_infos.present.index != uint32(-1))
+		if (_infos.present.index != ~uint32())
 			present.Create(_device, _infos.present.index, _infos.present.queueNum);
 	}
 

@@ -42,7 +42,7 @@ namespace Sa::Vk
 			const void* _data = nullptr);
 		void Destroy(const Device& _device);
 
-		void UpdateData(const Device& _device, const void* _data, uint32 _size, uint32 _offset = 0);
+		void UpdateData(const Device& _device, const void* _data, uint64 _size, uint64 _offset = 0);
 
 		VkDescriptorBufferInfo CreateDescriptorBufferInfo() const noexcept;
 

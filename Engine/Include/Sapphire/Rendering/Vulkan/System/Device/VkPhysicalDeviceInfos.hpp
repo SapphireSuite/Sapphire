@@ -21,7 +21,7 @@ namespace Sa::Vk
 	{
 		struct FamilyInfos
 		{
-			uint32 index = uint32(-1);
+			uint32 index = ~uint32();
 			uint32 maxQueueNum = 1u;
 			mutable uint32 queueNum = 1u;
 		};

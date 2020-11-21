@@ -19,7 +19,7 @@ namespace Sa::Vk
 
 	bool Queue::IsValid() const noexcept
 	{
-		return mFamilyIndex != uint32(-1);
+		return mFamilyIndex != ~uint32();
 	}
 
 	VkQueue Queue::GetHandle(uint32 _index) const
@@ -40,7 +40,7 @@ namespace Sa::Vk
 	void Queue::Create(const Device& _device, uint32 _queueFamilyIndex, uint32 _queueNum)
 	{
 		SA_ASSERT(_queueNum >= 1u, InvalidParam, Rendering, L"Invalid queue number!");
-		SA_ASSERT(_queueFamilyIndex != uint32(-1), InvalidParam, Rendering, L"Invalid queue family index: -1");
+		SA_ASSERT(_queueFamilyIndex != ~uint32(), InvalidParam, Rendering, L"Invalid queue family index: -1");
 
 		mFamilyIndex = _queueFamilyIndex;
 		mHandles.resize(_queueNum);
@@ -59,7 +59,7 @@ namespace Sa::Vk
 	{
 		SA_ASSERT(IsValid(), Nullptr, Rendering, L"Try to destroy null Queue!");
 
-		mFamilyIndex = uint32(-1);
+		mFamilyIndex = ~uint32();
 
 		for (auto it = mCommandPools.begin(); it != mCommandPools.end(); ++it)
 			it->Destroy(_device);

@@ -18,7 +18,7 @@ namespace Sa::Vk
 		Buffer mVertexBuffer;
 		Buffer mIndexBuffer;
 
-		uint32 mIndicesSize = uint32(-1);
+		uint32 mIndicesSize = ~uint32();
 
 	public:
 		void Create(const IRenderInstance& _instance, const RawMesh& _rawMesh) override final;

@@ -21,7 +21,7 @@ namespace Sa
 
 	struct RenderFrame
 	{
-		const uint32 index = uint32(-1);
+		const uint32 index = ~uint32();
 		IFrameBuffer& buffer;
 	};
 }

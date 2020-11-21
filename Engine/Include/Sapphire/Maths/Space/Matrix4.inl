@@ -560,7 +560,7 @@ namespace Sa
 	Mat4<T> Mat4<T>::MakePerspective(T _fov, T _aspect, T _near, T _far)
 	{
 		//const float scale = 1.f / tanf((_fov / 2.f) * Maths::DegToRad);
-		float tan_half_angle = std::tan(Maths::DegToRad * _fov / 2);
+		float tan_half_angle = static_cast<float>(std::tan(Maths::DegToRad * _fov / 2));
 
 		return Mat4(
 			1 / (_aspect * tan_half_angle), 0, 0, 0,

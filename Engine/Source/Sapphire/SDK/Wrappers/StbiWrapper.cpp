@@ -81,7 +81,7 @@ namespace Sa
 		_outTexture.data.assign(data, data + _outTexture.GetMainSize());
 
 
-		if(_importInfos.mipLevels == uint32(-1))
+		if(_importInfos.mipLevels == ~uint32())
 			_outTexture.mipLevels = Mipmap::ComputeLevels(_outTexture.extent);
 		else
 			_outTexture.mipLevels = _importInfos.mipLevels;

@@ -21,7 +21,7 @@ namespace Sa
 
 	public:
 		uint32 binding = 0u;
-		uint32 descriptor = uint32(-1);
+		uint32 descriptor = ~uint32();
 
 		ShaderBindingType GetType() const noexcept;
 
