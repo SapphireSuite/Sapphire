@@ -39,31 +39,31 @@ namespace Sa
 	{
 		if constexpr ((Comps & VertexComp::Position) != VertexComp::None)
 		{
-			if (position != _rhs.position)
+			if (Base::position != _rhs.position)
 				return false;
 		}
 
 		if constexpr ((Comps & VertexComp::Normal) != VertexComp::None)
 		{
-			if (normal != _rhs.normal)
+			if (Base::normal != _rhs.normal)
 				return false;
 		}
 
 		if constexpr ((Comps & VertexComp::Tangent) != VertexComp::None)
 		{
-			if (tangent != _rhs.tangent)
+			if (Base::tangent != _rhs.tangent)
 				return false;
 		}
 
 		if constexpr ((Comps & VertexComp::Texture) != VertexComp::None)
 		{
-			if (texture != _rhs.texture)
+			if (Base::texture != _rhs.texture)
 				return false;
 		}
 
 		if constexpr ((Comps & VertexComp::Color) != VertexComp::None)
 		{
-			if (color != _rhs.color)
+			if (Base::color != _rhs.color)
 				return false;
 		}
 
