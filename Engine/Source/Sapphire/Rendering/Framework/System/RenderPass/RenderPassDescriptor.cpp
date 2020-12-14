@@ -72,7 +72,7 @@ namespace Sa
 		// === Present Subpass ===
 		{
 			SubPassDescriptor& presentSubpassDesc = result.subPassDescs.emplace_back();
-			presentSubpassDesc.sampling = SampleBits::Sample1Bit;
+			presentSubpassDesc.sampling = SampleBits::Sample8Bits;
 
 			SubPassAttachmentDescriptor& presentAttachDesc = presentSubpassDesc.attachmentDescs.emplace_back();
 			presentAttachDesc.format = _surface ? _surface->GetFormat() : Format::sRGBA_32;

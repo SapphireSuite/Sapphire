@@ -87,8 +87,6 @@ namespace Sa::Vk
 	{
 		const Device& device = _instance.As<RenderInstance>().device;
 
-		const VkAttachmentLoadOp loadOp = _descriptor.bClear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-
 
 		// === Subpasses ===
 		uint32 subpassNum = SizeOf(_descriptor.subPassDescs);
@@ -138,6 +136,7 @@ namespace Sa::Vk
 			for (auto attIt = subpassDesc.attachmentDescs.begin(); attIt != subpassDesc.attachmentDescs.end(); ++attIt)
 			{
 				const VkFormat format = API_GetFormat(attIt->format);
+				const VkAttachmentLoadOp loadOp = API_GetAttachmentLoadOp(attIt->loadMode);
 
 				VkAttachmentDescription& attachDesc = subpassAttachments.emplace_back(CreateAttachement(format, sampling, loadOp));
 

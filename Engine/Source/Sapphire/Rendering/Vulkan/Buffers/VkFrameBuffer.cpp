@@ -44,8 +44,8 @@ namespace Sa::Vk
 					multSamplBuffer.Create(_device, imageInfos);
 					attachementCreateInfos.push_back(multSamplBuffer);
 
-					if (_rpDescriptor.bClear)
-						AddClearColor(attIt->format, _rpDescriptor.clearColor);
+					if(attIt->loadMode == AttachmentLoadMode::Clear)
+						AddClearColor(attIt->format, attIt->clearColor);
 
 					imageInfos.sampling = SampleBits::Sample1Bit;
 				}
@@ -75,8 +75,8 @@ namespace Sa::Vk
 				}
 
 
-				if (_rpDescriptor.bClear)
-					AddClearColor(attIt->format, _rpDescriptor.clearColor);
+				if (attIt->loadMode == AttachmentLoadMode::Clear)
+					AddClearColor(attIt->format, attIt->clearColor);
 			}
 		}
 
