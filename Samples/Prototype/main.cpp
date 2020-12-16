@@ -19,6 +19,7 @@
 
 #include <SDK/Assets/Shader/ShaderAsset.hpp>
 #include <SDK/Assets/Texture/TextureAsset.hpp>
+#include <SDK/Assets/Mesh/MeshAsset.hpp>
 
 #include <Window/GLFW/System/GLFWWindow.hpp>
 using namespace Sa;
@@ -430,242 +431,259 @@ struct SphereRender
 
 	void Create(Vk::RenderInstance& _instance)
 	{
-		sphereMesh.Create(_instance, RawMesh::Cube());
-
-		constexpr const char* meshAssetPath = "Bin/Spheres/sphere_M.spha";
-
-		const std::vector<std::string> names =
+		// Mesh asset.
 		{
-			"Bricks",
-			"Gold",
-			"Grass",
-			"Hardwood",
-			"IndustrialBricks",
-			"Rusted",
-			"Rusted2",
-			"ScuffedGold",
-			"ScuffedTitanium",
-			"Shoreline",
-			"Snow",
-			"WarpedSheet",
-			"Worn",
-			"WornShiny",
-		};
-		const std::vector<std::vector<std::string>> matResourcePaths =
+			const char* assetPath = "Bin/Spheres/sphere_M.spha";
+			const char* resourcePath = "../../Samples/Prototype/Resources/Spheres/sphere.obj";
+
+			MeshAsset asset;
+			MeshImportInfos importInfos; importInfos.index = 0u;
+			uint32 res = asset.TryLoadImport(assetPath, resourcePath, importInfos);
+
+			if (res != 1)
+				asset.Save(assetPath);
+			else if (res == -1)
+				SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
+
+			sphereMesh.Create(_instance, asset.GetRawData());
+		}
+
+		// Texture asset.
 		{
+			const std::vector<std::string> names =
 			{
-				"red-bricks2_albedo",
-				"red-bricks2_normal",
-				"red-bricks2_height",
-				"red-bricks2_metallness",
-				"red-bricks2_roughness",
-				"red-bricks2_ao"
-			},
+				"Bricks",
+				"Gold",
+				"Grass",
+				"Hardwood",
+				"IndustrialBricks",
+				"Rusted",
+				"Rusted2",
+				"ScuffedGold",
+				"ScuffedTitanium",
+				"Shoreline",
+				"Snow",
+				"WarpedSheet",
+				"Worn",
+				"WornShiny",
+			};
+			const std::vector<std::vector<std::string>> matResourcePaths =
 			{
-				"lightgold_albedo",
-				"lightgold_normal",
-				"",
-				"lightgold_metallic",
-				"lightgold_roughness",
-				""
-			},
-			{
-				"grass1-albedo3",
-				"grass1-normal",
-				"grass1-height",
-				"",
-				"grass1-rough",
-				"grass1-ao"
-			},
-			{
-				"hardwood-brown-planks-albedo",
-				"hardwood-brown-planks-normal",
-				"hardwood-brown-planks-height",
-				"hardwood-brown-planks-metallic",
-				"hardwood-brown-planks-roughness",
-				"hardwood-brown-planks-ao"
-			},
-			{
-				"industrial-narrow-brick-albedo",
-				"industrial-narrow-brick-normal",
-				"industrial-narrow-brick-height",
-				"industrial-narrow-brick-metallic",
-				"industrial-narrow-brick-roughness",
-				"industrial-narrow-brick-ao"
-			},
-			{
-				"rustediron-streaks_basecolor",
-				"rustediron-streaks_normal",
-				"",
-				"rustediron-streaks_metallic",
-				"rustediron-streaks_roughness",
-				""
-			},
-			{
-				"rustediron2_basecolor",
-				"rustediron2_normal",
-				"",
-				"rustediron2_metallic",
-				"rustediron2_roughness",
-				""
-			},
-			{
-				"gold-scuffed_basecolor-boosted",
-				"gold-scuffed_normal",
-				"",
-				"gold-scuffed_metallic",
-				"gold-scuffed_roughness",
-				""
-			},
-			{
-				"Titanium-Scuffed_basecolor",
-				"Titanium-Scuffed_normal",
-				"",
-				"Titanium-Scuffed_metallic",
-				"Titanium-Scuffed_roughness",
-				""
-			},
-			{
-				"rocky-shoreline1-albedo",
-				"rocky-shoreline1-normal",
-				"rocky-shoreline1-height",
-				"rocky-shoreline1-metallic",
-				"rocky-shoreline1-roughness",
-				"rocky-shoreline1-ao"
-			},
-			{
-				"snowdrift1_albedo",
-				"snowdrift1_Normal",
-				"snowdrift1_Height",
-				"snowdrift1_Metallic",
-				"snowdrift1_Roughness",
-				"snowdrift1_ao"
-			},
-			{
-				"warped-sheet-metal_albedo",
-				"warped-sheet-metal_normal",
-				"warped-sheet-metal_height",
-				"warped-sheet-metal_metallic",
-				"warped-sheet-metal_roughness",
-				"warped-sheet-metal_ao"
-			},
-			{
-				"worn_metal4_albedo",
-				"worn_metal4_Normal",
-				"worn_metal4_Height",
-				"worn_metal4_Metallic",
-				"worn_metal4_Roughness",
-				"worn_metal4_ao"
-			},
-			{
-				"worn-shiny-metal-albedo",
-				"worn-shiny-metal-Normal",
-				"worn-shiny-metal-Height",
-				"worn-shiny-metal-Metallic",
-				"worn-shiny-metal-Roughness",
-				"worn-shiny-metal-ao"
-			}
-		};
-
-		TextureImportInfos textureImpIfos[6];
-		textureImpIfos[0].format = Format::sRGBA_32; // albedo.
-		textureImpIfos[2].format = Format::R_8; // metallness.
-		textureImpIfos[4].format = Format::R_8; // roughness.
-		textureImpIfos[5].format = Format::R_8; // ambiant occlusion.
-
-
-		// Async texture loading / import.
-		//Thread jobs[sphereNum];
-
-		for (uint32 i = 0u; i < sphereNum; ++i)
-		{
-			//jobs[i] = [this, i, &_instance, &matResourcePaths, &names, &textureImpIfos]()
-			{
-				// Textures.
 				{
-					std::string sphaPath;
-					std::string resPath;
-
-					for (uint32 j = 0u; j < 6u; ++j)
-					{
-						if (matResourcePaths[i][j].empty())
-						{
-							sphaPath = "Bin/Spheres/" + names[i] + "/missing" + std::to_string(j) + "_T" + ".spha";
-							resPath = "../../Engine/Resources/Textures/missing_texture.png";
-						}
-						else
-						{
-							sphaPath = "Bin/Spheres/" + names[i] + '/' + matResourcePaths[i][j] + ".spha";
-							resPath = "../../Samples/Prototype/Resources/Spheres/" + names[i] + '/' + matResourcePaths[i][j] + ".png";
-						}
-
-
-						TextureAsset asset;
-						uint32 res = asset.TryLoadImport(sphaPath, resPath, textureImpIfos[j]);
-
-						if (res != 1)
-							asset.Save(sphaPath);
-						else if (res == -1)
-							SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
-
-						textures[i * 6u + j].Create(_instance, asset.GetRawData());
-					}
+					"red-bricks2_albedo",
+					"red-bricks2_normal",
+					"red-bricks2_height",
+					"red-bricks2_metallness",
+					"red-bricks2_roughness",
+					"red-bricks2_ao"
+				},
+				{
+					"lightgold_albedo",
+					"lightgold_normal",
+					"",
+					"lightgold_metallic",
+					"lightgold_roughness",
+					""
+				},
+				{
+					"grass1-albedo3",
+					"grass1-normal",
+					"grass1-height",
+					"",
+					"grass1-rough",
+					"grass1-ao"
+				},
+				{
+					"hardwood-brown-planks-albedo",
+					"hardwood-brown-planks-normal",
+					"hardwood-brown-planks-height",
+					"hardwood-brown-planks-metallic",
+					"hardwood-brown-planks-roughness",
+					"hardwood-brown-planks-ao"
+				},
+				{
+					"industrial-narrow-brick-albedo",
+					"industrial-narrow-brick-normal",
+					"industrial-narrow-brick-height",
+					"industrial-narrow-brick-metallic",
+					"industrial-narrow-brick-roughness",
+					"industrial-narrow-brick-ao"
+				},
+				{
+					"rustediron-streaks_basecolor",
+					"rustediron-streaks_normal",
+					"",
+					"rustediron-streaks_metallic",
+					"rustediron-streaks_roughness",
+					""
+				},
+				{
+					"rustediron2_basecolor",
+					"rustediron2_normal",
+					"",
+					"rustediron2_metallic",
+					"rustediron2_roughness",
+					""
+				},
+				{
+					"gold-scuffed_basecolor-boosted",
+					"gold-scuffed_normal",
+					"",
+					"gold-scuffed_metallic",
+					"gold-scuffed_roughness",
+					""
+				},
+				{
+					"Titanium-Scuffed_basecolor",
+"Titanium-Scuffed_normal",
+"",
+"Titanium-Scuffed_metallic",
+"Titanium-Scuffed_roughness",
+""
+				},
+				{
+					"rocky-shoreline1-albedo",
+					"rocky-shoreline1-normal",
+					"rocky-shoreline1-height",
+					"rocky-shoreline1-metallic",
+					"rocky-shoreline1-roughness",
+					"rocky-shoreline1-ao"
+				},
+				{
+					"snowdrift1_albedo",
+					"snowdrift1_Normal",
+					"snowdrift1_Height",
+					"snowdrift1_Metallic",
+					"snowdrift1_Roughness",
+					"snowdrift1_ao"
+				},
+				{
+					"warped-sheet-metal_albedo",
+					"warped-sheet-metal_normal",
+					"warped-sheet-metal_height",
+					"warped-sheet-metal_metallic",
+					"warped-sheet-metal_roughness",
+					"warped-sheet-metal_ao"
+				},
+				{
+					"worn_metal4_albedo",
+					"worn_metal4_Normal",
+					"worn_metal4_Height",
+					"worn_metal4_Metallic",
+					"worn_metal4_Roughness",
+					"worn_metal4_ao"
+				},
+				{
+					"worn-shiny-metal-albedo",
+					"worn-shiny-metal-Normal",
+					"worn-shiny-metal-Height",
+					"worn-shiny-metal-Metallic",
+					"worn-shiny-metal-Roughness",
+					"worn-shiny-metal-ao"
 				}
 			};
-		}
 
-		//for (uint32 i = 0u; i < sphereNum; ++i)
-		//	jobs[i].Join();
+			TextureImportInfos textureImpIfos[6];
+			textureImpIfos[0].format = Format::sRGBA_32; // albedo.
+			textureImpIfos[2].format = Format::R_8; // metallness.
+			textureImpIfos[4].format = Format::R_8; // roughness.
+			textureImpIfos[5].format = Format::R_8; // ambiant occlusion.
 
 
-		// Material.
-		const uint32 maxY = 3u;
-		Atomic<uint32> currX = 0u;
-		Atomic<uint32> currY = 0u;
+			// Async texture loading / import.
+			//Thread jobs[sphereNum];
 
-		for (uint32 i = 0u; i < sphereNum; ++i)
-		{
-			//jobs[i] = [this, &_instance, i]()
+			for (uint32 i = 0u; i < sphereNum; ++i)
 			{
-				modelUBOData modelUBOd;
-				modelUBOd.modelMat = API_ConvertCoordinateSystem(Mat4f::MakeTransform(Vec3f(-10.0f + currX * 7.5f, -2.0f + currY * 7.5f, -5.0f),
-					Quatf::Identity, Vec3f::One * 5.0f));
-				
-				currY = (currY + 1) % maxY;
+				//jobs[i] = [this, i, &_instance, &matResourcePaths, &names, &textureImpIfos]()
+				{
+					// Textures.
+					{
+						std::string sphaPath;
+						std::string resPath;
 
-				if (currY == 0)
-					++currX;
+						for (uint32 j = 0u; j < 6u; ++j)
+						{
+							if (matResourcePaths[i][j].empty())
+							{
+								sphaPath = "Bin/Spheres/" + names[i] + "/missing" + std::to_string(j) + "_T" + ".spha";
+								resPath = "../../Engine/Resources/Textures/missing_texture.png";
+							}
+							else
+							{
+								sphaPath = "Bin/Spheres/" + names[i] + '/' + matResourcePaths[i][j] + ".spha";
+								resPath = "../../Samples/Prototype/Resources/Spheres/" + names[i] + '/' + matResourcePaths[i][j] + ".png";
+							}
 
 
-				modelUBOs[i].Create(_instance.device, sizeof(modelUBOData),
-					VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &modelUBOd);
+							TextureAsset asset;
+							uint32 res = asset.TryLoadImport(sphaPath, resPath, textureImpIfos[j]);
 
-				MaterialCreateInfos matCreateInfos(mainRender.litCompPipeline);
+							if (res != 1)
+								asset.Save(sphaPath);
+							else if (res == -1)
+								SA_ASSERT(false, InvalidParam, SDK, L"Import failed");
 
-				MaterialBindingInfos& camBinding = matCreateInfos.bindings.emplace_back();
-				camBinding.binding = 0u;
-				camBinding.SetUniformBuffers({ &mainRender.camUBO });
+							textures[i * 6u + j].Create(_instance, asset.GetRawData());
+						}
+					}
+				};
+			}
 
-				MaterialBindingInfos& modelBinding = matCreateInfos.bindings.emplace_back();
-				modelBinding.binding = 1u;
-				modelBinding.SetUniformBuffers({ &modelUBOs[i] });
-
-				MaterialBindingInfos& textureBinding = matCreateInfos.bindings.emplace_back();
-				textureBinding.binding = 2u;
-				textureBinding.SetImageSamplers2D({ &textures[i * 6],
-					&textures[i * 6 + 1],
-					&textures[i * 6 + 2],
-					&textures[i * 6 + 3],
-					&textures[i * 6 + 4],
-					&textures[i * 6 + 5]
-				});
-
-				materials[i].Create(_instance, matCreateInfos);
-			};
+			//for (uint32 i = 0u; i < sphereNum; ++i)
+			//	jobs[i].Join();
 		}
 
-		//for (uint32 i = 0u; i < sphereNum; ++i)
-		//	jobs[i].Join();
+		// Material Asset.
+		{
+			const uint32 maxY = 3u;
+			Atomic<uint32> currX = 0u;
+			Atomic<uint32> currY = 0u;
+
+			for (uint32 i = 0u; i < sphereNum; ++i)
+			{
+				//jobs[i] = [this, &_instance, i]()
+				{
+					modelUBOData modelUBOd;
+					modelUBOd.modelMat = API_ConvertCoordinateSystem(Mat4f::MakeTransform(Vec3f(-10.0f + currX * 7.5f, -2.0f + currY * 7.5f, -5.0f),
+						Quatf::Identity, Vec3f::One * 0.1f));
+
+					currY = (currY + 1) % maxY;
+
+					if (currY == 0)
+						++currX;
+
+
+					modelUBOs[i].Create(_instance.device, sizeof(modelUBOData),
+						VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &modelUBOd);
+
+					MaterialCreateInfos matCreateInfos(mainRender.litCompPipeline);
+
+					MaterialBindingInfos& camBinding = matCreateInfos.bindings.emplace_back();
+					camBinding.binding = 0u;
+					camBinding.SetUniformBuffers({ &mainRender.camUBO });
+
+					MaterialBindingInfos& modelBinding = matCreateInfos.bindings.emplace_back();
+					modelBinding.binding = 1u;
+					modelBinding.SetUniformBuffers({ &modelUBOs[i] });
+
+					MaterialBindingInfos& textureBinding = matCreateInfos.bindings.emplace_back();
+					textureBinding.binding = 2u;
+					textureBinding.SetImageSamplers2D({ &textures[i * 6],
+						&textures[i * 6 + 1],
+						&textures[i * 6 + 2],
+						&textures[i * 6 + 3],
+						&textures[i * 6 + 4],
+						&textures[i * 6 + 5]
+						});
+
+					materials[i].Create(_instance, matCreateInfos);
+				};
+			}
+
+			//for (uint32 i = 0u; i < sphereNum; ++i)
+			//	jobs[i].Join();
+		}
 	}
 
 	void Destroy(const Vk::RenderInstance& _instance)

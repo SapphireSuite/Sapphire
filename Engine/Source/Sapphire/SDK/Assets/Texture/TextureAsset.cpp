@@ -76,6 +76,6 @@ namespace Sa
 
 	bool TextureAsset::Import(const std::string& _resourcePath, const IAssetImportInfos& _importInfos)
 	{
-		return StbiWrapper::Import(_resourcePath, mRawData, _importInfos.As<TextureImportInfos>());
+		return StbiWrapper::Import(_resourcePath, mRawData, _importInfos.As<ImportT>());
 	}
 }
