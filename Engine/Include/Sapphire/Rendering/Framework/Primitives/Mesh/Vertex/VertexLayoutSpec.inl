@@ -7,7 +7,10 @@ namespace Sa
 		template <VertexComp Comps>
 		uint32 GetVertexSize()
 		{
-			if constexpr (Comps == VertexComp::Position)
+			if constexpr (Comps == VertexComp::None)
+				return 0u;
+
+			else if constexpr (Comps == VertexComp::Position)
 				return sizeof(Vec3f);
 
 			else if constexpr (Comps == VertexComp::PN || Comps == VertexComp::PC)

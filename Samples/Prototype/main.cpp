@@ -141,7 +141,6 @@ struct MainRenderInfos
 			pipelineInfos.shaders.push_back(PipelineShaderInfos{ &litCompFrag, ShaderStage::Fragment });
 
 			pipelineInfos.vertexBindingLayout.meshLayout = VertexLayout::Make<VertexComp::Default>();
-			pipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Default>();
 
 			litCompPipeline.Create(_instance, pipelineInfos);
 		}
@@ -212,8 +211,7 @@ struct MainRenderInfos
 			pipelineInfos.shaders.push_back(PipelineShaderInfos{ &litVert, ShaderStage::Vertex });
 			pipelineInfos.shaders.push_back(PipelineShaderInfos{ &litFrag, ShaderStage::Fragment });
 
-			pipelineInfos.vertexBindingLayout.meshLayout = VertexLayout::Make<VertexComp::Default>();
-			pipelineInfos.vertexBindingLayout.desiredLayout = VertexLayout::Make<VertexComp::Default>();
+			pipelineInfos.vertexBindingLayout.meshLayout = VertexLayout::Make<VertexComp::None>();
 
 			litPipeline.Create(_instance, pipelineInfos);
 
