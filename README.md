@@ -1,5 +1,7 @@
 # Sapphire Engine
 
+/!\ This repository is being migrated at  [SapphireSuite/Engine](https://github.com/SapphireSuite/Engine)
+
 Sapphire is a public source game engine.
 
 All rights of any files from this repository are reserved by members of the GitHub Sapphire development team.
