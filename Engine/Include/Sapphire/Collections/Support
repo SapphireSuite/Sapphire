@@ -1,0 +1,23 @@
+// Copyright 2020 Sapphire development team. All Rights Reserved.
+
+#pragma once
+
+#ifndef SAPPHIRE_COLLECTIONS_SUPPORT_GUARD
+#define SAPPHIRE_COLLECTIONS_SUPPORT_GUARD
+
+#include <Core/Support/Pragma.hpp>
+
+#include <Core/Support/Version.hpp>
+#include <Core/Support/Platforms.hpp>
+#include <Core/Support/Compilers.hpp>
+#include <Core/Support/Architectures.hpp>
+
+#include <Core/Support/EngineAPI.hpp>
+
+#if SA_WIN
+
+	#include <Core/Support/Windows.hpp>
+
+#endif
+
+#endif // GUARD

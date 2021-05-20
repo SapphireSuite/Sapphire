@@ -1,0 +1,36 @@
+// Copyright 2020 Sapphire development team. All Rights Reserved.
+
+#pragma once
+
+#ifndef SAPPHIRE_COLLECTIONS_TYPES_GUARD
+#define SAPPHIRE_COLLECTIONS_TYPES_GUARD
+
+#include <Core/Types/Char.hpp>
+#include <Core/Types/Int.hpp>
+
+#include <Core/Types/Variadics/Limits.hpp>
+#include <Core/Types/Variadics/StaticConstant.hpp>
+#include <Core/Types/Variadics/InitList.hpp>
+
+#include <Core/Types/Extractions/RemoveRef.hpp>
+#include <Core/Types/Extractions/RemoveConstVol.hpp>
+#include <Core/Types/Extractions/RemovePtr.hpp>
+#include <Core/Types/Extractions/RawType.hpp>
+#include <Core/Types/Extractions/FunctionType.hpp>
+
+#include <Core/Types/Conditions/IsSame.hpp>
+#include <Core/Types/Conditions/IsConst.hpp>
+#include <Core/Types/Conditions/IsSigned.hpp>
+#include <Core/Types/Conditions/IsRValue.hpp>
+#include <Core/Types/Conditions/IsReference.hpp>
+#include <Core/Types/Conditions/IsPointer.hpp>
+#include <Core/Types/Conditions/IsArray.hpp>
+#include <Core/Types/Conditions/IsFunction.hpp>
+
+#include <Core/Types/Conditions/IsScalar.hpp>
+#include <Core/Types/Conditions/IsIntegral.hpp>
+#include <Core/Types/Conditions/IsFloatingPoint.hpp>
+#include <Core/Types/Conditions/IsNative.hpp>
+#include <Core/Types/Conditions/IsArithmetic.hpp>
+
+#endif // GUARD

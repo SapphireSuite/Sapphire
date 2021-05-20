@@ -19,8 +19,20 @@ Makefile
 [Bb]uild/
 [Bb]uilds/
 
+[Bb]in/
+
 [Tt]emp/
 [Tt]emps/
+[Tt]emporary/
 
+*.tmp
+
+
+# Log files
 [Ll]og/
 [Ll]ogs/
+
+
+# Documentation generated files
+html/
+latex/

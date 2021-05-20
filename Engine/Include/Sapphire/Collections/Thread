@@ -1,0 +1,14 @@
+// Copyright 2020 Sapphire development team. All Rights Reserved.
+
+#pragma once
+
+#ifndef SAPPHIRE_COLLECTIONS_THREAD_GUARD
+#define SAPPHIRE_COLLECTIONS_THREAD_GUARD
+
+#include <Core/Thread/Mutex.hpp>
+#include <Core/Thread/Atomic.hpp>
+
+#include <Core/Thread/Thread.hpp>
+#include <Core/Thread/ThreadMode.hpp>
+
+#endif // GUARD

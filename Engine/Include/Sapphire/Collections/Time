@@ -1,0 +1,16 @@
+// Copyright 2020 Sapphire development team. All Rights Reserved.
+
+#pragma once
+
+#ifndef SAPPHIRE_COLLECTIONS_TIME_GUARD
+#define SAPPHIRE_COLLECTIONS_TIME_GUARD
+
+#include <Core/Time/MilliSecond.hpp>
+#include <Core/Time/Second.hpp>
+#include <Core/Time/Minute.hpp>
+#include <Core/Time/Hour.hpp>
+
+#include <Core/Time/Time.hpp>
+#include <Core/Time/Chrono.hpp>
+
+#endif // GUARD
